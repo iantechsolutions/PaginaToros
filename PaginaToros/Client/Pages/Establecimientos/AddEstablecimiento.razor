@@ -1,0 +1,73 @@
+﻿<div class="card">
+    <div class="card-body">
+        <EditForm Model="@oEstablecimiento" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <div class="row" style="width=100%;">
+                <div class="col-sm-6">
+                    <label>Nombre del establecimiento</label>
+                    <InputText class="form-control" @bind-Value="@oEstablecimiento.Nombre"
+                               placeholder="Nombre"></InputText>
+                    <ValidationMessage For="(()=> oEstablecimiento.Nombre)" style="color:red;" />
+                </div>
+                <div class="col-sm-6">
+                    <label class="col-sm">Consultas realizadas</label>
+                    <InputNumber @bind-Value="@oEstablecimiento.ConsultasRealizadas" class="form-control" placeholder="Consultas realizadas"></InputNumber>
+                    <ValidationMessage For="(()=> oEstablecimiento.ConsultasRealizadas)" style="color:red;" />
+                </div>
+
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-sm-6">
+                    <label>Fecha</label>
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oEstablecimiento.Fecha" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div>
+            </div>
+            <br />
+
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+    Establecimiento oEstablecimiento = new();
+    Respuesta<Establecimiento> oRespuesta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id != 0)
+        {
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Establecimiento>>($"/api/Establecimiento/{id}");
+                oEstablecimiento = oRespuesta.List;
+
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        if (id == 0)
+        {
+            await Http.PostAsJsonAsync<Establecimiento>("/api/Establecimiento", oEstablecimiento);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<Establecimiento>("/api/Establecimiento", oEstablecimiento);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+}

@@ -1,0 +1,95 @@
+﻿@using PaginaToros.Client.Pages
+<div class="card">
+    <div class="card-body">
+        <EditForm Model="@oTransaccione" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+
+            <div class="row" style="width=100%;">
+                <div class="col-sm-6">
+                    <label>Nombre Comprador</label>
+                    <InputText class="form-control" @bind-Value="@oTransaccione.NombreComprador"
+                    placeholder="Nombre Comprador"></InputText>
+                    <ValidationMessage For="(()=> oTransaccione.NombreComprador)" style="color:red;" />
+                </div>
+                <div class="col-sm-6">
+                    <label class="col-sm">Nombre Vendedor</label>
+                    <InputText @bind-Value="@oTransaccione.NombreVendedor" class="form-control" placeholder="Nombre Vendedor"></InputText>
+                    <ValidationMessage For="(()=> oTransaccione.NombreVendedor)" style="color:red;" />
+                </div>
+
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-sm-6">
+                    <label class="col-sm">Total de Vacas</label>
+                    <InputNumber @bind-Value="@oTransaccione.Total" class="form-control" placeholder="Total de vacas"></InputNumber>
+                    <ValidationMessage For="(()=> oTransaccione.Total)" style="color:red;" />
+
+                </div>
+                <div class="col-sm-6">
+                    <label>Fecha</label>
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTransaccione.Fecha" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div>
+            </div>
+            <div class="row">
+                <label>Toros</label>
+                <MultiValueFill PossibleValues="@torosPosibles" SelectedItemsChanged="HandleSelectedItemsChanged" />
+
+            </div>
+            <br />
+            
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+    Transaccione oTransaccione = new();
+    List<string?> torosPosibles = new();
+    Respuesta<Transaccione> oRespuesta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Respuesta<List<Toro>> torosDB = await Http.GetFromJsonAsync<Respuesta<List<Toro>>>("/api/Toro");
+        foreach (Toro oToro in torosDB.List)
+        {
+            torosPosibles.Add(oToro.Nombre);
+        }
+        if (id != 0)
+        {
+            try{
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Transaccione>>($"/api/TransaccioneData/{id}");
+                oTransaccione = oRespuesta.List;
+                
+            }
+            catch(Exception ex){
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        if (id == 0)
+        {
+            await Http.PostAsJsonAsync<Transaccione>("/api/TransaccioneData", oTransaccione);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<Transaccione>("/api/TransaccioneData", oTransaccione);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+    private void HandleSelectedItemsChanged(List<string> selectedItems)
+    {
+        string torosElegidos = string.Join(", ", selectedItems);
+        oTransaccione.Toros = torosElegidos;
+    }
+}

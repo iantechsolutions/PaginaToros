@@ -1,0 +1,80 @@
+﻿<div class="card">
+    <div class="card-body">
+        <EditForm Model="@oToro" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <div class="row" style="width=100%;">
+                <div class="col-sm-6">
+                    <label>Nombre del Toro</label>
+                    <InputText class="form-control" @bind-Value="@oToro.Nombre"
+                               placeholder="Nombre"></InputText>
+                    <ValidationMessage For="(()=> oToro.Nombre)" style="color:red;" />
+                </div>
+                <div class="col-sm-6">
+                    <label class="col-sm">Calidad</label>
+                    <InputNumber @bind-Value="@oToro.Calidad" class="form-control" placeholder="Calidad"></InputNumber>
+                    <ValidationMessage For="(()=> oToro.Calidad)" style="color:red;" />
+                </div>
+
+            </div>
+            <br />
+            <div class="row">
+                <label>Nombre Del Establecimiento</label>
+                <RadzenAutoComplete @bind-Value="@oToro.NombreEst" Data="@NombresPosibles" Placeholder="" AllowClear="false" FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive />
+            </div>
+            
+            <br />
+
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    Toro oToro = new();
+    Respuesta<Toro> oRespuesta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int id { get; set; }
+    List<string> NombresPosibles = new();
+    protected override async Task OnInitializedAsync()
+    {
+        Respuesta<List<Establecimiento>> EstablecimientosDB = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>("/api/Establecimiento");
+        foreach (Establecimiento oEstablecimiento in EstablecimientosDB.List)
+        {
+            NombresPosibles.Add(oEstablecimiento.Nombre);
+        }
+        if (id != 0)
+        {
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Toro>>($"/api/Toro/{id}");
+                oToro = oRespuesta.List;
+
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        int idEstablecimiento = NombresPosibles.FindIndex(a => a == oToro.NombreEst);
+        oToro.IdEst = idEstablecimiento + 1;
+        if (id == 0)
+        {
+            await Http.PostAsJsonAsync<Toro>("/api/Toro", oToro);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<Toro>("/api/Toro", oToro);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+}
