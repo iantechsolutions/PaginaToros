@@ -2,9 +2,9 @@
 @inject HttpClient Http
 @using PaginaToros.Client.Pages.Transacciones
 @using CurrieTechnologies.Razor.SweetAlert2
-<h3>Transacciones</h3>
+<h3 style="position:relative;right:100px">Transacciones</h3>
 
-<button class="btn btn-outline-primary" @onclick="()=>add(0)">Agregar Transaccion</button>
+<button style="position:relative;right:100px" class="btn btn-outline-primary" @onclick="()=>add(0)">Agregar Transaccion</button>
 
 @if (oRespuesta.List != null)
 {
@@ -15,10 +15,15 @@
                 AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                 Data="@oRespuesta.List" TItem="Transaccione" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or">
         <Columns>
-            <RadzenDataGridColumn TItem="Transaccione" Property="NombreComprador" Title="Comprador" Width="80px" />
-            <RadzenDataGridColumn TItem="Transaccione" Property="NombreVendedor" Title="Vendedor" Width="80px" />
-            <RadzenDataGridColumn TItem="Transaccione" Property="Fecha" Title="Fecha" Width="40px" />
-            <RadzenDataGridColumn TItem="Transaccione" Property="Total" Title="Total De Toros" Width="50px"/>
+            <RadzenDataGridColumn TItem="Transaccione" Property="NombreComprador" Title="Comprador" Width="60px" />
+            <RadzenDataGridColumn TItem="Transaccione" Property="NombreVendedor" Title="Vendedor" Width="60px" />
+            <RadzenDataGridColumn TItem="Transaccione" Property="Fecha" Title="Fecha" Width="50px">
+                <Template Context="data">
+                    <span>@data.Fecha.Value.ToString("dd/MM/yyyy")</span>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Transaccione" Property="TotalVaquillonas" Title="Total de Vaquillonas" Width="80px" />
+            <RadzenDataGridColumn TItem="Transaccione" Property="TotalToros" Title="Total De Toros" Width="80px"/>
             <RadzenDataGridColumn TItem="Transaccione" Property="Toros" Title="Toros" Width="80px" />
             <RadzenDataGridColumn TItem="Transaccione" Property="" Title="" Filterable="false" Width="30px">
                     <Template Context="data">
@@ -44,7 +49,7 @@ else
     <br />
     <center>
         <div class="mb-2">
-            <RadzenProgressBar Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Secondary" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenProgressBar style="position:relative;right:100px;width:1300px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Secondary" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </center>
 }

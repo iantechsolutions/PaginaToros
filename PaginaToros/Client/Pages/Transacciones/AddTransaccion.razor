@@ -7,33 +7,38 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm-6">
                     <label>Nombre Comprador</label>
-                    <InputText class="form-control" @bind-Value="@oTransaccione.NombreComprador"
-                    placeholder="Nombre Comprador"></InputText>
-                    <ValidationMessage For="(()=> oTransaccione.NombreComprador)" style="color:red;" />
+                    <RadzenAutoComplete style="" @bind-Value="@oTransaccione.NombreComprador" Data="@establecimientosPosbiles" Placeholder="" AllowClear="false" FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive />
                 </div>
                 <div class="col-sm-6">
                     <label class="col-sm">Nombre Vendedor</label>
-                    <InputText @bind-Value="@oTransaccione.NombreVendedor" class="form-control" placeholder="Nombre Vendedor"></InputText>
-                    <ValidationMessage For="(()=> oTransaccione.NombreVendedor)" style="color:red;" />
+                    <RadzenAutoComplete style="" @bind-Value="@oTransaccione.NombreVendedor" Data="@establecimientosPosbiles" Placeholder="" AllowClear="false" FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive />
                 </div>
 
             </div>
             <br />
             <div class="row">
                 <div class="col-sm-6">
-                    <label class="col-sm">Total de Vacas</label>
-                    <InputNumber @bind-Value="@oTransaccione.Total" class="form-control" placeholder="Total de vacas"></InputNumber>
-                    <ValidationMessage For="(()=> oTransaccione.Total)" style="color:red;" />
+                    <label class="col-sm">Total de Vaquillonas</label>
+                    <InputNumber @bind-Value="@oTransaccione.TotalVaquillonas" class="form-control" placeholder="Total de vaquillonas"></InputNumber>
+                    <ValidationMessage For="(()=> oTransaccione.TotalVaquillonas)" style="color:red;" />
 
                 </div>
                 <div class="col-sm-6">
-                    <label>Fecha</label>
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTransaccione.Fecha" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <label class="col-sm">Total de Toros</label>
+                    <InputNumber @bind-Value="@oTransaccione.TotalToros" class="form-control" placeholder="Total de toros"></InputNumber>
+                    <ValidationMessage For="(()=> oTransaccione.TotalToros)" style="color:red;" />
                 </div>
             </div>
             <div class="row">
-                <label>Toros</label>
-                <MultiValueFill PossibleValues="@torosPosibles" SelectedItemsChanged="HandleSelectedItemsChanged" />
+                <div class="col-sm-6">
+                    <label>Toros</label>
+                    <MultiValueFill PossibleValues="@torosPosibles" SelectedItemsChanged="HandleSelectedItemsChanged" />
+                </div>
+                <div class="col-sm-6">
+                    <label>Fecha</label><br/>
+                    <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div>
+                
 
             </div>
             <br />
@@ -46,9 +51,11 @@
 @code {
     Transaccione oTransaccione = new();
     List<string?> torosPosibles = new();
+    List<string> establecimientosPosbiles = new();
     Respuesta<Transaccione> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int id { get; set; }
+    DateTime fechaTemp = DateTime.Now.Date;
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,12 +64,17 @@
         {
             torosPosibles.Add(oToro.Nombre);
         }
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>("/api/Establecimiento");
+        foreach (Establecimiento oEST in rta.List)
+        {
+            establecimientosPosbiles.Add(oEST.Nombre);
+        }
         if (id != 0)
         {
             try{
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<Transaccione>>($"/api/TransaccioneData/{id}");
                 oTransaccione = oRespuesta.List;
-                
+
             }
             catch(Exception ex){
                 oRespuesta.Mensaje = ex.Message;
@@ -71,6 +83,7 @@
     }
     async Task Guardar()
     {
+        oTransaccione.Fecha = fechaTemp;
         if (id == 0)
         {
             await Http.PostAsJsonAsync<Transaccione>("/api/TransaccioneData", oTransaccione);

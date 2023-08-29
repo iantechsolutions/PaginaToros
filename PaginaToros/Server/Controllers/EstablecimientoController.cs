@@ -13,7 +13,7 @@ namespace PaginaToros.Server.Controllers
         public IActionResult Get(int id)
         {
             Respuesta<Establecimiento> oRespuesta = new Respuesta<Establecimiento>();
-
+            
             try
             {
                 using (BlazorCrudContext db = new())
@@ -53,7 +53,7 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
         [HttpPost]
-        public IActionResult Add(EstablecimientoRequest model)
+        public IActionResult Add(Establecimiento model)
         {
             Respuesta<List<Establecimiento>> oRespuesta = new Respuesta<List<Establecimiento>>();
             try
@@ -61,9 +61,20 @@ namespace PaginaToros.Server.Controllers
                 using (BlazorCrudContext db = new BlazorCrudContext())
                 {
                     Establecimiento oEstablecimiento = new Establecimiento();
+                    oEstablecimiento.Codigo = model.Codigo;
+                    oEstablecimiento.NombreSocio = model.NombreSocio;
+                    oEstablecimiento.Activo = model.Activo;
                     oEstablecimiento.Nombre = model.Nombre;
-                    oEstablecimiento.ConsultasRealizadas = model.ConsultasRealizadas;
-                    oEstablecimiento.Fecha = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day);
+                    oEstablecimiento.Encargado = model.Encargado;
+                    oEstablecimiento.Domicilio = model.Domicilio;
+                    oEstablecimiento.Telefono = model.Telefono;
+                    oEstablecimiento.Localidad = model.Localidad;
+                    oEstablecimiento.CodPostal = model.CodPostal;
+                    oEstablecimiento.Provincia = model.Provincia;
+                    oEstablecimiento.Informacion = model.Informacion;
+                    oEstablecimiento.CodZona = model.CodZona;
+                    oEstablecimiento.FechaExistencia = model.FechaExistencia;
+                    
                     db.Establecimientos.Add(oEstablecimiento);
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
@@ -77,7 +88,7 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPut]
-        public IActionResult Edit(EstablecimientoRequest model)
+        public IActionResult Edit(Establecimiento model)
         {
             Respuesta<List<Establecimiento>> oRespuesta = new Respuesta<List<Establecimiento>>();
             IQueryable<Toro> TorosPorId; ;
@@ -86,15 +97,26 @@ namespace PaginaToros.Server.Controllers
                 using (BlazorCrudContext db = new BlazorCrudContext())
                 {
                     Establecimiento oEstablecimiento = db.Establecimientos.Find(model.Id);
+                    oEstablecimiento.Codigo = model.Codigo;
+                    oEstablecimiento.NombreSocio = model.NombreSocio;
+                    oEstablecimiento.Activo = model.Activo;
                     oEstablecimiento.Nombre = model.Nombre;
-                    oEstablecimiento.ConsultasRealizadas = model.ConsultasRealizadas;
-                    oEstablecimiento.Fecha = model.Fecha;
-                    TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
-                    foreach (var row in TorosPorId)
-                    {
-                        row.NombreEst = model.Nombre;
-                        db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    }
+                    oEstablecimiento.Encargado = model.Encargado;
+                    oEstablecimiento.Domicilio = model.Domicilio;
+                    oEstablecimiento.Telefono = model.Telefono;
+                    oEstablecimiento.Localidad = model.Localidad;
+                    oEstablecimiento.CodPostal = model.CodPostal;
+                    oEstablecimiento.Provincia = model.Provincia;
+                    oEstablecimiento.Informacion = model.Informacion;
+                    oEstablecimiento.CodZona = model.CodZona;
+                    oEstablecimiento.FechaExistencia = model.FechaExistencia;
+                    
+                    //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
+                    //foreach (var row in TorosPorId)
+                    //{
+                    //    row.NombreEst = model.Nombre;
+                    //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    //}
                     db.Entry(oEstablecimiento).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();
@@ -111,18 +133,18 @@ namespace PaginaToros.Server.Controllers
         public IActionResult Delete(int Id)
         {
             Respuesta<List<Establecimiento>> oRespuesta = new Respuesta<List<Establecimiento>>();
-            IQueryable<Toro> TorosPorId;
+            //IQueryable<Toro> TorosPorId;
             try
             {
                 using (BlazorCrudContext db = new BlazorCrudContext())
                 {
                 Establecimiento oEstablecimiento = db.Establecimientos.Find(Id);
                 db.Remove(oEstablecimiento);
-                var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                foreach(Toro oElement in dbToros)
-                    {
-                        db.Remove(oElement);
-                    }
+                //var dbToros = db.Toros.Where(x => x.IdEst == Id);
+                //foreach(Toro oElement in dbToros)
+                //    {
+                //        db.Remove(oElement);
+                //    }
                 db.SaveChanges();
                 oRespuesta.Exito = 1;
                 }

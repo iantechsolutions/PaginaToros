@@ -65,7 +65,7 @@
       "url": "images\/logo.png"
     },
     {
-      "hash": "sha256-k4ZtW3S8jqWjCdGD5xBNLk5gO+wv1iqfUhVhTP8sWT0=",
+      "hash": "sha256-MgPr3xn62ZfcYvUvSPjiaFhgn7StH5R+vRDijomOO5A=",
       "url": "index.html"
     },
     {
@@ -73,7 +73,7 @@
       "url": "manifest.json"
     },
     {
-      "hash": "sha256-NYCiHocgT\/UT7YKiDp+Poh96TcTnI5Rj40DTJALkclg=",
+      "hash": "sha256-NxJOplUSFosp+areOV3u1rSYiWzamHhwTKGt0oe+Mp8=",
       "url": "PaginaToros.Client.styles.css"
     },
     {
@@ -91,6 +91,10 @@
     {
       "hash": "sha256-l3vyo6fcSWWhGiOMu5\/e4tQzZa7c+U1d1hHPGo74WFc=",
       "url": "_framework\/Blazored.SessionStorage.dll"
+    },
+    {
+      "hash": "sha256-0cq+AP7JH6JLYVm2dkmhZ4IIP65fMqy\/jFQ5mtrpkJY=",
+      "url": "_framework\/Blazored.Typeahead.dll"
     },
     {
       "hash": "sha256-ZtcnyZMjwbz1AT9+c1enyaTGZCWANbCxFnCqEcATz94=",
@@ -1005,19 +1009,19 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-ctmO+NjC\/4UOgyAbClJUefFQ6tqUJ23tqaKQ8QOLUtg=",
+      "hash": "sha256-l80iL9HlUu8VJyemqMzJZyT98a3bPACJ5wy2Ix369ro=",
       "url": "_framework\/PaginaToros.Shared.dll"
     },
     {
-      "hash": "sha256-BUuCRj9KSLSbS\/JX\/At5QoXJjUnMrPSBpaFcTzr0uLU=",
+      "hash": "sha256-N2BD\/oXVpzinfTLBGWG74nk3CthOQjA10I1Zhu4wLko=",
       "url": "_framework\/PaginaToros.Shared.pdb"
     },
     {
-      "hash": "sha256-T0ZimhjdsrPCWhdpucOb3l6ys6EsTXrw4+Y5LgpxDmM=",
+      "hash": "sha256-4m09HjxDK0\/ac6RHbU3siCcsiSjtnHvb5n86jN4zLXM=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-eqHc1pjhoTYxdwDzRONhf995uInj5p\/DOlZu4qMy9SM=",
+      "hash": "sha256-EbdbMtOfWQFUCe7a6OeseA\/bnAI3cXrmI5tdB0QtjnE=",
       "url": "_framework\/PaginaToros.Client.pdb"
     },
     {
@@ -1025,7 +1029,7 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-K5DMwJOo0MX+8LyV4dHGyTgSGRhslZTg3GcB12dHu94=",
+      "hash": "sha256-1gWm2PXLlelg63KxMIpBh970xuISkO1Umxi9JOSZIZk=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -1297,6 +1301,14 @@
       "url": "_content\/CurrieTechnologies.Razor.SweetAlert2\/wordpressAdminTheme.min.js"
     },
     {
+      "hash": "sha256-J3yBtIuvF38lccTVcUS7ScUgk93ATgKN6kbpbFM9JA0=",
+      "url": "_content\/Blazored.Typeahead\/blazored-typeahead.css"
+    },
+    {
+      "hash": "sha256-ClIzMmBI5Nozgt7KRG3K3u45r2pMtn\/X9Vx2UeudOPU=",
+      "url": "_content\/Blazored.Typeahead\/blazored-typeahead.js"
+    },
+    {
       "hash": "sha256-JnMrV9FYOYSibA85LvQGGV3uJ7zv2njdJX1GFslt2Aw=",
       "url": "_content\/Blazored.Modal\/BlazoredModal.razor.js"
     },
@@ -1305,5 +1317,5 @@
       "url": "_content\/Blazored.Modal\/Blazored.Modal.bundle.scp.css"
     }
   ],
-  "version": "m0evzMUJ"
+  "version": "6PyG\/Zzx"
 };

@@ -79,6 +79,25 @@
           "lib/net6.0/Blazored.SessionStorage.dll": {}
         }
       },
+      "Blazored.Typeahead/4.7.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.AspNetCore.Components": "6.0.3",
+          "Microsoft.AspNetCore.Components.Web": "6.0.3"
+        },
+        "compile": {
+          "lib/net6.0/Blazored.Typeahead.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/Blazored.Typeahead.dll": {}
+        },
+        "build": {
+          "buildTransitive/Blazored.Typeahead.props": {}
+        },
+        "buildMultiTargeting": {
+          "buildMultiTargeting/Blazored.Typeahead.props": {}
+        }
+      },
       "CurrieTechnologies.Razor.SweetAlert2/5.5.0": {
         "type": "package",
         "dependencies": {
@@ -1024,6 +1043,19 @@
           "lib/netstandard2.0/Mono.TextTemplating.dll": {}
         }
       },
+      "MySqlConnector/2.2.5": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/MySqlConnector.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/MySqlConnector.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Newtonsoft.Json/13.0.3": {
         "type": "package",
         "compile": {
@@ -1033,6 +1065,23 @@
         },
         "runtime": {
           "lib/net6.0/Newtonsoft.Json.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Pomelo.EntityFrameworkCore.MySql/7.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Relational": "7.0.2",
+          "MySqlConnector": "2.2.5"
+        },
+        "compile": {
+          "lib/net6.0/Pomelo.EntityFrameworkCore.MySql.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Pomelo.EntityFrameworkCore.MySql.dll": {
             "related": ".xml"
           }
         }
@@ -1517,6 +1566,7 @@
         "dependencies": {
           "Blazored.Modal": "7.1.0",
           "Blazored.SessionStorage": "2.3.0",
+          "Blazored.Typeahead": "4.7.0",
           "CurrieTechnologies.Razor.SweetAlert2": "5.5.0",
           "Feather.Blazor": "1.0.1",
           "Microsoft.AspNetCore.Components.WebAssembly": "6.0.15",
@@ -1617,6 +1667,25 @@
         "icon.png",
         "lib/net6.0/Blazored.SessionStorage.dll",
         "lib/net7.0/Blazored.SessionStorage.dll"
+      ]
+    },
+    "Blazored.Typeahead/4.7.0": {
+      "sha512": "fTN4Bt9rwEE/d33FXFd+h/DBjVtsFJLRf9B8mu0zJWMWG5Mk2tU2il3aK0+laUxNgBNBgEL0jW/831I+oapd6A==",
+      "type": "package",
+      "path": "blazored.typeahead/4.7.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "blazored.typeahead.4.7.0.nupkg.sha512",
+        "blazored.typeahead.nuspec",
+        "build/Blazored.Typeahead.props",
+        "build/Microsoft.AspNetCore.StaticWebAssets.props",
+        "buildMultiTargeting/Blazored.Typeahead.props",
+        "buildTransitive/Blazored.Typeahead.props",
+        "icon.png",
+        "lib/net6.0/Blazored.Typeahead.dll",
+        "staticwebassets/blazored-typeahead.css",
+        "staticwebassets/blazored-typeahead.js"
       ]
     },
     "CurrieTechnologies.Razor.SweetAlert2/5.5.0": {
@@ -2971,6 +3040,33 @@
         "mono.texttemplating.nuspec"
       ]
     },
+    "MySqlConnector/2.2.5": {
+      "sha512": "6sinY78RvryhHwpup3awdjYO7d5hhWahb5p/1VDODJhSxJggV/sBbYuKK5IQF9TuzXABiddqUbmRfM884tqA3Q==",
+      "type": "package",
+      "path": "mysqlconnector/2.2.5",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net461/MySqlConnector.dll",
+        "lib/net461/MySqlConnector.xml",
+        "lib/net471/MySqlConnector.dll",
+        "lib/net471/MySqlConnector.xml",
+        "lib/net6.0/MySqlConnector.dll",
+        "lib/net6.0/MySqlConnector.xml",
+        "lib/net7.0/MySqlConnector.dll",
+        "lib/net7.0/MySqlConnector.xml",
+        "lib/netcoreapp3.1/MySqlConnector.dll",
+        "lib/netcoreapp3.1/MySqlConnector.xml",
+        "lib/netstandard2.0/MySqlConnector.dll",
+        "lib/netstandard2.0/MySqlConnector.xml",
+        "lib/netstandard2.1/MySqlConnector.dll",
+        "lib/netstandard2.1/MySqlConnector.xml",
+        "logo.png",
+        "mysqlconnector.2.2.5.nupkg.sha512",
+        "mysqlconnector.nuspec"
+      ]
+    },
     "Newtonsoft.Json/13.0.3": {
       "sha512": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ==",
       "type": "package",
@@ -2999,6 +3095,23 @@
         "newtonsoft.json.13.0.3.nupkg.sha512",
         "newtonsoft.json.nuspec",
         "packageIcon.png"
+      ]
+    },
+    "Pomelo.EntityFrameworkCore.MySql/7.0.0": {
+      "sha512": "Qk5WB/skSZet5Yrz6AN2ywjZaB1pxfAmvQ+5I4khTkLwwIamI4QJoH2NphCWLFQL+2ar8HvsNCTmwYk0qhqL0w==",
+      "type": "package",
+      "path": "pomelo.entityframeworkcore.mysql/7.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net6.0/Pomelo.EntityFrameworkCore.MySql.dll",
+        "lib/net6.0/Pomelo.EntityFrameworkCore.MySql.xml",
+        "lib/net7.0/Pomelo.EntityFrameworkCore.MySql.dll",
+        "lib/net7.0/Pomelo.EntityFrameworkCore.MySql.xml",
+        "pomelo.entityframeworkcore.mysql.7.0.0.nupkg.sha512",
+        "pomelo.entityframeworkcore.mysql.nuspec"
       ]
     },
     "Radzen.Blazor/4.11.1": {
@@ -4051,7 +4164,8 @@
       "Microsoft.EntityFrameworkCore.SqlServer >= 8.0.0-preview.4.23259.3",
       "Microsoft.EntityFrameworkCore.Tools >= 8.0.0-preview.4.23259.3",
       "PaginaToros.Client >= 1.0.0",
-      "PaginaToros.Shared >= 1.0.0"
+      "PaginaToros.Shared >= 1.0.0",
+      "Pomelo.EntityFrameworkCore.MySql >= 7.0.0"
     ]
   },
   "packageFolders": {
@@ -4075,7 +4189,9 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "https://api.nuget.org/v3/index.json": {}
+        "C:\\Users\\lolo1\\DEVELOP\\nugets": {},
+        "https://api.nuget.org/v3/index.json": {},
+        "https://pkgs.dev.azure.com/sumato-id/AKIRA.SOLUTION/_packaging/SumatoNugets/nuget/v3/index.json": {}
       },
       "frameworks": {
         "net6.0": {
@@ -4113,6 +4229,10 @@
             "suppressParent": "All",
             "target": "Package",
             "version": "[8.0.0-preview.4.23259.3, )"
+          },
+          "Pomelo.EntityFrameworkCore.MySql": {
+            "target": "Package",
+            "version": "[7.0.0, )"
           }
         },
         "imports": [
