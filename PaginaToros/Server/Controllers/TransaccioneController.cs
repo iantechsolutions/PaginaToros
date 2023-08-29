@@ -54,7 +54,7 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
         [HttpPost]
-        public IActionResult Add(TransaccioneRequest model)
+        public IActionResult Add(Transaccione model)
         {
             Respuesta<List<Transaccione>> oRespuesta = new Respuesta<List<Transaccione>>();
             try
@@ -65,12 +65,16 @@ namespace PaginaToros.Server.Controllers
                     oTransaccione.NombreVendedor = model.NombreVendedor;
                     oTransaccione.NombreComprador = model.NombreComprador;
                     oTransaccione.Fecha = model.Fecha;
-                    oTransaccione.Total = model.Total;
+                    oTransaccione.TotalToros = model.TotalToros;
+                    oTransaccione.TotalVaquillonas = model.TotalVaquillonas;
                     oTransaccione.Toros = model.Toros;
                     db.Transacciones.Add(oTransaccione);
-                    var ListaToros = db.Toros.Where(x => x.NombreEst == model.NombreVendedor);
-                    foreach (Toro oToro in ListaToros){
+                    var ListaToros = model.Toros.Split(", ").ToList<string>();
+                    foreach (string nombre in ListaToros){
+                        Toro oToro = db.Toros.Where(x => x.Nombre == nombre && x.NombreEst==model.NombreVendedor).First();
                         oToro.NombreEst = model.NombreComprador;
+                        var oEst = db.Establecimientos.Where(x => x.Nombre == model.NombreComprador).First();
+                        oToro.IdEst = oEst.Id;
                         db.Entry(oToro).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     }
                     db.SaveChanges();
@@ -84,7 +88,7 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
         [HttpPut]
-        public IActionResult Edit(TransaccioneRequest model)
+        public IActionResult Edit(Transaccione model)
         {
             Respuesta<List<Transaccione>> oRespuesta = new Respuesta<List<Transaccione>>();
             try
@@ -95,7 +99,8 @@ namespace PaginaToros.Server.Controllers
                     oTransaccione.NombreVendedor = model.NombreVendedor;
                     oTransaccione.NombreComprador = model.NombreComprador;
                     oTransaccione.Fecha = model.Fecha;
-                    oTransaccione.Total = model.Total;
+                    oTransaccione.TotalToros = model.TotalToros;
+                    oTransaccione.TotalVaquillonas = model.TotalVaquillonas;
                     oTransaccione.Toros = model.Toros;
                     db.Entry(oTransaccione).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     db.SaveChanges();

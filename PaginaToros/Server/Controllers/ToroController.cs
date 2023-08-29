@@ -54,7 +54,7 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
         [HttpPost]
-        public IActionResult Add(ToroRequest model)
+        public IActionResult Add(Toro model)
         {
             
             Respuesta<List<Toro>> oRespuesta = new Respuesta<List<Toro>>();
@@ -79,7 +79,7 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
         [HttpPut]
-        public IActionResult Edit(ToroRequest model)
+        public IActionResult Edit(Toro model)
         {
             Respuesta<List<Toro>> oRespuesta = new Respuesta<List<Toro>>();
             try

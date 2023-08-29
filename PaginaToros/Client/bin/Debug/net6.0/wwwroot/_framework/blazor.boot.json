@@ -11,6 +11,7 @@
       "Azure.Identity.dll": "sha256-Zmlzr5CM+CpJVTCy6iMHQATerUReG7Ru91pePIeaYyE=",
       "Blazored.Modal.dll": "sha256-Sr30UiM7JErBe8hojY6HAgaOOgfQE5zHijI0uVypmkM=",
       "Blazored.SessionStorage.dll": "sha256-l3vyo6fcSWWhGiOMu5\/e4tQzZa7c+U1d1hHPGo74WFc=",
+      "Blazored.Typeahead.dll": "sha256-0cq+AP7JH6JLYVm2dkmhZ4IIP65fMqy\/jFQ5mtrpkJY=",
       "CurrieTechnologies.Razor.SweetAlert2.dll": "sha256-ZtcnyZMjwbz1AT9+c1enyaTGZCWANbCxFnCqEcATz94=",
       "Feather.Blazor.dll": "sha256-LoYpNXNZGPiOg1EI2AebI793UrpJEGiBhWcZxCRqtXg=",
       "Microsoft.AspNetCore.Authorization.dll": "sha256-iHLDF8B7pfRTW\/hNQ3ctXZN6PEfTsWrDiTyw1fLNMsI=",
@@ -232,15 +233,15 @@
       "mscorlib.dll": "sha256-C3gpWQMELcHYfrHU\/1agQUvWTtSNs9Ul2suMxcKFnIc=",
       "netstandard.dll": "sha256-CgGkoZQx73t3qchcsu85kgBcgrjNEOiudArOwKNb18k=",
       "System.Private.CoreLib.dll": "sha256-6nUSjiT7okMlkN897OnDypwppYuK7JxTahOClXkAuwE=",
-      "PaginaToros.Shared.dll": "sha256-ctmO+NjC\/4UOgyAbClJUefFQ6tqUJ23tqaKQ8QOLUtg=",
-      "PaginaToros.Client.dll": "sha256-pvELDmSWFkjl8lh+zKOpws5lH\/r7v451CDhcJ+0OXmM="
+      "PaginaToros.Shared.dll": "sha256-l80iL9HlUu8VJyemqMzJZyT98a3bPACJ5wy2Ix369ro=",
+      "PaginaToros.Client.dll": "sha256-4m09HjxDK0\/ac6RHbU3siCcsiSjtnHvb5n86jN4zLXM="
     },
     "extensions": null,
     "lazyAssembly": null,
     "libraryInitializers": null,
     "pdb": {
-      "PaginaToros.Shared.pdb": "sha256-BUuCRj9KSLSbS\/JX\/At5QoXJjUnMrPSBpaFcTzr0uLU=",
-      "PaginaToros.Client.pdb": "sha256-fIO1y16VeCERDrCLcWR6QIxZ9tgzI2zd1t7u8T4C4Xs="
+      "PaginaToros.Shared.pdb": "sha256-N2BD\/oXVpzinfTLBGWG74nk3CthOQjA10I1Zhu4wLko=",
+      "PaginaToros.Client.pdb": "sha256-EbdbMtOfWQFUCe7a6OeseA\/bnAI3cXrmI5tdB0QtjnE="
     },
     "runtime": {
       "dotnet.6.0.16.n2jwsu07qa.js": "sha256-GT2gK+GjOisRXJY+9yh6H8s6K\/KDIsaFMFIgWvAnttY=",

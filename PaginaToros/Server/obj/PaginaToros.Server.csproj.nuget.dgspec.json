@@ -22,7 +22,9 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Users\\lolo1\\DEVELOP\\nugets": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/sumato-id/AKIRA.SOLUTION/_packaging/SumatoNugets/nuget/v3/index.json": {}
         },
         "frameworks": {
           "net6.0": {
@@ -51,6 +53,10 @@
             "Blazored.SessionStorage": {
               "target": "Package",
               "version": "[2.3.0, )"
+            },
+            "Blazored.Typeahead": {
+              "target": "Package",
+              "version": "[4.7.0, )"
             },
             "CurrieTechnologies.Razor.SweetAlert2": {
               "target": "Package",
@@ -131,7 +137,9 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Users\\lolo1\\DEVELOP\\nugets": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/sumato-id/AKIRA.SOLUTION/_packaging/SumatoNugets/nuget/v3/index.json": {}
         },
         "frameworks": {
           "net6.0": {
@@ -169,6 +177,10 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[8.0.0-preview.4.23259.3, )"
+            },
+            "Pomelo.EntityFrameworkCore.MySql": {
+              "target": "Package",
+              "version": "[7.0.0, )"
             }
           },
           "imports": [
@@ -212,7 +224,9 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {}
+          "C:\\Users\\lolo1\\DEVELOP\\nugets": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/sumato-id/AKIRA.SOLUTION/_packaging/SumatoNugets/nuget/v3/index.json": {}
         },
         "frameworks": {
           "net6.0": {

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Lp3u7uUONHifnIYnYy4BkG1Ag3FmWnQM8Eiojvc5WF085JRPK3n3vL04YLwDELKN0CWCq8MVsE70SJRmYguArw==",
+  "dgSpecHash": "/36B56wmwfyIb77QU83zrQ0h8Q0Hs87Ln89a61Exi0baX0zB2aOW19/oXhjdBjHuLX5rgr18yofFzgJUKr5puw==",
   "success": true,
   "projectFilePath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj",
   "expectedPackageFiles": [
@@ -8,6 +8,7 @@
     "C:\\Users\\lolo1\\.nuget\\packages\\azure.identity\\1.7.0\\azure.identity.1.7.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\blazored.modal\\7.1.0\\blazored.modal.7.1.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\blazored.sessionstorage\\2.3.0\\blazored.sessionstorage.2.3.0.nupkg.sha512",
+    "C:\\Users\\lolo1\\.nuget\\packages\\blazored.typeahead\\4.7.0\\blazored.typeahead.4.7.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\currietechnologies.razor.sweetalert2\\5.5.0\\currietechnologies.razor.sweetalert2.5.5.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\feather.blazor\\1.0.1\\feather.blazor.1.0.1.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\libsassbuilder\\2.0.1\\libsassbuilder.2.0.1.nupkg.sha512",

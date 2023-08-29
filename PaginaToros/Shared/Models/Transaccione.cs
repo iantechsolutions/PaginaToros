@@ -13,7 +13,9 @@ public partial class Transaccione
 
     public DateTime? Fecha { get; set; }
 
-    public int? Total { get; set; }
+    public int? TotalToros { get; set; }
 
     public string? Toros { get; set; }
+
+    public int? TotalVaquillonas { get; set; }
 }

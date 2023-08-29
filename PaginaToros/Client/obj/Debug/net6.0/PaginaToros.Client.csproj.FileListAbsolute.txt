@@ -1,9 +1,3 @@
-C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.csproj.AssemblyReference.cache
-C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.AssemblyInfoInputs.cache
-C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.AssemblyInfo.cs
-C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.csproj.CoreCompileInputs.cache
-C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Azure.Core.dll
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Azure.Identity.dll
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\blazor.boot.json
@@ -718,6 +712,12 @@ C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\bin\Debug\net6.0\icud
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\bin\Debug\net6.0\icudt_no_CJK.dat
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\bin\Debug\net6.0\PaginaToros.Shared.dll
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\bin\Debug\net6.0\PaginaToros.Shared.pdb
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.csproj.AssemblyReference.cache
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.AssemblyInfoInputs.cache
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.AssemblyInfo.cs
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.csproj.CoreCompileInputs.cache
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.MvcApplicationPartsAssemblyInfo.cache
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\ba2iYNEM.gz
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\R+zMrwgM.gz
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\T1UGQ2hY.gz
@@ -963,7 +963,9 @@ C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\stat
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\staticwebassets.pack.json
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\staticwebassets.build.json
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\staticwebassets.development.json
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\scopedcss\Shared\NavMenu.razor.rz.scp.css
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\scopedcss\bundle\PaginaToros.Client.styles.css
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\scopedcss\projectbundle\PaginaToros.Client.bundle.scp.css
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\service-worker\service-worker.js
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\service-worker-assets.js.build
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.csproj.CopyComplete
@@ -971,5 +973,7 @@ C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\Pagi
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\refint\PaginaToros.Client.dll
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.pdb
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\ref\PaginaToros.Client.dll
-C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\scopedcss\Shared\NavMenu.razor.rz.scp.css
-C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\scopedcss\projectbundle\PaginaToros.Client.bundle.scp.css
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Blazored.Typeahead.dll
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Blazored.Typeahead.dll.gz
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\bin\Debug\net6.0\Blazored.Typeahead.dll
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\SOJiSv6b.gz
