@@ -1,0 +1,148 @@
+﻿@using Blazored.Typeahead
+
+<div class="card" >
+    <div class="card-body">
+        <EditForm Model="@oSolicitudInspeccion" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <div class="row" style="width=100%;">
+                <div class="col-sm"/>
+                    <div class="col-md-6">
+                        <label>Socio</label>
+                            <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre"  EnableDropDown="true" @bind-Value="socioSeleccionado">
+                                <SelectedTemplate Context="eleccion">
+                                    @eleccion.NombreCompleto
+                                </SelectedTemplate>
+                                <ResultTemplate Context="eleccion">
+                                    @eleccion.NombreCompleto
+                                </ResultTemplate>
+                            </BlazoredTypeahead>
+                    </div>
+                <div class="col-sm"/>
+            </div>
+            <br/>
+            @if(socioSeleccionado!=null){
+                <div class="row" style="width=100%;">
+                    <div class="col-sm">
+                        <label class="col-sm">Establecimiento</label>
+                            <BlazoredTypeahead SearchMethod="BusquedaEstablecimientos" placeholder="Busque establecimiento por nombre" EnableDropDown="true" @bind-Value="establecimientoSeleccionado">
+                                <SelectedTemplate Context="eleccion">
+                                    @eleccion.Nombre
+                                </SelectedTemplate>
+                                <ResultTemplate Context="eleccion">
+                                    @eleccion.Nombre
+                                </ResultTemplate>
+                            </BlazoredTypeahead>
+                    </div>
+                    <div class="col-sm">
+                        <label>Fecha de Solicitud</label><br/>
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oSolicitudInspeccion.FechaSolicitud" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    </div>
+                    <div class="col-sm">
+                        <label>Fecha de Autorizacion</label><br/>
+                        <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    </div>
+                </div>
+                <br />
+                <div class="row" style="width=100%;">
+                    <div class="col-sm">
+                        <label class="col-sm">Reinspeccion?</label><br/>
+                        <input type="checkbox" @bind="@activoReInspeccion">
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Control de Produccion?</label><br/>
+                        <input type="checkbox" @bind="@activoControl">
+                    </div>
+                    <div class="col-sm">
+                    
+                    </div>
+                </div>
+                <br />
+                <br />   
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            }
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+    SolicitudInspeccion oSolicitudInspeccion = new();
+    List<Socio> socios = new();
+    List<Establecimiento> establecimientos = new();
+    Respuesta<SolicitudInspeccion> oRespuesta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int Id { get; set; }
+    DateTime FechaTemp = DateTime.Now.Date;
+    bool activoReInspeccion = false;
+    bool activoControl = false;
+    Socio? socioSeleccionado = null;
+    Establecimiento establecimientoSeleccionado = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
+        socios = rta.List.ToList();
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>($"/api/Establecimiento");
+        establecimientos = respuesta.List;
+        if (Id != 0)
+        {
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<SolicitudInspeccion>>($"/api/solicitudinspeccion/{Id}");
+                oSolicitudInspeccion = oRespuesta.List;
+                socioSeleccionado = socios.Where(x => x.NombreCompleto == oSolicitudInspeccion.NombreSocio).FirstOrDefault();
+                establecimientoSeleccionado = establecimientos.Where(x => x.Nombre == oSolicitudInspeccion.Establecimiento).FirstOrDefault();
+                if (oSolicitudInspeccion.Reinspeccion.HasValue)
+                {
+                    activoReInspeccion = oSolicitudInspeccion.Reinspeccion.Value;
+                }
+                if (oSolicitudInspeccion.ControlProduccion.HasValue)
+                {
+                    activoControl = oSolicitudInspeccion.ControlProduccion.Value;
+                }
+                if (oSolicitudInspeccion.FechaAutorizacion.HasValue)
+                {
+                    FechaTemp = oSolicitudInspeccion.FechaAutorizacion.Value;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        oSolicitudInspeccion.NombreSocio = socioSeleccionado.NombreCompleto;
+        oSolicitudInspeccion.FechaAutorizacion = FechaTemp;
+        oSolicitudInspeccion.ControlProduccion = activoControl;
+        oSolicitudInspeccion.Reinspeccion = activoReInspeccion;
+        if (Id == 0)
+        {
+            await Http.PostAsJsonAsync<SolicitudInspeccion>("/api/SolicitudInspeccion", oSolicitudInspeccion);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<SolicitudInspeccion>("/api/SolicitudInspeccion", oSolicitudInspeccion);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+    
+
+    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    {
+        return await Task.FromResult(socios.Where(x => x.NombreCompleto.ToLower().Contains(searchText.ToLower())).ToList());
+    }
+
+    private async Task<IEnumerable<Establecimiento>> BusquedaEstablecimientos(string searchText)
+    {
+        return await Task.FromResult(establecimientos.Where(x => x.NombreSocio==socioSeleccionado.NombreCompleto && x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+    }
+
+}

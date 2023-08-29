@@ -1,0 +1,73 @@
+﻿<nav class="navbar navbar-expand-md navbar-custom bg-success mb-4">
+    <div class="container-fluid">
+        <a href="" <img src="images/logo.png" style="padding-right:10px"alt="Logo" height="26" width="auto"></a>
+        <button class="navbar-toggler @NavButtonCssClass" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-label="Toggle navigation" @onclick="ToggleNavMenu">
+            @*<span class="navbar-toggler-icon"></span>*@
+            <FeatherList Color="black"></FeatherList>
+        </button>
+        <div class="collapse navbar-collapse @NavBarCssClass" id="navbarCollapse" @onclick="ToggleNavMenu">
+            <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                <li class="nav-item" style="color:#13622b">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All" style="color:#13622b">
+                        Home
+                    </NavLink>
+                </li>
+@*                <li class="nav-item">
+                    <span class="nav-link">Ya Estaban</span>
+                    <li class="nav-item-content">
+                    <NavLink class="nav-link dropdown" style="background-color:#a1d9ef;color:#13622b" href="counter">
+                            Counter
+                        </NavLink>
+                    <NavLink class="nav-link dropdown" style="background-color:#a1d9ef;color:#13622b" href="fetchdata">
+                            Fetch data
+                        </NavLink>
+                    </li>
+                </li>*@
+                <li class="nav-item">
+                    <span class="nav-link">Socios</span>
+                    <li class="nav-item-content">
+                    <NavLink class="dropdown nav-link" style="background-color: #a1d9ef;color: #13622b;border: 1.5px solid #156c31;" href="socios">
+                            &nbspListado
+                        </NavLink>
+                    </li>
+                </li>
+                <li class="nav-item">
+                    <span class="nav-link">Establecimientos</span>
+                    <li class="nav-item-content">
+                    <NavLink class="dropdown nav-link" style="background-color: #a1d9ef;color: #13622b;border: 1.5px solid #156c31;" href="establecimientos">
+                            &nbspListado
+                        </NavLink>
+                    </li>
+                </li>
+                <li class="nav-item">
+                    <span class="nav-link">Planteles</span>
+                    <li class="nav-item-content">
+                    <NavLink class="dropdown nav-link" style="background-color: #a1d9ef;color: #13622b;border: 1.5px solid #156c31;" href="planteles">
+                            &nbspListado
+                        </NavLink>
+                    </li>
+                </li>
+                <li class="nav-item">
+                    <span class="nav-link">Inspecciones</span>
+                    <li class="nav-item-content">
+                    <NavLink class="dropdown nav-link" style="background-color: #a1d9ef;color: #13622b;border: 1.5px solid #156c31;" href="solicitudesinspeccion">
+                            &nbspSolicitudes
+                        </NavLink>
+                    </li>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+@code {
+    private bool collapseNavMenu = true;
+    private string? NavBarCssClass => collapseNavMenu ? null : "show";
+    private string? NavButtonCssClass => collapseNavMenu ? "collapsed" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

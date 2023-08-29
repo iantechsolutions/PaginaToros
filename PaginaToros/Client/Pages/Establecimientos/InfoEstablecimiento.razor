@@ -1,0 +1,71 @@
+﻿@if (oEstablecimiento != null && oEstablecimiento.FechaExistencia.HasValue)
+{
+    <RadzenCard Class="m-3">
+        <div class="row">
+            <h4><strong>Establecimiento Nro: @oEstablecimiento.Id</strong></h4>
+            <div class="col-md-6 col-xl-6">
+                <div class="d-flex flex-row p-3">
+                    <div>
+                        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Establecimiento </RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Nombre</b></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Nombre Del Socio </RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.NombreSocio</b></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Fecha de Creacion</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.FechaExistencia.Value.ToString("dd/MM/yyyy")</b></RadzenText>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-6">
+                <div class="d-flex flex-row p-3">
+                    <div>
+                        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Toros del establecimiento</RadzenText>
+                        <RadzenText style="font-size: 13px" TextStyle="TextStyle.Body1"><b>@NombreToros</b></RadzenText>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </RadzenCard>
+}
+@code {
+    Establecimiento oEstablecimiento = new();
+    Respuesta<Establecimiento> oRespuesta = new();
+    string NombreToros;
+    List<string?> ListaToros = new List<string>();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            Respuesta<List<Toro>> DBToros = await Http.GetFromJsonAsync<Respuesta<List<Toro>>>($"/api/Toro");
+            @foreach(Toro oToro in DBToros.List)
+            {
+                if (oToro.IdEst == Id)
+                {
+                    try{
+                        ListaToros.Add(oToro.Nombre);
+                    }
+                    catch(Exception ex)
+                    {
+                        oRespuesta.Mensaje = ex.Message;
+                    }
+                }
+            }
+            NombreToros = string.Join(", ", ListaToros);
+            try{
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Establecimiento>>($"/api/Establecimiento/{Id}");
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+            oEstablecimiento = oRespuesta.List;
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+}

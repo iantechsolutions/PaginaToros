@@ -1,0 +1,54 @@
+﻿<div>
+    <RadzenAutoComplete @bind-Value="CurrentInput" Data="@PossibleValues" Placeholder="Enter value" AllowClear="true" FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive Change="@(args => AddValue(args))"/>
+    <div>
+        @foreach (var item in SelectedItems)
+        {
+            <span Sclass="badge badge-primary">
+                <span style="color:black;font-size:75%"  class="choice-text">@item</span>
+                <button class="btn btn-sm btn-danger" @onclick="() => RemoveItem(item)">&times;</button>
+                &#8239;
+            </span>
+        }
+    </div>
+</div>
+
+<style>
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 5px;
+        padding: 3px 5px;
+        border-radius: 5px;
+    }
+    .badge .choice-text{
+        margin-right:5px;
+        color = black !important;
+    }
+    .badge span {
+        margin-right: 5px;
+    }
+</style>
+
+@code {
+    [Parameter] public List<string> PossibleValues { get; set; }
+    [Parameter] public EventCallback<List<string>> SelectedItemsChanged { get; set; }
+
+    private List<string> SelectedItems { get; set; } = new List<string>();
+    private string CurrentInput { get; set; }
+
+    private async Task AddValue(object value)
+    {
+        if (!string.IsNullOrEmpty(CurrentInput) && !SelectedItems.Contains(CurrentInput)&&PossibleValues.Contains(CurrentInput))
+        {
+            SelectedItems.Add(CurrentInput);
+            await SelectedItemsChanged.InvokeAsync(SelectedItems);
+        }
+        CurrentInput = string.Empty;
+    }
+
+    private async Task RemoveItem(string item)
+    {
+        SelectedItems.Remove(item);
+        await SelectedItemsChanged.InvokeAsync(SelectedItems);
+    }
+}

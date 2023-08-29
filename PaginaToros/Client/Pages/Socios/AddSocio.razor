@@ -1,0 +1,142 @@
+﻿@using Blazored.Typeahead
+
+<div class="card" >
+    <div class="card-body">
+        <EditForm Model="@oSocio" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Nombre Completo</label>
+                    <InputText class="form-control" @bind-Value="@oSocio.NombreCompleto"
+                               placeholder="Nombre"></InputText>
+                    <ValidationMessage For="(()=> oSocio.NombreCompleto)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Domicilio</label>
+                    <InputText @bind-Value="@oSocio.Domicilio" class="form-control" placeholder="Domicilio"></InputText>
+                    <ValidationMessage For="(()=> oSocio.Domicilio)" style="color:red;" />
+                </div
+                <div class="col-sm">
+                    <label class="col-sm">Localidad</label>
+                    <InputText @bind-Value="@oSocio.Localidad" class="form-control" placeholder="Localidad"></InputText>
+                    <ValidationMessage For="(()=> oSocio.Localidad)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Codigo Postal</label>
+                    <InputText class="form-control" @bind-Value="@oSocio.CodPostal" placeholder="Cod. Postal"></InputText>
+                    <ValidationMessage For="(()=> oSocio.CodPostal)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Provincia</label>
+                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,provincias))" placeholder="Busca por nombre"  EnableDropDown="true" @bind-Value="oSocio.Provincia">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div
+                <div class="col-sm">
+                    <label class="col-sm">Telefono</label>
+                    <InputText @bind-Value="@oSocio.Telefono" class="form-control" placeholder="Telefono"></InputText>
+                    <ValidationMessage For="(()=> oSocio.Telefono)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>2do Telefono</label>
+                    <InputText class="form-control" @bind-Value="@oSocio.Telefono2" placeholder="2do telefono"></InputText>
+                    <ValidationMessage For="(()=> oSocio.Telefono2)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label>Mail</label>
+                    <InputText class="form-control" @bind-Value="@oSocio.Mail" placeholder="Mail"></InputText>
+                    <ValidationMessage For="(()=> oSocio.Mail)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Activo?</label><br/>
+                    <input type="checkbox" @bind="@activo">
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Fecha de Ingreso</label><br/>
+                    <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div>
+                <div class="col-sm"/>
+                <div class="col-sm"/>
+            </div>
+            <br />
+            <br />
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+    Socio oSocio = new();
+    Respuesta<Socio> oRespuesta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int Id { get; set; }
+    DateTime FechaTemp = DateTime.Now.Date;
+    //string CodZona = "  ";
+    bool activo = true;
+    List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal","Catamarca","Chaco","Chubut","Cordoba","Corrientes","Entre Rios","Formosa","Jujuy","La pampa","La rioja","Mendoza","Misiones","Neuquen","Rio negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Santiago Del Estero","Tierra del fuego","Tucuman" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Socio>>($"/api/Socio/{Id}");
+                oSocio = oRespuesta.List;
+                if (oSocio.Activo.HasValue)
+                {
+                    activo = oSocio.Activo.Value;
+                }
+                if (oSocio.FechaExistencia.HasValue)
+                {
+                    FechaTemp = oSocio.FechaExistencia.Value;
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        oSocio.FechaExistencia = FechaTemp;
+        oSocio.Activo = activo;
+        if (Id == 0)
+        {
+            await Http.PostAsJsonAsync<Socio>("/api/Socio", oSocio);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<Socio>("/api/Socio", oSocio);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+    private async Task<IEnumerable<string>> SearchMethod(string searchText,List<string> lista)
+    {
+        var result = lista.Where(x => x.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+
+}

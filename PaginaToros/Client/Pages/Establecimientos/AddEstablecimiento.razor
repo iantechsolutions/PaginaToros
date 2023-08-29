@@ -1,0 +1,210 @@
+﻿@using Blazored.Typeahead
+
+<div class="card" >
+    <div class="card-body">
+        <EditForm Model="@oEstablecimiento" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Socio</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre"  EnableDropDown="true" @bind-Value="socioSeleccionado">
+                                <SelectedTemplate Context="eleccion">
+                                    @eleccion.NombreCompleto
+                                </SelectedTemplate>
+                                <ResultTemplate Context="eleccion">
+                                    @eleccion.NombreCompleto
+                                </ResultTemplate>
+                            </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Nombre del establecimiento</label>
+                    <InputText @bind-Value="@oEstablecimiento.Nombre" class="form-control" placeholder="Nombre"></InputText>
+                    <ValidationMessage For="(()=> oEstablecimiento.Nombre)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Encargado</label>
+                    <InputText @bind-Value="@oEstablecimiento.Encargado" class="form-control" placeholder="Encargado"></InputText>
+                    <ValidationMessage For="(()=> oEstablecimiento.Encargado)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Domicilio</label>
+                    <InputText class="form-control" @bind-Value="@oEstablecimiento.Domicilio" placeholder="Domicilio"></InputText>
+                    <ValidationMessage For="(()=> oEstablecimiento.Domicilio)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Teléfono</label>
+                    <InputText @bind-Value="@oEstablecimiento.Telefono" class="form-control" placeholder="Teléfono"></InputText>
+                    <ValidationMessage For="(()=> oEstablecimiento.Telefono)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Localidad</label>
+                    <InputText @bind-Value="@oEstablecimiento.Localidad" class="form-control" placeholder="Localidad"></InputText>
+                    <ValidationMessage For="(()=> oEstablecimiento.Localidad)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Codigo Postal</label>
+                    <InputText class="form-control" @bind-Value="@oEstablecimiento.CodPostal" placeholder="Codigo Postal"></InputText>
+                    <ValidationMessage For="(()=> oEstablecimiento.CodPostal)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Provincia</label>
+                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,provincias))" placeholder="Busca por nombre"  EnableDropDown="true" @bind-Value="oEstablecimiento.Provincia">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Informacion</label>
+                    <InputText class="form-control" @bind-Value="@oEstablecimiento.Informacion" placeholder="Informacion"></InputText>
+                    <ValidationMessage For="(()=> oEstablecimiento.Informacion)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Codigo de Zona</label>
+                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,zonas))" placeholder="Busca por nombre"  EnableDropDown="true" @bind-Value="CodZona">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.Substring(0,2)
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label>Fecha de Creacion</label><br/>
+                    <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Activo?</label><br/>
+                    <input type="checkbox" @bind="@activo">
+                </div>
+            </div>
+            <br />
+            <br />
+
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+    Establecimiento oEstablecimiento = new();
+    Respuesta<Establecimiento> oRespuesta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int Id { get; set; }
+    DateTime FechaTemp = DateTime.Now.Date;
+    string CodZona = "  ";
+    bool activo = true;
+    List<Socio> socios = new();
+    Socio? socioSeleccionado = null;
+    List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal","Catamarca","Chaco","Chubut","Cordoba","Corrientes","Entre Rios","Formosa","Jujuy","La pampa","La rioja","Mendoza","Misiones","Neuquen","Rio negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Santiago Del Estero","Tierra del fuego","Tucuman" };
+    List<string> zonas = new List<string>
+    {
+        "01 - ( BUENOS AIRES ) - SAN ANDRES DE GILES - SAN ANTONIO  DE ARECO - ARRECIFES - BARADERO - SAN PEDRO - SAN NICOLAS - RAMALLO - CAP. SARMIENTO - CARMEN DE ARECO - CAPILLA DEL SEÑOR - ESCOBAR.",
+        "02 - ( BUENOS AIRES ) - TAPALQUE - GRAL ALVEAR - SALADILLO - 25 DE MAYO - ROQUE PEREZ - LOBOS - MONTE - LAS FLORES",
+        "03 - ( BUENOS AIRES ) - RAUCH - PILA - GRAL BELGRANO - RANCHOS - CAÑUELAS - SAN VICENTE - BRANDSEN",
+        "04 - ( BUENOS AIRES ) - GRAL. LAVALLE - GRAL.CONESA - DOLORES - GRAL. GUIDO - MAIPU - AYACUCHO - BALCARCE - CORONEL VIDAL - MAR DEL PLATA - CASTELLI - CHASCOMUS.",
+        "05 - ( BUENOS AIRES ) - GRAL. ARENALES - COLON - PERGAMINO - ROJAS - SALTO - JUNIN - VEDIA",
+        "06 - ( BUENOS AIRES ) - JUAREZ - TANDIL - AZUL",
+        "07 - ( BUENOS AIRES ) - MIRAMAR - NECOCHEA - SAN CAYETANO - TRES  ARROYOS - CNEL. DORREGO.",
+        "08 - ( BUENOS AIRES ) - GENERAL VILLEGAS - GRAL. PINTO -  RIVADAVIA - LINCOLN - GRAL. VIAMONTE",
+        "09 - ( BUENOS AIRES ) - CARHUE - GUAMINI - DAIREAUX - HENDERSON  - BOLIVAR",
+        "10 - ( BUENOS AIRES ) - GONZALEZ CHAVEZ - LAPRIDA - GRAL.  LAMADRID - CORONEL SUAREZ - OLAVARRIA.",
+        "11 - ( BUENOS AIRES ) - PUAN - TORNQUIST - B.BLANCA - PUNTA ALTA - MEDANOS  - C. DE PATAGONES -CNEL. PRINGLES - PIGUE.",
+        "12 - ( ENTRE RIOS ) - ENTRE RIOS ZONA SUR - AL SUR DE UNA LINEA QUE UNE CONCORDIA CON HERNANDARIAS.",
+        "13 - ( ENTRE RIOS ) - ENTRE RIOS ZONA NORTE - AL NORTE DE UNA LINEA QUE UNE CONCORDIA CON HERNANDARIAS",
+        "14 - ( CORRIENTES ) - TODA LA PROVINCIA",
+        "15 - ( CHACO ) - TODA LA PROVINCIA",
+        "16 - ( SANTA FE ) - SANTA FE ZONA NORTE - AL NORTE DE LA RN 19.",
+        "17 - ( SANTA FE ) - ZONA ROSARIO (RUTA NAC. 9 HACIA EL OESTE)",
+        "18 - ( SANTA FE ) - SANTA FE ZONA SUR",
+        "19 - ( SAN LUIS ) - TODA LA PROVINCIA",
+        "20 - ( CORDOBA ) - CORDOBA ZONA DE RIO CUARTO - VILLA MARIA.",
+        "21 - ( CORDOBA ) - CORDOBA ZONA SUR",
+        "22 - ( CORDOBA ) - ZONA CIUDAD DE CORDOBA AL NORTE Y RIO TERCERO AL NORTE",
+        "23 - ( LA PAMPA ) - TODA LA PROVINCIA",
+        "24 - ( NEUQUEN ) - TODA LA PROVINCIA",
+        "25 - ( RIO NEGRO ) - TODA LA PROVINCIA",
+        "26 - ( CHUBUT ) - TODA LA PROVINCIA",
+        "27 - ( SANTA CRUZ ) - TODA LA PROVINCIA",
+        "28 - ( TIERRA DEL FUEGO ) -TIERRA DEL FUEGO EN SU TOTALIDAD",
+        "30 - ( TUCUMAN ) - TODA LA PROVINCIA",
+        "31 - ( BUENOS AIRES ) - BRAGADO - ALBERTI - CHIVILCOY - CHACABUCO - SUIPACHA - MERCEDES - GENERAL LAS HERAS - NAVARRO",
+        "32 - ( BUENOS AIRES ) - CARLOS TEJEDOR - 9 DE JULIO -CARLOS CASARES - PEHUAJO - TRENQUE LAUQUEN - CARLOS PELLEGRINI - SALLIQUELO",
+        "33 - ( MENDOZA ) - TODA LA PROVINCIA"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
+        socios = rta.List.ToList();
+        if (Id != 0)
+        {
+            
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Establecimiento>>($"/api/Establecimiento/{Id}");
+                oEstablecimiento = oRespuesta.List;
+                if (oEstablecimiento.Activo.HasValue)
+                {
+                    activo = oEstablecimiento.Activo.Value;
+                }
+                if (oEstablecimiento.FechaExistencia.HasValue)
+                {
+                    FechaTemp = oEstablecimiento.FechaExistencia.Value;
+                }
+                socioSeleccionado = socios.Where(x => x.NombreCompleto == oEstablecimiento.NombreSocio).FirstOrDefault();
+                CodZona = oEstablecimiento.CodZona.Value.ToString("D2");
+                
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        oEstablecimiento.NombreSocio = socioSeleccionado.NombreCompleto;
+        oEstablecimiento.FechaExistencia = FechaTemp;
+        oEstablecimiento.CodZona = Int16.Parse(CodZona.Substring(0,2));
+        oEstablecimiento.Activo = activo;
+        if (Id == 0)
+        {
+            await Http.PostAsJsonAsync<Establecimiento>("/api/Establecimiento", oEstablecimiento);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<Establecimiento>("/api/Establecimiento", oEstablecimiento);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+    private async Task<IEnumerable<string>> SearchMethod(string searchText,List<string> lista)
+    {
+        var result = lista.Where(x => x.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+
+    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    {
+        return await Task.FromResult(socios.Where(x => x.NombreCompleto.ToLower().Contains(searchText.ToLower())).ToList());
+    }
+}

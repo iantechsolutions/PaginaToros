@@ -1,0 +1,170 @@
+﻿@using Blazored.Typeahead
+
+<div class="card" >
+    <div class="card-body">
+        <EditForm Model="@oPlantel" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Numero de Plantel</label>
+                    <InputText class="form-control" @bind-Value="@oPlantel.NroPlantel"
+                               placeholder="Nombre"></InputText>
+                    <ValidationMessage For="(()=> oPlantel.NroPlantel)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label>Fecha de existencia</label><br />
+                    <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTempCreacion" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div>
+                <div class="col-sm">
+                    <label>Socio</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre"  EnableDropDown="true" @bind-Value="socioSeleccionado">
+                                <SelectedTemplate Context="eleccion">
+                                    @eleccion.NombreCompleto
+                                </SelectedTemplate>
+                                <ResultTemplate Context="eleccion">
+                                    @eleccion.NombreCompleto
+                                </ResultTemplate>
+                            </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Activo?</label><br/>
+                    <input type="checkbox" @bind="@activo">
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Numero de ultima inspeccion</label>
+                    <InputText @bind-Value="@oPlantel.NroUltInspeccion" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oPlantel.NroUltInspeccion)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label>Fecha ultima inspeccion</label><br/>
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oPlantel.UltimaInspeccion" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div>
+                <div class="col-sm">
+                    <label>Fecha ultima reinspeccion</label><br/>
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oPlantel.UltimaReinspeccion" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div>
+
+                
+            </div>
+            <br />
+            <a style="margin:auto;">PURO REGISTRADO</a>
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Vacas</label>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vacas" placeholder=""></InputNumber>
+                    <ValidationMessage For="(()=> oPlantel.Vacas)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label>Vaquillonas con servicio</label>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.VaquillServicio" placeholder=""></InputNumber>
+                    <ValidationMessage For="(()=> oPlantel.VaquillServicio)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label>Vaquillonas sin servicio</label>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.VaquillNoServicio" placeholder=""></InputNumber>
+                    <ValidationMessage For="(()=> oPlantel.VaquillNoServicio)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <a style="margin:auto;">VIP</a>
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Vacas</label>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.VacasVip" placeholder=""></InputNumber>
+                    <ValidationMessage For="(()=> oPlantel.VacasVip)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label>Vaquillonas con servicio</label>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.PrenadasVip" placeholder=""></InputNumber>
+                    <ValidationMessage For="(()=> oPlantel.PrenadasVip)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label>Vaquillonas sin servicio</label>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.VaquillNoServicioVip" placeholder=""></InputNumber>
+                    <ValidationMessage For="(()=> oPlantel.VaquillNoServicioVip)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <br />
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+    List<Socio> socios = new();
+    Socio? socioSeleccionado = null;
+    Plantele oPlantel = new();
+    Respuesta<Plantele> oRespuesta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int Id { get; set; }
+    DateTime FechaTempInspeccion = DateTime.Now.Date;
+    DateTime FechaTempReInspeccion = DateTime.Now.Date;
+    DateTime FechaTempCreacion = DateTime.Now.Date;
+
+    //string CodZona = "  ";
+    bool activo = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
+        socios = rta.List.ToList();
+        if (Id != 0)
+        {
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Plantele>>($"/api/plantele/{Id}");
+                oPlantel = oRespuesta.List;
+                if (oPlantel.Activo.HasValue)
+                {
+                    activo = oPlantel.Activo.Value;
+                }
+                if (oPlantel.FechaExistencia.HasValue)
+                {
+                    FechaTempCreacion = oPlantel.FechaExistencia.Value;
+                }
+                socioSeleccionado = socios.Where(x => x.NombreCompleto == oPlantel.Socio).FirstOrDefault();
+
+
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        oPlantel.Socio = socioSeleccionado.NombreCompleto;
+        oPlantel.FechaExistencia = FechaTempCreacion;
+        oPlantel.Activo = activo;
+        if (Id == 0)
+        {
+            await Http.PostAsJsonAsync<Plantele>("/api/plantele", oPlantel);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<Plantele>("/api/plantele", oPlantel);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+    private async Task<IEnumerable<string>> SearchMethod(string searchText,List<string> lista)
+    {
+        var result = lista.Where(x => x.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    {
+        return await Task.FromResult(socios.Where(x => x.NombreCompleto.ToLower().Contains(searchText.ToLower())).ToList());
+    }
+}
+
