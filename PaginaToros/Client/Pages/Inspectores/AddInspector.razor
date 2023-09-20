@@ -1,0 +1,156 @@
+﻿@using Blazored.Typeahead
+<style>
+    .bm-title {
+        font-size: 25px;
+        font-weight: bold;
+    }
+</style>
+<div class="card">
+    <div class="card-body">
+        <EditForm Model="@oInspector" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Codigo de Inspector</label>
+                    <InputNumber @bind-Value="@oInspector.Codigo" class="form-control" placeholder="Codigo"></InputNumber>
+                    <ValidationMessage For="(()=> oInspector.Codigo)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Nombre del inspector</label>
+                    <InputText @bind-Value="@oInspector.Nombre" class="form-control" placeholder="Nombre"></InputText>
+                    <ValidationMessage For="(()=> oInspector.Nombre)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Direccion</label>
+                    <InputText @bind-Value="@oInspector.Direccion" class="form-control" placeholder="Direccion"></InputText>
+                    <ValidationMessage For="(()=> oInspector.Direccion)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Localidad</label>
+                    <InputText @bind-Value="@oInspector.Localidad" class="form-control" placeholder="Direccion"></InputText>
+                    <ValidationMessage For="(()=> oInspector.Localidad)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Codigo Postal</label>
+                    <InputNumber @bind-Value="@oInspector.CodPostal" class="form-control" placeholder="Cod Postal"></InputNumber>
+                    <ValidationMessage For="(()=> oInspector.CodPostal)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Provincia</label>
+                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,provincias))" placeholder="Busca por nombre" EnableDropDown="true" @bind-Value="oInspector.Provincia">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Localidad</label>
+                    <InputText @bind-Value="@oInspector.Telefono" class="form-control" placeholder="Telefono"></InputText>
+                    <ValidationMessage For="(()=> oInspector.Telefono)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+
+            <br />
+
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+    Inspectore oInspector = new();
+    Respuesta<Inspectore> oRespuesta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int Id { get; set; }
+    DateTime FechaTemp = DateTime.Now.Date;
+    string CodZona = "  ";
+    bool activo = true;
+    List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal", "Catamarca", "Chaco", "Chubut", "Cordoba", "Corrientes", "Entre Rios", "Formosa", "Jujuy", "La pampa", "La rioja", "Mendoza", "Misiones", "Neuquen", "Rio negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago Del Estero", "Tierra del fuego", "Tucuman" };
+    List<string> zonas = new List<string>
+    {
+        "01 - ( BUENOS AIRES ) - SAN ANDRES DE GILES - SAN ANTONIO  DE ARECO - ARRECIFES - BARADERO - SAN PEDRO - SAN NICOLAS - RAMALLO - CAP. SARMIENTO - CARMEN DE ARECO - CAPILLA DEL SEÑOR - ESCOBAR.",
+        "02 - ( BUENOS AIRES ) - TAPALQUE - GRAL ALVEAR - SALADILLO - 25 DE MAYO - ROQUE PEREZ - LOBOS - MONTE - LAS FLORES",
+        "03 - ( BUENOS AIRES ) - RAUCH - PILA - GRAL BELGRANO - RANCHOS - CAÑUELAS - SAN VICENTE - BRANDSEN",
+        "04 - ( BUENOS AIRES ) - GRAL. LAVALLE - GRAL.CONESA - DOLORES - GRAL. GUIDO - MAIPU - AYACUCHO - BALCARCE - CORONEL VIDAL - MAR DEL PLATA - CASTELLI - CHASCOMUS.",
+        "05 - ( BUENOS AIRES ) - GRAL. ARENALES - COLON - PERGAMINO - ROJAS - SALTO - JUNIN - VEDIA",
+        "06 - ( BUENOS AIRES ) - JUAREZ - TANDIL - AZUL",
+        "07 - ( BUENOS AIRES ) - MIRAMAR - NECOCHEA - SAN CAYETANO - TRES  ARROYOS - CNEL. DORREGO.",
+        "08 - ( BUENOS AIRES ) - GENERAL VILLEGAS - GRAL. PINTO -  RIVADAVIA - LINCOLN - GRAL. VIAMONTE",
+        "09 - ( BUENOS AIRES ) - CARHUE - GUAMINI - DAIREAUX - HENDERSON  - BOLIVAR",
+        "10 - ( BUENOS AIRES ) - GONZALEZ CHAVEZ - LAPRIDA - GRAL.  LAMADRID - CORONEL SUAREZ - OLAVARRIA.",
+        "11 - ( BUENOS AIRES ) - PUAN - TORNQUIST - B.BLANCA - PUNTA ALTA - MEDANOS  - C. DE PATAGONES -CNEL. PRINGLES - PIGUE.",
+        "12 - ( ENTRE RIOS ) - ENTRE RIOS ZONA SUR - AL SUR DE UNA LINEA QUE UNE CONCORDIA CON HERNANDARIAS.",
+        "13 - ( ENTRE RIOS ) - ENTRE RIOS ZONA NORTE - AL NORTE DE UNA LINEA QUE UNE CONCORDIA CON HERNANDARIAS",
+        "14 - ( CORRIENTES ) - TODA LA PROVINCIA",
+        "15 - ( CHACO ) - TODA LA PROVINCIA",
+        "16 - ( SANTA FE ) - SANTA FE ZONA NORTE - AL NORTE DE LA RN 19.",
+        "17 - ( SANTA FE ) - ZONA ROSARIO (RUTA NAC. 9 HACIA EL OESTE)",
+        "18 - ( SANTA FE ) - SANTA FE ZONA SUR",
+        "19 - ( SAN LUIS ) - TODA LA PROVINCIA",
+        "20 - ( CORDOBA ) - CORDOBA ZONA DE RIO CUARTO - VILLA MARIA.",
+        "21 - ( CORDOBA ) - CORDOBA ZONA SUR",
+        "22 - ( CORDOBA ) - ZONA CIUDAD DE CORDOBA AL NORTE Y RIO TERCERO AL NORTE",
+        "23 - ( LA PAMPA ) - TODA LA PROVINCIA",
+        "24 - ( NEUQUEN ) - TODA LA PROVINCIA",
+        "25 - ( RIO NEGRO ) - TODA LA PROVINCIA",
+        "26 - ( CHUBUT ) - TODA LA PROVINCIA",
+        "27 - ( SANTA CRUZ ) - TODA LA PROVINCIA",
+        "28 - ( TIERRA DEL FUEGO ) -TIERRA DEL FUEGO EN SU TOTALIDAD",
+        "30 - ( TUCUMAN ) - TODA LA PROVINCIA",
+        "31 - ( BUENOS AIRES ) - BRAGADO - ALBERTI - CHIVILCOY - CHACABUCO - SUIPACHA - MERCEDES - GENERAL LAS HERAS - NAVARRO",
+        "32 - ( BUENOS AIRES ) - CARLOS TEJEDOR - 9 DE JULIO -CARLOS CASARES - PEHUAJO - TRENQUE LAUQUEN - CARLOS PELLEGRINI - SALLIQUELO",
+        "33 - ( MENDOZA ) - TODA LA PROVINCIA"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Inspectore>>($"/api/Inspectore/{Id}");
+                oInspector = oRespuesta.List;
+
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        if (Id == 0)
+        {
+            await Http.PostAsJsonAsync<Inspectore>("/api/Inspectore", oInspector);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<Inspectore>("/api/Inspectore", oInspector);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+    private async Task<IEnumerable<string>> SearchMethod(string searchText, List<string> lista)
+    {
+        var result = lista.Where(x => x.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+
+}

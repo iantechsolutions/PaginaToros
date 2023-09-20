@@ -63,6 +63,7 @@ namespace PaginaToros.Server.Controllers
                     Establecimiento oEstablecimiento = new Establecimiento();
                     oEstablecimiento.Codigo = model.Codigo;
                     oEstablecimiento.NombreSocio = model.NombreSocio;
+                    oEstablecimiento.CodigoSocio = model.CodigoSocio;
                     oEstablecimiento.Activo = model.Activo;
                     oEstablecimiento.Nombre = model.Nombre;
                     oEstablecimiento.Encargado = model.Encargado;
@@ -99,6 +100,7 @@ namespace PaginaToros.Server.Controllers
                     Establecimiento oEstablecimiento = db.Establecimientos.Find(model.Id);
                     oEstablecimiento.Codigo = model.Codigo;
                     oEstablecimiento.NombreSocio = model.NombreSocio;
+                    oEstablecimiento.CodigoSocio = model.CodigoSocio;
                     oEstablecimiento.Activo = model.Activo;
                     oEstablecimiento.Nombre = model.Nombre;
                     oEstablecimiento.Encargado = model.Encargado;

@@ -30,4 +30,8 @@ public partial class Socio
     public string? UltimoPlantel { get; set; }
 
     public DateTime? FechaExistencia { get; set; }
+
+    public string? Prenom { get; set; }
+
+    public string? Postnom { get; set; }
 }

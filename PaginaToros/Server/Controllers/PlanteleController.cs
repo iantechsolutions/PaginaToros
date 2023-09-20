@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
-namespace PaginaToros.Server.Controllers
-{
+namespace PaginaToros.Server.Cont{
     [Route("api/[controller]")]
     [ApiController]
+     
     public class PlanteleController : ControllerBase
     {
         [HttpGet("{id}")]
@@ -66,7 +66,7 @@ namespace PaginaToros.Server.Controllers
                     oPlantel.NroUltInspeccion = model.NroUltInspeccion;
                     oPlantel.UltimaInspeccion = model.UltimaInspeccion;
                     oPlantel.UltimaReinspeccion = model.UltimaReinspeccion;
-                    oPlantel.Socio = model.Socio;
+                    oPlantel.NombreSocio = model.NombreSocio;
                     oPlantel.Vacas = model.Vacas;
                     oPlantel.VaquillServicio = model.VaquillServicio;
                     oPlantel.VaquillNoServicio = model.VaquillNoServicio;
@@ -100,7 +100,7 @@ namespace PaginaToros.Server.Controllers
                     oPlantel.NroUltInspeccion = model.NroUltInspeccion;
                     oPlantel.UltimaInspeccion = model.UltimaInspeccion;
                     oPlantel.UltimaReinspeccion = model.UltimaReinspeccion;
-                    oPlantel.Socio = model.Socio;
+                    oPlantel.NombreSocio = model.NombreSocio;
                     oPlantel.Vacas = model.Vacas;
                     oPlantel.VaquillServicio = model.VaquillServicio;
                     oPlantel.VaquillNoServicio = model.VaquillNoServicio;

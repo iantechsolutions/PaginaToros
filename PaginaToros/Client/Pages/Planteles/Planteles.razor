@@ -3,10 +3,10 @@
 @using PaginaToros.Shared.Models
 @inject HttpClient Http
 
-<h3 style="position:relative;right:100px">Planteles</h3>
+<h3 class="pb-3 font-bold text-xl" style="position:relative">Planteles</h3>
 
 
-<button style="position:relative;right:100px" class="btn btn-outline-primary" @onclick="()=>add(0)">Agregar Plantel</button>
+<button style="position:relative" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="()=>add(0)">Agregar Plantel</button>
 <style>
 
     .rz-cell-data,
@@ -19,20 +19,28 @@
         white-space: normal !important;
         overflow-wrap: break-word;
     }
+
+    .tablacontent th.rz-unselectable-text.rz-text-align-left {
+        background-color: #82D682;
+    }
+
+    .rz-paginator {
+        border-top: solid #E0E0E0 1px;
+    }
 </style>
 
 @if (oRespuesta.List != null)
 {
 
-    <button style="outline:none; float: right;height:100%;" class="btn btn-outline" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+    <button style="outline:none; float: right;margin-right:15px;height:100%;" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
     <br />
     <br />
-    <RadzenDataGrid style="position:relative;right:100px;width:1300px;" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+    <RadzenDataGrid class="tablacontent" style="position:relative;width:1500px;" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                 AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                Data="@oRespuesta.List" TItem="Plantele" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                Density="Density.Compact" Data="@oRespuesta.List" TItem="Plantele" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
             <RadzenDataGridColumn TItem="Plantele" Property="NroPlantel" Title="Nro Plantel" Width="55px" />
-            <RadzenDataGridColumn TItem="Plantele" Property="" Title="Activo?" Width="50px">
+            <RadzenDataGridColumn TItem="Plantele" Property="Activo" Title="Activo?" Width="50px">
                 <Template Context="data">
                     @if (data.Activo.HasValue)
                     {
@@ -51,11 +59,11 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Plantele" Property="" Title="Fecha de Existencia" Width="100px">
+            <RadzenDataGridColumn TItem="Plantele" Property="" Title="Año de Existencia" Width="100px">
                 <Template Context="data">
                     @if (data.FechaExistencia.HasValue)
                     {
-                        @data.FechaExistencia.Value.ToString("dd/MM/yyyy")
+                        @data.FechaExistencia.Value.ToString("yyyy")
                     }
                     else
                     {
@@ -63,8 +71,8 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Plantele" Property="NroUltInspeccion" Title="Nro ultima inspeccion" Width="80px" />
-            <RadzenDataGridColumn TItem="Plantele" Property="Socio" Title="Socio" Width="85px" />
+            <RadzenDataGridColumn TItem="Plantele" Property="NroUltInspeccion" Title="Nro ultima inspeccion" Width="100px" />
+            <RadzenDataGridColumn TItem="Plantele" Property="NombreSocio" Title="Socio" Width="85px" />
             <RadzenDataGridColumn TItem="Plantele" Property="Vacas" Title="Vacas PR" Width="70px" />
             <RadzenDataGridColumn TItem="Plantele" Property="VaquillServicio" Title="Vaquillonas PR con servicio" Width="85px" />
             <RadzenDataGridColumn TItem="Plantele" Property="VaquillNoServicio" Title="Vaquillonas PR sin servicio" Width="75px" />
@@ -89,7 +97,7 @@
         </Columns>
 
     </RadzenDataGrid>
-
+    <br />
 }
 else
 {
@@ -97,7 +105,7 @@ else
     <center>
         <div class="mb-2">
             <br />
-            <RadzenProgressBar style="position:relative;right:100px;width:1300px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Secondary" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenProgressBar style="position:relative;width:1500px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </center>
 }
@@ -116,6 +124,7 @@ else
     async Task Get()
     {
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Plantele>>>(Url);
+        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
         StateHasChanged();
     }

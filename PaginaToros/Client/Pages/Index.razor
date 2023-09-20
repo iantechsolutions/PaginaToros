@@ -1,8 +1,289 @@
 ﻿@page "/"
+@using System.Globalization
 
-<PageTitle>Index</PageTitle>
+<RadzenRow>
+    <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
+        <RadzenCard Style="position: relative;">
+            <RadzenText TextStyle="TextStyle.H6">Inspecciones abiertas</RadzenText>
+            <RadzenText TextStyle="TextStyle.H2" Class="rz-color-success" Style="position: absolute; right: 1.5rem; top: 1rem;">@Finished?.Count()</RadzenText>
+            <RadzenChart Style="width: 100%; height: 120px; margin-bottom: -30px;">
+                <RadzenColumnSeries Data=@Finished ValueProperty="Count" CategoryProperty="Week" Title="Issues" Fill="var(--rz-success)" />
+                <RadzenValueAxis Visible="false" />
+                <RadzenCategoryAxis Visible="false" />
+                <RadzenColumnOptions Margin="10" />
+                <RadzenLegend Visible="false" />
+            </RadzenChart>
+        </RadzenCard>
+    </RadzenColumn>
+    <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
+        <RadzenCard Style="position: relative;">
+            <RadzenText TextStyle="TextStyle.H6">Inspecciones cerradas</RadzenText>
+            <RadzenText TextStyle="TextStyle.H2" Class="rz-color-danger" Style="position: absolute; right: 1.5rem; top: 1rem;">@NotFinished?.Count()</RadzenText>
+            <RadzenChart Style="width: 100%; height: 120px; margin-bottom: -30px;">
+                <RadzenColumnSeries Data=@NotFinished ValueProperty="Count" CategoryProperty="Week" Title="Issues" Fill="var(--rz-danger)" />
+                <RadzenValueAxis Visible="false" />
+                <RadzenCategoryAxis Visible="false" />
+                <RadzenColumnOptions Margin="10" />
+                <RadzenLegend Visible="false" />
+            </RadzenChart>
+        </RadzenCard>
+    </RadzenColumn>
+    <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
+        <RadzenCard Style="position: relative;">
+            <RadzenText TextStyle="TextStyle.H6">Todas las inspecciones</RadzenText>
+            <RadzenText TextStyle="TextStyle.H2" Style="position: absolute; right: 1.5rem; top: 1rem;">@Inspecciones?.Count()</RadzenText>
+            <RadzenChart Style="width: 100%; height: 120px; margin-bottom: -30px;">
+                <RadzenLineSeries Data=@Inspecciones ValueProperty="Count" CategoryProperty="Week" Title="Open Issues" Smooth="true" Stroke="var(--rz-success)" />
+                <RadzenLineSeries Data=@Inspecciones ValueProperty="Count" CategoryProperty="Week" Title="Closed Issues" Smooth="true" Stroke="var(--rz-danger)" />
+                <RadzenValueAxis Visible="false" />
+                <RadzenCategoryAxis Visible="false" />
+                <RadzenLegend Visible="false" />
+            </RadzenChart>
+        </RadzenCard>
+    </RadzenColumn>
+    <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
+        <RadzenCard>
+            <RadzenText TextStyle="TextStyle.H6">Progreso</RadzenText>
+            <RadzenArcGauge Style="width: 100%; height: 120px; margin-top: -30px;">
+                <RadzenArcGaugeScale Max="1" Y="0.8" Radius="2">
+                    <RadzenArcGaugeScaleValue Value=0.66 FormatString="{0:P0}" />
+                </RadzenArcGaugeScale>
+            </RadzenArcGauge>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
 
-<h1>Bienvenidos Hereford</h1>
+<RadzenRow>
+    <RadzenColumn Size="4" SizeMD="4" SizeLG="4">
+        <RadzenCard Variant="Variant.Filled" Class="rz-my-2 rz-mx-0">
+            <RadzenText>Inspecciones</RadzenText>
+            <RadzenDataList AllowVirtualization=false
+                            WrapItems=true AllowPaging=false
+                            Data="@(Inspecciones.GetRange(0,3))" TItem="inspecciones" PageSize="3" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
+                <Template Context="product">
+                    <RadzenColumn Size="6" class="rz-p-0 rz-p-md-0">
+                        <RadzenCard Style="@(product.finished?"background-color: rgba(45, 255, 125, 0.5);":"background-color: rgba(255, 55, 46, 0.5);")">
+                            <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Socio</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H6" class="rz-display-flex rz-mt-0 rz-my-0">@(product.Socio)</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Establecimiento</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H6" class="rz-display-flex rz-mt-0 rz-my-0">@(product.Establecimiento)</RadzenText>
+                            </RadzenCard>
+                        </RadzenColumn>
+                    </Template>
+                </RadzenDataList>
+                <br />
 
-Esta es una demo de su proxima app.
+                <RadzenButton Variant="Variant.Text" Text="ver más" ButtonStyle="ButtonStyle.Secondary" Style="color:black;" />
+            </RadzenCard>
+        </RadzenColumn>
 
+        <RadzenColumn Size="8">
+            <RadzenCard Variant="Variant.Filled" Class="rz-my-2 rz-mx-0">
+                <RadzenChart>
+                    <RadzenLineSeries Smooth="@true" Data="@revenue2019" CategoryProperty="Date" Title="2019" LineType="LineType.Dashed" ValueProperty="Revenue">
+                        <RadzenMarkers MarkerType="MarkerType.Square" />
+                        <RadzenSeriesDataLabels Visible="@false" />
+                    </RadzenLineSeries>
+                    <RadzenLineSeries Smooth="@true" Data="@revenue2020" CategoryProperty="Date" Title="2020" ValueProperty="Revenue">
+                        <RadzenMarkers MarkerType="MarkerType.Circle" />
+                        <RadzenSeriesDataLabels Visible="@false" />
+                    </RadzenLineSeries>
+                    <RadzenCategoryAxis Padding="20" Formatter="@FormatAsMonth" />
+                    <RadzenValueAxis Formatter="@FormatAsUSD">
+                        <RadzenGridLines Visible="true" />
+                        <RadzenAxisTitle Text="Precio en USD" />
+                    </RadzenValueAxis>
+                </RadzenChart>
+
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+
+    @code {
+    List<inspecciones> Inspecciones = new() { new inspecciones() { Socio = "IANTech Solutions", Establecimiento = "Caballito", finished = false, Count = 10, Week = 4 }, new inspecciones() { Socio = "IANTech Solutions", Establecimiento = "Palermo", finished = false, Count = 5, Week = 6 }, new inspecciones() { Socio = "IANTech Solutions", Establecimiento = "Palermo", finished = true, Count = 3, Week = 7 }, new inspecciones() { Socio = "IANTech Solutions", Establecimiento = "Palermo", finished = false, Count = 10, Week = 4 }, new inspecciones() { Socio = "IANTech Solutions", Establecimiento = "Palermo", finished = false, Count = 5, Week = 6 }, new inspecciones() { Socio = "IANTech Solutions", Establecimiento = "Palermo", finished = true, Count = 3, Week = 7 } };
+    List<inspecciones> Finished = new();
+    List<inspecciones> NotFinished = new();
+    protected override async Task OnInitializedAsync()
+    {
+        Finished = Inspecciones.Where(x => x.finished).ToList();
+        NotFinished = Inspecciones.Where(x => !x.finished).ToList();
+    }
+
+    DataItem[] revenue = new DataItem[] {
+    new DataItem
+    {
+    Quarter = "Q1",
+    Revenue = 30000
+    },
+    new DataItem
+    {
+    Quarter = "Q2",
+    Revenue = 40000
+    },
+    new DataItem
+    {
+    Quarter = "Q3",
+    Revenue = 50000
+    },
+    new DataItem
+    {
+    Quarter = "Q4",
+    Revenue = 80000
+    },
+    };
+
+    string FormatAsUSD(object value)
+    {
+        return ((double)value).ToString("C0", CultureInfo.CreateSpecificCulture("en-US"));
+    }
+
+    string FormatAsMonth(object value)
+    {
+        if (value != null)
+        {
+            return Convert.ToDateTime(value).ToString("MMM");
+        }
+
+        return string.Empty;
+    }
+
+    DataItem[] revenue2019 = new DataItem[] {
+        new DataItem
+        {
+            Date = ("2019-01-01"),
+            Revenue = 234000
+        },
+        new DataItem
+        {
+            Date = ("2019-02-01"),
+            Revenue = 269000
+        },
+        new DataItem
+        {
+            Date = ("2019-03-01"),
+            Revenue = 233000
+        },
+        new DataItem
+        {
+            Date = ("2019-04-01"),
+            Revenue = 244000
+        },
+        new DataItem
+        {
+            Date = ("2019-05-01"),
+            Revenue = 214000
+        },
+        new DataItem
+        {
+            Date = ("2019-06-01"),
+            Revenue = 253000
+        },
+        new DataItem
+        {
+            Date = ("2019-07-01"),
+            Revenue = 274000
+        },
+        new DataItem
+        {
+            Date = ("2019-08-01"),
+            Revenue = 284000
+        },
+        new DataItem
+        {
+            Date = ("2019-09-01"),
+            Revenue = 273000
+        },
+        new DataItem
+        {
+            Date = ("2019-10-01"),
+            Revenue = 282000
+        },
+        new DataItem
+        {
+            Date = ("2019-11-01"),
+            Revenue = 289000
+        },
+        new DataItem
+        {
+            Date = ("2019-12-01"),
+            Revenue = 294000
+        }
+    };
+
+    DataItem[] revenue2020 = new DataItem[] {
+        new DataItem
+        {
+            Date = ("2019-01-01"),
+            Revenue = 334000
+        },
+        new DataItem
+        {
+            Date = ("2019-02-01"),
+            Revenue = 369000
+        },
+        new DataItem
+        {
+            Date = ("2019-03-01"),
+            Revenue = 333000
+        },
+        new DataItem
+        {
+            Date = ("2019-04-01"),
+            Revenue = 344000
+        },
+        new DataItem
+        {
+            Date = ("2019-05-01"),
+            Revenue = 314000
+        },
+        new DataItem
+        {
+            Date = ("2019-06-01"),
+            Revenue = 353000
+        },
+        new DataItem
+        {
+            Date = ("2019-07-01"),
+            Revenue = 374000
+        },
+        new DataItem
+        {
+            Date = ("2019-08-01"),
+            Revenue = 384000
+        },
+        new DataItem
+        {
+            Date = ("2019-09-01"),
+            Revenue = 373000
+        },
+        new DataItem
+        {
+            Date = ("2019-10-01"),
+            Revenue = 382000
+        },
+        new DataItem
+        {
+            Date = ("2019-11-01"),
+            Revenue = 389000
+        },
+        new DataItem
+        {
+            Date = ("2019-12-01"),
+            Revenue = 394000
+        }
+    };
+    class DataItem
+    {
+        public string? Quarter { get; set; }
+        public string? Date { get; set; }
+        public double? Revenue { get; set; }
+    }
+    public class inspecciones
+    {
+        public string Socio { get; set; }
+        public string Establecimiento { get; set; }
+        public bool finished { get; set; }
+        public int Count { get; set; }
+        public int Week { get; set; }
+    }
+}

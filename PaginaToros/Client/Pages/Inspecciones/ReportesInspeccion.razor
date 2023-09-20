@@ -1,0 +1,220 @@
+﻿@page "/reportes"
+@using PaginaToros.Shared.Models.Response
+@using PaginaToros.Shared.Models
+@inject HttpClient Http
+
+<h3 class="pb-3 font-bold text-xl" style="position:relative">Reportes de Inspeccion</h3>
+
+
+<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick="()=>add(0)">Agregar Nuevo Reporte</button>
+<style>
+
+    .rz-cell-data,
+    .rz-column-title-content {
+        font-size: 13px !important;
+    }
+
+    .rz-cell-data {
+        overflow: visible !important;
+        white-space: normal !important;
+    }
+
+    .tablacontent th.rz-unselectable-text.rz-text-align-left {
+        background-color: #82D682;
+    }
+
+    .rz-paginator {
+        border-top: solid #E0E0E0 1px;
+    }
+</style>
+
+@if (oRespuesta.List != null)
+{
+
+    <button style="outline:none; float: right;margin-right:15px;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+    <br />
+    <br />
+    <div class="tablacontent" style="position:relative;width:1500px;">
+        <RadzenDataGrid style="position:relative;width:1500px;" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                        Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                        Data="@oRespuesta.List" TItem="InspRe" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or">
+            <Columns>
+                <RadzenDataGridColumn TItem="InspRe" Property="Nrores" Title="Nro Resultado" Width="340px"/>
+                <RadzenDataGridColumn TItem="InspRe" Property="Nropla" Title="Plantel" Width="340px" />
+                <RadzenDataGridColumn TItem="InspRe" Property="NombreSocio" Title="Socio" Width="340px" />
+                <RadzenDataGridColumn TItem="InspRe" Property="FechaInspeccion" Title="Fecha De Inspeccion" Width="340px">
+                    <Template Context="data">
+                        @if (data.FechaInspeccion.HasValue)
+                        {
+                            @data.FechaInspeccion.Value.ToString("dd/MM/yyyy")
+                        }
+                        else
+                        {
+
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="InspRe" Property="" Title="" Filterable="false" Width="75px">
+                    <Template Context="data">
+                        <button class="btn" title="Editar" @onclick="() => add(data.Id)"><FeatherEdit Color="green" /></button>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="InspRe" Property="" Title="" Filterable="false" Width="75px">
+                    <Template Context="data">
+                        <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash Color="red" /></button>
+                    </Template>
+                </RadzenDataGridColumn>
+                
+            
+            </Columns>
+
+        </RadzenDataGrid>
+    </div>
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;width:1500px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Secondary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
+
+
+
+@code {
+    [CascadingParameter] public IModalService Modal { get; set; } = default!;
+    public bool allowFiltering = false;
+    public RadzenDataGrid<InspRe>? grid;
+    int currentPage;
+    public string Url = "/api/InspRe";
+    public Respuesta<List<InspRe>> oRespuesta = new Respuesta<List<InspRe>>();
+    protected override async Task OnInitializedAsync()
+    {
+        await Get();
+    }
+    async Task Get()
+    {
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<InspRe>>>(Url);
+        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
+        oRespuesta = respuesta;
+        StateHasChanged();
+    }
+    public void CambiarModoFiltro()
+    {
+        allowFiltering = !allowFiltering;
+        StateHasChanged();
+    }
+
+    async Task delete(int id)
+    {
+        currentPage = grid.CurrentPage;
+        await Http.DeleteAsync($"/api/InspRe/{id}");
+        await Get();
+        if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+        {
+            await grid.GoToPage(currentPage - 1);
+        }
+        else if (grid.Count != 0)
+        {
+            await grid.GoToPage(currentPage);
+        }
+
+    }
+
+    public async Task alertaDelete(int id)
+    {
+        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "¿Está seguro?",
+                Text = "Se eliminará el reporte",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Eliminar",
+                CancelButtonText = "Cancelar"
+            });
+
+        if (!string.IsNullOrEmpty(result.Value))
+        {
+            delete(id);
+
+        }
+        else if (result.Dismiss == DismissReason.Cancel)
+        {
+
+        }
+    }
+
+    async Task add(int Id)
+    {
+        nav.NavigateTo($"/inforeporte/{Id}");
+        // if (Id != 0)
+        // {
+        //     currentPage = grid.CurrentPage;
+        //     try
+        //     {
+        //         var parameters = new ModalParameters();
+        //         parameters.Add(nameof(AddReporte.Id), Id);
+        //         var formModal = Modal.Show<AddReporte>("Editar Reporte", parameters);
+        //         var result = await formModal.Result;
+        //         if (result.Cancelled)
+        //         {
+        //             Console.WriteLine("Modal was cancelled");
+        //             await grid.GoToPage(currentPage);
+        //         }
+        //         else
+        //         {
+        //             await Get();
+        //             await grid.GoToPage(currentPage);
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Console.WriteLine(ex.Message);
+        //     }
+        // }
+        // else
+        // {
+        //     var formModal = Modal.Show<AddReporte>("Agregar Reporte");
+        //     var result = await formModal.Result;
+
+        //     if (result.Cancelled)
+        //     {
+        //         Console.WriteLine("Modal was cancelled");
+        //         await grid.GoToPage(currentPage);
+        //     }
+        //     else
+        //     {
+        //         await Get();
+        //         await grid.GoToPage(currentPage);
+        //     }
+        // }
+    }
+
+    //async Task gotoinfo(int id)
+    //{
+    //    currentPage = grid.CurrentPage;
+    //    var parameters = new ModalParameters();
+    //    var options = new ModalOptions()
+    //        {
+    //            HideHeader = true,
+    //            HideCloseButton = true
+    //        };
+    //    parameters.Add(nameof(InfoToro.id), id);
+    //    var formModal = Modal.Show<InfoToro>("", parameters, options);
+    //    var result = await formModal.Result;
+
+    //    if (result.Cancelled)
+    //    {
+    //        Console.WriteLine("Modal was cancelled");
+    //        await grid.GoToPage(currentPage);
+    //    }
+    //    else
+    //    {
+    //        await Get();
+    //        await grid.GoToPage(currentPage);
+    //    }
+    //}
+}

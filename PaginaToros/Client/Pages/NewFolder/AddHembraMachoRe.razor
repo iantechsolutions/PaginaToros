@@ -1,0 +1,168 @@
+﻿@if (botonclick == "vaqpr")
+{
+    <div class="row" style="width=100%;">
+        <div class="col-sm">
+            <label class="col-sm">Presentadas</label><br />
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.Hdp />
+            <br />
+        </div>
+        <div class="col-sm">
+            <label class="col-sm">Mochas Marcadas</label>
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.HdpM />
+            <br />
+        </div>
+        <div class="col-sm">
+            <label class="col-sm">Astadas Marcadas</label>
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.HdpAs />
+            <br />
+        </div>
+    </div>
+}
+@if (botonclick == "otrospr")
+{
+    <div class="row" style="width=100%;">
+        <div class="col-sm">
+            <label class="col-sm">Presentadas</label><br />
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.Hpp />
+            <br />
+        </div>
+        <div class="col-sm">
+            <label class="col-sm">Mochas Marcadas</label>
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.HppM />
+            <br />
+        </div>
+        <div class="col-sm">
+            <label class="col-sm">Astadas Marcadas</label>
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.HppAs/>
+            <br />
+        </div>
+    </div>
+}
+@if (botonclick == "vacvip")
+{
+    <div class="row" style="width=100%;">
+        <div class="col-sm">
+            <label class="col-sm">Presentadas</label><br />
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.Hgvp />
+            <br />
+        </div>
+        <div class="col-sm">
+            <label class="col-sm">VIP Total</label>
+            <br />
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.Hgvb />
+            <br />
+        </div>
+    </div>
+}
+@if (botonclick == "vaqvip")
+{
+    <div class="row" style="width=100%;">
+        <div class="col-sm">
+            <label class="col-sm">Presentadas</label><br />
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.Hgqp />
+            <br />
+        </div>
+        <div class="col-sm">
+            <label class="col-sm">VIP Total</label>
+            <br />
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.Hgqb />
+            <br />
+        </div>
+    </div>
+}
+@if (botonclick == "scp")
+{
+    <div class="row" style="width=100%;">
+        <div class="col-sm">
+            <label class="col-sm">Presentados</label><br />
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.Mcp />
+            <br />
+        </div>
+        <div class="col-sm">
+            <label class="col-sm">PR Mochos</label>
+            <br />
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.McpM />
+            <br />
+        </div>
+        <div class="col-sm">
+            <label class="col-sm">PR Astados</label>
+            <br />
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.McpAs />
+            <br />
+        </div>
+    </div>
+}
+@if (botonclick == "cp")
+{
+    <div class="row" style="width=100%;">
+        <div class="col-sm">
+            <label class="col-sm">Presentados</label><br />
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.Msp />
+            <br />
+        </div>
+        <div class="col-sm">
+            <label class="col-sm">PR Mochos</label>
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.MspM />
+            <br />
+        </div>
+        <div class="col-sm">
+            <label class="col-sm">PR Astados</label>
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.MspAs />
+            <br />
+        </div>
+        <div class="col-sm">
+            <label class="col-sm">Control S/</label>
+            <RadzenNumeric TValue="double?" @bind-Value=oHembrasYmachosRe.Mspsb />
+            <br />
+        </div>
+    </div>
+}
+<br/>
+<button type="button" @onclick="Guardar" class="btn btn-primary mr-2">Aceptar</button>
+<button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+
+@code {
+    HembrasYmachosRe oHembrasYmachosRe  = new();
+    Respuesta<HembrasYmachosRe> oRespuesta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int Id { get; set; }
+    [Parameter] public string botonclick { get; set; }
+    [Parameter] public int numeroRes { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<HembrasYmachosRe>>($"/api/HembrasYmachosRe/{Id}");
+                oHembrasYmachosRe = oRespuesta.List;
+
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        oHembrasYmachosRe.Nrores = numeroRes;
+        if (Id == 0)
+        {
+            await Http.PostAsJsonAsync<HembrasYmachosRe>("/api/HembrasYmachosRe", oHembrasYmachosRe);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<HembrasYmachosRe>("/api/HembrasYmachosRe", oHembrasYmachosRe);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+}

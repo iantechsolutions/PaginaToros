@@ -126,7 +126,7 @@
                 {
                     FechaTempCreacion = oPlantel.FechaExistencia.Value;
                 }
-                socioSeleccionado = socios.Where(x => x.NombreCompleto == oPlantel.Socio).FirstOrDefault();
+                socioSeleccionado = socios.Where(x => x.NombreCompleto == oPlantel.NombreSocio).FirstOrDefault();
 
 
             }
@@ -138,7 +138,8 @@
     }
     async Task Guardar()
     {
-        oPlantel.Socio = socioSeleccionado.NombreCompleto;
+        oPlantel.NombreSocio = socioSeleccionado.NombreCompleto;
+        oPlantel.CodSocio = socioSeleccionado.NroSocio.ToString();
         oPlantel.FechaExistencia = FechaTempCreacion;
         oPlantel.Activo = activo;
         if (Id == 0)

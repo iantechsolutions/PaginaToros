@@ -40,4 +40,10 @@ public partial class SolicitudInspeccion
     public string? VcVip { get; set; }
 
     public string? VqVip { get; set; }
+
+    public int? CodEstablecimiento { get; set; }
+
+    public string? FechaSolTemp { get; set; }
+
+    public string? FechaAuTemp { get; set; }
 }

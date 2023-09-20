@@ -52,6 +52,28 @@ namespace PaginaToros.Server.Controllers
             }
             return Ok(oRespuesta);
         }
+
+        [HttpGet("pendientes")]
+        public IActionResult GetByCompleted()
+        {
+            Respuesta<List<SolicitudInspeccion>> oRespuesta = new();
+
+            try
+            {
+                using BlazorCrudContext db = new();
+
+                var lst = db.SolicitudInspeccions
+                    .Where(x => x.Completada == false).ToList();
+                oRespuesta.Exito = 1;
+                oRespuesta.List = lst;
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+            return Ok(oRespuesta);
+        }
+
         [HttpPost]
         public IActionResult Add(SolicitudInspeccion model)
         {

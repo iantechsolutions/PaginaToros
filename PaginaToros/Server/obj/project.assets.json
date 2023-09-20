@@ -4169,19 +4169,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\lolo1\\.nuget\\packages\\": {}
+    "C:\\Users\\lolo1\\.nuget\\packages\\": {},
+    "E:\\LIBRERIAS\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Server\\PaginaToros.Server.csproj",
+      "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Server\\PaginaToros.Server.csproj",
       "projectName": "PaginaToros.Server",
-      "projectPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Server\\PaginaToros.Server.csproj",
+      "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Server\\PaginaToros.Server.csproj",
       "packagesPath": "C:\\Users\\lolo1\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Server\\obj\\",
+      "outputPath": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Server\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "E:\\LIBRERIAS\\NuGetPackages"
+      ],
       "configFilePaths": [
         "C:\\Users\\lolo1\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -4197,11 +4202,11 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "projectReferences": {
-            "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj": {
-              "projectPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj"
+            "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Client\\PaginaToros.Client.csproj": {
+              "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Client\\PaginaToros.Client.csproj"
             },
-            "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
-              "projectPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj"
+            "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
+              "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Shared\\PaginaToros.Shared.csproj"
             }
           }
         }
@@ -4254,7 +4259,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.203\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
       }
     }
   }

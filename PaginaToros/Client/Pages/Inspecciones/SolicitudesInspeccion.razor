@@ -3,34 +3,43 @@
 @using PaginaToros.Shared.Models
 @inject HttpClient Http
 
-<h3 style="position:relative;right:100px;">Solicitudes de Inspeccion</h3>
+<h3 class="pb-3 font-bold text-xl" style="position:relative">Solicitudes de Inspeccion</h3>
 
 
-<button style="position:relative;right:100px;" class="btn btn-outline-primary" @onclick="()=>add(0)">Crear Nueva Solicitud</button>
+<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick="()=>add(0)">Crear Nueva Solicitud</button>
 <style>
 
- /*   .rz-cell-data,
+    .rz-cell-data,
     .rz-column-title-content {
-        font-size: 12px !important;
+        font-size: 13px !important;
     }
 
     .rz-cell-data {
         overflow: visible !important;
         white-space: normal !important;
-    }*/
+    }
+
+    .tablacontent th.rz-unselectable-text.rz-text-align-left {
+        background-color: #82D682;
+    }
+
+    .rz-paginator {
+        border-top: solid #E0E0E0 1px;
+    }
 </style>
 
 @if (oRespuesta.List != null)
 {
 
-    <button style="outline:none; float: right;height:100%;" class="btn btn-outline" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+    <button style="outline:none; float: right;margin-right:15px;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
     <br />
     <br />
-    <RadzenDataGrid style="position:relative;right:100px;width:1300px;" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-                AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+    <div class="tablacontent" style="position:relative;width:1500px;">
+    <RadzenDataGrid style="position:relative;width:1500px;" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                 Data="@oRespuesta.List" TItem="SolicitudInspeccion" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or">
         <Columns>
-            <RadzenDataGridColumn TItem="SolicitudInspeccion" Property="Id" Title="Nro Solicitud" Width="55px" />
+                <RadzenDataGridColumn TItem="SolicitudInspeccion" Property="NroSolicitud" Title="Nro Solicitud" Width="55px" />
             <RadzenDataGridColumn TItem="SolicitudInspeccion" Property="NombreSocio" Title="Socio" Width="70px" />
             <RadzenDataGridColumn TItem="SolicitudInspeccion" Property="FechaSolicitud" Title="Fecha De Solicitud" Width="90px">
                 <Template Context="data">
@@ -38,7 +47,6 @@
                         @data.FechaSolicitud.Value.ToString("dd/MM/yyyy")
                     }
                     else{
-
                     }
                 </Template>
             </RadzenDataGridColumn>
@@ -72,7 +80,7 @@
         </Columns>
 
     </RadzenDataGrid>
-
+    </div>
 }
 else
 {
@@ -80,7 +88,7 @@ else
     <center>
         <div class="mb-2">
             <br />
-            <RadzenProgressBar style="position:relative;right:100px;width:1300px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Secondary" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenProgressBar style="position:relative;width:1500px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Secondary" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </center>
 }
@@ -100,6 +108,7 @@ else
     async Task Get()
     {
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<SolicitudInspeccion>>>(Url);
+        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
         StateHasChanged();
     }

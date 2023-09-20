@@ -1,0 +1,873 @@
+﻿@page "/inforeporte/{Id:int}"
+@using Blazored.Typeahead
+@using PaginaToros.Client.Pages.NewFolder
+<style>
+    .bm-title {
+        font-size: 25px;
+        font-weight: bold;
+    }
+
+</style>
+@if(cargando){
+<div>
+    
+    <div class="row" style="width=100%;">
+        <div class="col-md-1" />
+        <div class="col-md-3">
+            <label>Socio</label>
+            @if(Id!=0 && socioSeleccionado!=null)
+            {
+                <RadzenTextBox Disabled="true" class="w-100">@socioSeleccionado.NombreCompleto</RadzenTextBox>
+            }
+            else{
+            <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado" Disabled="solicitudSeleccionada!=null">
+                <SelectedTemplate Context="eleccion">
+                    @eleccion.NombreCompleto
+                </SelectedTemplate>
+                <ResultTemplate Context="eleccion">
+                    @eleccion.NombreCompleto
+                </ResultTemplate>
+            </BlazoredTypeahead>
+            }
+        </div>
+        <div class="col-md-3"/>
+        @if (@socioSeleccionado != null)
+        {
+        <div class="col-md-3">
+            <label>Solicitud</label>
+            @if (Id != 0 && socioSeleccionado != null)
+            {
+                <RadzenTextBox Disabled="true" class="w-100">@solicitudSeleccionada.NroSolicitud</RadzenTextBox>
+            }
+            else
+            {
+            <BlazoredTypeahead SearchMethod="BusquedaSolicitudes" placeholder="Busque solicitud por numero" EnableDropDown="true" @bind-Value="solicitudSeleccionada" Disabled="confirmado">
+                <SelectedTemplate Context="eleccion">
+                    @eleccion.NroSolicitud
+                </SelectedTemplate>
+                <ResultTemplate Context="eleccion">
+                    @eleccion.NroSolicitud
+                </ResultTemplate>
+            </BlazoredTypeahead>
+            }
+        </div>
+        <div class="col-md-2" />
+        }
+    </div>
+    @if(solicitudSeleccionada!=null){
+        <br />
+
+        <div class="row" style="width=100%;">
+            <div class="col-sm-1" />
+            <div class="col-sm">
+                <label>Inspector</label>
+                <br/>
+                @if(resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).Count()>0){
+                    @if (resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).First().Icod.HasValue)
+                    {
+                        @if (inspectores.Where(x => x.Codigo == resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).First().Icod).Count() > 0)
+                        {
+                            <a>@inspectores.Where(x => x.Codigo == resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).First().Icod).First().Nombre</a>
+                        }
+                        else
+                        {
+                            <BlazoredTypeahead SearchMethod="BusquedaInspectores" placeholder="Busque inspector por nombre" EnableDropDown="true" @bind-Value="inspectorSeleccionado">
+                                <SelectedTemplate Context="eleccion">
+                                    @eleccion.Nombre
+                                </SelectedTemplate>
+                                <ResultTemplate Context="eleccion">
+                                    @eleccion.Nombre
+                                </ResultTemplate>
+                            </BlazoredTypeahead>
+                        }
+                    }
+                    else
+                    {
+                        <BlazoredTypeahead SearchMethod="BusquedaInspectores" placeholder="Busque inspector por nombre" EnableDropDown="true" @bind-Value="inspectorSeleccionado">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                    }
+                }
+                else{
+                    <BlazoredTypeahead SearchMethod="BusquedaInspectores" placeholder="Busque inspector por nombre" EnableDropDown="true" @bind-Value="inspectorSeleccionado">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.Nombre
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.Nombre
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                }
+            </div>
+            <div class="col-sm">
+                <label class="col-sm">Numero de Socio</label>
+                <br/>
+                <RadzenNumeric @bind-Value="@solicitudSeleccionada.NroSocio" placeholder="Nro Socio"></RadzenNumeric>
+            </div>
+            <div class="col-sm">
+                <label class="col-sm">Nombre de Socio</label>
+                <br />
+                <RadzenTextBox @bind-Value="@solicitudSeleccionada.NombreSocio" placeholder="Nombre de Socio"></RadzenTextBox>
+            </div>
+
+        </div>
+        <br />
+        <div class="row" style="width=100%;">
+            <div class="col-sm-1" />
+            <div class="col-sm">
+                <label class="col-sm">Establecimiento</label>
+                <br />
+                <RadzenTextBox @bind-Value="@solicitudSeleccionada.Establecimiento" placeholder="Establecimiento"></RadzenTextBox>
+            </div>
+            <div class="col-sm">
+                <label class="col-sm">Localidad</label>
+                <br />
+                <RadzenTextBox @bind-Value="@establecimientos.Where(x=>x.Codigo==solicitudSeleccionada.CodEstablecimiento).First().Localidad" placeholder="Localidad"></RadzenTextBox>
+            </div>
+            <div class="col-sm">
+                <label class="col-sm">Plantel</label>
+                <br />
+                @if(oInspRe.Nropla!=null){
+                    <RadzenTextBox @bind-Value="@oInspRe.Nropla" placeholder="UltimoPlantel"></RadzenTextBox>
+                }
+                else{
+                    <RadzenTextBox @bind-Value="@socioSeleccionado.UltimoPlantel" placeholder="UltimoPlantel"></RadzenTextBox>
+                }
+            </div>
+        </div>
+        <br />
+
+        <div class="row" style="width=100%;">
+            <div class="col-sm-1" />
+            <div class="col-sm">
+                <label class="col-sm">Fecha De Solicitud</label>
+                <RadzenDatePicker TValue="DateTime?" @bind-Value="@solicitudSeleccionada.FechaSolicitud" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+            </div>
+            <div class="col-sm">
+                @if (resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).Count() > 0)
+                {
+                    @if (resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).First().FechaInspeccion.HasValue){
+                    <label class="col-sm">Fecha De Inspeccion</label>
+                    <br/>
+                        <a>@(resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).First().FechaInspeccion.Value.ToString("dd/MM/yyyy"))</a>
+                    }
+                    else
+                    {
+                        <label class="col-sm">Fecha De Inspeccion</label>
+                        <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    }
+                }
+                else{
+                    <label class="col-sm">Fecha De Inspeccion</label>
+                    <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                }
+            </div>
+            <div class="col-sm">
+                <label class="col-sm">Reinspeccion?</label>
+                <br />
+                @if(solicitudSeleccionada.Reinspeccion.HasValue){
+                    <input type="checkbox" @bind="@solicitudSeleccionada.Reinspeccion">
+                }
+            </div>
+        </div>
+        <br />
+        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmar()">Confirmar Creacion</button>
+        <br />
+        <br />
+         @if (confirmado){
+            <RadzenTabs Class="w-100 mx-auto" RenderMode="TabRenderMode.Server">
+                <Tabs>
+                    <RadzenTabsItem Text="Movimientos">
+                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>agregarMov()">Agregar Movimiento</button>
+                        <br/>
+                        <br />
+                        <div class="container">
+                            <div class="row">
+                                <div class="col">
+                                    <table class="table table-bordered text-center">
+                                        <thead>
+                                            <tr>
+                                                <th rowspan="2" style="background-color: #FFFFFF;"></th>
+                                                <th rowspan="2" style="background-color: #999999;">TIPO DE MOVIMIENTO</th>
+                                                <th rowspan="2" style="background-color: #666666;">MOTIVO</th>
+                                                <th colspan="3" style="background-color: #999999;">PURO REGISTRADO</th>
+                                                <th colspan="3" style="background-color: #999999;">VIP</th>
+                                            </tr>
+                                            <tr style="background-color: #FFFFFF;">
+                                                <th style="background-color: #FFFFFF;">VACAS</th>
+                                                <th style="background-color: #FFFFFF;">VAQUILL c/ Servicio</th>
+                                                <th style="background-color: #FFFFFF;">VAQUILL s/Servicio</th>
+                                                <th style="background-color: #FFFFFF;">VACAS</th>
+                                                <th style="background-color: #FFFFFF;">VAQUILL c/Servicio o preñadas</th>
+                                                <th style="background-color: #FFFFFF;">VAQUILL s/Servicio</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr style="background-color: #33CCFF;">
+                                                <td style="background-color: #999999;"><strong>EXISTENCIA ANTERIOR</strong></td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td>@estadoAnterior.Ea1</td>
+                                                <td>@estadoAnterior.Ea2</td>
+                                                <td>@estadoAnterior.Ea3</td>
+                                                <td>@estadoAnterior.Ea4</td>
+                                                <td>@estadoAnterior.Ea5</td>
+                                                <td>@estadoAnterior.Ea6</td>
+                                            </tr>
+                                            @foreach (var mov in mtos)
+                                            {
+                                                <tr>
+                                                    <td></td>
+                                                    <td>@traductor[mov.Tipmov]</td>
+                                                    <td>@traductor[mov.Ctomov]</td>
+                                                    <td>@mov.Rdvac</td>
+                                                    <td>@mov.Rdvaqcs</td>
+                                                    <td>@mov.Rdvaqss</td>
+                                                    <td>@mov.Rpvac</td>
+                                                    <td>@mov.Rpvaqcs</td>
+                                                    <td>@mov.Rpvaqss</td>
+                                                </tr>
+                                            }
+                                            <tr style="background-color: #FFFF66;">
+                                                <td style="background-color: #999999;"><strong>Total Entradas</strong></td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td>@entradasFinal.Ea1</td>
+                                                <td>@entradasFinal.Ea2</td>
+                                                <td>@entradasFinal.Ea3</td>
+                                                <td>@entradasFinal.Ea4</td>
+                                                <td>@entradasFinal.Ea5</td>
+                                                <td>@entradasFinal.Ea6</td>
+                                            </tr>
+                                            <tr style="background-color: #FFCC99;">
+                                                <td style="background-color: #999999;"><strong>Total Salidas</strong></td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td>@salidasFinal.Ea1</td>
+                                                <td>@salidasFinal.Ea2</td>
+                                                <td>@salidasFinal.Ea3</td>
+                                                <td>@salidasFinal.Ea4</td>
+                                                <td>@salidasFinal.Ea5</td>
+                                                <td>@salidasFinal.Ea6</td>
+                                                
+                                            </tr>
+                                            <tr style="background-color: #FF9966;">
+                                                <td style="background-color: #999999;"><strong>EXISTENCIA ACTUAL</strong></td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td>@estadoFinal.Ea1</td>
+                                                <td>@estadoFinal.Ea2</td>
+                                                <td>@estadoFinal.Ea3</td>
+                                                <td>@estadoFinal.Ea4</td>
+                                                <td>@estadoFinal.Ea5</td>
+                                                <td>@estadoFinal.Ea6</td>
+                                                
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </RadzenTabsItem>
+                    <RadzenTabsItem Text="Hembras y Machos">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col">
+                                    <table class="table table-bordered text-center">
+                                        <thead>
+                                            <tr bgcolor="#008000">
+                                                <th style="background-color: #FFFFFF;"></th>
+                                                <th>Presentadas</th>
+                                                <th>Mocha Marcada</th>
+                                                <th>Astada Marcada</th>
+                                                <th>PR Total</th>
+                                                <th>VIP Total</th>
+                                                <th>Rechazadas</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Vaq PR -->
+                                            <tr>
+                                                <td><strong>Vaq PR</strong></td>
+                                                <td>@hemyma.Hdp</td>
+                                                <td>@hemyma.HdpM</td>
+                                                <td>@hemyma.HdpAs</td>
+                                                <td>@(hemyma.HdpM+hemyma.HdpAs)</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td style="background-color: #666666;">@(hemyma.Hdp - hemyma.HdpM - hemyma.HdpAs)</td>
+                                                <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqpr"))'><FeatherInfo Color="blue" /></button></td>
+                                            </tr>
+                                            <!-- Otros PR -->
+                                            <tr>
+                                                <td><strong>Otros PR</strong></td>
+                                                <td>@hemyma.Hpp</td>
+                                                <td>@hemyma.HppM</td>
+                                                <td>@hemyma.HppAs</td>
+                                                <td>@(hemyma.HppM+hemyma.HppAs)</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td style="background-color: #666666;">@(hemyma.Hpp - hemyma.HppM - hemyma.HppAs)</td>
+                                                <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("otrospr"))'><FeatherInfo Color="blue" /></button></td>
+                                            </tr>
+                                            <!-- Vacas VIP -->
+                                            <tr >
+                                                <td><strong>Vacas VIP</strong></td>
+                                                <td>@hemyma.Hgvp</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td>@hemyma.Hgvb</td>
+                                                <td style="background-color: #666666;">@(hemyma.Hgvb-hemyma.Hgvp)</td>
+                                                <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vacvip"))'><FeatherInfo Color="blue" /></button></td>
+                                            </tr>
+                                            <!-- Vaq VIP -->
+                                            <tr>
+                                                <td><strong>Vaq VIP</strong></td>
+                                                <td>@hemyma.Hgqp</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td>@hemyma.Hgqb</td>
+                                                <td style="background-color: #666666;">@(hemyma.Hgqb - hemyma.Hgqp)</td>
+                                                <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqvip"))'><FeatherInfo Color="blue" /></button></td>
+                                            </tr>
+                                            <!-- TOTALES -->
+                                            <tr style="background-color: #FF9966;">
+                                                <td><strong>TOTALES</strong></td>
+                                                <td>@(hemyma.Hdp + hemyma.Hpp + hemyma.Hgvp + hemyma.Hgqp)</td>
+                                                <td>@(hemyma.HppM + hemyma.HdpM)</td>
+                                                <td>@(hemyma.HppAs + hemyma.HdpAs)</td>
+                                                <td>@((hemyma.HdpM + hemyma.HdpAs) + (hemyma.HppM + hemyma.HppAs))</td>
+                                                <td>@(hemyma.Hgvb + hemyma.Hgqb)</td>
+                                                <td>@((hemyma.Hdp - hemyma.HdpM - hemyma.HdpAs) + (hemyma.Hpp - hemyma.HppM - hemyma.HppAs) + (hemyma.Hgvb - hemyma.Hgvp) + (hemyma.Hgqb - hemyma.Hgqp))</td>
+                                                <td style="background-color: #fff;"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <br/>
+                        <br/>
+                        <div class="container">
+                            <div class="row">
+                                <div class="col">
+                                    <table class="table table-bordered text-center">
+                                        <thead>
+                                            <tr bgcolor="#008000">
+                                                <th style="bgcolor:#FFFFFF"></th>
+                                                <th>Presentados</th>
+                                                <th>PR Mochos</th>
+                                                <th>PR Astados</th>
+                                                <th>PR Total</th>
+                                                <th>Rechazadas</th>
+                                                <th>Control S/</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- S.C.P. -->
+                                            <tr>
+                                                <td><strong>S.C.P.</strong></td>
+                                                <td>@hemyma.Mcp</td>
+                                                <td>@hemyma.McpM</td>
+                                                <td>@hemyma.McpAs</td>
+                                                <td>@(hemyma.McpM + hemyma.McpAs)</td>
+                                                <td style="background-color: #666666;">@(hemyma.Mcp-hemyma.McpM - hemyma.McpAs)</td>
+                                                <td style="background-color: #666666;">-</td>
+                                                <td style="background-color: #fff;"><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("scp"))'><FeatherInfo Color="blue" /></button></td>
+                                            </tr>
+                                            <!-- C.P. -->
+                                            <tr>
+                                                <td><strong>C.P.</strong></td>
+                                                <td>@hemyma.Msp</td>
+                                                <td>@hemyma.MspM</td>
+                                                <td>@hemyma.MspAs</td>
+                                                <td>@(hemyma.MspM + hemyma.MspAs)</td>
+                                                <td style="background-color: #666666;">@(hemyma.Msp - hemyma.MspM - hemyma.MspAs)</td>
+                                                <td>@hemyma.Mspsb</td>
+                                                <td style="background-color: #fff;"><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("cp"))'><FeatherInfo Color="blue" /></button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </RadzenTabsItem>
+                    <RadzenTabsItem Text="Informe general">
+                        <br/>
+                        <div class="container">
+                            <div class="row">
+                                <div class="col">
+                                    <table class="table table-bordered text-center">
+                                        <thead>
+                                            <tr bgcolor="#008000">
+                                                <th style="background-color: #FFFFFF;"></th>
+                                                <th>Promedio Edad</th>
+                                                <th>Promedio Peso</th>
+                                                <th>Max. Edad</th>
+                                                <th>Max. Peso</th>
+                                                <th>Min. Edad</th>
+                                                <th>Min. Peso</th>
+                                                <th>Diente de Leche %</th>
+                                                <th>Dos Dientes %</th>
+                                                <th>Cuatro Dientes %</th>
+                                                <th style="background-color: #FFFFFF;"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- HEMBRAS -->
+                                            <tr>
+                                                <td><strong>HEMBRAS</strong></td>
+                                                <td>@promediohembra.Pedad</td>
+                                                <td>@promediohembra.Ppeso</td>
+                                                <td>@promediohembra.Medad</td>
+                                                <td>@promediohembra.Mpeso</td>
+                                                <td>@promediohembra.Iedad</td>
+                                                <td>@promediohembra.Ipeso</td>
+                                                <td>@promediohembra.Pdl</td>
+                                                <td>@promediohembra.P2d</td>
+                                                <td>@promediohembra.P4d</td>
+                                                <td><button class="btn" title="Ver info" @onclick='() => (editarPromedio(promediohembra.Id))'><FeatherEdit Color="green" /></button></td>
+                                            </tr>
+                                            <!-- MACHOS -->
+                                            <tr>
+                                                <td><strong>MACHOS</strong></td>
+                                                <td>@promediomacho.Pedad</td>
+                                                <td>@promediomacho.Ppeso</td>
+                                                <td>@promediomacho.Medad</td>
+                                                <td>@promediomacho.Mpeso</td>
+                                                <td>@promediomacho.Iedad</td>
+                                                <td>@promediomacho.Ipeso</td>
+                                                <td>@promediomacho.Pdl</td>
+                                                <td>@promediomacho.P2d</td>
+                                                <td>@promediomacho.P4d</td>
+                                                <td><button class="btn" title="Ver info" @onclick='() => (editarPromedio(promediomacho.Id))'><FeatherEdit Color="green" /></button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <br />
+                        <div class="container">
+                            <div class="row">
+                                <div class="col">
+                                    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>agregarRechazo(0)">Agregar Causal de rechazo</button>
+                                    <br/>
+                                    <br/>
+                                    <table class="table table-bordered text-center">
+                                        <thead>
+                                            <tr bgcolor="#008000" >
+                                                <th style="background-color: #FFFFFF;">#</th>
+                                                <th>Motivo</th>
+                                                <th>Hembras</th>
+                                                <th>Machos</th>
+                                                <th style="background-color: #FFFFFF;"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var re in rechazos)
+                                            {
+                                                <tr>
+                                                    <td></td>
+                                                    <td>@traductor[re.MotivoRechazo.ToString()]</td>
+                                                    <td>@re.Hembras</td>
+                                                    <td>@re.Machos</td>
+                                                    <td>
+                                                        <button class="btn" title="Editar Rechazo" @onclick='() => (agregarRechazo(re.Id))'><FeatherEdit Color="green" /></button>
+                                                        <button class="btn" title="Editar Rechazo" @onclick='() => (alertaDeleteRechazo(re.Id))'><FeatherTrash Color="red" /></button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </RadzenTabsItem>
+                </Tabs>
+            </RadzenTabs>
+    }
+    }
+</div>
+}
+@code {
+
+    [CascadingParameter] public IModalService Modal { get; set; } = default!;
+    List<Socio> socios = new();
+    Socio? socioSeleccionado = null;
+    List<RechazoRe> rechazos = new();
+    List<MovimientosRe> mtos = new();
+    HembrasYmachosRe hemyma = new();
+    EdadMesPromedioRe promediohembra = new();
+    EdadMesPromedioRe promediomacho = new();
+    List<Inspectore> inspectores = new();
+    Inspectore? inspectorSeleccionado  = null;
+    List<InspRe> resultados = new();
+    List<Establecimiento> establecimientos = new();
+    Establecimiento? establecimientoSeleccionado = null;
+    List<EdadMesPromedioRe> promedios = new();
+    List<SolicitudInspeccion> solicitudes = new();
+    SolicitudInspeccion? solicitudSeleccionada = null;
+    bool confirmado = false;
+    bool cargando = true;
+    InspRe? oInspRe = new();
+    DateTime fechaTemp = DateTime.Now;
+    Respuesta<InspRe> oRespuesta = new();
+    EstadoHistoricoRe estadoAnterior = new();
+    EstadoHistoricoRe salidasFinal = new();
+    EstadoHistoricoRe entradasFinal = new();
+    EstadoHistoricoRe estadoFinal = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int Id { get; set; }
+    Dictionary<string, string> traductor = new Dictionary<string, string>{
+        {"CO","Compras"},
+        {"VE","Ventas"},
+        {"CC","Cambio Categoria"},
+        {"PI","Por Inspeccion"},
+        {"EP","Epidemias"},
+        {"RE","Rechazos"},
+        {"OT","Otros"},
+        {"E","Entrada"},
+        {"S","Salida"},
+        {"1","Pelaje"},
+        {"2","Estado"},
+        {"3","Desarrollo"},
+        {"4","Aplomo"},
+        {"5","Estructura"},
+        {"6","Conformacion"},
+        {"7","Pureza"},
+        {"8","Sanidad"},
+        {"9","Otros"},
+    };
+
+    bool activo = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
+        socios = rta.List.ToList();
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>($"/api/Establecimiento");
+        establecimientos = respuesta.List;
+        var rtaa = await Http.GetFromJsonAsync<Respuesta<List<SolicitudInspeccion>>>("/api/solicitudinspeccion");
+        solicitudes = rtaa.List;
+        var rtaaa = await Http.GetFromJsonAsync<Respuesta<List<Inspectore>>>("/api/Inspectore");
+        inspectores = rtaaa.List;
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<InspRe>>>($"/api/InspRe");
+        resultados = rt.List;
+        //sethemyma();
+        if (Id != 0)
+        {
+            try
+            {
+                var res = await Http.GetFromJsonAsync<Respuesta<InspRe>>($"/api/InspRe/{Id}");
+                oInspRe = res.List;
+                socioSeleccionado = socios.Where(x=>x.NroSocio == oInspRe.Scod).First();
+                solicitudSeleccionada = solicitudes.Where(x => x.NroSolicitud == oInspRe.Nrores).First();
+                await updatePromedios(solicitudSeleccionada.NroSolicitud.Value);
+
+                await updateRechazos(solicitudSeleccionada.NroSolicitud.Value);
+
+                await updateMovimientos(solicitudSeleccionada.NroSolicitud.Value);
+
+                await updateHembrasMachos(solicitudSeleccionada.NroSolicitud.Value);
+
+                await updateEstadoHistorico(solicitudSeleccionada.NroSolicitud.Value);
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+        cargando = false;
+    }
+
+    async Task guardarReporte()
+    {
+        // oInspRe.Id = Id;
+        // oInspRe.Nrores = solicitudSeleccionada.NroSolicitud;
+        // oInspRe.Icod = inspectorSeleccionado.Codigo;
+        // oInspRe.FechaInspeccion = fechaTemp;
+        // oInspRe.NombreSocio = socioSeleccionado.NombreCompleto;
+        // oInspRe.Scod = socioSeleccionado.NroSocio;
+        // oInspRe.Estcod = solicitudSeleccionada.CodEstablecimiento;
+        // oInspRe.Nropla = socioSeleccionado.UltimoPlantel;
+        // // solicitudSeleccionada.Completada = true;
+        // await Http.PutAsJsonAsync<SolicitudInspeccion>("/api/SolicitudInspeccion", solicitudSeleccionada);
+        // if (Id == 0)
+        // {
+        //     await Http.PostAsJsonAsync<InspRe>("/api/InspRe", oInspRe);
+        //     await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        // }
+        // else
+        // {
+        //     await Http.PutAsJsonAsync<InspRe>("/api/InspRe", oInspRe);
+        //     await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        // }
+    }
+
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+    async Task updatePromedios(int nrores)
+    {
+        var rtt = await Http.GetFromJsonAsync<Respuesta<List<EdadMesPromedioRe>>>($"/api/edadmespromediore/nrores/{nrores}");
+        if (rtt.List.Count() > 0)
+        {
+            promediohembra = rtt.List.Where(x => x.Sexo == "H").First();
+            promediomacho = rtt.List.Where(x => x.Sexo == "M").First();
+        }
+    }
+    async Task updateRechazos(int nrores)
+    {
+        var res = await Http.GetFromJsonAsync<Respuesta<List<RechazoRe>>>($"/api/RechazoRe/nrores/{nrores}");
+        rechazos = res.List;
+    }
+    async Task updateMovimientos(int nrores)
+    {
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<MovimientosRe>>>($"/api/MovimientosRe/nrores/{nrores}");
+        mtos = respuesta.List;
+
+        foreach (var mov in mtos)
+        {
+            if (mov.Tipmov == "S")
+            {
+                salidasFinal.Ea1 += Int32.Parse(mov.Rdvac);
+                salidasFinal.Ea2 += Int32.Parse(mov.Rdvaqcs);
+                salidasFinal.Ea3 += Int32.Parse(mov.Rdvaqss);
+                salidasFinal.Ea4 += Int32.Parse(mov.Rpvac);
+                salidasFinal.Ea5 += Int32.Parse(mov.Rpvaqcs);
+                salidasFinal.Ea6 += Int32.Parse(mov.Rpvaqss);
+            }
+            else
+            {
+                entradasFinal.Ea1 += Int32.Parse(mov.Rdvac);
+                entradasFinal.Ea2 += Int32.Parse(mov.Rdvaqcs);
+                entradasFinal.Ea3 += Int32.Parse(mov.Rdvaqss);
+                entradasFinal.Ea4 += Int32.Parse(mov.Rpvac);
+                entradasFinal.Ea5 += Int32.Parse(mov.Rpvaqcs);
+                entradasFinal.Ea6 += Int32.Parse(mov.Rpvaqss);
+            }
+        }
+        estadoFinal.Ea1 = estadoAnterior.Ea1 - salidasFinal.Ea1 + entradasFinal.Ea1;
+        estadoFinal.Ea2 = estadoAnterior.Ea2 - salidasFinal.Ea2 + entradasFinal.Ea2;
+        estadoFinal.Ea3 = estadoAnterior.Ea3 - salidasFinal.Ea3 + entradasFinal.Ea3;
+        estadoFinal.Ea4 = estadoAnterior.Ea4 - salidasFinal.Ea4 + entradasFinal.Ea4;
+        estadoFinal.Ea5 = estadoAnterior.Ea5 - salidasFinal.Ea5 + entradasFinal.Ea5;
+        estadoFinal.Ea6 = estadoAnterior.Ea6 - salidasFinal.Ea6 + entradasFinal.Ea6;
+
+    }
+    async Task updateHembrasMachos(int nrores)
+    {
+        try
+        {
+            var rta = await Http.GetFromJsonAsync<Respuesta<List<HembrasYmachosRe>>>($"/api/HembrasYmachosRe/nrores/{nrores}");
+            hemyma = rta.List.First();
+        }
+        catch { }
+    }
+    async Task updateEstadoHistorico(int nrores)
+    {
+        try
+        {
+            var rt = await Http.GetFromJsonAsync<Respuesta<List<EstadoHistoricoRe>>>($"/api/EstadoHistoricoRe/nrores/{nrores}");
+            estadoAnterior = rt.List.First();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    async Task confirmar()
+    {
+
+        confirmado = true;
+        int nrores = solicitudSeleccionada.NroSolicitud.Value;
+
+        guardarReporte();
+
+        await updatePromedios(nrores);
+
+        await updateRechazos(nrores);
+
+        await updateMovimientos(nrores);
+
+        await updateHembrasMachos(nrores);
+
+        await updateEstadoHistorico(nrores);
+
+        //cambiar todos los gets a unicos por nrosol
+    }
+
+
+    async Task agregarMov()
+    {
+        try
+        {
+            var parameters = new ModalParameters();
+            parameters.Add(nameof(AddMovimientoRe.Id), 0);
+            parameters.Add(nameof(AddMovimientoRe.numeroRes), solicitudSeleccionada.NroSolicitud);
+            var options = new ModalOptions()
+                {
+                    Size = ModalSize.ExtraLarge
+                };
+            var formModal = Modal.Show<AddMovimientoRe>("Agregar Movimiento", parameters, options);
+            var result = await formModal.Result;
+            if (result.Cancelled)
+            {
+                Console.WriteLine("Modal was cancelled");
+            }
+            else
+            {
+                await updateMovimientos(solicitudSeleccionada.NroSolicitud.Value);
+            }
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+
+    async Task agregarHembraMacho(string parametro)
+    {
+        try
+        {
+            var parameters = new ModalParameters();
+            parameters.Add(nameof(AddHembraMachoRe.Id), hemyma.Id);
+            parameters.Add(nameof(AddHembraMachoRe.botonclick), parametro);
+            parameters.Add(nameof(AddMovimientoRe.numeroRes), solicitudSeleccionada.NroSolicitud);
+            var options = new ModalOptions()
+                {
+                    Size = ModalSize.ExtraLarge
+                };
+            var formModal = Modal.Show<AddHembraMachoRe>("Editar", parameters, options);
+            var result = await formModal.Result;
+            if (result.Cancelled)
+            {
+                Console.WriteLine("Modal was cancelled");
+            }
+            else
+            {
+                await updateHembrasMachos(solicitudSeleccionada.NroSolicitud.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    async Task editarPromedio(int id)
+    {
+        try
+        {
+            var parameters = new ModalParameters();
+            parameters.Add(nameof(AddEdadMesPromedioRe.Id), id);
+            parameters.Add(nameof(AddEdadMesPromedioRe.nrores), solicitudSeleccionada.NroSolicitud);
+            var options = new ModalOptions()
+                {
+                    Size = ModalSize.ExtraLarge
+                };
+            var formModal = Modal.Show<AddEdadMesPromedioRe>("Editar Datos", parameters, options);
+            var result = await formModal.Result;
+            if (result.Cancelled)
+            {
+                Console.WriteLine("Modal was cancelled");
+            }
+            else
+            {
+                await updatePromedios(solicitudSeleccionada.NroSolicitud.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+    async Task agregarRechazo(int id)
+    {
+        try
+        {
+            var parameters = new ModalParameters();
+            parameters.Add(nameof(AddRechazoRe.Id), id);
+            parameters.Add(nameof(AddRechazoRe.nrores), solicitudSeleccionada.NroSolicitud);
+            var options = new ModalOptions()
+                {
+                    Size = ModalSize.ExtraLarge
+                };
+            var formModal = Modal.Show<AddRechazoRe>("Editar causal de rechazo", parameters, options);
+            var result = await formModal.Result;
+            if (result.Cancelled)
+            {
+                Console.WriteLine("Modal was cancelled");
+            }
+            else
+            {
+                await updateRechazos(solicitudSeleccionada.NroSolicitud.Value);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    async Task deleteRechazo(int id)
+    {
+        await Http.DeleteAsync($"/api/RechazoRe/{id}");
+        await updateRechazos(solicitudSeleccionada.NroSolicitud.Value);
+    }
+
+    public async Task alertaDeleteRechazo(int id)
+    {
+        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "¿Está seguro?",
+                Text = "Se eliminará el causal",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Eliminar",
+                CancelButtonText = "Cancelar"
+            });
+
+        if (!string.IsNullOrEmpty(result.Value))
+        {
+            deleteRechazo(id);
+            await confirmar();
+        }
+        else if (result.Dismiss == DismissReason.Cancel)
+        {
+
+        }
+    }
+
+    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    {
+        return await Task.FromResult(socios.Where(x => x.NombreCompleto.ToLower().Contains(searchText.ToLower())).ToList());
+    }
+
+    private async Task<IEnumerable<SolicitudInspeccion>> BusquedaSolicitudes(string searchText)
+    {
+        return await Task.FromResult(solicitudes.Where(x => x.NroSolicitud.ToString().Contains(searchText) && x.NroSocio==socioSeleccionado.NroSocio).ToList());
+    }
+
+    private async Task<IEnumerable<Inspectore>> BusquedaInspectores(string searchText)
+    {
+        return await Task.FromResult(inspectores.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+    }
+
+
+
+}

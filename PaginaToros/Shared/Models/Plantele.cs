@@ -19,7 +19,7 @@ public partial class Plantele
 
     public DateTime? UltimaReinspeccion { get; set; }
 
-    public string? Socio { get; set; }
+    public string? CodSocio { get; set; }
 
     public int? Vacas { get; set; }
 
@@ -32,4 +32,8 @@ public partial class Plantele
     public int? PrenadasVip { get; set; }
 
     public int? VaquillNoServicioVip { get; set; }
+
+    public string? Comentarios { get; set; }
+
+    public string? NombreSocio { get; set; }
 }

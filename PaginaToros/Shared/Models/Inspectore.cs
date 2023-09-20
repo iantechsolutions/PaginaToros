@@ -20,4 +20,6 @@ public partial class Inspectore
     public string? Provincia { get; set; }
 
     public string? Telefono { get; set; }
+
+    public string? Mail { get; set; }
 }

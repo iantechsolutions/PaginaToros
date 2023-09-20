@@ -2918,19 +2918,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\lolo1\\.nuget\\packages\\": {}
+    "C:\\Users\\lolo1\\.nuget\\packages\\": {},
+    "E:\\LIBRERIAS\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+      "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
       "projectName": "PaginaToros.Shared",
-      "projectPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+      "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
       "packagesPath": "C:\\Users\\lolo1\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\obj\\",
+      "outputPath": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Shared\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "E:\\LIBRERIAS\\NuGetPackages"
+      ],
       "configFilePaths": [
         "C:\\Users\\lolo1\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -2985,7 +2990,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.203\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
       }
     }
   }

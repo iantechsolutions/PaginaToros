@@ -1,5 +1,10 @@
 ﻿@using Blazored.Typeahead
-
+<style>
+    .bm-title{
+        font-size:25px;
+        font-weight: bold;
+    }
+</style>
 <div class="card" >
     <div class="card-body">
         <EditForm Model="@oEstablecimiento" OnValidSubmit="Guardar">
@@ -152,7 +157,7 @@
         socios = rta.List.ToList();
         if (Id != 0)
         {
-            
+
             try
             {
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<Establecimiento>>($"/api/Establecimiento/{Id}");
@@ -165,9 +170,9 @@
                 {
                     FechaTemp = oEstablecimiento.FechaExistencia.Value;
                 }
-                socioSeleccionado = socios.Where(x => x.NombreCompleto == oEstablecimiento.NombreSocio).FirstOrDefault();
+                socioSeleccionado = socios.Where(x => x.NroSocio == oEstablecimiento.CodigoSocio).FirstOrDefault();
                 CodZona = oEstablecimiento.CodZona.Value.ToString("D2");
-                
+
             }
             catch (Exception ex)
             {
@@ -178,6 +183,7 @@
     async Task Guardar()
     {
         oEstablecimiento.NombreSocio = socioSeleccionado.NombreCompleto;
+        oEstablecimiento.CodigoSocio = socioSeleccionado.NroSocio;
         oEstablecimiento.FechaExistencia = FechaTemp;
         oEstablecimiento.CodZona = Int16.Parse(CodZona.Substring(0,2));
         oEstablecimiento.Activo = activo;
