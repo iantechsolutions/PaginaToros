@@ -17,9 +17,13 @@ public partial class Inspectore
 
     public int? CodPostal { get; set; }
 
-    public string? Provincia { get; set; }
+    public int? CodProvincia { get; set; }
 
     public string? Telefono { get; set; }
 
     public string? Mail { get; set; }
+
+    public string? Coso { get; set; }
+
+    public string? Provincia { get; set; }
 }

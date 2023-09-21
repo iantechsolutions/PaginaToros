@@ -258,7 +258,6 @@ public partial class BlazorCrudContext : DbContext
             entity.Property(e => e.Torsb).HasColumnName("TORSB");
             entity.Property(e => e.Tortot).HasColumnName("TORTOT");
         });
-
         modelBuilder.Entity<Inspectore>(entity =>
         {
             entity.Property(e => e.Direccion)
@@ -397,9 +396,7 @@ public partial class BlazorCrudContext : DbContext
 
         modelBuilder.Entity<SolicitudInspeccion>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("SolicitudInspeccion");
+            entity.ToTable("SolicitudInspeccion");
 
             entity.Property(e => e.Ano).HasColumnType("datetime");
             entity.Property(e => e.Establecimiento)
