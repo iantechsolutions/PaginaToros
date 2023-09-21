@@ -198,29 +198,29 @@ else
             }
         }
     }
-    // async Task gotoinfo(int id)
-    // {
-    //     currentPage = grid.CurrentPage;
-    //     var parameters = new ModalParameters();
-    //     var options = new ModalOptions()
-    //         {
-    //             HideHeader = true,
-    //             HideCloseButton = true,
-    //             Size = ModalSize.ExtraLarge
-    //         };
-    //     parameters.Add(nameof(InfoEstablecimiento.Id), id);
-    //     var formModal = Modal.Show<InfoEstablecimiento>("", parameters, options);
-    //     var result = await formModal.Result;
+     async Task gotoinfo(int id)
+     {
+         currentPage = grid.CurrentPage;
+         var parameters = new ModalParameters();
+         var options = new ModalOptions()
+             {
+                 HideHeader = true,
+                 HideCloseButton = true,
+                 Size = ModalSize.ExtraLarge
+             };
+         parameters.Add(nameof(InfoInspector.id), id);
+        var formModal = Modal.Show<InfoInspector>("", parameters, options);
+         var result = await formModal.Result;
 
-    //     if (result.Cancelled)
-    //     {
-    //         Console.WriteLine("Modal was cancelled");
-    //         await grid.GoToPage(currentPage);
-    //     }
-    //     else
-    //     {
-    //         await Get();
-    //         await grid.GoToPage(currentPage);
-    //     }
-    // }
+         if (result.Cancelled)
+         {
+             Console.WriteLine("Modal was cancelled");
+             await grid.GoToPage(currentPage);
+         }
+         else
+         {
+             await Get();
+             await grid.GoToPage(currentPage);
+         }
+     }
 }
