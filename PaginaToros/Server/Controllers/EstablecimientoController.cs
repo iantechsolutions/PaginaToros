@@ -52,6 +52,30 @@ namespace PaginaToros.Server.Controllers
             }
             return Ok(oRespuesta);
         }
+
+        [HttpGet("Codigo/{nro}")]
+        public IActionResult GetByCod(int nro)
+        {
+            Respuesta<Establecimiento> oRespuesta = new Respuesta<Establecimiento>();
+
+            try
+            {
+                using (BlazorCrudContext db = new())
+                {
+
+                    var lst = db.Establecimientos
+                    .Where(x => x.Codigo == nro).First();
+                    oRespuesta.Exito = 1;
+                    oRespuesta.List = lst;
+                }
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+            return Ok(oRespuesta);
+        }
+
         [HttpPost]
         public IActionResult Add(Establecimiento model)
         {

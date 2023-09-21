@@ -8,18 +8,13 @@
     }
 
 </style>
-@if(cargando){
+@if(!cargando){
 <div>
     
     <div class="row" style="width=100%;">
         <div class="col-md-1" />
         <div class="col-md-3">
             <label>Socio</label>
-            @if(Id!=0 && socioSeleccionado!=null)
-            {
-                <RadzenTextBox Disabled="true" class="w-100">@socioSeleccionado.NombreCompleto</RadzenTextBox>
-            }
-            else{
             <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado" Disabled="solicitudSeleccionada!=null">
                 <SelectedTemplate Context="eleccion">
                     @eleccion.NombreCompleto
@@ -28,7 +23,6 @@
                     @eleccion.NombreCompleto
                 </ResultTemplate>
             </BlazoredTypeahead>
-            }
         </div>
         <div class="col-md-3"/>
         @if (@socioSeleccionado != null)
@@ -37,7 +31,7 @@
             <label>Solicitud</label>
             @if (Id != 0 && socioSeleccionado != null)
             {
-                <RadzenTextBox Disabled="true" class="w-100">@solicitudSeleccionada.NroSolicitud</RadzenTextBox>
+                        <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.NroSolicitud" class="w-100"></RadzenNumeric>
             }
             else
             {
@@ -56,44 +50,11 @@
     </div>
     @if(solicitudSeleccionada!=null){
         <br />
-
         <div class="row" style="width=100%;">
             <div class="col-sm-1" />
             <div class="col-sm">
                 <label>Inspector</label>
                 <br/>
-                @if(resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).Count()>0){
-                    @if (resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).First().Icod.HasValue)
-                    {
-                        @if (inspectores.Where(x => x.Codigo == resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).First().Icod).Count() > 0)
-                        {
-                            <a>@inspectores.Where(x => x.Codigo == resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).First().Icod).First().Nombre</a>
-                        }
-                        else
-                        {
-                            <BlazoredTypeahead SearchMethod="BusquedaInspectores" placeholder="Busque inspector por nombre" EnableDropDown="true" @bind-Value="inspectorSeleccionado">
-                                <SelectedTemplate Context="eleccion">
-                                    @eleccion.Nombre
-                                </SelectedTemplate>
-                                <ResultTemplate Context="eleccion">
-                                    @eleccion.Nombre
-                                </ResultTemplate>
-                            </BlazoredTypeahead>
-                        }
-                    }
-                    else
-                    {
-                        <BlazoredTypeahead SearchMethod="BusquedaInspectores" placeholder="Busque inspector por nombre" EnableDropDown="true" @bind-Value="inspectorSeleccionado">
-                            <SelectedTemplate Context="eleccion">
-                                @eleccion.Nombre
-                            </SelectedTemplate>
-                            <ResultTemplate Context="eleccion">
-                                @eleccion.Nombre
-                            </ResultTemplate>
-                        </BlazoredTypeahead>
-                    }
-                }
-                else{
                     <BlazoredTypeahead SearchMethod="BusquedaInspectores" placeholder="Busque inspector por nombre" EnableDropDown="true" @bind-Value="inspectorSeleccionado">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
@@ -102,17 +63,16 @@
                             @eleccion.Nombre
                         </ResultTemplate>
                     </BlazoredTypeahead>
-                }
             </div>
             <div class="col-sm">
                 <label class="col-sm">Numero de Socio</label>
                 <br/>
-                <RadzenNumeric @bind-Value="@solicitudSeleccionada.NroSocio" placeholder="Nro Socio"></RadzenNumeric>
+                <RadzenNumeric @bind-Value="@solicitudSeleccionada.NroSocio" placeholder="Nro Socio" Disabled="true"></RadzenNumeric>
             </div>
             <div class="col-sm">
                 <label class="col-sm">Nombre de Socio</label>
                 <br />
-                <RadzenTextBox @bind-Value="@solicitudSeleccionada.NombreSocio" placeholder="Nombre de Socio"></RadzenTextBox>
+                    <RadzenTextBox @bind-Value="@solicitudSeleccionada.NombreSocio" placeholder="Nombre de Socio" Disabled="true"></RadzenTextBox>
             </div>
 
         </div>
@@ -122,17 +82,24 @@
             <div class="col-sm">
                 <label class="col-sm">Establecimiento</label>
                 <br />
-                <RadzenTextBox @bind-Value="@solicitudSeleccionada.Establecimiento" placeholder="Establecimiento"></RadzenTextBox>
+                    <RadzenTextBox @bind-Value="@solicitudSeleccionada.Establecimiento" placeholder="Establecimiento" Disabled="true"></RadzenTextBox>
             </div>
             <div class="col-sm">
                 <label class="col-sm">Localidad</label>
                 <br />
-                <RadzenTextBox @bind-Value="@establecimientos.Where(x=>x.Codigo==solicitudSeleccionada.CodEstablecimiento).First().Localidad" placeholder="Localidad"></RadzenTextBox>
+                @if (establecimientoSeleccionado != null)
+                {
+                    <RadzenTextBox @bind-Value="@establecimientoSeleccionado.Localidad" Disabled="true" placeholder="Localidad"></RadzenTextBox>
+                }
+                else{
+                    <RadzenTextBox @bind-Value="@establecimientos.Where(x=>x.Codigo==solicitudSeleccionada.CodEstablecimiento).First().Localidad" Disabled="true" placeholder="Localidad"></RadzenTextBox>
+                }
+                
             </div>
             <div class="col-sm">
                 <label class="col-sm">Plantel</label>
                 <br />
-                @if(oInspRe.Nropla!=null){
+                @if(Id!=0){
                     <RadzenTextBox @bind-Value="@oInspRe.Nropla" placeholder="UltimoPlantel"></RadzenTextBox>
                 }
                 else{
@@ -149,21 +116,13 @@
                 <RadzenDatePicker TValue="DateTime?" @bind-Value="@solicitudSeleccionada.FechaSolicitud" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
             </div>
             <div class="col-sm">
-                @if (resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).Count() > 0)
+                <label class="col-sm">Fecha De Inspeccion</label>
+                @if (@Id != 0)
                 {
-                    @if (resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).First().FechaInspeccion.HasValue){
-                    <label class="col-sm">Fecha De Inspeccion</label>
-                    <br/>
-                        <a>@(resultados.Where(x => x.Nrores == solicitudSeleccionada.NroSolicitud).First().FechaInspeccion.Value.ToString("dd/MM/yyyy"))</a>
-                    }
-                    else
-                    {
-                        <label class="col-sm">Fecha De Inspeccion</label>
-                        <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                    }
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oInspRe.FechaInspeccion" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 }
-                else{
-                    <label class="col-sm">Fecha De Inspeccion</label>
+                else
+                {
                     <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 }
             </div>
@@ -176,7 +135,7 @@
             </div>
         </div>
         <br />
-        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmar()">Confirmar Creacion</button>
+        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmar()">Guardar Datos</button>
         <br />
         <br />
          @if (confirmado){
@@ -322,7 +281,7 @@
                                                 <td style="background-color: #666666;">-</td>
                                                 <td style="background-color: #666666;">-</td>
                                                 <td>@hemyma.Hgvb</td>
-                                                <td style="background-color: #666666;">@(hemyma.Hgvb-hemyma.Hgvp)</td>
+                                                <td style="background-color: #666666;">@(hemyma.Hgvp-hemyma.Hgvb)</td>
                                                 <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vacvip"))'><FeatherInfo Color="blue" /></button></td>
                                             </tr>
                                             <!-- Vaq VIP -->
@@ -333,7 +292,7 @@
                                                 <td style="background-color: #666666;">-</td>
                                                 <td style="background-color: #666666;">-</td>
                                                 <td>@hemyma.Hgqb</td>
-                                                <td style="background-color: #666666;">@(hemyma.Hgqb - hemyma.Hgqp)</td>
+                                                <td style="background-color: #666666;">@(hemyma.Hgqp - hemyma.Hgqb)</td>
                                                 <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqvip"))'><FeatherInfo Color="blue" /></button></td>
                                             </tr>
                                             <!-- TOTALES -->
@@ -393,6 +352,16 @@
                                                 <td>@hemyma.Mspsb</td>
                                                 <td style="background-color: #fff;"><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("cp"))'><FeatherInfo Color="blue" /></button></td>
                                             </tr>
+                                                <tr style="background-color: #FF9966;">
+                                                    <td><strong>TOTALES</strong></td>
+                                                    <td>@(hemyma.Mcp + hemyma.Msp)</td>
+                                                    <td>@(hemyma.McpM + hemyma.MspM)</td>
+                                                    <td>@(hemyma.McpAs + hemyma.MspAs)</td>
+                                                    <td>@(hemyma.MspM + hemyma.MspAs + hemyma.McpM + hemyma.McpAs)</td>
+                                                    <td>@((hemyma.Msp - hemyma.MspM - hemyma.MspAs) + (hemyma.Mcp - hemyma.McpM - hemyma.McpAs))</td>
+                                                    <td>@hemyma.Mspsb</td>
+                                                    <td style="background-color: #fff;"></td>
+                                                </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -433,7 +402,7 @@
                                                 <td>@promediohembra.Pdl</td>
                                                 <td>@promediohembra.P2d</td>
                                                 <td>@promediohembra.P4d</td>
-                                                <td><button class="btn" title="Ver info" @onclick='() => (editarPromedio(promediohembra.Id))'><FeatherEdit Color="green" /></button></td>
+                                                <td><button class="btn" title="Ver info" @onclick='() => (editarPromedio(promediohembra.Id,"H"))'><FeatherEdit Color="green" /></button></td>
                                             </tr>
                                             <!-- MACHOS -->
                                             <tr>
@@ -447,7 +416,7 @@
                                                 <td>@promediomacho.Pdl</td>
                                                 <td>@promediomacho.P2d</td>
                                                 <td>@promediomacho.P4d</td>
-                                                <td><button class="btn" title="Ver info" @onclick='() => (editarPromedio(promediomacho.Id))'><FeatherEdit Color="green" /></button></td>
+                                                <td><button class="btn" title="Ver info" @onclick='() => (editarPromedio(promediomacho.Id,"M"))'><FeatherEdit Color="green" /></button></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -469,7 +438,7 @@
                                                 <th>Motivo</th>
                                                 <th>Hembras</th>
                                                 <th>Machos</th>
-                                                <th style="background-color: #FFFFFF;"></th>
+                                                <th style="background-color: #FFFFFF;width:150px;"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -480,7 +449,7 @@
                                                     <td>@traductor[re.MotivoRechazo.ToString()]</td>
                                                     <td>@re.Hembras</td>
                                                     <td>@re.Machos</td>
-                                                    <td>
+                                                    <td style="width:150px;">
                                                         <button class="btn" title="Editar Rechazo" @onclick='() => (agregarRechazo(re.Id))'><FeatherEdit Color="green" /></button>
                                                         <button class="btn" title="Editar Rechazo" @onclick='() => (alertaDeleteRechazo(re.Id))'><FeatherTrash Color="red" /></button>
                                                     </td>
@@ -496,20 +465,35 @@
             </RadzenTabs>
     }
     }
-</div>
+    </div>
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;width:1500px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
 }
 @code {
 
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
+
     List<Socio> socios = new();
     Socio? socioSeleccionado = null;
+
     List<RechazoRe> rechazos = new();
     List<MovimientosRe> mtos = new();
     HembrasYmachosRe hemyma = new();
+
     EdadMesPromedioRe promediohembra = new();
     EdadMesPromedioRe promediomacho = new();
+
     List<Inspectore> inspectores = new();
-    Inspectore? inspectorSeleccionado  = null;
+    Inspectore? inspectorSeleccionado  = new();
+
     List<InspRe> resultados = new();
     List<Establecimiento> establecimientos = new();
     Establecimiento? establecimientoSeleccionado = null;
@@ -552,26 +536,27 @@
 
     protected override async Task OnInitializedAsync()
     {
-
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
-        socios = rta.List.ToList();
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>($"/api/Establecimiento");
-        establecimientos = respuesta.List;
-        var rtaa = await Http.GetFromJsonAsync<Respuesta<List<SolicitudInspeccion>>>("/api/solicitudinspeccion");
-        solicitudes = rtaa.List;
-        var rtaaa = await Http.GetFromJsonAsync<Respuesta<List<Inspectore>>>("/api/Inspectore");
-        inspectores = rtaaa.List;
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<InspRe>>>($"/api/InspRe");
-        resultados = rt.List;
-        //sethemyma();
-        if (Id != 0)
-        {
-            try
+        try{
+            var rtaaa = await Http.GetFromJsonAsync<Respuesta<List<Inspectore>>>("/api/Inspectore");
+            inspectores = rtaaa.List;
+            if (Id != 0)
             {
                 var res = await Http.GetFromJsonAsync<Respuesta<InspRe>>($"/api/InspRe/{Id}");
                 oInspRe = res.List;
-                socioSeleccionado = socios.Where(x=>x.NroSocio == oInspRe.Scod).First();
-                solicitudSeleccionada = solicitudes.Where(x => x.NroSolicitud == oInspRe.Nrores).First();
+
+                var socio = await Http.GetFromJsonAsync<Respuesta<Socio>>($"/api/Socio/codigo/{oInspRe.Scod}");
+                socioSeleccionado = socio.List;
+
+                var sol = await Http.GetFromJsonAsync<Respuesta<SolicitudInspeccion>>($"/api/SolicitudInspeccion/nrores/{oInspRe.Nrores}");
+                solicitudSeleccionada = sol.List;
+
+                var estable = await Http.GetFromJsonAsync<Respuesta<Establecimiento>>($"/api/Establecimiento/codigo/{solicitudSeleccionada.CodEstablecimiento}");
+                establecimientoSeleccionado = estable.List;
+
+                inspectorSeleccionado = inspectores.Where(x => x.Codigo == oInspRe.Icod).FirstOrDefault();
+
+                await updateEstadoHistorico(solicitudSeleccionada.NroSolicitud.Value);
+
                 await updatePromedios(solicitudSeleccionada.NroSolicitud.Value);
 
                 await updateRechazos(solicitudSeleccionada.NroSolicitud.Value);
@@ -580,38 +565,49 @@
 
                 await updateHembrasMachos(solicitudSeleccionada.NroSolicitud.Value);
 
-                await updateEstadoHistorico(solicitudSeleccionada.NroSolicitud.Value);
+                confirmado = true;
             }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
+            else{
+
+                var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
+                socios = rta.List.ToList();
+                var rtaa = await Http.GetFromJsonAsync<Respuesta<List<SolicitudInspeccion>>>("/api/solicitudinspeccion/pendientes");
+                solicitudes = rtaa.List;
+                var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>($"/api/Establecimiento");
+                establecimientos = respuesta.List;
+
             }
         }
+        catch(Exception ex)
+        {
+            oRespuesta.Mensaje = ex.Message;
+        }
         cargando = false;
+
     }
 
     async Task guardarReporte()
     {
-        // oInspRe.Id = Id;
-        // oInspRe.Nrores = solicitudSeleccionada.NroSolicitud;
-        // oInspRe.Icod = inspectorSeleccionado.Codigo;
-        // oInspRe.FechaInspeccion = fechaTemp;
-        // oInspRe.NombreSocio = socioSeleccionado.NombreCompleto;
-        // oInspRe.Scod = socioSeleccionado.NroSocio;
-        // oInspRe.Estcod = solicitudSeleccionada.CodEstablecimiento;
-        // oInspRe.Nropla = socioSeleccionado.UltimoPlantel;
-        // // solicitudSeleccionada.Completada = true;
-        // await Http.PutAsJsonAsync<SolicitudInspeccion>("/api/SolicitudInspeccion", solicitudSeleccionada);
-        // if (Id == 0)
-        // {
-        //     await Http.PostAsJsonAsync<InspRe>("/api/InspRe", oInspRe);
-        //     await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-        // }
-        // else
-        // {
-        //     await Http.PutAsJsonAsync<InspRe>("/api/InspRe", oInspRe);
-        //     await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-        // }
+        oInspRe.Id = Id;
+        oInspRe.Nrores = solicitudSeleccionada.NroSolicitud;
+        oInspRe.Icod = inspectorSeleccionado.Codigo;
+        oInspRe.NombreSocio = socioSeleccionado.NombreCompleto;
+        oInspRe.Scod = socioSeleccionado.NroSocio;
+        oInspRe.Estcod = solicitudSeleccionada.CodEstablecimiento;
+        solicitudSeleccionada.Completada = true;
+        await Http.PutAsJsonAsync<SolicitudInspeccion>("/api/SolicitudInspeccion", solicitudSeleccionada);
+        if (Id == 0)
+        {
+            oInspRe.Nropla = socioSeleccionado.UltimoPlantel;
+            oInspRe.FechaInspeccion = fechaTemp;
+            await Http.PostAsJsonAsync<InspRe>("/api/InspRe", oInspRe);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<InspRe>("/api/InspRe", oInspRe);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
     }
 
     async Task cancel()
@@ -624,8 +620,14 @@
         var rtt = await Http.GetFromJsonAsync<Respuesta<List<EdadMesPromedioRe>>>($"/api/edadmespromediore/nrores/{nrores}");
         if (rtt.List.Count() > 0)
         {
+            try{
             promediohembra = rtt.List.Where(x => x.Sexo == "H").First();
             promediomacho = rtt.List.Where(x => x.Sexo == "M").First();
+            }
+            catch
+            {
+                
+            }
         }
     }
     async Task updateRechazos(int nrores)
@@ -642,21 +644,21 @@
         {
             if (mov.Tipmov == "S")
             {
-                salidasFinal.Ea1 += Int32.Parse(mov.Rdvac);
-                salidasFinal.Ea2 += Int32.Parse(mov.Rdvaqcs);
-                salidasFinal.Ea3 += Int32.Parse(mov.Rdvaqss);
-                salidasFinal.Ea4 += Int32.Parse(mov.Rpvac);
-                salidasFinal.Ea5 += Int32.Parse(mov.Rpvaqcs);
-                salidasFinal.Ea6 += Int32.Parse(mov.Rpvaqss);
+                salidasFinal.Ea1 += mov.Rdvac;
+                salidasFinal.Ea2 += mov.Rdvaqcs;
+                salidasFinal.Ea3 += mov.Rdvaqss;
+                salidasFinal.Ea4 += mov.Rpvac;
+                salidasFinal.Ea5 += mov.Rpvaqcs;
+                salidasFinal.Ea6 += mov.Rpvaqss;
             }
             else
             {
-                entradasFinal.Ea1 += Int32.Parse(mov.Rdvac);
-                entradasFinal.Ea2 += Int32.Parse(mov.Rdvaqcs);
-                entradasFinal.Ea3 += Int32.Parse(mov.Rdvaqss);
-                entradasFinal.Ea4 += Int32.Parse(mov.Rpvac);
-                entradasFinal.Ea5 += Int32.Parse(mov.Rpvaqcs);
-                entradasFinal.Ea6 += Int32.Parse(mov.Rpvaqss);
+                entradasFinal.Ea1 += mov.Rdvac;
+                entradasFinal.Ea2 += mov.Rdvaqcs;
+                entradasFinal.Ea3 += mov.Rdvaqss;
+                entradasFinal.Ea4 += mov.Rpvac;
+                entradasFinal.Ea5 += mov.Rpvaqcs;
+                entradasFinal.Ea6 += mov.Rpvaqss;
             }
         }
         estadoFinal.Ea1 = estadoAnterior.Ea1 - salidasFinal.Ea1 + entradasFinal.Ea1;
@@ -665,6 +667,7 @@
         estadoFinal.Ea4 = estadoAnterior.Ea4 - salidasFinal.Ea4 + entradasFinal.Ea4;
         estadoFinal.Ea5 = estadoAnterior.Ea5 - salidasFinal.Ea5 + entradasFinal.Ea5;
         estadoFinal.Ea6 = estadoAnterior.Ea6 - salidasFinal.Ea6 + entradasFinal.Ea6;
+
 
     }
     async Task updateHembrasMachos(int nrores)
@@ -769,13 +772,14 @@
         }
     }
 
-    async Task editarPromedio(int id)
+    async Task editarPromedio(int id,string sexo)
     {
         try
         {
             var parameters = new ModalParameters();
             parameters.Add(nameof(AddEdadMesPromedioRe.Id), id);
             parameters.Add(nameof(AddEdadMesPromedioRe.nrores), solicitudSeleccionada.NroSolicitud);
+            parameters.Add(nameof(AddEdadMesPromedioRe.sexo), sexo);
             var options = new ModalOptions()
                 {
                     Size = ModalSize.ExtraLarge
