@@ -36,8 +36,8 @@
     <br />
     <br />
     <RadzenDataGrid class="tablacontent" style="position:relative;width:1500px;" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-                AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                Density="Density.Compact" Data="@oRespuesta.List" TItem="Plantele" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                    Density="Density.Compact" Data="@oRespuesta.List" TItem="Plantele" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
             <RadzenDataGridColumn TItem="Plantele" Property="NroPlantel" Title="Nro Plantel" Width="55px" />
             <RadzenDataGridColumn TItem="Plantele" Property="Activo" Title="Activo?" Width="50px">
@@ -89,11 +89,11 @@
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            @*            <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
-        <Template Context="data">
-        <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
-        </Template>
-        </RadzenDataGridColumn>*@
+            <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
+                <Template Context="data">
+                    <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
+                </Template>
+            </RadzenDataGridColumn>
         </Columns>
 
     </RadzenDataGrid>
@@ -224,6 +224,31 @@ else
                 await Get();
                 await grid.GoToPage(currentPage);
             }
+        }
+    }
+    async Task gotoinfo(int id)
+    {
+        currentPage = grid.CurrentPage;
+        var parameters = new ModalParameters();
+        var options = new ModalOptions()
+            {
+                HideHeader = true,
+                HideCloseButton = true,
+                Size = ModalSize.ExtraLarge
+            };
+        parameters.Add(nameof(InfoPlantel.id), id);
+        var formModal = Modal.Show<InfoPlantel>("", parameters, options);
+        var result = await formModal.Result;
+
+        if (result.Cancelled)
+        {
+            Console.WriteLine("Modal was cancelled");
+            await grid.GoToPage(currentPage);
+        }
+        else
+        {
+            await Get();
+            await grid.GoToPage(currentPage);
         }
     }
 }

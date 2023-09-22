@@ -1,0 +1,112 @@
+﻿
+<style>
+    .blink {
+        text-align: center;
+    }
+
+    status {
+        animation: blink 2s linear infinite;
+    }
+
+    @@keyframes blink {
+        0% {
+            opacity: 0;
+        }
+
+        50% {
+            opacity: .5;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+</style>
+
+<RadzenRow>
+    <RadzenColumn Size="4" SizeMD="6" SizeLG="3">
+        <div class="blink">
+            Estado: @if (activo)
+            {
+                <status style="color:green;">Activo</status>
+            }
+            else
+            {
+                <status style="color:red;">Inactivo</status>
+
+            }
+        </div>
+    </RadzenColumn>
+
+</RadzenRow>
+<RadzenRow Gap="1rem">
+    <RadzenColumn Size="4" SizeMD="4" SizeLG="4">
+        <RadzenCard Variant="Variant.Filled" Class="rz-my-2 rz-mx-0">
+            <RadzenText>Establecimientos</RadzenText>
+            <br/>
+            <RadzenDataList AllowVirtualization=false
+                            WrapItems=true AllowPaging=false
+                            Data="@(establecimientos.GetRange(0,3))" TItem="Establecimiento" PageSize="3" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
+                <Template Context="data">
+                    <RadzenColumn Size="6" class="rz-p-0 rz-p-md-0">
+                        <RadzenCard Style="@("background-color: rgba(45, 255, 125, 0.5);")">
+                            <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Nombre</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H4" class="rz-display-flex rz-mt-0 rz-my-0">@(data.Nombre)</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Provincia</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H4" class="rz-display-flex rz-mt-0 rz-my-0">@(data.Provincia)</RadzenText>
+                            </RadzenCard>
+                        </RadzenColumn>
+                    </Template>
+                </RadzenDataList>
+                <br />
+
+                <RadzenButton Variant="Variant.Text" Text="ver más" ButtonStyle="ButtonStyle.Secondary" Style="color:black;" />
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenCard Variant="Variant.Filled" Class="rz-my-2 rz-mx-0">
+                <RadzenText>Info socio</RadzenText>
+                <br />
+                
+               
+                <RadzenRow class="rz-text-align-center " Gap="1rem">
+                    <RadzenColumn Size="4" >
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Nombre</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">nombre socio</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn >
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Nombre</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">nombre socio</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                    </RadzenColumn>
+                    
+                </RadzenRow>
+
+
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+   
+
+
+    @code {
+    [Parameter] public int id { get; set; }
+    Socio socio = new();
+    bool activo = true;
+    List<Establecimiento> establecimientos = new() { new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, };
+}

@@ -89,11 +89,11 @@
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            @*            <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
+                        <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
         <Template Context="data">
         <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
         </Template>
-        </RadzenDataGridColumn>*@
+        </RadzenDataGridColumn>
         </Columns>
 
     </RadzenDataGrid>
@@ -225,6 +225,32 @@ else
                 await Get();
                 await grid.GoToPage(currentPage);
             }
+        }
+    }
+
+    async Task gotoinfo(int id)
+    {
+        currentPage = grid.CurrentPage;
+        var parameters = new ModalParameters();
+        var options = new ModalOptions()
+            {
+                HideHeader = true,
+                HideCloseButton = true,
+                Size = ModalSize.ExtraLarge
+            };
+        parameters.Add(nameof(InfoSocio.id), id);
+        var formModal = Modal.Show<InfoSocio>("", parameters, options);
+        var result = await formModal.Result;
+
+        if (result.Cancelled)
+        {
+            Console.WriteLine("Modal was cancelled");
+            await grid.GoToPage(currentPage);
+        }
+        else
+        {
+            await Get();
+            await grid.GoToPage(currentPage);
         }
     }
 
