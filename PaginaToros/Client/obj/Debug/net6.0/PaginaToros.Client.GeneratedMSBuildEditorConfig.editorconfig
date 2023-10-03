@@ -160,6 +160,22 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNhY2Npb25lc1xUcmFuc2FjY2lvbmVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transferencias/Animales/AddTransAn.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNmZXJlbmNpYXNcQW5pbWFsZXNcQWRkVHJhbnNBbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transferencias/Animales/TransferenciasAn.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNmZXJlbmNpYXNcQW5pbWFsZXNcVHJhbnNmZXJlbmNpYXNBbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transferencias/Futuro/AddTransSb.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNmZXJlbmNpYXNcRnV0dXJvXEFkZFRyYW5zU2IucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transferencias/Futuro/TransferenciasSb.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNmZXJlbmNpYXNcRnV0dXJvXFRyYW5zZmVyZW5jaWFzU2IucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Shared/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE1haW5MYXlvdXQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 

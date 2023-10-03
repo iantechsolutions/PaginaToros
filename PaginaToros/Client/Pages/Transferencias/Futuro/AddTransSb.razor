@@ -1,0 +1,137 @@
+﻿@using Blazored.Typeahead
+<style>
+    .bm-title {
+        font-size: 25px;
+        font-weight: bold;
+    }
+</style>
+<div class="card">
+    <div class="card-body">
+        <EditForm Model="@oTranssb" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Nro Certificado</label>
+                    <InputText @bind-Value="@oTranssb.NroTrans" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oTranssb.NroTrans)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Nro de orden</label>
+                    <InputText @bind-Value="@oTranssb.NroOrden" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oTranssb.NroOrden)" style="color:red;" />
+                </div>
+@*                 <div class="col-sm">
+                    <label>Fecha de venta</label><br />
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTransan.Fecvta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div> *@
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Socio Vendedor</label><br />
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioVendedor">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.NombreCompleto
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.NombreCompleto
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Socio Comprador</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioComprador">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.NombreCompleto
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.NombreCompleto
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Establecimiento</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaEstablecimientos" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="establecimientoSeleccionado">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.Nombre
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.Nombre
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div>
+            </div>
+            
+            <br />
+
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+    Transsb oTranssb = new();
+    Respuesta<Transsb> oRespuesta = new();
+    Socio socioComprador = new();
+    Socio socioVendedor = new();
+    List<Socio> socios = new();
+    List<Establecimiento> establecimientos = new();
+    Establecimiento establecimientoSeleccionado = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
+        socios = rta.List.ToList();
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>($"/api/Establecimiento");
+        establecimientos = rt.List.ToList();
+        if (Id != 0)
+        {
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Transsb>>($"/api/Transsb/{Id}");
+                oTranssb = oRespuesta.List;
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        oTranssb.Vnom = socioVendedor.NombreCompleto;
+        oTranssb.Cnom = socioComprador.NombreCompleto;
+        oTranssb.Sven = socioVendedor.NroSocio.ToString();
+        oTranssb.Scom = socioComprador.NroSocio.ToString();
+        oTranssb.Ecod = establecimientoSeleccionado.Codigo.ToString();
+        if (Id == 0)
+        {
+            await Http.PostAsJsonAsync<Transsb>("/api/Transsb", oTranssb);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<Transsb>("/api/Transsb", oTranssb);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+
+    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    {
+        var result = socios.Where(x => x.NombreCompleto.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+
+    private async Task<IEnumerable<Establecimiento>> BusquedaEstablecimientos(string searchText)
+    {
+        var result = establecimientos.Where(x => x.CodigoSocio==socioComprador.NroSocio && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+}

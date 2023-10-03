@@ -1,0 +1,206 @@
+﻿@using Blazored.Typeahead
+<style>
+    .bm-title {
+        font-size: 25px;
+        font-weight: bold;
+    }
+</style>
+<div class="card">
+    <div class="card-body">
+        <EditForm Model="@oTransan" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Nro Certificado</label>
+                    <InputText @bind-Value="@oTransan.NroCert" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oTransan.NroCert)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label>Fecha de venta</label><br />
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTransan.Fecvta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Socio Vendedor</label><br />
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioVendedor">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.NombreCompleto
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.NombreCompleto
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Socio Comprador</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioComprador">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.NombreCompleto
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.NombreCompleto
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div>
+            </div>
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Hembras</label>
+                    <InputText @bind-Value="@oTransan.CantHem" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oTransan.CantHem)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Machos</label>
+                    <InputText @bind-Value="@oTransan.CantMach" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oTransan.CantMach)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Crias Hembras</label>
+                    <InputText @bind-Value="@oTransan.CantChem" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oTransan.CantChem)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Crias Machos</label>
+                    <InputText @bind-Value="@oTransan.CantCmach" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oTransan.CantCmach)" style="color:red;" />
+                </div>
+            </div>
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Plantel Origen</label><br />
+                </div>
+            </div>
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label>Plantel Destino</label><br />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Tipo de Hembras</label>
+                    <RadzenDropDown @bind-Value=@oTransan.Tipohem Data=@tiposHembra Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="(()=> oTransan.Tipohem)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Tipo de Hacienda</label>
+                    <RadzenDropDown @bind-Value=@temp1 Data=@tiposHacienda Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="(()=> temp1)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Sexo de los Animales</label>
+                    <RadzenDropDown @bind-Value=@temp2 Data=@sexoAnimales Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="(()=> temp2)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Estado de las Hembras</label>
+                    <RadzenDropDown @bind-Value=@temp3 Data=@estadoHembras Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="(()=> temp3)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Animales a Incorporar?</label>
+                    <RadzenDropDown @bind-Value=@temp4 Data=@incorporar Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="(()=> temp4)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <br />
+
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+    Transan oTransan = new();
+    Respuesta<Transan> oRespuesta = new();
+    Socio socioComprador = new();
+    Socio socioVendedor = new();
+    List<Socio> socios = new();
+    List<Plantele> planteles = new();
+    List<string> tiposHembra = new List<string> { "VQ", "VA" };
+    List<string> tiposHacienda = new List<string> { "PHPR (Puro Registrado)", "HPR (Puro Registrado)", "PHVIP (VIP)", "HVIP (VIP)" };
+    List<string> sexoAnimales = new List<string> { "Hembras", "Machos" };
+    List<string> estadoHembras = new List<string> { "Con Cria (CC)", "Con Cria y Preñada (CCP)", "Sin Servicio (SS)", "Preñada (PR)" };
+    List<string> incorporar = new List<string> { "NO", "SI" };
+    string temp1 = "";
+    string temp2 = "";
+    string temp3 = "";
+    string temp4 = "";
+    Dictionary<string, string> traductor = new Dictionary<string, string>{
+        {"PHPR (Puro Registrado)","PHPR"},
+        {"HPR (Puro Registrado)","HPR"},
+        {"PHVIP (VIP)","PHVIP"},
+        {"HVIP (VIP)","HVIP"},
+        {"MACHOS","M"},
+        {"HEMBRAS","H"},
+        {"Con Cria (CC)","CC"},
+        {"Con Cria y Preñada (CCP)","CCP"},
+        {"Sin Servicio (SS)","SS"},
+        {"Preñada (PR)","PR"},
+        {"NO","0"},
+        {"SI","1"}
+    };
+
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
+        socios = rta.List.ToList();
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Plantele>>>($"/api/Plantele");
+        planteles = rt.List.ToList();
+        if (Id != "0")
+        {
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Transan>>($"/api/Transan/{Id}");
+                oTransan = oRespuesta.List;
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        oTransan.Tiphac = traductor[temp1];
+        oTransan.Tipani = traductor[temp2];
+        oTransan.Hemsta = traductor[temp3];
+        oTransan.Incorp = traductor[temp4];
+        oTransan.Vnom = socioVendedor.NombreCompleto;
+        oTransan.Cnom = socioComprador.NombreCompleto;
+        oTransan.Sven = socioVendedor.NroSocio.ToString();
+        oTransan.Scom = socioComprador.NroSocio.ToString();
+
+        if (Id == "0")
+        {
+            await Http.PostAsJsonAsync<Transan>("/api/Transan", oTransan);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<Transan>("/api/Transan", oTransan);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+
+    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    {
+        var result = socios.Where(x => x.NombreCompleto.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+
+}

@@ -51,6 +51,12 @@ public partial class BlazorCrudContext : DbContext
 
     public virtual DbSet<TransaccionesHistorica> TransaccionesHistoricas { get; set; }
 
+    public virtual DbSet<Transan> Transans { get; set; }
+
+    public virtual DbSet<Transem> Transems { get; set; }
+
+    public virtual DbSet<Transsb> Transsbs { get; set; }
+
     public virtual DbSet<Zona> Zonas { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -801,6 +807,243 @@ public partial class BlazorCrudContext : DbContext
         modelBuilder.Entity<TransaccionesHistorica>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_TRA");
+        });
+
+        modelBuilder.Entity<Transan>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("TRANSAN");
+
+            entity.Property(e => e.CantChem)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CANT_CHEM");
+            entity.Property(e => e.CantCmach)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CANT_CMACH");
+            entity.Property(e => e.CantHem)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CANT_HEM");
+            entity.Property(e => e.CantMach)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CANT_MACH");
+            entity.Property(e => e.CategSc)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CATEG_SC");
+            entity.Property(e => e.CategSv)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CATEG_SV");
+            entity.Property(e => e.Cnom)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CNOM");
+            entity.Property(e => e.CodUsu)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("COD_USU");
+            entity.Property(e => e.FchUsu)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("FCH_USU");
+            entity.Property(e => e.Fecvta)
+                .HasColumnType("datetime")
+                .HasColumnName("FECVTA");
+            entity.Property(e => e.Hemsta)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("HEMSTA");
+            entity.Property(e => e.Id)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("id");
+            entity.Property(e => e.Incorp)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("INCORP");
+            entity.Property(e => e.NroCert)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NRO_CERT");
+            entity.Property(e => e.NvoPla)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NVO_PLA");
+            entity.Property(e => e.Plant)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("PLANT");
+            entity.Property(e => e.Scom)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SCOM");
+            entity.Property(e => e.Sven)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SVEN");
+            entity.Property(e => e.Tipani)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("TIPANI");
+            entity.Property(e => e.Tiphac)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("TIPHAC");
+            entity.Property(e => e.Tipohem)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("TIPOHEM");
+            entity.Property(e => e.Vnom)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("VNOM");
+        });
+
+        modelBuilder.Entity<Transem>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("TRANSEM");
+
+            entity.Property(e => e.CategSc)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CATEG_SC");
+            entity.Property(e => e.CodUsu)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("COD_USU");
+            entity.Property(e => e.FchUsu)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("FCH_USU");
+            entity.Property(e => e.Fecvta)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("FECVTA");
+            entity.Property(e => e.Hba)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("HBA");
+            entity.Property(e => e.NomDad)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NOM_DAD");
+            entity.Property(e => e.NrDosi)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NR_DOSI");
+            entity.Property(e => e.NrDosiOr)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NR_DOSI_OR");
+            entity.Property(e => e.NrInsc)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NR_INSC");
+            entity.Property(e => e.NrInsd)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NR_INSD");
+            entity.Property(e => e.NrTsan)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NR_TSAN");
+            entity.Property(e => e.NroCert)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NRO_CERT");
+            entity.Property(e => e.Nrocen)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NROCEN");
+            entity.Property(e => e.Nrocri)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NROCRI");
+            entity.Property(e => e.Nven)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NVEN");
+            entity.Property(e => e.Scod)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SCOD");
+            entity.Property(e => e.Tatpart)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("TATPART");
+            entity.Property(e => e.TipEnv)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("TIP_ENV");
+            entity.Property(e => e.Variedad)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("VARIEDAD");
+        });
+
+        modelBuilder.Entity<Transsb>(entity =>
+        {
+            entity.ToTable("TRANSSB");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CategSc)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CATEG_SC");
+            entity.Property(e => e.CategSv)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CATEG_SV");
+            entity.Property(e => e.Cnom)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CNOM");
+            entity.Property(e => e.CodUsu)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("COD_USU");
+            entity.Property(e => e.Ecod)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("ECOD");
+            entity.Property(e => e.FchUsu)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("FCH_USU");
+            entity.Property(e => e.Fectrans)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("FECTRANS");
+            entity.Property(e => e.NombreEstablecimiento)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.NroOrden)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NRO_ORDEN");
+            entity.Property(e => e.NroTrans)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NRO_TRANS");
+            entity.Property(e => e.Scom)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SCOM");
+            entity.Property(e => e.Sven)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SVEN");
+            entity.Property(e => e.Vnom)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("VNOM");
         });
 
         modelBuilder.Entity<Zona>(entity =>
