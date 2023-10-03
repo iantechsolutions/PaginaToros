@@ -59,11 +59,11 @@
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                @*            <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
-            <Template Context="data">
-            <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
-            </Template>
-            </RadzenDataGridColumn>*@
+                <RadzenDataGridColumn TItem="Inspectore" Property="" Title="" Filterable="false" Width="30px">
+                    <Template Context="data">
+                    <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
+                    </Template>
+                </RadzenDataGridColumn>
             </Columns>
 
         </RadzenDataGrid>

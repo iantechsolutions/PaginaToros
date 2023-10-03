@@ -1,66 +1,71 @@
-﻿@if (oEstablecimiento != null && oEstablecimiento.FechaExistencia.HasValue)
-{
-    <RadzenCard Class="m-3">
-        <div class="row">
-            <h4><strong>Establecimiento Nro: @oEstablecimiento.Id</strong></h4>
-            <div class="col-md-6 col-xl-6">
-                <div class="d-flex flex-row p-3">
-                    <div>
-                        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Establecimiento </RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Nombre</b></RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Nombre Del Socio </RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.NombreSocio</b></RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Fecha de Creacion</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.FechaExistencia.Value.ToString("dd/MM/yyyy")</b></RadzenText>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-xl-6">
-                <div class="d-flex flex-row p-3">
-                    <div>
-                        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Toros del establecimiento</RadzenText>
-                        <RadzenText style="font-size: 13px" TextStyle="TextStyle.Body1"><b>@NombreToros</b></RadzenText>
-                    </div>
+﻿<h3>Establecimiento id nro° @id</h3>
+
+<RadzenCard Class="m-3">
+    <div class="row">
+        <h4><strong>@oEstablecimiento.Nombre</strong></h4>
+        <div class="col-md-6 col-xl-6">
+            <div class="d-flex flex-row p-3">
+                <div>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Activo?</RadzenText>
+                    @if (oEstablecimiento.Activo.HasValue)
+                    {
+                        @if (oEstablecimiento.Activo.Value)
+                        {
+                            <RadzenText TextStyle="TextStyle.Body1"><b>Si</b></RadzenText>
+                        }
+                        else
+                        {
+                            <RadzenText TextStyle="TextStyle.Body1"><b>No</b></RadzenText>
+                        }
+                    }
+                    else
+                    {
+                        <br />
+                    }
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Codigo</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Codigo</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Encargado</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Encargado</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-1 mb-0">Socio</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.NombreSocio</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-1 mb-0">Informacion Adicional</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Informacion</b></RadzenText>
+
                 </div>
             </div>
         </div>
-    </RadzenCard>
-}
+        <div class="col-md-6 col-xl-6"> 
+            <div class="d-flex flex-row p-3">
+                <div>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Domicilio</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Domicilio</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Localidad</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Localidad</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Codigo Postal</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.CodPostal</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Provincia</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Provincia</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Telefono</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Telefono</b></RadzenText>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</RadzenCard>
+
 @code {
     Establecimiento oEstablecimiento = new();
-    Respuesta<Establecimiento> oRespuesta = new();
-    string NombreToros;
-    List<string?> ListaToros = new List<string>();
+    Respuesta<Establecimiento> oRta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
-    [Parameter] public int Id { get; set; }
-
+    [Parameter] public int id { get; set; }
     protected override async Task OnInitializedAsync()
     {
-        if (Id != 0)
+        if (id != 0)
         {
-            Respuesta<List<Toro>> DBToros = await Http.GetFromJsonAsync<Respuesta<List<Toro>>>($"/api/Toro");
-            @foreach(Toro oToro in DBToros.List)
-            {
-                if (oToro.IdEst == Id)
-                {
-                    try{
-                        ListaToros.Add(oToro.Nombre);
-                    }
-                    catch(Exception ex)
-                    {
-                        oRespuesta.Mensaje = ex.Message;
-                    }
-                }
-            }
-            NombreToros = string.Join(", ", ListaToros);
-            try{
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Establecimiento>>($"/api/Establecimiento/{Id}");
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            oEstablecimiento = oRespuesta.List;
+            oRta = await Http.GetFromJsonAsync<Respuesta<Establecimiento>>($"/api/Establecimiento/{id}");
+            oEstablecimiento = oRta.List;
         }
     }
     async Task cancel()
@@ -68,4 +73,6 @@
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
 
     }
+
 }
+

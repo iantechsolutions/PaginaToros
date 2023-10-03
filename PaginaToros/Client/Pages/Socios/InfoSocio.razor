@@ -1,4 +1,4 @@
-﻿
+﻿    
 <style>
     .blink {
         text-align: center;
@@ -49,7 +49,7 @@
                             Data="@(establecimientos.GetRange(0,3))" TItem="Establecimiento" PageSize="3" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
                 <Template Context="data">
                     <RadzenColumn Size="6" class="rz-p-0 rz-p-md-0">
-                        <RadzenCard Style="@("background-color: rgba(45, 255, 125, 0.5);")">
+                        <RadzenCard Style="@(data.Activo.Value?"background-color: rgba(45, 255, 125, 0.5);":"background-color: rgba(255, 55, 46, 0.5);")">
                             <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Nombre</RadzenText>
                             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H4" class="rz-display-flex rz-mt-0 rz-my-0">@(data.Nombre)</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Provincia</RadzenText>
@@ -72,27 +72,24 @@
                 <RadzenRow class="rz-text-align-center " Gap="1rem">
                     <RadzenColumn Size="4" >
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Nombre</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">nombre socio</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Prenom @socio.NombreCompleto @socio.Postnom</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Telefono</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Telefono</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Plantel</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.UltimoPlantel</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Mail</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Mail</RadzenText>
+
                     </RadzenColumn>
                     <RadzenColumn >
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Nombre</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">nombre socio</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">texto</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Domicilio</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Domicilio</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Localidad</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Localidad</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Codigo Postal</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.CodPostal</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Provincia</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Provincia</RadzenText>
                     </RadzenColumn>
                     
                 </RadzenRow>
@@ -109,4 +106,16 @@
     Socio socio = new();
     bool activo = true;
     List<Establecimiento> establecimientos = new() { new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id != 0)
+        {
+            var rta = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>($"/api/Establecimiento");
+            establecimientos = rta.List;
+            var rt = await Http.GetFromJsonAsync<Respuesta<Socio>>($"/api/Socio/{id}");
+            socio = rt.List;
+        }
+    }
+
 }

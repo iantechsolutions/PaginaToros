@@ -97,14 +97,15 @@
                 
             </div>
             <div class="col-sm">
-                <label class="col-sm">Plantel</label>
-                <br />
-                @if(Id!=0){
-                    <RadzenTextBox @bind-Value="@oInspRe.Nropla" placeholder="UltimoPlantel"></RadzenTextBox>
-                }
-                else{
-                    <RadzenTextBox @bind-Value="@socioSeleccionado.UltimoPlantel" placeholder="UltimoPlantel"></RadzenTextBox>
-                }
+                    <label>Plantel</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaPlanteles" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelSeleccionado">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.NroPlantel
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.NroPlantel
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
             </div>
         </div>
         <br />
@@ -135,7 +136,7 @@
             </div>
         </div>
         <br />
-        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmar()">Guardar Datos</button>
+        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">Guardar Datos</button>
         <br />
         <br />
          @if (confirmado){
@@ -463,6 +464,7 @@
                     </RadzenTabsItem>
                 </Tabs>
             </RadzenTabs>
+
     }
     }
     </div>
@@ -496,6 +498,10 @@ else
 
     List<InspRe> resultados = new();
     List<Establecimiento> establecimientos = new();
+
+    List<Plantele> planteles = new();
+    Plantele? plantelSeleccionado = new();
+
     Establecimiento? establecimientoSeleccionado = null;
     List<EdadMesPromedioRe> promedios = new();
     List<SolicitudInspeccion> solicitudes = new();
@@ -539,6 +545,8 @@ else
         try{
             var rtaaa = await Http.GetFromJsonAsync<Respuesta<List<Inspectore>>>("/api/Inspectore");
             inspectores = rtaaa.List;
+            var plan = await Http.GetFromJsonAsync<Respuesta<List<Plantele>>>("/api/Plantele");
+            planteles = plan.List;
             if (Id != 0)
             {
                 var res = await Http.GetFromJsonAsync<Respuesta<InspRe>>($"/api/InspRe/{Id}");
@@ -554,21 +562,20 @@ else
                 establecimientoSeleccionado = estable.List;
 
                 inspectorSeleccionado = inspectores.Where(x => x.Codigo == oInspRe.Icod).FirstOrDefault();
-
+                plantelSeleccionado = planteles.Where(x =>x.NroPlantel==oInspRe.Nropla).FirstOrDefault();
                 await updateEstadoHistorico(solicitudSeleccionada.NroSolicitud.Value);
 
                 await updatePromedios(solicitudSeleccionada.NroSolicitud.Value);
 
                 await updateRechazos(solicitudSeleccionada.NroSolicitud.Value);
 
-                await updateMovimientos(solicitudSeleccionada.NroSolicitud.Value);
+                await updateMovimientos(solicitudSeleccionada.NroSolicitud.Value, "no");
 
                 await updateHembrasMachos(solicitudSeleccionada.NroSolicitud.Value);
 
                 confirmado = true;
             }
             else{
-
                 var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
                 socios = rta.List.ToList();
                 var rtaa = await Http.GetFromJsonAsync<Respuesta<List<SolicitudInspeccion>>>("/api/solicitudinspeccion/pendientes");
@@ -615,18 +622,32 @@ else
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
 
     }
+    async Task crearHistorico(int nrores)
+    {
+        var temp = new EstadoHistoricoRe();
+        temp.Ea1 = plantelSeleccionado.Vacas;
+        temp.Ea2 = plantelSeleccionado.VaquillServicio;
+        temp.Ea3 = plantelSeleccionado.VaquillNoServicio;
+        temp.Ea4 = plantelSeleccionado.VacasVip;
+        temp.Ea5 = plantelSeleccionado.PrenadasVip;
+        temp.Ea6 = plantelSeleccionado.VaquillNoServicioVip;
+        temp.Nrores = nrores;
+        await Http.PostAsJsonAsync<EstadoHistoricoRe>("/api/EstadoHistoricoRe", temp);
+    }
+
+
     async Task updatePromedios(int nrores)
     {
         var rtt = await Http.GetFromJsonAsync<Respuesta<List<EdadMesPromedioRe>>>($"/api/edadmespromediore/nrores/{nrores}");
         if (rtt.List.Count() > 0)
         {
             try{
-            promediohembra = rtt.List.Where(x => x.Sexo == "H").First();
-            promediomacho = rtt.List.Where(x => x.Sexo == "M").First();
+                promediohembra = rtt.List.Where(x => x.Sexo == "H").First();
+                promediomacho = rtt.List.Where(x => x.Sexo == "M").First();
             }
             catch
             {
-                
+
             }
         }
     }
@@ -635,7 +656,7 @@ else
         var res = await Http.GetFromJsonAsync<Respuesta<List<RechazoRe>>>($"/api/RechazoRe/nrores/{nrores}");
         rechazos = res.List;
     }
-    async Task updateMovimientos(int nrores)
+    async Task updateMovimientos(int nrores, string condicion)
     {
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<MovimientosRe>>>($"/api/MovimientosRe/nrores/{nrores}");
         mtos = respuesta.List;
@@ -667,7 +688,15 @@ else
         estadoFinal.Ea4 = estadoAnterior.Ea4 - salidasFinal.Ea4 + entradasFinal.Ea4;
         estadoFinal.Ea5 = estadoAnterior.Ea5 - salidasFinal.Ea5 + entradasFinal.Ea5;
         estadoFinal.Ea6 = estadoAnterior.Ea6 - salidasFinal.Ea6 + entradasFinal.Ea6;
-
+        if(condicion!="no" && plantelSeleccionado!=null){
+            plantelSeleccionado.Vacas = estadoFinal.Ea1;
+            plantelSeleccionado.VaquillServicio = estadoFinal.Ea2;
+            plantelSeleccionado.VaquillNoServicio = estadoFinal.Ea3;
+            plantelSeleccionado.VacasVip = estadoFinal.Ea4;
+            plantelSeleccionado.PrenadasVip = estadoFinal.Ea5;
+            plantelSeleccionado.VaquillNoServicioVip = estadoFinal.Ea6;
+            await Http.PutAsJsonAsync<Plantele>("/api/Plantele", plantelSeleccionado);
+        }
 
     }
     async Task updateHembrasMachos(int nrores)
@@ -704,13 +733,21 @@ else
 
         await updateRechazos(nrores);
 
-        await updateMovimientos(nrores);
+        await updateMovimientos(nrores, "no");
 
         await updateHembrasMachos(nrores);
+
 
         await updateEstadoHistorico(nrores);
 
         //cambiar todos los gets a unicos por nrosol
+    }
+
+    async Task confirmarNuevo()
+    {
+
+        crearHistorico(solicitudSeleccionada.NroSolicitud.Value);
+        confirmar();
     }
 
 
@@ -733,7 +770,7 @@ else
             }
             else
             {
-                await updateMovimientos(solicitudSeleccionada.NroSolicitud.Value);
+                await updateMovimientos(solicitudSeleccionada.NroSolicitud.Value, "si");
             }
         }
         catch(Exception ex)
@@ -872,6 +909,9 @@ else
         return await Task.FromResult(inspectores.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
-
+    private async Task<IEnumerable<Plantele>> BusquedaPlanteles(string searchText)
+    {
+        return await Task.FromResult(planteles.Where(x => x.NroPlantel.Contains(searchText) && x.CodSocio==socioSeleccionado.NroSocio).ToList());
+    }
 
 }

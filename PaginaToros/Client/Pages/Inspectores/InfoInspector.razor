@@ -1,5 +1,54 @@
-﻿<h3>Toro id nro° @id</h3>
+﻿<h3>Inspector id nro° @id</h3>
+
+<RadzenCard Class="m-3">
+    <div class="row">
+        <h4><strong>@oInspector.Nombre</strong></h4>
+        <div class="col-md-6 col-xl-6">
+            <div class="d-flex flex-row p-3">
+                <div>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Provincia</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Provincia</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Localidad</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Localidad</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-1 mb-0">Direccion</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Direccion</b></RadzenText>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-6">
+            <div class="d-flex flex-row p-3">
+                <div>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Codigo Postal</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.CodPostal</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Telefono</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Telefono</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Mail</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Mail</b></RadzenText>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</RadzenCard>
 
 @code {
+    Inspectore oInspector = new();
+    Respuesta<Inspectore> oRta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int id { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        if (id != 0)
+        {
+            oRta = await Http.GetFromJsonAsync<Respuesta<Inspectore>>($"/api/Inspectore/{id}");
+            oInspector = oRta.List;
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+
 }
+

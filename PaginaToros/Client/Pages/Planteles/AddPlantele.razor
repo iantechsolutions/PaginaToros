@@ -139,7 +139,7 @@
     async Task Guardar()
     {
         oPlantel.NombreSocio = socioSeleccionado.NombreCompleto;
-        oPlantel.CodSocio = socioSeleccionado.NroSocio.ToString();
+        oPlantel.CodSocio = socioSeleccionado.NroSocio;
         oPlantel.FechaExistencia = FechaTempCreacion;
         oPlantel.Activo = activo;
         if (Id == 0)

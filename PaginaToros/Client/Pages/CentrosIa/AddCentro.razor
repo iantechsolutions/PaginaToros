@@ -1,0 +1,76 @@
+﻿@using Blazored.Typeahead
+<style>
+    .bm-title {
+        font-size: 25px;
+        font-weight: bold;
+    }
+</style>
+<div class="card">
+    <div class="card-body">
+        <EditForm Model="@oCentrosIum" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Numero de centro</label>
+                    <InputText @bind-Value="@oCentrosIum.Nrocen" class="form-control" placeholder="Numero de centro"></InputText>
+                    <ValidationMessage For="(()=> oCentrosIum.Nrocen)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Nombre </label>
+                    <InputText @bind-Value="@oCentrosIum.Nombre" class="form-control" placeholder="Nombre"></InputText>
+                    <ValidationMessage For="(()=> oCentrosIum.Nombre)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Nro segun Secretaria Agric y Ganaderia</label>
+                    <InputText @bind-Value="@oCentrosIum.NroCSayg" class="form-control" placeholder="Numero"></InputText>
+                    <ValidationMessage For="(()=> oCentrosIum.NroCSayg)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <br />
+
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+    CentrosIum oCentrosIum = new();
+    Respuesta<CentrosIum> oRespuesta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<CentrosIum>>($"/api/CentrosIum/{Id}");
+                oCentrosIum = oRespuesta.List;
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        if (Id == 0)
+        {
+            await Http.PostAsJsonAsync<CentrosIum>("/api/CentrosIum", oCentrosIum);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<CentrosIum>("/api/CentrosIum", oCentrosIum);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+}

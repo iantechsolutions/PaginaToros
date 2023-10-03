@@ -1,5 +1,117 @@
-﻿<h3>Toro id nro° @id</h3>
+﻿<h3>Plantel id nro° @id</h3>
+
+<RadzenCard Class="m-3">
+    <div class="row">
+        <h4><strong>@oPlantel.NroPlantel</strong></h4>
+        <div class="col-md-6 col-xl-6">
+            <div class="d-flex flex-row p-3">
+                <div>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Activo?</RadzenText>
+                    @if (oPlantel.Activo.HasValue)
+                    {
+                        @if (oPlantel.Activo.Value)
+                        {
+                            <RadzenText TextStyle="TextStyle.Body1"><b>Si</b></RadzenText>
+                        }
+                        else
+                        {
+                            <RadzenText TextStyle="TextStyle.Body1"><b>No</b></RadzenText>
+                        }
+                    }
+                    else
+                    {
+                        <br/>
+                    }
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Año de Existencia</RadzenText>
+                    @if(oPlantel.FechaExistencia.HasValue){
+                        <RadzenText TextStyle="TextStyle.Body1"><b>@oPlantel.FechaExistencia.Value.ToString("yyyy")</b></RadzenText>
+                    }
+                    else
+                    {
+                        <br/>
+                    }
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Nombre de Socio</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@(oPlantel.NombreSocio ?? "")</b></RadzenText>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-6">
+            <div class="d-flex flex-row p-3">
+                <div>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Numero de ultima inspeccion</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@(oPlantel.NroUltInspeccion ?? "")</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Fecha de ultima inspeccion</RadzenText>
+                    @if (oPlantel.UltimaInspeccion.HasValue)
+                    {
+                        <RadzenText TextStyle="TextStyle.Body1"><b>@oPlantel.UltimaInspeccion.Value.ToString("dd/MM/yyyy")</b></RadzenText>
+                    }
+                    else
+                    {
+                        <br />
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <RadzenText TextStyle="TextStyle.Overline" Class="">Puro Registrado</RadzenText>
+        <div class="row">
+            <div class="col-sm-4">
+                <RadzenText TextStyle="TextStyle.Overline" Class="">Vacas</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.Vacas</RadzenText>
+            </div>
+            <div class="col-sm-4">
+                <RadzenText TextStyle="TextStyle.Overline" Class="">Vaquillonas con servicio</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.VaquillServicio</RadzenText>
+            </div>
+            <div class="col-sm-4">
+                <RadzenText TextStyle="TextStyle.Overline" Class="">Vaquillonas sin servicio</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.VaquillNoServicio</RadzenText>
+            </div>
+        </div>
+
+    </div>
+    <div class="row">
+        <RadzenText TextStyle="TextStyle.Overline" Class="">VIP</RadzenText>
+        <div class="row">
+            <div class="col-sm-4">
+                <RadzenText TextStyle="TextStyle.Overline" Class="">Vacas</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.VacasVip</RadzenText>
+            </div>
+            <div class="col-sm-4">
+                <RadzenText TextStyle="TextStyle.Overline" Class="">Vaquillonas con servicio o preñadas</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.PrenadasVip</RadzenText>
+            </div>
+            <div class="col-sm-4">
+                <RadzenText TextStyle="TextStyle.Overline" Class="">Vaquillonas sin servicio</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.VaquillNoServicioVip</RadzenText>
+            </div>
+        </div>
+
+    </div>
+</RadzenCard>
 
 @code {
+    Plantele oPlantel = new();
+    Respuesta<Plantele> oRta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int id { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        if (id != 0)
+        {
+            oRta = await Http.GetFromJsonAsync<Respuesta<Plantele>>($"/api/Plantele/{id}");
+            oPlantel = oRta.List;
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+
+}
+
+blic int id { get; set; }
 }

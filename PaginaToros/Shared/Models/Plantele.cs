@@ -19,7 +19,7 @@ public partial class Plantele
 
     public DateTime? UltimaReinspeccion { get; set; }
 
-    public string? CodSocio { get; set; }
+    public int? CodSocio { get; set; }
 
     public int? Vacas { get; set; }
 

@@ -1,0 +1,201 @@
+﻿@using Blazored.Typeahead
+<style>
+    .bm-title {
+        font-size: 25px;
+        font-weight: bold;
+    }
+</style>
+<div class="card">
+    <div class="card-body">
+        <EditForm Model="@oCertifseman" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Tipo</label>
+                    <RadzenDropDown @bind-Value=@oCertifseman.TipoCert Data=@tipos Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="(()=> oCertifseman.TipoCert)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label>Fecha de Venta</label><br />
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oCertifseman.Fecvta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Centro</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaCentros" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="centroSeleccionado">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.Nombre
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.Nombre
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Socio</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.NombreCompleto
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.NombreCompleto
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Tipo de envase</label>
+                    <InputText @bind-Value="@oCertifseman.TipEnv" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oCertifseman.TipEnv)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Cantidad original de dosis</label>
+                    <InputText @bind-Value="@oCertifseman.NrDosiOr" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oCertifseman.NrDosiOr)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Tip/ADN</label>
+                    <InputText @bind-Value="@oCertifseman.NrTsan" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oCertifseman.NrTsan)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Macho Dador Nro</label>
+                    <InputText @bind-Value="@oCertifseman.NrInsd" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oCertifseman.TipEnv)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Variedad</label>
+                    <RadzenDropDown @bind-Value=@oCertifseman.Variedad Data=@variedades Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="(()=> oCertifseman.Variedad)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Tipo de toro</label>
+                    <RadzenDropDown @bind-Value=@tipoToro Data=@tiposToro Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="(()=> tipoToro)" style="color:red;" />
+                </div>
+                @if (tipoToro == "S/")
+                {
+                    <div class="col-sm">
+                        <label class="col-sm">HBA</label>
+                        <InputText @bind-Value="@oCertifseman.Hba" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oCertifseman.Hba)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Tatuaje</label>
+                        <InputText @bind-Value="@oCertifseman.Tatpart" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oCertifseman.Tatpart)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Nombre</label>
+                        <InputText @bind-Value="@oCertifseman.NomDad" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oCertifseman.NomDad)" style="color:red;" />
+                    </div>
+                }
+                else
+                {
+                    <div class="col-sm">
+                        <label class="col-sm">HBA</label>
+                        <InputText @bind-Value="@oCertifseman.Hba" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oCertifseman.Hba)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Tatuaje</label>
+                        <InputText @bind-Value="@oCertifseman.Tatpart" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oCertifseman.Tatpart)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Nombre</label>
+                        <InputText @bind-Value="@oCertifseman.NomDad" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oCertifseman.NomDad)" style="color:red;" />
+                    </div>
+                }
+            </div>
+            <br />
+
+            <br />
+
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+    Certifseman oCertifseman = new();
+    Respuesta<Certifseman> oRespuesta = new();
+    List<string> tipos = new List<string> {"Tercero","Propio","Importado"};
+    List<string> variedades = new List<string> {"H","PH"};
+    List<string> tiposToro = new List<string> {"S/","PP"};
+
+    Socio socioSeleccionado = new();
+    List<Socio> socios = new();
+    CentrosIum centroSeleccionado = new();
+    List<CentrosIum> centros = new();
+    string tipoToro = "";
+
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
+        socios = rta.List.ToList();
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<CentrosIum>>>($"/api/CentrosIum");
+        centros = rt.List.ToList();
+
+        if (Id != 0)
+        {
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Certifseman>>($"/api/Certifseman/{Id}");
+                oCertifseman = oRespuesta.List;
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+        oCertifseman.TipEnv = "PAJUELAS";
+    }
+    async Task Guardar()
+    {
+        oCertifseman.Nrocri = socioSeleccionado.NroSocio;
+        oCertifseman.Nrocen = centroSeleccionado.Nrocen;
+
+        if (Id == 0)
+        {
+            await Http.PostAsJsonAsync<Certifseman>("/api/Certifseman", oCertifseman);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<Certifseman>("/api/Certifseman", oCertifseman);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+
+    private async Task<IEnumerable<CentrosIum>> BusquedaCentros(string searchText)
+    {
+        var result = centros.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+
+    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    {
+        var result = socios.Where(x => x.NombreCompleto.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+
+}

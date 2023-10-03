@@ -1,0 +1,47 @@
+﻿<h3>Solicitud id nro° @id</h3>
+
+<RadzenCard Class="m-3">
+    <div class="row">
+        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Numero de Socio</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.NroSocio</b></RadzenText>
+        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Establecimiento</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Establecimiento</b></RadzenText>
+        <div class="col-md-6 col-xl-6">
+            <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Control de Produccion?</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@(oSolicitud.ControlProduccion.Value ? "SI" : "NO")</b></RadzenText>
+        </div>
+        <div class="col-md-6 col-xl-6">
+            <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">ReInspeccion?</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@(oSolicitud.Reinspeccion.Value ? "SI" : "NO")</b></RadzenText>
+        </div>
+        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion solicitada el</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.FechaSolicitud</b></RadzenText><RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion solicitada el ?</RadzenText>
+        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion autorizada el</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.FechaAutorizacion</b></RadzenText>
+        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Plantel</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1"><b>-</b></RadzenText>
+    </div>
+
+</RadzenCard>
+
+@code {
+    SolicitudInspeccion oSolicitud = new();
+    Respuesta<SolicitudInspeccion> oRta = new();
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int id { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        if (id != 0)
+        {
+            oRta = await Http.GetFromJsonAsync<Respuesta<SolicitudInspeccion>>($"/api/SolicitudInspeccion/{id}");
+            oSolicitud = oRta.List;
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+
+}
+

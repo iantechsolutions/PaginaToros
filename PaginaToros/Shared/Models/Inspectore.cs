@@ -23,7 +23,5 @@ public partial class Inspectore
 
     public string? Mail { get; set; }
 
-    public string? Coso { get; set; }
-
     public string? Provincia { get; set; }
 }

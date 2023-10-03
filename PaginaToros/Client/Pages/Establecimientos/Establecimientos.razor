@@ -91,11 +91,11 @@
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-    @*            <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
+               <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
                     <Template Context="data">
                         <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
                     </Template>
-                </RadzenDataGridColumn>*@
+                </RadzenDataGridColumn>
             </Columns>
 
         </RadzenDataGrid>
@@ -240,7 +240,7 @@ else
                 HideCloseButton = true,
                 Size=ModalSize.ExtraLarge
             };
-        parameters.Add(nameof(InfoEstablecimiento.Id), id);
+        parameters.Add(nameof(InfoEstablecimiento.id), id);
         var formModal = Modal.Show<InfoEstablecimiento>("", parameters, options);
         var result = await formModal.Result;
 
