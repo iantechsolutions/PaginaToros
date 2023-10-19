@@ -25,7 +25,7 @@
                 <div class="col-sm"/>
             </div>
             <br />
-            
+            @if(socioSeleccionado!=null){
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Numero de Folio</label>    
@@ -38,61 +38,88 @@
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Plantel</label>
-                    <InputText @bind-Value="@oDeclaracion.Nroplan" class="form-control" placeholder="Numero de plantel"></InputText>
-                    <ValidationMessage For="(()=> oDeclaracion.Nroplan)" style="color:red;" />
-                </div>
-            </div>
-            <br />
-            @* <div class="row" style="width=100%;">
-                <div class="col-sm">
-                    <label>Codigo Postal</label>
-                    <InputText class="form-control" @bind-Value="@oEstablecimiento.CodPostal" placeholder="Codigo Postal"></InputText>
-                    <ValidationMessage For="(()=> oEstablecimiento.CodPostal)" style="color:red;" />
-                </div>
-                <div class="col-sm">
-                    <label class="col-sm">Provincia</label>
-                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,provincias))" placeholder="Busca por nombre" EnableDropDown="true" @bind-Value="oEstablecimiento.Provincia">
+                    <BlazoredTypeahead ValueChanged="@((Plantele c) => HandleValueChanged(c))" SearchMethod="BusquedaPlanteles" placeholder="Busque plantel por numero" EnableDropDown="true" >
                         <SelectedTemplate Context="eleccion">
-                            @eleccion
-                        </SelectedTemplate>
+                            @if(eleccion.FechaExistencia.HasValue){
+                                @(@eleccion.NroPlantel + "-" + @eleccion.FechaExistencia.Value.ToString("yyyy"))
+                            }
+                            else
+                            {
+                                @eleccion.NroPlantel
+                            }
+                            </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion
+                            @if (eleccion.FechaExistencia.HasValue)
+                            {
+                                @(@eleccion.NroPlantel + "-" + @eleccion.FechaExistencia.Value.ToString("yyyy"))
+                            }
+                            else
+                            {
+                                @eleccion.NroPlantel
+                            }
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%">
                 <div class="col-sm">
-                    <label class="col-sm">Informacion</label>
-                    <InputText class="form-control" @bind-Value="@oEstablecimiento.Informacion" placeholder="Informacion"></InputText>
-                    <ValidationMessage For="(()=> oEstablecimiento.Informacion)" style="color:red;" />
+                    <label>Cantidad de Vientres PR</label>
+                    <RadzenNumeric Disabled="true" @bind-Value="totalPR" class="w-100"></RadzenNumeric>
+                </div>
+                <div class="col-sm">
+                    <label>Cantidad de Vientre VIP</label>
+                    <RadzenNumeric Disabled="true" @bind-Value="totalVip" class="w-100"></RadzenNumeric>
                 </div>
             </div>
             <br />
-            <div class="row" style="width=100%;">
+            <div class="row" style="width=100%">
                 <div class="col-sm">
-                    <label>Codigo de Zona</label>
-                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,zonas))" placeholder="Busca por nombre" EnableDropDown="true" @bind-Value="CodZona">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Substring(0,2)
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
+                    <label>Vientres de Servicio PR</label>
+                    <RadzenNumeric @bind-Value="totalVip" class="w-100"></RadzenNumeric>
                 </div>
                 <div class="col-sm">
-                    <label>Fecha de Creacion</label><br />
-                    <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                </div>
-                <div class="col-sm">
-                    <label class="col-sm">Activo?</label><br />
-                    <input type="checkbox" @bind="@activo">
+                    <label>Vientres de Servicio VIP</label>
+                    <RadzenNumeric @bind-Value="totalVip" class="w-100"></RadzenNumeric>
                 </div>
             </div>
-            <br /> *@
             <br />
+            <div class="row" style="width=100%">
+                <div class="col-sm-2"/>
+                <div class="col-sm-8">
+                    <label>Tipo de servicio</label>
+                    <RadzenDropDown @bind-Value=@tipoTemp Data=@tipos Style="width: 100%; max-width: 400px;" />
+                    </div>
+                <div class="col-sm-2"/>
+            </div>
+            <br />
+            if(tipoTemp=="Natural"){
+                <h4 style="text-align:center">- Servicio Natural -</h4>
+                <label style="text-align:center">Periodo de servicio</label>
+                <div class="row">
+                    <div class="col-sm">
+                        <label>Desde</label>
+                        <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaDesde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    </div>
+                    <div class="col-sm"/>
+                    <div class="col-sm">
+                        <label>Hasta</label>
+                        <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaHasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
 
+                    </div>
+                </div>
+                <br/>
+            }
+            else if (tipoTemp=="Natural a Corral")
+            {
+                  <label>Total de Vientres Utilizados</label>
+                  <RadzenNumeric @bind-Value="totalVip" class="w-100"></RadzenNumeric>
+            }
+            <br />
+            
             <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
             <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+            }
         </EditForm>
     </div>
 </div>
@@ -101,14 +128,25 @@
     Desepla1 oDeclaracion = new();
     Respuesta<Desepla1> oRespuesta = new();
     List<Socio> socios = new();
+    List<Plantele> planteles = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     Socio? socioSeleccionado = null;
-    DateTime FechaTemp = new();
+    Plantele? plantelSeleccionado = null;
+    List<string> tipos = new List<string> { "Natural", "Natural a Corral", "Inseminacion c/celo", "Inseminacion c/celo y rep", "Inseminacion c/p y rep", "IATF c/rep" };
+    DateTime FechaTemp = DateTime.Now;
+    DateTime FechaDesde = DateTime.Now;
+    DateTime FechaHasta = DateTime.Now;
+
+    string tipoTemp = "";
+    int totalPR = new();
+    int totalVip = new();
     protected override async Task OnInitializedAsync()
     {
         var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
         socios = rta.List.ToList();
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Plantele>>>($"/api/Plantele");
+        planteles = rt.List.ToList();
         if (Id != 0)
         {
 
@@ -146,6 +184,15 @@
     {
         return await Task.FromResult(socios.Where(x => x.NombreCompleto.ToLower().Contains(searchText.ToLower())).ToList());
     }
-
+    private async Task<IEnumerable<Plantele>> BusquedaPlanteles(string searchText)
+    {
+        return await Task.FromResult(planteles.Where(x => x.CodSocio==socioSeleccionado.NroSocio && x.NroPlantel.ToLower().Contains(searchText.ToLower())).ToList());
+    }
+    private void HandleValueChanged(Plantele args)
+    {
+        plantelSeleccionado = args;
+        totalPR = (args.Vacas ?? 0) + (args.VaquillNoServicio ?? 0) + (args.VaquillServicio ?? 0);
+        totalVip = (args.VacasVip ?? 0) + (args.VaquillNoServicioVip ?? 0) + (args.PrenadasVip ?? 0);
+    }
 }
 
