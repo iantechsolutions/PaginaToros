@@ -45,7 +45,7 @@ public partial class Transan
 
     public string? CodUsu { get; set; }
 
-    public string? Id { get; set; }
+    public int Id { get; set; }
 
     public DateTime? Fecvta { get; set; }
 }

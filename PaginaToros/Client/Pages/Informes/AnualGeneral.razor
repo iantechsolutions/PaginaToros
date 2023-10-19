@@ -1,0 +1,406 @@
+@page "/reporteanual/{aniostr}"
+
+@if (terminado == true)
+{
+    <RadzenText TextStyle="Radzen.Blazor.TextStyle.H4">
+        Reporte del año @anioSeleccionado
+    </RadzenText>
+    @foreach (var coso in listaMeses) { 
+    <div>
+        <RadzenText TextStyle="Radzen.Blazor.TextStyle.DisplayH5">
+            @coso.Item1:
+        </RadzenText>
+        <div class="datames" style="padding-left: 15px">
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                Total Controles realizados: @reportes.Where(x=>x.FechaInspeccion.Value.Month==coso.Item2).Count()
+            </RadzenText>
+            <div class="row">
+                <div class="col-sm-4">
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        Hembras
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        Machos
+                    </RadzenText>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        Cabezas Presentadas: 
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        @PresentadasT.Where(x=>x.fecha.Month==coso.Item2).Sum(x=>x.Cantidad)
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        @PresentadosT.Where(x=>x.fecha.Month==coso.Item2).Sum(x=>x.Cantidad)
+                    </RadzenText>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        Cabezas Machadas:
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        @MachadasT.Where(x=>x.fecha.Month==coso.Item2).Sum(x=>x.Cantidad)
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        @MachadosT.Where(x=>x.fecha.Month==coso.Item2).Sum(x=>x.Cantidad)
+                    </RadzenText>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        Cabezas Astadas:
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        @AstadasT.Where(x=>x.fecha.Month==coso.Item2).Sum(x=>x.Cantidad)
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        @AstadosT.Where(x=>x.fecha.Month==coso.Item2).Sum(x=>x.Cantidad)
+                    </RadzenText>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        Cabezas Rechazadas:
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        @RechazadasT.Where(x=>x.fecha.Month==coso.Item2).Sum(x=>x.Cantidad)
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        @RechazadosT.Where(x=>x.fecha.Month==coso.Item2).Sum(x=>x.Cantidad)
+                    </RadzenText>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        VIP/Control:
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        @VipT.Where(x=>x.fecha.Month==coso.Item2).Sum(x=>x.Cantidad)
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        @ControlT.Where(x=>x.fecha.Month==coso.Item2).Sum(x=>x.Cantidad)
+                    </RadzenText>
+                </div>
+            </div>
+            <br/>
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                Inspecciones
+            </RadzenText>
+            <div class="row">
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        Inspecciones Solicitadas:   @solicitudes.Where(x=>(x.FechaSolicitud ?? DateTime.MinValue).Month==coso.Item2).Count()
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        Inspecciones Autorizadas:   @solicitudes.Where(x=>(x.FechaAutorizacion ?? DateTime.MinValue).Month==coso.Item2).Count()
+                    </RadzenText>
+                </div>
+                <div class="col-sm-4">
+                    <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                        Inspecciones realizadas:    @reportes.Where(x=>x.FechaInspeccion.Value.Month==coso.Item2).Count()
+                    </RadzenText>
+                </div>
+            </div>
+
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+                Controles por provincia:
+            </RadzenText>
+            <div>
+                <RadzenDataGrid AllowColumnResize="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="20"
+                                Density="Density.Compact" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                Data="@provincias.Where(i=>PresentadasT.Where(x=>x.fecha.Month==coso.Item2 && x.Provincia==i).Count()>0)" TItem="string" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="string" Property="" Title="Provincia" Filterable="false" Width="100px">
+                            <Template Context="data">
+                                @data
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="string" Property="" Title="Hembras" Filterable="false">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="string" Property="" Title="Presentadas" Filterable="false">
+                                    <Template Context="data">
+                                        @(PresentadasT.Where(x => x.fecha.Month == coso.Item2 && x.Provincia == data).Sum(i=>i.Cantidad))
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="string" Property="" Title="Machadas" Filterable="false">
+                                    <Template Context="data">
+                                        @(MachadasT.Where(x => x.fecha.Month == coso.Item2 && x.Provincia == data).Sum(i => i.Cantidad))
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="string" Property="" Title="Astadas" Filterable="false">
+                                    <Template Context="data">
+                                        @(AstadasT.Where(x => x.fecha.Month == coso.Item2 && x.Provincia == data).Sum(i=>i.Cantidad))
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="string" Property="" Title="Rechazadas" Filterable="false">
+                                    <Template Context="data">
+                                        @(RechazadasT.Where(x => x.fecha.Month == coso.Item2 && x.Provincia == data).Sum(i=>i.Cantidad))
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="string" Property="" Title="Vip" Filterable="false" >
+                                    <Template Context="data">
+                                        @(VipT.Where(x => x.fecha.Month == coso.Item2 && x.Provincia == data).Sum(i=>i.Cantidad))
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="string" Property="" Title="Machos" Filterable="false" >
+                            <Columns>
+                                <RadzenDataGridColumn TItem="string" Property="" Title="Presentados" Filterable="false">
+                                    <Template Context="data">
+                                        @(PresentadosT.Where(x => x.fecha.Month == coso.Item2 && x.Provincia == data).Sum(i=>i.Cantidad))
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="string" Property="" Title="Machados" Filterable="false">
+                                    <Template Context="data">
+                                        @(MachadosT.Where(x => x.fecha.Month == coso.Item2 && x.Provincia == data).Sum(i=>i.Cantidad))
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="string" Property="" Title="Astados" Filterable="false">
+                                    <Template Context="data">
+                                        @(AstadosT.Where(x => x.fecha.Month == coso.Item2 && x.Provincia == data).Sum(i=>i.Cantidad))
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="string" Property="" Title="Rechazados" Filterable="false">
+                                    <Template Context="data">
+                                        @(RechazadosT.Where(x => x.fecha.Month == coso.Item2 && x.Provincia == data).Sum(i=>i.Cantidad))
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="string" Property="" Title="Control" Filterable="false">
+                                    <Template Context="data">
+                                        @(ControlT.Where(x => x.fecha.Month == coso.Item2 && x.Provincia == data).Sum(i=>i.Cantidad))
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+                <br/>
+                <br />
+            </div>
+        </div>
+    </div>
+    }
+    <br />
+@*     <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+        Detalles del a�o:
+        -Controles de cada inspector
+    </RadzenText> *@
+
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;right:100px;width:1300px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
+@code {
+    bool terminado = false;
+    [Parameter] public string aniostr { get; set; }
+    public int anioSeleccionado { get; set; } = 2022;
+    class Temp
+    {
+        public double Cantidad { get; set; }
+        public DateTime fecha { get; set; }
+        public string Provincia { get; set; }
+    }
+    class Datos
+    {
+        public string Tipo { get; set; }
+        public double Cantidad { get; set; }
+    }
+    List<Datos[][]> Meses = new();
+    List<Temp> AstadasT = new List<Temp> { };
+    List<Temp> MachadasT = new List<Temp> { };
+    List<Temp> RechazadasT = new List<Temp> { };
+    List<Temp> VipT = new List<Temp> { };
+    List<Temp> AstadosT = new List<Temp> { };
+    List<Temp> MachadosT = new List<Temp> { };
+    List<Temp> RechazadosT = new List<Temp> { };
+    List<Temp> ControlT = new List<Temp> { };
+    List<Temp> PresentadasT = new List<Temp> { };
+    List<Temp> PresentadosT = new List<Temp> { };
+    List<InspRe> reportes = new();
+    List<string> provincias = new List<string> { "BUENOS AIRES", "CAPITAL FEDERAL", "CATAMARCA", "CHACO", "CHUBUT", "CORDOBA", "CORRIENTES", "ENTRE RIOS", "FORMOSA", "JUJUY", "LA PAMPA", "LA RIOJA", "MENDOZA", "MISIONES", "NEUQUEN", "RIO NEGRO", "SALTA", "SAN JUAN", "SAN LUIS", "SANTA CRUZ", "SANTA FE", "SANTIAGO DEL ESTERO", "TIERRA DEL FUEGO", "TUCUMAN" };
+    List<(string,int)> listaMeses = new List<(string,int)> { ("Enero",1), ("Febrero",2), ("Marzo",3), ("Abril",4), ("Mayo",5), ("Junio",6), ("Julio",7), ("Agosto",8), ("Septiembre",9), ("Octubre",10), ("Noviembre",11), ("Diciembre",12)};
+    List<SolicitudInspeccion> solicitudes = new();
+    List<HembrasYmachosRe> hemyma = new();
+    List<Inspectore> inspectores = new();
+    List<Establecimiento> establecimientos = new();
+    protected override async Task OnInitializedAsync()
+    {
+        anioSeleccionado = Int32.Parse(aniostr);
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<InspRe>>>($"/api/InspRe");
+        reportes = rta.List.Where(x => (x.FechaInspeccion ?? DateTime.MinValue).Year == anioSeleccionado).ToList();
+        var resp = await Http.GetFromJsonAsync<Respuesta<List<SolicitudInspeccion>>>($"/api/SolicitudInspeccion");
+        solicitudes = resp.List.ToList();
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<HembrasYmachosRe>>>($"/api/HembrasYmachosRe");
+        hemyma = rt.List.Where(x => reportes.Any(i => i.Nrores == x.Nrores)).ToList();
+        var rtaa = await Http.GetFromJsonAsync<Respuesta<List<Inspectore>>>($"/api/Inspectore");
+        inspectores = rtaa.List.ToList();
+        var r = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>($"/api/Establecimiento");
+        establecimientos = r.List.ToList();
+
+
+        foreach (var rep in reportes)
+        {
+            if(rep.FechaInspeccion.HasValue){
+                HembrasYmachosRe? item = hemyma.FirstOrDefault(x => x.Nrores == rep.Nrores);
+                var est = establecimientos.FirstOrDefault(x => x.Codigo == rep.Estcod);
+                AstadasT.Add(new Temp
+                    {
+                    Provincia = est.Provincia,
+                    fecha=rep.FechaInspeccion.Value,
+                    Cantidad = item.HdpAs + item.HppAs
+                });
+                MachadasT.Add(new Temp
+                {
+                    Provincia = est.Provincia,
+                    fecha = rep.FechaInspeccion.Value,
+                    Cantidad = item.HdpM+ item.HppM
+                });
+                RechazadasT.Add(new Temp
+                {
+                    Provincia = est.Provincia,
+                    fecha = rep.FechaInspeccion.Value,
+                    Cantidad = (item.Hdp - item.HdpM - item.HdpAs) + (item.Hpp - item.HppM - item.HppAs)
+                });
+                VipT.Add(new Temp
+                {
+                    Provincia = est.Provincia,
+                    fecha = rep.FechaInspeccion.Value,
+                    Cantidad = item.Hgqb + item.Hgvb
+                });
+                PresentadasT.Add(new Temp
+                {
+                    Provincia = est.Provincia,
+                    fecha = rep.FechaInspeccion.Value,
+                    Cantidad = item.Hdp + item.Hpp
+                });
+
+                AstadosT.Add(new Temp
+                {
+                    Provincia = est.Provincia,
+                    fecha=rep.FechaInspeccion.Value,
+                    Cantidad = item.McpAs + item.MspAs
+                });
+                MachadosT.Add(new Temp
+                {
+                    Provincia = est.Provincia,
+                    fecha = rep.FechaInspeccion.Value,
+                    Cantidad = item.McpM + item.MspM
+                });
+                RechazadosT.Add(new Temp
+                {
+                    Provincia = est.Provincia,
+                    fecha = rep.FechaInspeccion.Value,
+                        Cantidad = (item.Mcp - item.McpM - item.McpAs + item.Msp - item.MspM - item.MspAs)
+                });
+                ControlT.Add(new Temp
+                {
+                    Provincia = est.Provincia,
+                    fecha = rep.FechaInspeccion.Value,
+                    Cantidad = item.Mspsb
+                });
+                PresentadosT.Add(new Temp
+                {
+                    Provincia = est.Provincia,
+                    fecha = rep.FechaInspeccion.Value,
+                    Cantidad = item.Mcp + item.Msp
+                });
+            }
+        }
+        for (int i=0; i<12; i++){
+            Datos[] Hembras = new Datos[]
+            {
+                new Datos
+                {
+                    Tipo = "Astadas",
+                    Cantidad = AstadasT.Where(x=>x.fecha.Month==i ).Sum(x=>x.Cantidad)
+                },
+                new Datos
+                {
+                    Tipo = "Machadas",
+                    Cantidad = MachadasT.Where(x=>x.fecha.Month==i).Sum(x=>x.Cantidad)
+                },
+                new Datos
+                {
+                    Tipo = "Rechazadas",
+                    Cantidad = RechazadasT.Where(x=>x.fecha.Month==i).Sum(x=>x.Cantidad)
+                },
+                new Datos
+                {
+                    Tipo = "Vip",
+                    Cantidad = VipT.Where(x=>x.fecha.Month==i).Sum(x=>x.Cantidad)
+                }
+            };
+            Datos[] Machos = new Datos[]
+            {
+                new Datos
+                {
+                    Tipo = "Astados",
+                    Cantidad = AstadosT.Where(x=>x.fecha.Month==i).Sum(x=>x.Cantidad)
+                },
+                new Datos
+                {
+                    Tipo = "Machados",
+                    Cantidad = MachadosT.Where(x=>x.fecha.Month==i).Sum(x=>x.Cantidad)
+                },
+                new Datos
+                {
+                    Tipo = "Rechazados",
+                    Cantidad = RechazadosT.Where(x=>x.fecha.Month==i).Sum(x=>x.Cantidad)
+                },
+                new Datos
+                {
+                    Tipo = "Control",
+                    Cantidad = ControlT.Where(x=>x.fecha.Month==i).Sum(x=>x.Cantidad)
+                }
+            };
+            var mes = new Datos[][]
+            {
+                Hembras,
+                Machos
+            };
+            Meses.Append(mes);
+        }
+        terminado = true;
+    }
+}

@@ -42,4 +42,6 @@ public partial class Transem
     public string? FchUsu { get; set; }
 
     public string? CodUsu { get; set; }
+
+    public int Id { get; set; }
 }

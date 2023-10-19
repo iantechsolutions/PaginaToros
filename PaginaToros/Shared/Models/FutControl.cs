@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PaginaToros.Server.ModelsTemp;
+namespace PaginaToros.Shared.Models;
 
-public partial class Transsb
+public partial class FutControl
 {
     public string? NroTrans { get; set; }
 
-    public string? Fectrans { get; set; }
-
-    public string? NroOrden { get; set; }
+    public DateTime? Fectrans { get; set; }
 
     public string? Sven { get; set; }
 
@@ -23,13 +21,23 @@ public partial class Transsb
 
     public string? Cnom { get; set; }
 
-    public string? Ecod { get; set; }
+    public string? Plantel { get; set; }
+
+    public string? EdadCrias { get; set; }
+
+    public string? CantHem { get; set; }
+
+    public string? CantMach { get; set; }
+
+    public string? PlantDest { get; set; }
+
+    public string? Incorp { get; set; }
+
+    public string? Hemsta { get; set; }
 
     public string? FchUsu { get; set; }
 
     public string? CodUsu { get; set; }
 
     public int Id { get; set; }
-
-    public string? NombreEstablecimiento { get; set; }
 }

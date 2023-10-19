@@ -36,6 +36,14 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2VydGlmaWNhZG9zXENlcnRpZmljYWRvcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/DeclaracionesServicio/AddDeclaracion.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRGVjbGFyYWNpb25lc1NlcnZpY2lvXEFkZERlY2xhcmFjaW9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/DeclaracionesServicio/Declaraciones.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRGVjbGFyYWNpb25lc1NlcnZpY2lvXERlY2xhcmFjaW9uZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Establecimientos/AddEstablecimiento.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXN0YWJsZWNpbWllbnRvc1xBZGRFc3RhYmxlY2ltaWVudG8ucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
@@ -50,6 +58,18 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Index.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Informes/AnualGeneral.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5mb3JtZXNcQW51YWxHZW5lcmFsLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Informes/InformeIndex.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5mb3JtZXNcSW5mb3JtZUluZGV4LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Informes/MensualGeneral.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5mb3JtZXNcTWVuc3VhbEdlbmVyYWwucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Inspecciones/AddReporte.razor]
@@ -168,12 +188,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNmZXJlbmNpYXNcQW5pbWFsZXNcVHJhbnNmZXJlbmNpYXNBbi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transferencias/Futuro/AddTransSb.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNmZXJlbmNpYXNcRnV0dXJvXEFkZFRyYW5zU2IucmF6b3I=
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transferencias/Futuro/AddTransferenciaFu.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNmZXJlbmNpYXNcRnV0dXJvXEFkZFRyYW5zZmVyZW5jaWFGdS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transferencias/Futuro/TransferenciasSb.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNmZXJlbmNpYXNcRnV0dXJvXFRyYW5zZmVyZW5jaWFzU2IucmF6b3I=
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transferencias/Futuro/TransferenciasFu.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNmZXJlbmNpYXNcRnV0dXJvXFRyYW5zZmVyZW5jaWFzRnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transferencias/Toros/AddTransSb.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNmZXJlbmNpYXNcVG9yb3NcQWRkVHJhbnNTYi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transferencias/Toros/TransferenciasSb.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNmZXJlbmNpYXNcVG9yb3NcVHJhbnNmZXJlbmNpYXNTYi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Shared/MainLayout.razor]

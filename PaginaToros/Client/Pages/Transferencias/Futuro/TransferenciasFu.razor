@@ -1,0 +1,239 @@
+﻿@page "/transfu"
+@using PaginaToros.Shared.Models.Response
+@using PaginaToros.Shared.Models
+@inject HttpClient Http
+<style>
+
+    .rz-cell-data,
+    .rz-column-title-content {
+        font-size: 13px !important;
+    }
+
+    .rz-cell-data {
+        overflow: visible !important;
+        white-space: normal !important;
+    }
+
+    .tablacontent th.rz-unselectable-text.rz-text-align-left {
+        background-color: #82D682;
+    }
+
+    .rz-paginator {
+        border-top: solid #E0E0E0 1px;
+    }
+</style>
+<h3 class="pb-3 font-bold text-xl" style="position:relative">Transferencias A Futuro Control</h3>
+
+
+<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick='()=>add(0)'>Agregar Transferencia</button>
+
+
+
+@if (oRespuesta.List != null)
+{
+
+    <button style="outline:none; float: right;margin-right:15px;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+    <br />
+    <br />
+    <div class="tablacontent" style="position:relative;width:1500px;">
+        <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                        Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                        Data="@oRespuesta.List" TItem="FutControl" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+            <Columns>
+
+                <RadzenDataGridColumn TItem="FutControl" Property="NroTrans" Title="Nro Transferencia" Width="90px" />
+                <RadzenDataGridColumn TItem="FutControl" Property="" Title="Fecha de Transferencia" Width="110px">
+                    <Template Context="data">
+                        @if (data.Fectrans.HasValue)
+                        {
+                            <a>@data.Fectrans.Value.ToString("dd/MM/yyyy")</a>
+                        }
+                        else
+                        {
+
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="FutControl" Property="Vnom" Title="Socio Vendedor" Width="110px" />
+                <RadzenDataGridColumn TItem="FutControl" Property="Cnom" Title="Socio Comprador" Width="110px" />
+                <RadzenDataGridColumn TItem="FutControl" Property="Plantel" Title="De Plantel" Width="110px" />
+                <RadzenDataGridColumn TItem="FutControl" Property="PlantDest" Title="A Plantel" Width="110px" />
+                <RadzenDataGridColumn TItem="FutControl" Property="CantHem" Title="Cant Hembras" Width="110px" />
+                <RadzenDataGridColumn TItem="FutControl" Property="CantMach" Title="Cant Machos" Width="110px" />
+                <RadzenDataGridColumn TItem="FutControl" Property="Hemsta" Title="Estado de las Hembras" Width="110px" />
+                <RadzenDataGridColumn TItem="FutControl" Property="" Title="" Filterable="false" Width="50px">
+                    <Template Context="data">
+                        <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="FutControl" Property="" Title="" Filterable="false" Width="50px">
+                    <Template Context="data">
+                        <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
+                    </Template>
+                </RadzenDataGridColumn>
+                @*            <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
+            <Template Context="data">
+            <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
+            </Template>
+            </RadzenDataGridColumn>*@
+            </Columns>
+
+        </RadzenDataGrid>
+    </div>
+    <br />
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;width:1500px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
+@code {
+    [CascadingParameter] public IModalService Modal { get; set; } = default!;
+    public RadzenDataGrid<FutControl>? grid;
+    int currentPage;
+    public bool allowFiltering = false;
+    public string Url = "/api/FutControl";
+    public Respuesta<List<FutControl>> oRespuesta = new Respuesta<List<FutControl>>();
+    protected override async Task OnInitializedAsync()
+    {
+        await Get();
+    }
+    async Task Get()
+    {
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<FutControl>>>(Url);
+        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
+        oRespuesta = respuesta;
+        StateHasChanged();
+    }
+    public void CambiarModoFiltro()
+    {
+        allowFiltering = !allowFiltering;
+        StateHasChanged();
+    }
+
+    async Task delete(int id)
+    {
+        currentPage = grid.CurrentPage;
+        await Http.DeleteAsync($"/api/FutControl/{id}");
+        await Get();
+        if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+        {
+            await grid.GoToPage(currentPage - 1);
+        }
+        else if (grid.Count != 0)
+        {
+            await grid.GoToPage(currentPage);
+        }
+
+    }
+
+    public async Task alertaDelete(int id)
+    {
+        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "¿Está seguro?",
+                Text = "Se eliminará esta transferencia",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Eliminar",
+                CancelButtonText = "Cancelar"
+            });
+
+        if (!string.IsNullOrEmpty(result.Value))
+        {
+            delete(id);
+
+        }
+        else if (result.Dismiss == DismissReason.Cancel)
+        {
+
+        }
+    }
+
+    async Task add(int Id)
+    {
+        int numero = Id;
+        if (numero != 0)
+        {
+            currentPage = grid.CurrentPage;
+            try
+            {
+                var parameters = new ModalParameters();
+                parameters.Add(nameof(AddTransferenciaFu.Id), Id);
+                var options = new ModalOptions()
+                    {
+                        Size = ModalSize.ExtraLarge
+                    };
+                var formModal = Modal.Show<AddTransferenciaFu>("Editar Transaccion", parameters, options);
+                var result = await formModal.Result;
+                if (result.Cancelled)
+                {
+                    Console.WriteLine("Modal was cancelled");
+                    await grid.GoToPage(currentPage);
+                }
+                else
+                {
+                    await Get();
+                    await grid.GoToPage(currentPage);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        else
+        {
+            var options = new ModalOptions()
+                {
+                    Size = ModalSize.ExtraLarge
+                };
+            var formModal = Modal.Show<AddTransferenciaFu>("Agregar Transaccion", options);
+            var result = await formModal.Result;
+
+            if (result.Cancelled)
+            {
+                Console.WriteLine("Modal was cancelled");
+                await grid.GoToPage(currentPage);
+            }
+            else
+            {
+                await Get();
+                await grid.GoToPage(currentPage);
+            }
+        }
+    }
+    // async Task gotoinfo(int id)
+    // {
+    //     currentPage = grid.CurrentPage;
+    //     var parameters = new ModalParameters();
+    //     var options = new ModalOptions()
+    //         {
+    //             HideHeader = true,
+    //             HideCloseButton = true,
+    //             Size = ModalSize.ExtraLarge
+    //         };
+    //     parameters.Add(nameof(InfoEstablecimiento.id), id);
+    //     var formModal = Modal.Show<InfoEstablecimiento>("", parameters, options);
+    //     var result = await formModal.Result;
+
+    //     if (result.Cancelled)
+    //     {
+    //         Console.WriteLine("Modal was cancelled");
+    //         await grid.GoToPage(currentPage);
+    //     }
+    //     else
+    //     {
+    //         await Get();
+    //         await grid.GoToPage(currentPage);
+    //     }
+    // }
+
+
+
+}

@@ -19,7 +19,7 @@ namespace PaginaToros.Server.Controllers
                 {
 
                     var lst = db.Transans
-                .Where(x => x.Id == id.ToString())
+                .Where(x => x.Id == id)
                 .First();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;

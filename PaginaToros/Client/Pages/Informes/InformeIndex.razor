@@ -1,0 +1,68 @@
+﻿@page "/informes"
+
+<h3></h3>
+<div class="row">
+    <div class="col-sm">
+        <label>Seleccionar Informe</label>
+        <br/>
+        <RadzenDropDown @bind-Value=@seleccion Data=@reportes Style="width: 100%; max-width: 400px;" />
+    </div>
+    @if (seleccion == "General")
+    {
+        <div class="col-sm">
+            <label>Seleccionar Fecha Inicial</label>
+            <RadzenDatePicker TValue="DateTime" @bind-Value=@fechaInicial ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+        </div>
+        <div class="col-sm">
+            <label>Seleccionar Fecha Final</label>
+            <RadzenDatePicker TValue="DateTime" @bind-Value=@fechaFinal ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+        </div>
+    }
+    else if (seleccion=="Anual")
+    {
+        <div class="col-sm">
+            
+        </div>
+        <div class="col-sm">
+            <label>Escribi el año</label>
+            <RadzenNumeric @bind-Value=@anioseleccionado Style="width: 100%; max-width: 400px;" />
+        </div>
+    }
+    
+    </div>
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
+<div class="row">
+    <div class="col-sm-2"/>
+    <div class="col-sm-8">
+    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;width:100%" @onclick="()=>Generate()">Generar Reporte</button>
+    </div>
+    <div class="col-sm-2"/>
+</div>
+@code {
+    string seleccion = "";
+    DateTime fechaInicial = DateTime.Now.AddDays(-30);
+    DateTime fechaFinal = DateTime.Now;
+    int anioseleccionado = new();
+    List<string> reportes = new List<string> { "General", "Anual"};
+    public void Generate()
+    {
+        if (seleccion == "General")
+        {
+            string fecha1 = fechaInicial.ToString("yyyy-MM-dd");
+            string fecha2 = fechaFinal.ToString("yyyy-MM-dd");
+            nav.NavigateTo($"/reportegeneral/{fecha1}/{fecha2}");
+        }
+        else if (seleccion == "Anual")
+        {
+            nav.NavigateTo($"/reporteanual/{anioseleccionado.ToString()}");
+
+        }
+    }
+}

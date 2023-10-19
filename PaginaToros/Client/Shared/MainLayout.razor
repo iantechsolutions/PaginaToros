@@ -1,6 +1,17 @@
 ﻿@inherits LayoutComponentBase
-
-<NavMenu />
+<style>
+    @@media print {
+        table {
+            break-inside: avoid;
+        }
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+<div class="no-print">
+<NavMenu/>
+</div>
 <div class="grid-container">
     <main class="container">
         @Body
@@ -11,6 +22,6 @@
 <br />
 <br />
 <br />
-<RadzenFooter Style="border-top:1px solid darkgrey">
+<RadzenFooter class="no-print" Style="border-top:1px solid darkgrey">
     <p>&copy; 2023 IanTechSolutions. All rights reserved.</p>
 </RadzenFooter>

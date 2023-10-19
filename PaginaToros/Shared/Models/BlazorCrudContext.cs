@@ -19,11 +19,15 @@ public partial class BlazorCrudContext : DbContext
 
     public virtual DbSet<Certifseman> Certifsemen { get; set; }
 
+    public virtual DbSet<Desepla1> Desepla1s { get; set; }
+
     public virtual DbSet<EdadMesPromedioRe> EdadMesPromedioRes { get; set; }
 
     public virtual DbSet<Establecimiento> Establecimientos { get; set; }
 
     public virtual DbSet<EstadoHistoricoRe> EstadoHistoricoRes { get; set; }
+
+    public virtual DbSet<FutControl> FutControls { get; set; }
 
     public virtual DbSet<HembrasYmachosRe> HembrasYmachosRes { get; set; }
 
@@ -195,6 +199,83 @@ public partial class BlazorCrudContext : DbContext
                 .HasColumnName("VARIEDAD");
         });
 
+        modelBuilder.Entity<Desepla1>(entity =>
+        {
+            entity.ToTable("DESEPLA1");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Cantb).HasColumnName("CANTB");
+            entity.Property(e => e.Cantor).HasColumnName("CANTOR");
+            entity.Property(e => e.Cantv).HasColumnName("CANTV");
+            entity.Property(e => e.CodUsu)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("COD_USU");
+            entity.Property(e => e.CoefAutoIa).HasColumnName("COEF_AUTO_IA");
+            entity.Property(e => e.CoefAutoIar).HasColumnName("COEF_AUTO_IAR");
+            entity.Property(e => e.CoefAutoSn).HasColumnName("COEF_AUTO_SN");
+            entity.Property(e => e.Ctrlm).HasColumnName("CTRLM");
+            entity.Property(e => e.Ctrlu).HasColumnName("CTRLU");
+            entity.Property(e => e.Desde)
+                .HasColumnType("datetime")
+                .HasColumnName("DESDE");
+            entity.Property(e => e.Edicion)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("edicion");
+            entity.Property(e => e.FchUsu)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("FCH_USU");
+            entity.Property(e => e.Fchrecepcion)
+                .HasColumnType("datetime")
+                .HasColumnName("FCHRECEPCION");
+            entity.Property(e => e.Fecdecl)
+                .HasColumnType("datetime")
+                .HasColumnName("FECDECL");
+            entity.Property(e => e.Fecret)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("FECRET");
+            entity.Property(e => e.Hasta)
+                .HasColumnType("datetime")
+                .HasColumnName("HASTA");
+            entity.Property(e => e.IaSincro).HasColumnName("IA_SINCRO");
+            entity.Property(e => e.NombreSocio)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.NrFolio).HasColumnName("NR_FOLIO");
+            entity.Property(e => e.Nrocri)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NROCRI");
+            entity.Property(e => e.Nrodec)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NRODEC");
+            entity.Property(e => e.Nroplan)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NROPLAN");
+            entity.Property(e => e.PastillasSincro).HasColumnName("PASTILLAS_SINCRO");
+            entity.Property(e => e.Remba).HasColumnName("REMBA");
+            entity.Property(e => e.Remmpr).HasColumnName("REMMPR");
+            entity.Property(e => e.Rempr).HasColumnName("REMPR");
+            entity.Property(e => e.Reten)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("reten");
+            entity.Property(e => e.Semen)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SEMEN");
+            entity.Property(e => e.Semprop).HasColumnName("SEMPROP");
+            entity.Property(e => e.Tipse)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("TIPSE");
+        });
+
         modelBuilder.Entity<EdadMesPromedioRe>(entity =>
         {
             entity.Property(e => e.Id).HasColumnName("id");
@@ -291,80 +372,108 @@ public partial class BlazorCrudContext : DbContext
             entity.Property(e => e.Nrores).HasColumnName("NRORES");
         });
 
+        modelBuilder.Entity<FutControl>(entity =>
+        {
+            entity.ToTable("FUT_CONTROL");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CantHem)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CANT_HEM");
+            entity.Property(e => e.CantMach)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CANT_MACH");
+            entity.Property(e => e.CategSc)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CATEG_SC");
+            entity.Property(e => e.CategSv)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CATEG_SV");
+            entity.Property(e => e.Cnom)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("CNOM");
+            entity.Property(e => e.CodUsu)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("COD_USU");
+            entity.Property(e => e.EdadCrias)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("EDAD_CRIAS");
+            entity.Property(e => e.FchUsu)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("FCH_USU");
+            entity.Property(e => e.Fectrans)
+                .HasColumnType("datetime")
+                .HasColumnName("FECTRANS");
+            entity.Property(e => e.Hemsta)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("HEMSTA");
+            entity.Property(e => e.Incorp)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("INCORP");
+            entity.Property(e => e.NroTrans)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NRO_TRANS");
+            entity.Property(e => e.PlantDest)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("PLANT_DEST");
+            entity.Property(e => e.Plantel)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("PLANTEL");
+            entity.Property(e => e.Scom)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SCOM");
+            entity.Property(e => e.Sven)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SVEN");
+            entity.Property(e => e.Vnom)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("VNOM");
+        });
+
         modelBuilder.Entity<HembrasYmachosRe>(entity =>
         {
             entity.ToTable("HembrasYMachosRes");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Hdb)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HDB");
-            entity.Property(e => e.Hdp)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HDP");
-            entity.Property(e => e.HdpAs)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HDP_AS");
-            entity.Property(e => e.HdpM)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HDP_M");
-            entity.Property(e => e.Hdt)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HDT");
-            entity.Property(e => e.Hgqb)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HGQB");
-            entity.Property(e => e.Hgqp)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HGQP");
-            entity.Property(e => e.Hgvb)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HGVB");
-            entity.Property(e => e.Hgvp)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HGVP");
-            entity.Property(e => e.Hpb)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HPB");
-            entity.Property(e => e.Hpp)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HPP");
-            entity.Property(e => e.HppAs)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HPP_AS");
-            entity.Property(e => e.HppM)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HPP_M");
-            entity.Property(e => e.Hpt)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("HPT");
-            entity.Property(e => e.Mcp)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("MCP");
-            entity.Property(e => e.McpAs)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("MCP_AS");
-            entity.Property(e => e.McpM)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("MCP_M");
-            entity.Property(e => e.Mct)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("MCT");
-            entity.Property(e => e.Msp)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("MSP");
-            entity.Property(e => e.MspAs)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("MSP_AS");
-            entity.Property(e => e.MspM)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("MSP_M");
-            entity.Property(e => e.Mspsb)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("MSPSB");
-            entity.Property(e => e.Mst)
-                .HasDefaultValueSql("((0))")
-                .HasColumnName("MST");
+            entity.Property(e => e.Hdb).HasColumnName("HDB");
+            entity.Property(e => e.Hdp).HasColumnName("HDP");
+            entity.Property(e => e.HdpAs).HasColumnName("HDP_AS");
+            entity.Property(e => e.HdpM).HasColumnName("HDP_M");
+            entity.Property(e => e.Hdt).HasColumnName("HDT");
+            entity.Property(e => e.Hgqb).HasColumnName("HGQB");
+            entity.Property(e => e.Hgqp).HasColumnName("HGQP");
+            entity.Property(e => e.Hgvb).HasColumnName("HGVB");
+            entity.Property(e => e.Hgvp).HasColumnName("HGVP");
+            entity.Property(e => e.Hpb).HasColumnName("HPB");
+            entity.Property(e => e.Hpp).HasColumnName("HPP");
+            entity.Property(e => e.HppAs).HasColumnName("HPP_AS");
+            entity.Property(e => e.HppM).HasColumnName("HPP_M");
+            entity.Property(e => e.Hpt).HasColumnName("HPT");
+            entity.Property(e => e.Mcp).HasColumnName("MCP");
+            entity.Property(e => e.McpAs).HasColumnName("MCP_AS");
+            entity.Property(e => e.McpM).HasColumnName("MCP_M");
+            entity.Property(e => e.Mct).HasColumnName("MCT");
+            entity.Property(e => e.Msp).HasColumnName("MSP");
+            entity.Property(e => e.MspAs).HasColumnName("MSP_AS");
+            entity.Property(e => e.MspM).HasColumnName("MSP_M");
+            entity.Property(e => e.Mspsb).HasColumnName("MSPSB");
+            entity.Property(e => e.Mst).HasColumnName("MST");
             entity.Property(e => e.Nrores).HasColumnName("NRORES");
         });
 
@@ -781,10 +890,9 @@ public partial class BlazorCrudContext : DbContext
 
         modelBuilder.Entity<Transan>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("TRANSAN");
+            entity.ToTable("TRANSAN");
 
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CantChem)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -828,10 +936,6 @@ public partial class BlazorCrudContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("HEMSTA");
-            entity.Property(e => e.Id)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("id");
             entity.Property(e => e.Incorp)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -876,10 +980,9 @@ public partial class BlazorCrudContext : DbContext
 
         modelBuilder.Entity<Transem>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("TRANSEM");
+            entity.ToTable("TRANSEM");
 
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CategSc)
                 .HasMaxLength(50)
                 .IsUnicode(false)

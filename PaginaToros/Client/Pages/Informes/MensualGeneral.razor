@@ -1,0 +1,199 @@
+@page "/reportegeneral/{fecha1}/{fecha2}"
+@if (terminado==true){
+    <RadzenText TextStyle="Radzen.Blazor.TextStyle.H5">
+        Reporte del @FechaInicial.ToString("dd/MM/yyyy") al @FechaFinal.ToString("dd/MM/yyyy")
+    </RadzenText>
+    <div class="row">
+        <div class="col-md">
+        <RadzenChart ColorScheme="Radzen.Blazor.ColorScheme.Pastel">
+                <RadzenPieSeries Data="@Hembras" Title="Cantidad" CategoryProperty="Tipo" ValueProperty="Cantidad">
+                    <RadzenSeriesDataLabels Visible="true" />
+                </RadzenPieSeries>
+        </RadzenChart>
+        </div>
+        <div class="col-md">
+        <RadzenChart ColorScheme="Radzen.Blazor.ColorScheme.Pastel">
+                <RadzenPieSeries Data="@Machos" Title="Cantidad" CategoryProperty="Tipo" ValueProperty="Cantidad">
+                    <RadzenSeriesDataLabels Visible="true" />
+                </RadzenPieSeries>
+        </RadzenChart>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md" style="width: 459px">
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+            Machadas: @Machadas.Cantidad
+            </RadzenText>
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+            Astadas: @Astadas.Cantidad
+            </RadzenText>
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" Style="width: 367px">
+            Rechazadas: @Rechazadas.Cantidad
+            </RadzenText>
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" Style="width: 367px">
+            Vip: @Vip.Cantidad
+            </RadzenText>
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" >
+            Presentadas: @(Vip.Cantidad+Rechazadas.Cantidad+Astadas.Cantidad+Machadas.Cantidad)
+            </RadzenText>
+        </div>
+        <div class="col-md">
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
+            Machados:  @Machados.Cantidad
+            </RadzenText>
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" >
+            Astados: @Astados.Cantidad
+            </RadzenText>
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" Style="width: 367px" >
+            Rechazados: @Rechazados.Cantidad
+            </RadzenText>
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" Style="width: 367px" >
+            En Control: @Control.Cantidad
+            </RadzenText>
+            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" >
+            Presentados: @(Rechazados.Cantidad+Machados.Cantidad+Astados.Cantidad)
+            </RadzenText>
+        </div>
+    </div>
+    <br/>
+    <RadzenDataGrid AllowColumnResize="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="20"
+                    Density="Density.Compact" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    Data="@inspectores" TItem="Inspectore" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+        <Columns>
+            <RadzenDataGridColumn TItem="Inspectore" Property="Nombre" Title="Nombre" Width="55px" />
+            <RadzenDataGridColumn TItem="Inspectore" Property="" Title="Presentadas" Filterable="false" Width="100px">
+                <Template Context="data">
+                    @(ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.data.Hdp) + ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.data.Hpp));
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Inspectore" Property="" Title="Marcadas" Filterable="false" Width="100px">
+                <Template Context="data">
+                    @(ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.data.HdpM) + ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.data.HppM));
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Inspectore" Property="" Title="Astadas" Filterable="false" Width="100px">
+                <Template Context="data">
+                    @(ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.data.HdpAs) + ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.data.HppAs));
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Inspectore" Property="" Title="Rechazadas" Filterable="false" Width="100px">
+                <Template Context="data">
+                    @(ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.rechazadasDP) + ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.rechazadasPP));
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+
+    </RadzenDataGrid>
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;right:100px;width:1300px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
+@code {
+    bool showDataLabels = false;
+    class Datos
+    {
+        public string Tipo { get; set; }
+        public double Cantidad { get; set; }
+    }
+    class Combinado
+    {
+        public double rechazadasPP {get;set;}
+        public double rechazadasDP {get;set;}
+        public int? ICod { get; set; }
+        public HembrasYmachosRe? data { get; set; }
+    }
+
+    [Parameter] 
+    public string fecha1 { get; set; }
+    [Parameter] 
+    public string fecha2 { get; set; }
+    [Parameter] public DateTime FechaInicial { get; set; } = DateTime.Now.AddDays(-700);
+    [Parameter] public DateTime FechaFinal { get; set; } = DateTime.Now;
+    Datos[] Hembras = new Datos[] {};
+    Datos[] Machos = new Datos[] {};
+    bool terminado = false;
+    Datos Astadas = new Datos { Tipo = "Astadas", Cantidad = 0 };
+    Datos Machadas = new Datos { Tipo = "Machadas", Cantidad = 0 };
+    Datos Rechazadas = new Datos { Tipo = "Rechazadas", Cantidad = 0 };
+    Datos Vip = new Datos { Tipo = "VIP", Cantidad = 0 };
+    Datos Astados = new Datos { Tipo = "Astados", Cantidad = 0 };
+    Datos Machados = new Datos { Tipo = "Machados", Cantidad = 0 };
+    Datos Rechazados = new Datos { Tipo = "Rechazados", Cantidad = 0 };
+    Datos Control = new Datos { Tipo = "Control S/", Cantidad = 0 };
+    List<InspRe> reportes = new();
+    List<HembrasYmachosRe> hemyma = new ();
+    List<Inspectore> inspectores = new();
+    List<Datos> Data = new();
+    List<Combinado> ValoresInspectores = new();
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            FechaInicial = DateTime.Parse(fecha1);
+            FechaFinal = DateTime.Parse(fecha2);
+
+        }catch{}
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<InspRe>>>($"/api/InspRe");
+        reportes = rta.List.Where(x => x.FechaInspeccion <= FechaFinal && x.FechaInspeccion>=FechaInicial).ToList();
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<HembrasYmachosRe>>>($"/api/HembrasYmachosRe");
+        hemyma = rt.List.Where(x => reportes.Any(i => i.Nrores == x.Nrores)).ToList();
+        var rtaa = await Http.GetFromJsonAsync<Respuesta<List<Inspectore>>>($"/api/Inspectore");
+        inspectores = rtaa.List.ToList();
+
+        foreach(var rep in reportes)
+        {
+            HembrasYmachosRe? item = hemyma.FirstOrDefault(x => x.Nrores == rep.Nrores);
+            var rechazadasDp = item.Hdp - item.HdpM - item.HdpAs;
+            var rechazadasPp = item.Hpp - item.HppM - item.HppAs;
+            ValoresInspectores.Add(
+            new Combinado
+                {
+                    rechazadasDP = rechazadasDp,
+                    rechazadasPP = rechazadasPp,
+                    ICod = rep.Icod,
+                    data = item
+                }
+            );
+            Machadas.Cantidad += item.HdpM;
+            Machadas.Cantidad += item.HppM;
+            Astadas.Cantidad += item.HdpAs;
+            Astadas.Cantidad += item.HppAs;
+            Rechazadas.Cantidad += item.Hdp - item.HdpM - item.HdpAs;
+            Rechazadas.Cantidad += item.Hpp - item.HppM - item.HppAs;
+            Vip.Cantidad += item.Hgqb;
+            Vip.Cantidad += item.Hgvb;
+            Machados.Cantidad += item.McpM;
+            Machados.Cantidad += item.MspM;
+            Astados.Cantidad += item.McpAs;
+            Astados.Cantidad += item.MspAs;
+            Rechazados.Cantidad += item.Mcp - item.McpM - item.McpAs;
+            Rechazados.Cantidad += item.Msp - item.MspM - item.MspAs;
+            Control.Cantidad += item.Mspsb;
+        }
+        Hembras = new Datos[]
+        {
+        Astadas,
+        Machadas,
+        Rechazadas,
+        Vip
+        };
+        Machos = new Datos[]
+        {
+        Astados,
+        Machados,
+        Rechazados,
+        Control
+        };
+        terminado = true;
+    }
+    
+
+    
+}
