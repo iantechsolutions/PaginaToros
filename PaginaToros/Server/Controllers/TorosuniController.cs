@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
+using PaginaToros.Server.Context;
 
 namespace PaginaToros.Server.Controllers
 {

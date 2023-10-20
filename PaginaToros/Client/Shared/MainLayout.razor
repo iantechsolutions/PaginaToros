@@ -1,27 +1,35 @@
 ﻿@inherits LayoutComponentBase
-<style>
-    @@media print {
-        table {
-            break-inside: avoid;
-        }
-        .no-print {
-            display: none !important;
-        }
-    }
-</style>
-<div class="no-print">
-<NavMenu/>
-</div>
-<div class="grid-container">
-    <main class="container">
-        @Body
+<AuthorizeView>
+    <Authorized>
+        <style>
+            @@media print {
+                table {
+                    break-inside: avoid;
+                }
 
-    </main>
+                .no-print {
+                    display: none !important;
+                }
+            }
+        </style>
+        <div class="no-print">
+            <NavMenu />
+        </div>
+        <div class="grid-container">
+            <main class="container">
+                @Body
 
-</div>
-<br />
-<br />
-<br />
-<RadzenFooter class="no-print" Style="border-top:1px solid darkgrey">
-    <p>&copy; 2023 IanTechSolutions. All rights reserved.</p>
-</RadzenFooter>
+            </main>
+
+        </div>
+        <br />
+        <br />
+        <br />
+        <RadzenFooter class="no-print" Style="border-top:1px solid darkgrey">
+            <p>&copy; 2023 IanTechSolutions. All rights reserved.</p>
+        </RadzenFooter>
+    </Authorized>
+    <NotAuthorized>
+        <Login></Login>
+    </NotAuthorized>
+</AuthorizeView>
