@@ -16,7 +16,13 @@
 @using Blazored.Modal
 @using Blazored.Modal.Services
 @using CurrieTechnologies.Razor.SweetAlert2
-@using Newtonsoft.Json
+@using System.Text.Json
 @inject SweetAlertService Swal
 @inject NavigationManager nav
 @inject HttpClient Http
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using PaginaToros.Client.Pages.Auth
+@using PaginaToros.Client.Auth;
+
+

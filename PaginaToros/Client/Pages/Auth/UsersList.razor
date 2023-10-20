@@ -1,0 +1,132 @@
+﻿@page "/Usuarios"
+@*@attribute [Authorize(Roles = "USUARIOMAESTRO")]*@
+@inject HttpClient http
+@inject NavigationManager uriHelper
+<center>
+    <AuthorizeView>
+        <div class="tablacontent" style="position:relative;width:80%;">
+
+            <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="true" FilterMode="FilterMode.Advanced"
+                            AllowSorting="true" PageSize="5" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            Data="@Usuarios" TItem="Usuario" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                <Columns>
+                    <RadzenDataGridColumn TItem="Usuario" Property="Nombre/s" Filterable="false" Title="Names" Width="40px" />
+                    <RadzenDataGridColumn TItem="Usuario" Property="Apellido/s" Filterable="false" Title="LastNames" Width="40px" />
+                    <RadzenDataGridColumn TItem="Usuario" Property="Dni" Filterable="false" Title="Dni" Width="40px" />
+                    <RadzenDataGridColumn TItem="Usuario" Property="Número" Filterable="false" Title="Phone" Width="40px" />
+                    <RadzenDataGridColumn TItem="Usuario" Property="Rol" Filterable="false" Title="Rol" Width="40px" />
+                    <RadzenDataGridColumn TItem="Usuario" Property="" Filterable="false" Title="" Width="40px">
+                        <Template Context="data">
+                            <button class="btn" title="Editar" @onclick="@(()=>nav.NavigateTo($"/ActualizarUsuario/{@data.Id}"))"><FeatherEdit3 Color="green" /></button>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Usuario" Property="" Filterable="false" Title="" Width="40px">
+                        <Template Context="data">
+                            <button class="btn" title="Eliminar" @onclick="@(()=>nav.NavigateTo($"/EliminarUsuario/{data.Id}"))"><FeatherTrash2 Color="red" /></button>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Usuario" Property="" Filterable="false" Title="" Width="40px">
+                        <Template Context="data">
+                            <button class="btn" title="Info" @onclick="@(() => ShowDetails(data))"><FeatherInfo Color="blue" /></button>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </div>
+
+        @*<ListComponent OnClickEvent="GetRegisters" Response="response">
+        <SelectOptions>
+        <option value="">Estatus...</option>
+        <option value="ACTIVO">ACTIVOS</option>
+        <option value="SUSPENDIDO">SUSPENDIDOS</option>
+        </SelectOptions>
+        <TableHeader>
+        <th>Nombre Completo</th>
+        <th>Dni</th>
+        <th>Télefono</th>
+        <th>Rol</th>
+        <th></th>
+        </TableHeader>
+        <TableBody>
+        @if (Usuarios != null)
+        {
+        @foreach (Usuario Usuario in Usuarios)
+        {
+        <tr>
+        <td @onclick="@(()=> ShowDetails(Usuario))" style="cursor: pointer; color: blue; ">@Usuario.Names @Usuario.LastNames</td>
+        <td>@Usuario.Dni</td>
+        <td>@Usuario.Phone</td>
+        <td>@Usuario.Rol</td>
+        <td>
+        <a href="/ActualizarUsuario/@Usuario.Id" class="btn btn-warning" title="Editar">
+        <span class="oi oi-pencil" aria-hidden="true"></span>
+        </a> |
+        <a href="/EliminarUsuario/@Usuario.Id" class="btn btn-danger" title="Eliminar">
+        <span class="oi oi-trash" aria-hidden="true"></span>
+        </a>
+        </td>
+        </tr>
+        }
+        }
+        </TableBody>
+        </ListComponent>*@
+    </AuthorizeView>
+</center>
+
+@code {
+
+    [CascadingParameter] public IModalService Modal { get; set; }
+
+    ResponseForList response = new ResponseForList() { AllRegisters = 0 };
+    private IList<Usuario> Usuarios;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        GetRegisters("", "", 1, DateTime.UtcNow, DateTime.UtcNow);
+    }
+
+    private async void GetRegisters(string search, string status, int pageLocal, DateTime startDate, DateTime endDate)
+    {
+        if (search == "")
+            search = "TODO";
+        if (status == "")
+            status = "TODO";
+
+        var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
+        var result = await http.GetAsync($"api/Account/GetUsers/{search}/{status}/{pageLocal}");
+        switch (result.StatusCode)
+        {
+            case System.Net.HttpStatusCode.OK:
+                response = JsonSerializer.Deserialize<ResponseForList>(result.Content.ReadAsStringAsync().Result);
+                Usuarios = JsonSerializer.Deserialize<IList<Usuario>>(response.EntitiesPricipal);
+                modal.Close();
+                break;
+            case System.Net.HttpStatusCode.NotFound:
+                response = new ResponseForList() { AllRegisters = 0 };
+                modal.Close();
+                break;
+            case System.Net.HttpStatusCode.Unauthorized:
+                uriHelper.NavigateTo("/Logout");
+                break;
+            default:
+                modal.Close();
+                Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(result.Content.ReadAsStringAsync().Result, "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
+                break;
+        }
+        StateHasChanged();
+    }
+
+    private void ShowDetails(Usuario Usuario)
+    {
+        var modalOptions = new ModalOptions()
+        {
+        };
+
+        var parameters = new ModalParameters();
+        parameters.Add(nameof(DetailsUsuario.Usuario), Usuario);
+
+        Modal.Show<DetailsUsuario>("Detalle Usuario", parameters, modalOptions);
+    }
+
+}

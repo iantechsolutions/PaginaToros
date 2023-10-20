@@ -1,0 +1,33 @@
+﻿<div class="col-md-6">
+    <dl>
+        <dt>Nombres:</dt>
+        <dd>@Usuario.Names</dd>
+
+        <dt>Apellidos:</dt>
+        <dd>@Usuario.LastNames</dd>
+
+        <dt>Dni:</dt>
+        <dd>@Usuario.Dni</dd>
+
+        <dt>Télefono:</dt>
+        <dd>@Usuario.Phone</dd>
+    </dl>
+</div>
+
+<div class="col-md-6">
+    <dl>
+        <dt>Rol:</dt>
+        <dd>@Usuario.Rol</dd>
+
+        <dt>Email:</dt>
+        <dd>@Usuario.Email</dd>
+
+        <dt>Estatus:</dt>
+        <dd>@Usuario.Status</dd>
+    </dl>
+</div>
+
+@code {
+    [Parameter] public Usuario Usuario { get; set; }
+
+}
