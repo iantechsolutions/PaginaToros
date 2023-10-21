@@ -6485,11 +6485,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Client\\PaginaToros.Client.csproj",
+      "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\PaginaToros.Client.csproj",
       "projectName": "PaginaToros.Client",
-      "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Client\\PaginaToros.Client.csproj",
+      "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\PaginaToros.Client.csproj",
       "packagesPath": "C:\\Users\\lolo1\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Client\\obj\\",
+      "outputPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "E:\\LIBRERIAS\\NuGetPackages"
@@ -6512,8 +6512,8 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "projectReferences": {
-            "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
-              "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Shared\\PaginaToros.Shared.csproj"
+            "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
+              "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\PaginaToros.Shared.csproj"
             }
           }
         }

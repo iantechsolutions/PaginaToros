@@ -45,6 +45,32 @@
                 <br />
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
+                        <label class="col-sm">Toros PR</label><br />
+                        <InputText @bind-Value="@oSolicitudInspeccion.ToroPr" class="form-control" placeholder="Cantidad"></InputText>
+                        <ValidationMessage For="(()=> oSolicitudInspeccion.ToroPr)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Vacas PR</label><br />
+                        <InputText @bind-Value="@oSolicitudInspeccion.VcPr" class="form-control" placeholder="Cantidad"></InputText>
+                        <ValidationMessage For="(()=> oSolicitudInspeccion.VcPr)" style="color:red;" />
+
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Vacas Vip</label><br />
+                        <InputText @bind-Value="@oSolicitudInspeccion.VcVip" class="form-control" placeholder="Cantidad"></InputText>
+                        <ValidationMessage For="(()=> oSolicitudInspeccion.VcVip)" style="color:red;" />
+
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Vaquillonas Vip</label>
+                        <InputText @bind-Value="@oSolicitudInspeccion.VqVip" class="form-control" placeholder="Cantidad"></InputText>
+                        <ValidationMessage For="(()=> oSolicitudInspeccion.VqVip)" style="color:red;" />
+
+                    </div>
+                </div>
+                <br />
+                <div class="row" style="width=100%;">
+                    <div class="col-sm">
                         <label class="col-sm">Reinspeccion?</label><br/>
                         <input type="checkbox" @bind="@activoReInspeccion">
                     </div>
@@ -53,9 +79,9 @@
                         <input type="checkbox" @bind="@activoControl">
                     </div>
                     <div class="col-sm">
-                    
                     </div>
                 </div>
+                
                 <br />
                 <br />   
             <button type="submit" class="btn btn-primary mr-2">Aceptar</button>

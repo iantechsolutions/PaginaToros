@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PaginaToros.Client.Pages.Socios;
 using PaginaToros.Server.Context;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Request;
@@ -138,13 +139,6 @@ namespace PaginaToros.Server.Controllers
                     oEstablecimiento.Informacion = model.Informacion;
                     oEstablecimiento.CodZona = model.CodZona;
                     oEstablecimiento.FechaExistencia = model.FechaExistencia;
-                    
-                    //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
-                    //foreach (var row in TorosPorId)
-                    //{
-                    //    row.NombreEst = model.Nombre;
-                    //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    //}
                     db.Entry(oEstablecimiento).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();

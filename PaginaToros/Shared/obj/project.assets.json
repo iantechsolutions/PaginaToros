@@ -2924,11 +2924,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+      "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
       "projectName": "PaginaToros.Shared",
-      "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+      "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
       "packagesPath": "C:\\Users\\lolo1\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Shared\\obj\\",
+      "outputPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "E:\\LIBRERIAS\\NuGetPackages"

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "mhzE17kryFRrdvbskFcRgLnbcQAn0B0gLrwwSBfjiVjmkhUHZdWtoUmO3RuEHN75tOFiGGmeM7b8JoKMqF1hXQ==",
+  "dgSpecHash": "CcLNJZOXyM0dMyHSEigxxqKGLrnd+eWS3Y+5ePhPxRSne+ZT3pL30PhxK7Ue0KujqoYC5o32tZ/u9rowY+HTlw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\lolo1\\source\\repos\\Hereford\\PaginaToros\\Server\\PaginaToros.Server.csproj",
+  "projectFilePath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Server\\PaginaToros.Server.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\lolo1\\.nuget\\packages\\azure.core\\1.25.0\\azure.core.1.25.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\azure.identity\\1.7.0\\azure.identity.1.7.0.nupkg.sha512",

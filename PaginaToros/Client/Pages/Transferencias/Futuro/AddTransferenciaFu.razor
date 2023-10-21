@@ -108,6 +108,8 @@
             {
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<FutControl>>($"/api/FutControl/{Id}");
                 oFutControl = oRespuesta.List;
+                socioComprador = socios.Where(x => x.NroSocio == Int32.Parse(oFutControl.Scom)).First();
+                socioVendedor = socios.Where(x => x.NroSocio == Int32.Parse(oFutControl.Sven)).First();
             }
             catch (Exception ex)
             {

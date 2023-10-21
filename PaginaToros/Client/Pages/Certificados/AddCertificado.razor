@@ -172,6 +172,7 @@
         oCertifseman.NombreCentro = centroSeleccionado.Nombre;
         if (Id == 0)
         {
+            oCertifseman.NrDosi = oCertifseman.NrDosiOr;
             await Http.PostAsJsonAsync<Certifseman>("/api/Certifseman", oCertifseman);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }

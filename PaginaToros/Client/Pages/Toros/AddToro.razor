@@ -1,0 +1,207 @@
+﻿@using Blazored.Typeahead
+<style>
+    .bm-title {
+        font-size: 25px;
+        font-weight: bold;
+    }
+</style>
+<div class="card">
+    <div class="card-body">
+        <EditForm Model="@oTorosuni" OnValidSubmit="Guardar">
+            <DataAnnotationsValidator />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Propietario</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.NombreCompleto
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.NombreCompleto
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label>Estado</label><br />
+                    <RadzenDropDown @bind-Value=@estadoTemp Data=@estados Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="(()=> estadoTemp)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label>Variedad</label><br />
+                    <RadzenDropDown @bind-Value=@oTorosuni.Variedad Data=@variedades Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="(()=> oTorosuni.Variedad)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Desde que fecha es S/</label>
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@dateTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Circunferencia escrotal</label>
+                    <InputText @bind-Value="@oTorosuni.CircEscrotal" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oTorosuni.CircEscrotal)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label>Tipo de toro</label><br />
+                    <RadzenDropDown @bind-Value=@tipoTemp Data=@tiposToro Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="(()=> tipoTemp)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            @if (tipoTemp=="S/")
+            {
+                <div class="row" style="width=100%;">
+                    <div class="col-sm">
+                        <label class="col-sm">HBA</label>
+                        <InputText @bind-Value="@oTorosuni.Hba" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oTorosuni.Hba)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Tatuaje</label>
+                        <InputText @bind-Value="@oTorosuni.Tatpart" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oTorosuni.Tatpart)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Nombre del toro</label>
+                        <InputText @bind-Value=@oTorosuni.NomDad class="form-control" placeholder="" />
+                        <ValidationMessage For="(()=> oTorosuni.NomDad)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Fecha de nacimiento</label>
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTorosuni.FechaNacimiento" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    </div>
+
+                </div>
+                <br />
+            }
+            else
+            {
+                <div class="row" style="width=100%;">
+                    <div class="col-sm">
+                        <label class="col-sm">HBA</label>
+                        <InputText @bind-Value="@oTorosuni.Hba" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oTorosuni.Hba)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Tatuaje</label>
+                        <InputText @bind-Value="@oTorosuni.Tatpart" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oTorosuni.Tatpart)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Nombre del toro</label>
+                        <RadzenDropDown @bind-Value=@oTorosuni.NomDad Data=@variedades Style="width: 100%; max-width: 400px;" />
+                        <ValidationMessage For="(()=> oTorosuni.NomDad)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Fecha de nacimiento</label>
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTorosuni.FechaNacimiento" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    </div>
+
+                </div>
+                <br />
+            }
+
+            <br />
+
+            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+    Torosuni oTorosuni = new();
+    Respuesta<Torosuni> oRespuesta = new();
+    List<string> estados = new List<string> { "Activo", "Inexistente", "Muerto","Vendido" };
+    List<string> variedades = new List<string> { "H", "PH" };
+    List<string> tiposToro = new List<string> { "S/", "Puro Pedigree (SRA)","Patagonico" };
+
+    Dictionary<string, string> traductor = new Dictionary<string, string>{
+        {"Activo","1"},
+        {"Inexistente","3"},
+        {"Muerto","4"},
+        {"Vendido","5"},
+        {"S/","S"},
+        {"Puro Pedigree (SRA)","P"},
+        {"Patagonico","A"}
+    };
+    Dictionary<string, string> traductorCarga = new Dictionary<string, string>{
+        {"1","Activo"},
+        {"3","Inexistente"},
+        {"4","Muerto"},
+        {"5","Vendido"},
+        {"S","S/"},
+        {"P","Puro Pedigree (SRA)"},
+        {"A","Patagonico"}
+    };
+
+    string estadoTemp = "";
+    string tipoTemp = "";
+    DateTime? dateTemp = DateTime.Now;
+    Socio socioSeleccionado = new();
+    List<Socio> socios = new();
+    string tipoToro = "";
+
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
+        socios = rta.List.ToList();
+
+        if (Id != 0)
+        {
+            try
+            {
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Torosuni>>($"/api/Torosuni/{Id}");
+                oTorosuni = oRespuesta.List;
+                socioSeleccionado = socios.Where(x => x.NroSocio == oTorosuni.Criador).First();
+                estadoTemp = traductorCarga[oTorosuni.CodEstado];
+                tipoTemp = traductorCarga[oTorosuni.TipToro];
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+        }
+    }
+    async Task Guardar()
+    {
+        oTorosuni.NombreSocio = socioSeleccionado.NombreCompleto;
+        oTorosuni.Criador = socioSeleccionado.NroSocio;
+        oTorosuni.CodEstado = traductor[estadoTemp];
+        try{
+            oTorosuni.TipToro = traductor[tipoTemp];
+            oTorosuni.Fechasba = dateTemp.Value.ToString("dd/MM/yyyy");
+        }
+        catch
+        {
+            
+        }
+        if (Id == 0)
+        {
+            await Http.PostAsJsonAsync<Torosuni>("/api/Torosuni", oTorosuni);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            await Http.PutAsJsonAsync<Torosuni>("/api/Torosuni", oTorosuni);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+    }
+    async Task cancel()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+    }
+
+
+    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    {
+        var result = socios.Where(x => x.NombreCompleto.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+
+}

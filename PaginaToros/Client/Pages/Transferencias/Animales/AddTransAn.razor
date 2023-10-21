@@ -69,12 +69,26 @@
             </div>
             <div class="row" style="width=100%;">
                 <div class="col-sm">
-                    <label>Plantel Origen</label><br />
+                    <label>Plantel Origen</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaPlantelesVendedor" style="max-width:400px" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelOrigen">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.NroPlantel
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.NroPlantel
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
                 </div>
-            </div>
-            <div class="row" style="width=100%;">
                 <div class="col-sm">
-                    <label>Plantel Destino</label><br />
+                    <label>Plantel Destino</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaPlantelesComprador" style="max-width:400px" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelDestino">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.NroPlantel
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.NroPlantel
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
                 </div>
             </div>
             <br />
@@ -132,6 +146,8 @@
     string temp2 = "";
     string temp3 = "";
     string temp4 = "";
+    Plantele plantelOrigen = new();
+    Plantele plantelDestino = new();
     Dictionary<string, string> traductor = new Dictionary<string, string>{
         {"PHPR (Puro Registrado)","PHPR"},
         {"HPR (Puro Registrado)","HPR"},
@@ -145,6 +161,20 @@
         {"Preñada (PR)","PR"},
         {"NO","0"},
         {"SI","1"}
+    };
+    Dictionary<string, string> traductorCarga = new Dictionary<string, string>{
+        {"PHPR","PHPR (Puro Registrado)"},
+        {"HPR","HPR (Puro Registrado)"},
+        {"PHVIP","PHVIP (VIP)"},
+        {"HVIP","HVIP (VIP)"},
+        {"M","Machos"},
+        {"H","Hembras"},
+        {"CC","Con Cria (CC)"},
+        {"CCP","Con Cria y Preñada (CCP)"},
+        {"SS","Sin Servicio (SS)"},
+        {"PR","Preñada (PR)"},
+        {"0","NO"},
+        {"1","SI"}
     };
 
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
@@ -162,6 +192,14 @@
             {
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<Transan>>($"/api/Transan/{Id}");
                 oTransan = oRespuesta.List;
+                socioComprador = socios.Where(x => x.NroSocio == Int32.Parse(oTransan.Scom)).First();
+                socioVendedor = socios.Where(x => x.NroSocio == Int32.Parse(oTransan.Sven)).First();
+                plantelOrigen = planteles.Where(x => x.NroPlantel == oTransan.Plant).First();
+                plantelDestino = planteles.Where(x => x.NroPlantel == oTransan.NvoPla).First();
+                temp1 = traductorCarga[oTransan.Tiphac];
+                temp2 = traductorCarga[oTransan.Tipani];
+                temp3 = traductorCarga[oTransan.Hemsta];
+                temp4 = traductorCarga[oTransan.Incorp];
             }
             catch (Exception ex)
             {
@@ -179,6 +217,8 @@
         oTransan.Cnom = socioComprador.NombreCompleto;
         oTransan.Sven = socioVendedor.NroSocio.ToString();
         oTransan.Scom = socioComprador.NroSocio.ToString();
+        oTransan.Plant = plantelOrigen.NroPlantel;
+        oTransan.NvoPla = plantelDestino.NroPlantel;
 
         if (Id == 0)
         {
@@ -201,6 +241,16 @@
     {
         var result = socios.Where(x => x.NombreCompleto.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
+    }
+
+    private async Task<IEnumerable<Plantele>> BusquedaPlantelesComprador(string searchText)
+    {
+        return await Task.FromResult(planteles.Where(x => x.NroPlantel.Contains(searchText) && x.CodSocio == socioComprador.NroSocio).ToList());
+    }
+
+    private async Task<IEnumerable<Plantele>> BusquedaPlantelesVendedor(string searchText)
+    {
+        return await Task.FromResult(planteles.Where(x => x.NroPlantel.Contains(searchText) && x.CodSocio == socioVendedor.NroSocio).ToList());
     }
 
 }
