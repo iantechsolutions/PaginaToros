@@ -86,6 +86,8 @@ namespace PaginaToros.Server.Controllers
                     oCertifseman.CodUsu = model.CodUsu;
                     oCertifseman.Id = model.Id;
                     oCertifseman.Apodo = model.Apodo;
+                    oCertifseman.NombreSocio = model.NombreSocio;
+                    oCertifseman.NombreCentro = model.NombreCentro;
 
                     db.Certifsemen.Add(oCertifseman);
                     db.SaveChanges();
@@ -132,7 +134,8 @@ namespace PaginaToros.Server.Controllers
                     oCertifseman.CodUsu = model.CodUsu;
                     oCertifseman.Id = model.Id;
                     oCertifseman.Apodo = model.Apodo;
-
+                    oCertifseman.NombreSocio = model.NombreSocio;
+                    oCertifseman.NombreCentro = model.NombreCentro;
                     //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
                     //foreach (var row in TorosPorId)
                     //{
@@ -155,18 +158,12 @@ namespace PaginaToros.Server.Controllers
         public IActionResult Delete(int Id)
         {
             Respuesta<List<Certifseman>> oRespuesta = new Respuesta<List<Certifseman>>();
-            //IQueryable<Toro> TorosPorId;
             try
             {
                 using (BlazorCrudContext db = new BlazorCrudContext())
                 {
                     Certifseman oCertifseman = db.Certifsemen.Find(Id);
                     db.Remove(oCertifseman);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach(Toro oElement in dbToros)
-                    //    {
-                    //        db.Remove(oElement);
-                    //    }
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
                 }

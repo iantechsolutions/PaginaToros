@@ -168,7 +168,8 @@
     {
         oCertifseman.Nrocri = socioSeleccionado.NroSocio;
         oCertifseman.Nrocen = centroSeleccionado.Nrocen;
-
+        oCertifseman.NombreSocio = socioSeleccionado.NombreCompleto;
+        oCertifseman.NombreCentro = centroSeleccionado.Nombre;
         if (Id == 0)
         {
             await Http.PostAsJsonAsync<Certifseman>("/api/Certifseman", oCertifseman);

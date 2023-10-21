@@ -64,6 +64,7 @@ namespace PaginaToros.Server.Controllers
                     Torosuni oTorosuni = new Torosuni();
                     oTorosuni.Apodo = model.Apodo;
                     oTorosuni.Nombre = model.Nombre;
+                    oTorosuni.NombreSocio = model.NombreSocio;
                     oTorosuni.EstDoc = model.EstDoc;
                     oTorosuni.ResInsp = model.ResInsp;
                     oTorosuni.SbcodOld = model.SbcodOld;
@@ -131,6 +132,7 @@ namespace PaginaToros.Server.Controllers
                     Torosuni oTorosuni = db.Torosunis.Find(model.Id);
                     oTorosuni.Apodo = model.Apodo;
                     oTorosuni.Nombre = model.Nombre;
+                    oTorosuni.NombreSocio = model.NombreSocio;
                     oTorosuni.EstDoc = model.EstDoc;
                     oTorosuni.ResInsp = model.ResInsp;
                     oTorosuni.SbcodOld = model.SbcodOld;
@@ -205,11 +207,6 @@ namespace PaginaToros.Server.Controllers
                 {
                     Torosuni oTorosuni = db.Torosunis.Find(Id);
                     db.Remove(oTorosuni);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach(Toro oElement in dbToros)
-                    //    {
-                    //        db.Remove(oElement);
-                    //    }
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
                 }

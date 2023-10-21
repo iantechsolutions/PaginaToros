@@ -37,7 +37,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Transaccione" Property="" Title="" Filterable="false" Width="30px">
                 <Template Context="data">
-                    <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
+                    <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Size="16" Color="blue" /></button>
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
@@ -49,7 +49,7 @@ else
     <br />
     <center>
         <div class="mb-2">
-            <RadzenProgressBar style="position:relative;right:100px;width:1300px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Secondary" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenProgressBar style="position:relative;right:100px;width:1300px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </center>
 }

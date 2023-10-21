@@ -113,10 +113,14 @@
     }
     async Task Guardar()
     {
+        oSolicitudInspeccion.NroSocio = socioSeleccionado.NroSocio;
         oSolicitudInspeccion.NombreSocio = socioSeleccionado.NombreCompleto;
         oSolicitudInspeccion.FechaAutorizacion = FechaTemp;
         oSolicitudInspeccion.ControlProduccion = activoControl;
         oSolicitudInspeccion.Reinspeccion = activoReInspeccion;
+        oSolicitudInspeccion.CodEstablecimiento = establecimientoSeleccionado.Codigo;
+        oSolicitudInspeccion.Establecimiento = establecimientoSeleccionado.Nombre;
+
         if (Id == 0)
         {
             await Http.PostAsJsonAsync<SolicitudInspeccion>("/api/SolicitudInspeccion", oSolicitudInspeccion);

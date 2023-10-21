@@ -25,7 +25,8 @@ public partial class BlazorCrudContext : DbContext
     public virtual DbSet<AspNetUserClaim> AspNetUserClaims { get; set; }
 
     public virtual DbSet<AspNetUserLogin> AspNetUserLogins { get; set; }
-    public virtual DbSet<AspNetUserRole> AspNetUserRoles { get; set; } = null!;
+
+    public virtual DbSet<AspNetUserRole> AspNetUserRoles { get; set; }
 
     public virtual DbSet<AspNetUserToken> AspNetUserTokens { get; set; }
 
@@ -81,7 +82,7 @@ public partial class BlazorCrudContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=LOCALHOST\\SQLEXPRESS;DataBase=BlazorCrud;Trusted_Connection=True;Trust Server Certificate=true");
+        => optionsBuilder.UseSqlServer("Server=JULI2KAPO\\LOCALHOST;DataBase=BlazorCrud;Trusted_Connection=True;Trust Server Certificate=true;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -94,8 +95,6 @@ public partial class BlazorCrudContext : DbContext
         modelBuilder.Entity<AspNetRoleClaim>(entity =>
         {
             entity.Property(e => e.RoleId).HasMaxLength(450);
-
-            entity.HasOne(d => d.Role).WithMany(p => p.AspNetRoleClaims).HasForeignKey(d => d.RoleId);
         });
 
         modelBuilder.Entity<AspNetUser>(entity =>
@@ -104,24 +103,11 @@ public partial class BlazorCrudContext : DbContext
             entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
             entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
             entity.Property(e => e.UserName).HasMaxLength(256);
-
-            entity.HasMany(d => d.Roles).WithMany(p => p.Users)
-                .UsingEntity<Dictionary<string, object>>(
-                    "AspNetUserRole",
-                    r => r.HasOne<AspNetRole>().WithMany().HasForeignKey("RoleId"),
-                    l => l.HasOne<AspNetUser>().WithMany().HasForeignKey("UserId"),
-                    j =>
-                    {
-                        j.HasKey("UserId", "RoleId");
-                        j.ToTable("AspNetUserRoles");
-                    });
         });
 
         modelBuilder.Entity<AspNetUserClaim>(entity =>
         {
             entity.Property(e => e.UserId).HasMaxLength(450);
-
-            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserClaims).HasForeignKey(d => d.UserId);
         });
 
         modelBuilder.Entity<AspNetUserLogin>(entity =>
@@ -129,15 +115,20 @@ public partial class BlazorCrudContext : DbContext
             entity.HasKey(e => new { e.LoginProvider, e.ProviderKey });
 
             entity.Property(e => e.UserId).HasMaxLength(450);
+        });
 
-            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserLogins).HasForeignKey(d => d.UserId);
+        modelBuilder.Entity<AspNetUserRole>(entity =>
+        {
+            entity.HasKey(e => e.UserId).HasName("PK_AspNetUserRoles_1");
+
+            entity.Property(e => e.RoleId).HasMaxLength(450);
+
+            entity.HasOne(d => d.Role).WithMany(p => p.AspNetUserRoles).HasForeignKey(d => d.RoleId);
         });
 
         modelBuilder.Entity<AspNetUserToken>(entity =>
         {
             entity.HasKey(e => new { e.UserId, e.LoginProvider, e.Name });
-
-            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserTokens).HasForeignKey(d => d.UserId);
         });
 
         modelBuilder.Entity<CentrosIum>(entity =>
@@ -317,7 +308,6 @@ public partial class BlazorCrudContext : DbContext
             entity.Property(e => e.Desde)
                 .HasColumnType("datetime")
                 .HasColumnName("DESDE");
-           
             entity.Property(e => e.Edicion)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -329,7 +319,9 @@ public partial class BlazorCrudContext : DbContext
             entity.Property(e => e.Fchrecepcion)
                 .HasColumnType("datetime")
                 .HasColumnName("FCHRECEPCION");
-            
+            entity.Property(e => e.Fecdecl)
+                .HasColumnType("datetime")
+                .HasColumnName("FECDECL");
             entity.Property(e => e.Fecret)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -337,7 +329,6 @@ public partial class BlazorCrudContext : DbContext
             entity.Property(e => e.Hasta)
                 .HasColumnType("datetime")
                 .HasColumnName("HASTA");
-           
             entity.Property(e => e.IaSincro).HasColumnName("IA_SINCRO");
             entity.Property(e => e.NombreSocio)
                 .HasMaxLength(50)
@@ -413,9 +404,7 @@ public partial class BlazorCrudContext : DbContext
 
         modelBuilder.Entity<Establecimiento>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Establecimiento");
+            entity.ToTable("Establecimiento");
 
             entity.Property(e => e.CodPostal)
                 .HasMaxLength(50)
@@ -707,8 +696,6 @@ public partial class BlazorCrudContext : DbContext
 
         modelBuilder.Entity<Socio>(entity =>
         {
-            entity.HasNoKey();
-
             entity.Property(e => e.CodPostal)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -1219,7 +1206,7 @@ public partial class BlazorCrudContext : DbContext
 
         modelBuilder.Entity<Usuario>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_Usuarios");
+            entity.HasKey(e => e.Id).HasName("PK_Employees");
 
             entity.Property(e => e.Dni)
                 .HasMaxLength(30)

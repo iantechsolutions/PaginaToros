@@ -68,6 +68,7 @@ namespace PaginaToros.Server.Cont{
                     oPlantel.UltimaInspeccion = model.UltimaInspeccion;
                     oPlantel.UltimaReinspeccion = model.UltimaReinspeccion;
                     oPlantel.NombreSocio = model.NombreSocio;
+                    oPlantel.CodSocio = model.CodSocio;
                     oPlantel.Vacas = model.Vacas;
                     oPlantel.VaquillServicio = model.VaquillServicio;
                     oPlantel.VaquillNoServicio = model.VaquillNoServicio;

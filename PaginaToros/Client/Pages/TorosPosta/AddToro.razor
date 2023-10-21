@@ -160,8 +160,8 @@
         oTorosuni.NombreSocio = socioSeleccionado.NombreCompleto;
         oTorosuni.Criador = socioSeleccionado.NroSocio;
         oTorosuni.CodEstado = traductor[estadoTemp];
-        oTorosuni.TipToro = traductor[tipoTemp];
         try{
+            oTorosuni.TipToro = traductor[tipoTemp];
             oTorosuni.Fechasba = dateTemp.Value.ToString("dd/MM/yyyy");
         }
         catch

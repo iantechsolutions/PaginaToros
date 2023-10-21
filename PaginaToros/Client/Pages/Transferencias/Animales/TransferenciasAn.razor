@@ -6,7 +6,7 @@
 
     .rz-cell-data,
     .rz-column-title-content {
-        font-size: 13px !important;
+        font-size: 12px !important;
     }
 
     .rz-cell-data {
@@ -22,27 +22,27 @@
         border-top: solid #E0E0E0 1px;
     }
 </style>
-<h3 class="pb-3 font-bold text-xl" style="position:relative">Transferencias Animales</h3>
+<h3 class="pb-3 font-bold text-xl" style="position:relative;left:50px">Transferencias Animales</h3>
 
 
-<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick='()=>add(0)'>Agregar Transferencia</button>
+<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:50px" @onclick='()=>add(0)'>Agregar Transferencia</button>
 
 
 
 @if (oRespuesta.List != null)
 {
 
-    <button style="outline:none; float: right;margin-right:15px;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+    <button style="outline:none; float: right;margin-right:45px;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
     <br />
     <br />
-    <div class="tablacontent" style="position:relative;width:1500px;">
+    <div class="tablacontent" style="position:relative;width:1400px;left:50px">
         <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                         Data="@oRespuesta.List" TItem="Transan" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
 
-                <RadzenDataGridColumn TItem="Transan" Property="NroCert" Title="Nro Certificado" Width="90px" />
-                <RadzenDataGridColumn TItem="Transan" Property="" Title="Fecha de Venta" Width="110px">
+                <RadzenDataGridColumn TItem="Transan" Property="NroCert" Title="Nro Certificado" Width="80px" />
+                <RadzenDataGridColumn TItem="Transan" Property="" Title="Fecha de Venta" Width="100px">
                     <Template Context="data">
                         @if (data.Fecvta.HasValue)
                         {
@@ -54,17 +54,17 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Transan" Property="Vnom" Title="Socio Vendedor" Width="110px"/>
-                <RadzenDataGridColumn TItem="Transan" Property="Cnom" Title="Socio Comprador" Width="110px"/>
-                <RadzenDataGridColumn TItem="Transan" Property="Plant" Title="De Plantel" Width="110px" />
-                <RadzenDataGridColumn TItem="Transan" Property="NvoPla" Title="A Plantel" Width="110px" />
-                <RadzenDataGridColumn TItem="Transan" Property="CantHem" Title="Cant Hembras" Width="110px" />
-                <RadzenDataGridColumn TItem="Transan" Property="CantMach" Title="Cant Machos" Width="110px" />
-                <RadzenDataGridColumn TItem="Transan" Property="Tiphac" Title="Tipo de hacienda" Width="110px" />
-                <RadzenDataGridColumn TItem="Transan" Property="Hemsta" Title="Estado de las Hembras" Width="110px" />
-                <RadzenDataGridColumn TItem="Transan" Property="Tipohem" Title="Tipo de hembras" Width="110px" />
-                <RadzenDataGridColumn TItem="Transan" Property="CantChem" Title="Cant C/Hembras" Width="110px" />
-                <RadzenDataGridColumn TItem="Transan" Property="CantCmach" Title="Cant C/Machos" Width="110px" />
+                <RadzenDataGridColumn TItem="Transan" Property="Vnom" Title="Socio Vendedor" Width="100px"/>
+                <RadzenDataGridColumn TItem="Transan" Property="Cnom" Title="Socio Comprador" Width="100px"/>
+                <RadzenDataGridColumn TItem="Transan" Property="Plant" Title="De Plantel" Width="100px" />
+                <RadzenDataGridColumn TItem="Transan" Property="NvoPla" Title="A Plantel" Width="100px" />
+                <RadzenDataGridColumn TItem="Transan" Property="CantHem" Title="Cant Hembras" Width="100px" />
+                <RadzenDataGridColumn TItem="Transan" Property="CantMach" Title="Cant Machos" Width="100px" />
+                <RadzenDataGridColumn TItem="Transan" Property="Tiphac" Title="Tipo de hacienda" Width="100px" />
+                <RadzenDataGridColumn TItem="Transan" Property="Hemsta" Title="Estado de las Hembras" Width="100px" />
+                <RadzenDataGridColumn TItem="Transan" Property="Tipohem" Title="Tipo de hembras" Width="100px" />
+                <RadzenDataGridColumn TItem="Transan" Property="CantChem" Title="Cant C/Hembras" Width="100px" />
+                <RadzenDataGridColumn TItem="Transan" Property="CantCmach" Title="Cant C/Machos" Width="100px" />
                 <RadzenDataGridColumn TItem="Transan" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
@@ -92,7 +92,7 @@ else
     <center>
         <div class="mb-2">
             <br />
-            <RadzenProgressBar style="position:relative;width:1500px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenProgressBar style="position:relative;width:1400px" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </center>
 }
@@ -178,7 +178,7 @@ else
                     {
                         Size = ModalSize.ExtraLarge
                     };
-                var formModal = Modal.Show<AddTransAn>("Editar Transaccion", parameters, options);
+                var formModal = Modal.Show<AddTransAn>("Editar Transferencia", parameters, options);
                 var result = await formModal.Result;
                 if (result.Cancelled)
                 {
@@ -202,7 +202,7 @@ else
                 {
                     Size = ModalSize.ExtraLarge
                 };
-            var formModal = Modal.Show<AddTransAn>("Agregar Transaccion", options);
+            var formModal = Modal.Show<AddTransAn>("Agregar Transferencia", options);
             var result = await formModal.Result;
 
             if (result.Cancelled)

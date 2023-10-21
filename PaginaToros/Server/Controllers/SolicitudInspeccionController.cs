@@ -54,27 +54,6 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
 
-        [HttpGet("pendientes")]
-        public IActionResult GetByCompleted()
-        {
-            Respuesta<List<SolicitudInspeccion>> oRespuesta = new();
-
-            try
-            {
-                using BlazorCrudContext db = new();
-
-                var lst = db.SolicitudInspeccions
-                    .Where(x => x.Completada == false).ToList();
-                oRespuesta.Exito = 1;
-                oRespuesta.List = lst;
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
-        }
-
         [HttpGet("Nrores/{nro}")]
         public IActionResult GetByRes(int nro)
         {
@@ -107,11 +86,13 @@ namespace PaginaToros.Server.Controllers
                 using (BlazorCrudContext db = new BlazorCrudContext())
                 {
                     SolicitudInspeccion oSolicitudInspeccion = new SolicitudInspeccion();
-                    oSolicitudInspeccion.NroSolicitud = model.NroSolicitud;
+                    var solvieja = db.SolicitudInspeccions.OrderByDescending(x => x.Id).First();
+                    oSolicitudInspeccion.NroSolicitud = solvieja.NroSolicitud + 1;
                     oSolicitudInspeccion.NroSocio = model.NroSocio;
                     oSolicitudInspeccion.Activo = model.Activo;
                     oSolicitudInspeccion.NombreSocio = model.NombreSocio;
                     oSolicitudInspeccion.Establecimiento = model.Establecimiento;
+                    oSolicitudInspeccion.CodEstablecimiento = model.CodEstablecimiento;
                     oSolicitudInspeccion.FechaSolicitud = model.FechaSolicitud;
                     oSolicitudInspeccion.FechaAutorizacion = model.FechaAutorizacion;
                     oSolicitudInspeccion.Reinspeccion = model.Reinspeccion;

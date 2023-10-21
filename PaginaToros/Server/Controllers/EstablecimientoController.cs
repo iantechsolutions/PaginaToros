@@ -86,7 +86,8 @@ namespace PaginaToros.Server.Controllers
                 using (BlazorCrudContext db = new BlazorCrudContext())
                 {
                     Establecimiento oEstablecimiento = new Establecimiento();
-                    oEstablecimiento.Codigo = model.Codigo;
+                    var estviejo = db.Establecimientos.OrderByDescending(x => x.Id).First();
+                    oEstablecimiento.Codigo = estviejo.Codigo + 1;
                     oEstablecimiento.NombreSocio = model.NombreSocio;
                     oEstablecimiento.CodigoSocio = model.CodigoSocio;
                     oEstablecimiento.Activo = model.Activo;

@@ -106,6 +106,7 @@
         oTranssb.Sven = socioVendedor.NroSocio.ToString();
         oTranssb.Scom = socioComprador.NroSocio.ToString();
         oTranssb.Ecod = establecimientoSeleccionado.Codigo.ToString();
+        oTranssb.NombreEstablecimiento = establecimientoSeleccionado.Nombre;
         if (Id == 0)
         {
             await Http.PostAsJsonAsync<Transsb>("/api/Transsb", oTranssb);

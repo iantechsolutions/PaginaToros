@@ -137,8 +137,8 @@
         {"HPR (Puro Registrado)","HPR"},
         {"PHVIP (VIP)","PHVIP"},
         {"HVIP (VIP)","HVIP"},
-        {"MACHOS","M"},
-        {"HEMBRAS","H"},
+        {"Machos","M"},
+        {"Hembras","H"},
         {"Con Cria (CC)","CC"},
         {"Con Cria y Preñada (CCP)","CCP"},
         {"Sin Servicio (SS)","SS"},
@@ -148,7 +148,7 @@
     };
 
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
-    [Parameter] public string Id { get; set; }
+    [Parameter] public int Id { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -156,7 +156,7 @@
         socios = rta.List.ToList();
         var rt = await Http.GetFromJsonAsync<Respuesta<List<Plantele>>>($"/api/Plantele");
         planteles = rt.List.ToList();
-        if (Id != "0")
+        if (Id != 0)
         {
             try
             {
@@ -180,7 +180,7 @@
         oTransan.Sven = socioVendedor.NroSocio.ToString();
         oTransan.Scom = socioComprador.NroSocio.ToString();
 
-        if (Id == "0")
+        if (Id == 0)
         {
             await Http.PostAsJsonAsync<Transan>("/api/Transan", oTransan);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
