@@ -1,6 +1,6 @@
 ﻿@page "/inforeporte/{Id:int}"
 @using Blazored.Typeahead
-@using PaginaToros.Client.Pages.NewFolder
+@using PaginaToros.Client.Pages.CrudInspecciones
 <style>
     .bm-title {
         font-size: 25px;
@@ -72,7 +72,7 @@
             <div class="col-sm">
                 <label class="col-sm">Nombre de Socio</label>
                 <br />
-                    <RadzenTextBox @bind-Value="@solicitudSeleccionada.NombreSocio" placeholder="Nombre de Socio" Disabled="true"></RadzenTextBox>
+                <RadzenTextBox @bind-Value="@solicitudSeleccionada.NombreSocio" placeholder="Nombre de Socio" Disabled="true"></RadzenTextBox>
             </div>
 
         </div>

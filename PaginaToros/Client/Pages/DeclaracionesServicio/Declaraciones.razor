@@ -189,7 +189,7 @@ else
                     {
                         Size = ModalSize.ExtraLarge
                     };
-                var formModal = Modal.Show<AddDeclaracion>("Editar Inspector", parameters, options);
+                var formModal = Modal.Show<AddDeclaracion>("Editar Declaracion", parameters, options);
                 var result = await formModal.Result;
                 if (result.Cancelled)
                 {
@@ -213,7 +213,7 @@ else
                 {
                     Size = ModalSize.ExtraLarge
                 };
-            var formModal = Modal.Show<AddDeclaracion>("Agregar Inspector", options);
+            var formModal = Modal.Show<AddDeclaracion>("Agregar Declaracion", options);
             var result = await formModal.Result;
 
             if (result.Cancelled)

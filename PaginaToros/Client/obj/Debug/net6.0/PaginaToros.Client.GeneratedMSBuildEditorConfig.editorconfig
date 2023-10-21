@@ -76,6 +76,22 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2VydGlmaWNhZG9zXENlcnRpZmljYWRvcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/CrudInspecciones/AddEdadMesPromedioRe.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ3J1ZEluc3BlY2Npb25lc1xBZGRFZGFkTWVzUHJvbWVkaW9SZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/CrudInspecciones/AddHembraMachoRe.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ3J1ZEluc3BlY2Npb25lc1xBZGRIZW1icmFNYWNob1JlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/CrudInspecciones/AddMovimientoRe.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ3J1ZEluc3BlY2Npb25lc1xBZGRNb3ZpbWllbnRvUmUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/CrudInspecciones/AddRechazoRe.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ3J1ZEluc3BlY2Npb25lc1xBZGRSZWNoYXpvUmUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/DeclaracionesServicio/AddDeclaracion.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRGVjbGFyYWNpb25lc1NlcnZpY2lvXEFkZERlY2xhcmFjaW9uLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
@@ -148,22 +164,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTXVsdGlWYWx1ZUZpbGwucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/NewFolder/AddEdadMesPromedioRe.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTmV3Rm9sZGVyXEFkZEVkYWRNZXNQcm9tZWRpb1JlLnJhem9y
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/NewFolder/AddHembraMachoRe.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTmV3Rm9sZGVyXEFkZEhlbWJyYU1hY2hvUmUucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/NewFolder/AddMovimientoRe.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTmV3Rm9sZGVyXEFkZE1vdmltaWVudG9SZS5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/NewFolder/AddRechazoRe.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTmV3Rm9sZGVyXEFkZFJlY2hhem9SZS5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Planteles/AddPlantele.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGxhbnRlbGVzXEFkZFBsYW50ZWxlLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
@@ -194,30 +194,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/TorosPosta/Toros.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVG9yb3NQb3N0YVxUb3Jvcy5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Toros/AddToro.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVG9yb3NcQWRkVG9yby5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Toros/InfoToro.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVG9yb3NcSW5mb1Rvcm8ucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Toros/Toros.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVG9yb3NcVG9yb3MucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transacciones/AddTransaccion.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNhY2Npb25lc1xBZGRUcmFuc2FjY2lvbi5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transacciones/InfoTransacciones.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNhY2Npb25lc1xJbmZvVHJhbnNhY2Npb25lcy5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transacciones/Transacciones.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVHJhbnNhY2Npb25lc1xUcmFuc2FjY2lvbmVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/lolo1/source/repos/Hereford/PaginaToros/Client/Pages/Transferencias/Animales/AddTransAn.razor]
