@@ -7,7 +7,7 @@ public partial class Inspectore
 {
     public int Id { get; set; }
 
-    public int? Codigo { get; set; }
+    public string? Codigo { get; set; }
 
     public string? Nombre { get; set; }
 
@@ -15,9 +15,9 @@ public partial class Inspectore
 
     public string? Localidad { get; set; }
 
-    public int? CodPostal { get; set; }
+    public string? CodPostal { get; set; }
 
-    public int? CodProvincia { get; set; }
+    public string? CodProvincia { get; set; }
 
     public string? Telefono { get; set; }
 

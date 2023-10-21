@@ -15,7 +15,7 @@ public partial class Torosuni
 
     public string? SbcodOld { get; set; }
 
-    public string? Sbcod { get; set; }
+    public int? Sbcod { get; set; }
 
     public string? TipToro { get; set; }
 
@@ -29,13 +29,13 @@ public partial class Torosuni
 
     public string? NrInsd { get; set; }
 
-    public string? Fecha { get; set; }
+    public DateTime? Fecha { get; set; }
 
     public string? Hba { get; set; }
 
     public string? Variedad { get; set; }
 
-    public int? Criador { get; set; }
+    public string? Criador { get; set; }
 
     public string? Catego { get; set; }
 
@@ -43,25 +43,26 @@ public partial class Torosuni
 
     public string? Estcod { get; set; }
 
-    public string? FchBaja { get; set; }
+    public string? FchUsu { get; set; }
 
-    public short? Activo { get; set; }
+    public int? CodUsu { get; set; }
+
+
+    public DateTime? FchBaja { get; set; }
+
+    public int? Activo { get; set; }
 
     public string? MotivoBaj { get; set; }
 
-    public string? Nacido { get; set; }
+    public DateTime? Nacido { get; set; }
 
-    public short? Actualizado { get; set; }
+    public int? Actualizado { get; set; }
 
     public string? CircEscrotal { get; set; }
 
     public string? CodEstado { get; set; }
 
-    public short? IdTipo { get; set; }
-
-    public string? FchUsu { get; set; }
-
-    public string? CodUsu { get; set; }
+    public int? IdTipo { get; set; }
 
     public string? Fecing { get; set; }
 

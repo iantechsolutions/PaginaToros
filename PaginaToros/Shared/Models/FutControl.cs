@@ -23,21 +23,22 @@ public partial class FutControl
 
     public string? Plantel { get; set; }
 
-    public string? EdadCrias { get; set; }
+    public int? EdadCrias { get; set; }
 
-    public string? CantHem { get; set; }
+    public int? CantHem { get; set; }
 
-    public string? CantMach { get; set; }
+    public int? CantMach { get; set; }
 
     public string? PlantDest { get; set; }
 
-    public string? Incorp { get; set; }
-
-    public string? Hemsta { get; set; }
-
     public string? FchUsu { get; set; }
 
-    public string? CodUsu { get; set; }
+    public int? CodUsu { get; set; }
+
+
+    public int? Incorp { get; set; }
+
+    public string? Hemsta { get; set; }
 
     public int Id { get; set; }
 }

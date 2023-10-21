@@ -7,7 +7,7 @@ public partial class Zona
 {
     public int Id { get; set; }
 
-    public int? CodigoZona { get; set; }
+    public string? CodigoZona { get; set; }
 
     public string? Meses { get; set; }
 

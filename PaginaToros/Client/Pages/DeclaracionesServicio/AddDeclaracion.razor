@@ -40,23 +40,10 @@
                     <label class="col-sm">Plantel</label>
                     <BlazoredTypeahead @bind-Value="@plantelSeleccionado" SearchMethod="BusquedaPlanteles" placeholder="Busque plantel por numero" EnableDropDown="true" >
                         <SelectedTemplate Context="eleccion">
-                            @if(eleccion.FechaExistencia.HasValue){
-                                @(@eleccion.NroPlantel + "-" + @eleccion.FechaExistencia.Value.ToString("yyyy"))
-                            }
-                            else
-                            {
-                                @eleccion.NroPlantel
-                            }
+                            @(@eleccion.NroPlantel + "-" + @eleccion.FechaExistencia)
                             </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @if (eleccion.FechaExistencia.HasValue)
-                            {
-                                @(@eleccion.NroPlantel + "-" + @eleccion.FechaExistencia.Value.ToString("yyyy"))
-                            }
-                            else
-                            {
-                                @eleccion.NroPlantel
-                            }
+                            @(@eleccion.NroPlantel + "-" + @eleccion.FechaExistencia)
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>

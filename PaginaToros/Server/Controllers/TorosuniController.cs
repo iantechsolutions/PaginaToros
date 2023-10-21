@@ -90,8 +90,6 @@ namespace PaginaToros.Server.Controllers
                     oTorosuni.CircEscrotal = model.CircEscrotal;
                     oTorosuni.CodEstado = model.CodEstado;
                     oTorosuni.IdTipo = model.IdTipo;
-                    oTorosuni.FchUsu = model.FchUsu;
-                    oTorosuni.CodUsu = model.CodUsu;
                     oTorosuni.Fecing = model.Fecing;
                     oTorosuni.Fechasba = model.Fechasba;
                     oTorosuni.Pnac = model.Pnac;
@@ -158,8 +156,6 @@ namespace PaginaToros.Server.Controllers
                     oTorosuni.CircEscrotal = model.CircEscrotal;
                     oTorosuni.CodEstado = model.CodEstado;
                     oTorosuni.IdTipo = model.IdTipo;
-                    oTorosuni.FchUsu = model.FchUsu;
-                    oTorosuni.CodUsu = model.CodUsu;
                     oTorosuni.Fecing = model.Fecing;
                     oTorosuni.Fechasba = model.Fechasba;
                     oTorosuni.Pnac = model.Pnac;

@@ -78,7 +78,7 @@
     Respuesta<MovimientosRe> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
-    [Parameter] public int numeroRes { get; set; }
+    [Parameter] public string numeroRes { get; set; }
     List<string> movimientos = new List<string> { "Entrada","Salida"};
     string movimiento = "";
     List<string> motivos = new List<string> { "Compras", "Ventas", "Cambio Categoria", "Por Inspeccion", "Epidemias", "Rechazos", "Otros", /* rest of elements */ };

@@ -23,9 +23,9 @@ public partial class Transan
 
     public string? NvoPla { get; set; }
 
-    public string? CantHem { get; set; }
+    public int? CantHem { get; set; }
 
-    public string? CantMach { get; set; }
+    public int? CantMach { get; set; }
 
     public string? Tiphac { get; set; }
 
@@ -33,13 +33,13 @@ public partial class Transan
 
     public string? Tipani { get; set; }
 
-    public string? Incorp { get; set; }
+    public int? Incorp { get; set; }
 
     public string? Tipohem { get; set; }
 
-    public string? CantChem { get; set; }
+    public int? CantChem { get; set; }
 
-    public string? CantCmach { get; set; }
+    public int? CantCmach { get; set; }
 
     public string? FchUsu { get; set; }
 

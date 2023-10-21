@@ -85,7 +85,7 @@
     Respuesta<EdadMesPromedioRe> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
-    [Parameter] public int nrores { get; set; }
+    [Parameter] public string nrores { get; set; }
     [Parameter] public string sexo { get; set; }
 
     protected override async Task OnInitializedAsync()

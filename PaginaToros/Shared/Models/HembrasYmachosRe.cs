@@ -17,9 +17,9 @@ public partial class HembrasYmachosRe
 
     public double Hpp { get; set; } = 0;
 
-    public double HppM { get; set; } = 0;
+    public int HppM { get; set; } = 0;
 
-    public double HppAs { get; set; } = 0;
+    public int HppAs { get; set; } = 0;
 
     public double Hpt { get; set; } = 0;
 
@@ -51,7 +51,7 @@ public partial class HembrasYmachosRe
 
     public double Mspsb { get; set; } = 0;
 
-    public int? Nrores { get; set; }
+    public string? Nrores { get; set; }
 
     public int Id { get; set; }
 }

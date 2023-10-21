@@ -7,9 +7,9 @@ public partial class SolicitudInspeccion
 {
     public int Id { get; set; }
 
-    public int? NroSolicitud { get; set; }
+    public string? NroSolicitud { get; set; }
 
-    public int? NroSocio { get; set; }
+    public string? NroSocio { get; set; }
 
     public bool? Activo { get; set; }
 
@@ -33,15 +33,15 @@ public partial class SolicitudInspeccion
 
     public DateTime? Ano { get; set; }
 
-    public string? ToroPr { get; set; }
+    public double? ToroPr { get; set; }
 
-    public string? VcPr { get; set; }
+    public double? VcPr { get; set; }
 
-    public string? VcVip { get; set; }
+    public double? VcVip { get; set; }
 
-    public string? VqVip { get; set; }
+    public double? VqVip { get; set; }
 
-    public int? CodEstablecimiento { get; set; }
+    public string? CodEstablecimiento { get; set; }
 
     public string? FechaSolTemp { get; set; }
 

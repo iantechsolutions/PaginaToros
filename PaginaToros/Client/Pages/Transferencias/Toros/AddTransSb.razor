@@ -93,9 +93,9 @@
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<Transsb>>($"/api/Transsb/{Id}");
                 oTranssb = oRespuesta.List;
                 try{
-                    socioComprador = socios.Where(x => x.NroSocio == Int32.Parse(oTranssb.Scom)).First();
-                    socioVendedor = socios.Where(x => x.NroSocio == Int32.Parse(oTranssb.Sven)).First();
-                    establecimientoSeleccionado = establecimientos.Where(x => x.Codigo == Int32.Parse(oTranssb.Ecod)).First();
+                    socioComprador = socios.Where(x => x.NroSocio == oTranssb.Scom).First();
+                    socioVendedor = socios.Where(x => x.NroSocio == oTranssb.Sven).First();
+                    establecimientoSeleccionado = establecimientos.Where(x => x.Codigo == oTranssb.Ecod).First();
                 }
                 catch
                 {

@@ -122,10 +122,6 @@
                 {
                     activo = oPlantel.Activo.Value;
                 }
-                if (oPlantel.FechaExistencia.HasValue)
-                {
-                    FechaTempCreacion = oPlantel.FechaExistencia.Value;
-                }
                 socioSeleccionado = socios.Where(x => x.NombreCompleto == oPlantel.NombreSocio).FirstOrDefault();
 
 
@@ -140,7 +136,7 @@
     {
         oPlantel.NombreSocio = socioSeleccionado.NombreCompleto;
         oPlantel.CodSocio = socioSeleccionado.NroSocio;
-        oPlantel.FechaExistencia = FechaTempCreacion;
+        oPlantel.FechaExistencia = FechaTempCreacion.ToString("yyyy");
         oPlantel.Activo = activo;
         if (Id == 0)
         {

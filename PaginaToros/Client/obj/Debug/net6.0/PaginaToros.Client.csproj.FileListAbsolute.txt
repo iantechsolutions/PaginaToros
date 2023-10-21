@@ -1059,6 +1059,7 @@ C:\Users\lolo1\source\repos\Hereford\PaginaToros\Client\obj\Debug\net6.0\PaginaT
 C:\Users\lolo1\source\repos\Hereford\PaginaToros\Client\obj\Debug\net6.0\ref\PaginaToros.Client.dll
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Azure.Core.dll
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Azure.Identity.dll
+C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\blazor.boot.json
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\blazor.webassembly.js
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Blazored.Modal.dll
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Blazored.SessionStorage.dll
@@ -1139,6 +1140,10 @@ C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\mscorlib.dll
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\netstandard.dll
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Newtonsoft.Json.dll
+C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Client.dll
+C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Client.pdb
+C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Shared.dll
+C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Shared.pdb
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Radzen.Blazor.dll
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.AppContext.dll
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.Buffers.dll
@@ -1368,6 +1373,7 @@ C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.Collections.Concurrent.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Azure.Core.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.Runtime.Serialization.Xml.dll.gz
+C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Client.pdb.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.IO.Pipelines.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Microsoft.AspNetCore.Authorization.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.Net.Http.Json.dll.gz
@@ -1433,6 +1439,7 @@ C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.Private.Xml.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.Xml.XPath.XDocument.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.Globalization.dll.gz
+C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Shared.pdb.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Microsoft.Extensions.Logging.Abstractions.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.Security.Cryptography.Primitives.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.Memory.Data.dll.gz
@@ -1501,7 +1508,9 @@ C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Microsoft.AspNetCore.Components.Authorization.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Blazored.Typeahead.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Microsoft.AspNetCore.Hosting.Abstractions.dll.gz
+C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Shared.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Microsoft.AspNetCore.Components.Forms.dll.gz
+C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Client.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Microsoft.Extensions.Options.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.Runtime.Serialization.Formatters.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\Microsoft.AspNetCore.DataProtection.dll.gz
@@ -1565,15 +1574,6 @@ C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\icudt_CJK.dat.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.Net.WebHeaderCollection.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\System.Security.Cryptography.Algorithms.dll.gz
-C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\blazor.boot.json
-C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Client.dll
-C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Client.pdb
-C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Shared.dll
-C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Shared.pdb
-C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Client.pdb.gz
-C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Shared.pdb.gz
-C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Shared.dll.gz
-C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\_framework\PaginaToros.Client.dll.gz
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\service-worker.js
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\wwwroot\service-worker-assets.js
 C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Client\bin\Debug\net6.0\PaginaToros.Client.staticwebassets.runtime.json

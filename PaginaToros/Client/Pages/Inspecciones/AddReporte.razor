@@ -563,15 +563,15 @@ else
 
                 inspectorSeleccionado = inspectores.Where(x => x.Codigo == oInspRe.Icod).FirstOrDefault();
                 plantelSeleccionado = planteles.Where(x =>x.NroPlantel==oInspRe.Nropla).FirstOrDefault();
-                await updateEstadoHistorico(solicitudSeleccionada.NroSolicitud.Value);
+                await updateEstadoHistorico(solicitudSeleccionada.NroSolicitud);
 
-                await updatePromedios(solicitudSeleccionada.NroSolicitud.Value);
+                await updatePromedios(solicitudSeleccionada.NroSolicitud);
 
-                await updateRechazos(solicitudSeleccionada.NroSolicitud.Value);
+                await updateRechazos(solicitudSeleccionada.NroSolicitud);
 
-                await updateMovimientos(solicitudSeleccionada.NroSolicitud.Value, "no");
+                await updateMovimientos(solicitudSeleccionada.NroSolicitud, "no");
 
-                await updateHembrasMachos(solicitudSeleccionada.NroSolicitud.Value);
+                await updateHembrasMachos(solicitudSeleccionada.NroSolicitud);
 
                 confirmado = true;
             }
@@ -623,21 +623,21 @@ else
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
 
     }
-    async Task crearHistorico(int nrores)
+    async Task crearHistorico(string nrores)
     {
         var temp = new EstadoHistoricoRe();
-        temp.Ea1 = plantelSeleccionado.Vacas;
-        temp.Ea2 = plantelSeleccionado.VaquillServicio;
-        temp.Ea3 = plantelSeleccionado.VaquillNoServicio;
-        temp.Ea4 = plantelSeleccionado.VacasVip;
-        temp.Ea5 = plantelSeleccionado.PrenadasVip;
-        temp.Ea6 = plantelSeleccionado.VaquillNoServicioVip;
+        temp.Ea1 = Convert.ToInt32(plantelSeleccionado.Vacas);
+        temp.Ea2 = Convert.ToInt32(plantelSeleccionado.VaquillServicio);
+        temp.Ea3 = Convert.ToInt32(plantelSeleccionado.VaquillNoServicio);
+        temp.Ea4 = Convert.ToInt32(plantelSeleccionado.VacasVip);
+        temp.Ea5 = Convert.ToInt32(plantelSeleccionado.PrenadasVip);
+        temp.Ea6 = Convert.ToInt32(plantelSeleccionado.VaquillNoServicioVip);
         temp.Nrores = nrores;
         await Http.PostAsJsonAsync<EstadoHistoricoRe>("/api/EstadoHistoricoRe", temp);
     }
 
 
-    async Task updatePromedios(int nrores)
+    async Task updatePromedios(string nrores)
     {
         var rtt = await Http.GetFromJsonAsync<Respuesta<List<EdadMesPromedioRe>>>($"/api/edadmespromediore/nrores/{nrores}");
         if (rtt.List.Count() > 0)
@@ -652,12 +652,12 @@ else
             }
         }
     }
-    async Task updateRechazos(int nrores)
+    async Task updateRechazos(string nrores)
     {
         var res = await Http.GetFromJsonAsync<Respuesta<List<RechazoRe>>>($"/api/RechazoRe/nrores/{nrores}");
         rechazos = res.List;
     }
-    async Task updateMovimientos(int nrores, string condicion)
+    async Task updateMovimientos(string nrores, string condicion)
     {
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<MovimientosRe>>>($"/api/MovimientosRe/nrores/{nrores}");
         mtos = respuesta.List;
@@ -666,21 +666,21 @@ else
         {
             if (mov.Tipmov == "S")
             {
-                salidasFinal.Ea1 += mov.Rdvac;
-                salidasFinal.Ea2 += mov.Rdvaqcs;
-                salidasFinal.Ea3 += mov.Rdvaqss;
-                salidasFinal.Ea4 += mov.Rpvac;
-                salidasFinal.Ea5 += mov.Rpvaqcs;
-                salidasFinal.Ea6 += mov.Rpvaqss;
+                salidasFinal.Ea1 += Convert.ToInt32(mov.Rdvac);
+                salidasFinal.Ea2 += Convert.ToInt32(mov.Rdvaqcs);
+                salidasFinal.Ea3 += Convert.ToInt32(mov.Rdvaqss);
+                salidasFinal.Ea4 += Convert.ToInt32(mov.Rpvac);
+                salidasFinal.Ea5 += Convert.ToInt32(mov.Rpvaqcs);
+                salidasFinal.Ea6 += Convert.ToInt32(mov.Rpvaqss);
             }
             else
             {
-                entradasFinal.Ea1 += mov.Rdvac;
-                entradasFinal.Ea2 += mov.Rdvaqcs;
-                entradasFinal.Ea3 += mov.Rdvaqss;
-                entradasFinal.Ea4 += mov.Rpvac;
-                entradasFinal.Ea5 += mov.Rpvaqcs;
-                entradasFinal.Ea6 += mov.Rpvaqss;
+                entradasFinal.Ea1 += Convert.ToInt32(mov.Rdvac);
+                entradasFinal.Ea2 += Convert.ToInt32(mov.Rdvaqcs);
+                entradasFinal.Ea3 += Convert.ToInt32(mov.Rdvaqss);
+                entradasFinal.Ea4 += Convert.ToInt32(mov.Rpvac);
+                entradasFinal.Ea5 += Convert.ToInt32(mov.Rpvaqcs);
+                entradasFinal.Ea6 += Convert.ToInt32(mov.Rpvaqss);
             }
         }
         estadoFinal.Ea1 = estadoAnterior.Ea1 - salidasFinal.Ea1 + entradasFinal.Ea1;
@@ -700,7 +700,7 @@ else
         }
 
     }
-    async Task updateHembrasMachos(int nrores)
+    async Task updateHembrasMachos(string nrores)
     {
         try
         {
@@ -709,7 +709,7 @@ else
         }
         catch { }
     }
-    async Task updateEstadoHistorico(int nrores)
+    async Task updateEstadoHistorico(string nrores)
     {
         try
         {
@@ -726,7 +726,7 @@ else
     {
 
         confirmado = true;
-        int nrores = solicitudSeleccionada.NroSolicitud.Value;
+        string nrores = solicitudSeleccionada.NroSolicitud;
 
         guardarReporte();
 
@@ -747,7 +747,7 @@ else
     async Task confirmarNuevo()
     {
 
-        crearHistorico(solicitudSeleccionada.NroSolicitud.Value);
+        crearHistorico(solicitudSeleccionada.NroSolicitud);
         confirmar();
     }
 
@@ -771,7 +771,7 @@ else
             }
             else
             {
-                await updateMovimientos(solicitudSeleccionada.NroSolicitud.Value, "si");
+                await updateMovimientos(solicitudSeleccionada.NroSolicitud, "si");
             }
         }
         catch(Exception ex)
@@ -801,7 +801,7 @@ else
             }
             else
             {
-                await updateHembrasMachos(solicitudSeleccionada.NroSolicitud.Value);
+                await updateHembrasMachos(solicitudSeleccionada.NroSolicitud);
             }
         }
         catch (Exception ex)
@@ -830,7 +830,7 @@ else
             }
             else
             {
-                await updatePromedios(solicitudSeleccionada.NroSolicitud.Value);
+                await updatePromedios(solicitudSeleccionada.NroSolicitud);
             }
         }
         catch (Exception ex)
@@ -857,7 +857,7 @@ else
             }
             else
             {
-                await updateRechazos(solicitudSeleccionada.NroSolicitud.Value);
+                await updateRechazos(solicitudSeleccionada.NroSolicitud);
             }
         }
         catch (Exception ex)
@@ -869,7 +869,7 @@ else
     async Task deleteRechazo(int id)
     {
         await Http.DeleteAsync($"/api/RechazoRe/{id}");
-        await updateRechazos(solicitudSeleccionada.NroSolicitud.Value);
+        await updateRechazos(solicitudSeleccionada.NroSolicitud);
     }
 
     public async Task alertaDeleteRechazo(int id)

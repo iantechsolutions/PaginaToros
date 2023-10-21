@@ -23,13 +23,7 @@
                         <br/>
                     }
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Año de Existencia</RadzenText>
-                    @if(oPlantel.FechaExistencia.HasValue){
-                        <RadzenText TextStyle="TextStyle.Body1"><b>@oPlantel.FechaExistencia.Value.ToString("yyyy")</b></RadzenText>
-                    }
-                    else
-                    {
-                        <br/>
-                    }
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oPlantel.FechaExistencia</b></RadzenText>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Nombre de Socio</RadzenText>
                     <RadzenText TextStyle="TextStyle.Body1"><b>@(oPlantel.NombreSocio ?? "")</b></RadzenText>
 

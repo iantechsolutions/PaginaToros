@@ -66,12 +66,12 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Cantidad de Hembras</label>
-                    <InputText @bind-Value="@oFutControl.CantHem" class="form-control" placeholder=""></InputText>
+                    <InputNumber @bind-Value="@oFutControl.CantHem" class="form-control" placeholder=""></InputNumber>
                     <ValidationMessage For="(()=> oFutControl.CantHem)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Cantidad de Machos</label>
-                    <InputText @bind-Value="@oFutControl.CantMach" class="form-control" placeholder=""></InputText>
+                    <InputNumber @bind-Value="@oFutControl.CantMach" class="form-control" placeholder=""></InputNumber>
                     <ValidationMessage For="(()=> oFutControl.CantMach)" style="color:red;" />
                 </div>
                 <div class="col-sm">
@@ -108,8 +108,8 @@
             {
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<FutControl>>($"/api/FutControl/{Id}");
                 oFutControl = oRespuesta.List;
-                socioComprador = socios.Where(x => x.NroSocio == Int32.Parse(oFutControl.Scom)).First();
-                socioVendedor = socios.Where(x => x.NroSocio == Int32.Parse(oFutControl.Sven)).First();
+                socioComprador = socios.Where(x => x.NroSocio == oFutControl.Scom).First();
+                socioVendedor = socios.Where(x => x.NroSocio == oFutControl.Sven).First();
             }
             catch (Exception ex)
             {

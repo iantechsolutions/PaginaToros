@@ -28,12 +28,12 @@
         </div>
         <div class="col-sm">
             <label class="col-sm">Mochas Marcadas</label>
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.HppM />
+            <RadzenNumeric TValue="int" @bind-Value=oHembrasYmachosRe.HppM />
             <br />
         </div>
         <div class="col-sm">
             <label class="col-sm">Astadas Marcadas</label>
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.HppAs/>
+            <RadzenNumeric TValue="int" @bind-Value=oHembrasYmachosRe.HppAs/>
             <br />
         </div>
     </div>
@@ -127,7 +127,7 @@
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public string botonclick { get; set; }
-    [Parameter] public int numeroRes { get; set; }
+    [Parameter] public string numeroRes { get; set; }
 
 
     protected override async Task OnInitializedAsync()

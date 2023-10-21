@@ -68,19 +68,7 @@
                 <RadzenDataGridColumn TItem="Establecimiento" Property="Provincia" Title="Provincia" Width="90px" />
                 <RadzenDataGridColumn TItem="Establecimiento" Property="Informacion" Title="Informacion" Width="80px" />
                 <RadzenDataGridColumn TItem="Establecimiento" Property="CodZona" Title="Cod. zona" Width="70px" />
-                <RadzenDataGridColumn TItem="Establecimiento" Property="FechaExistencia" Title="Año Creacion" Width="85px">
-                    <Template Context="data">
-                        @if(data.FechaExistencia.HasValue){
-                            <a>@data.FechaExistencia.Value.ToString("yyyy")</a>
-                        }
-                        else
-                        {
-                            <a>NRAA</a>
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
-
-
+                <RadzenDataGridColumn TItem="Establecimiento" Property="FechaExistencia" Title="Año Creacion" Width="85px"/>
                 <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Establecimiento" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>

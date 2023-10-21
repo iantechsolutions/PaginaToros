@@ -23,7 +23,7 @@
 </div>
 @code {
     [Parameter] public int Id { get; set; }
-    [Parameter] public int nrores { get; set; }
+    [Parameter] public string nrores { get; set; }
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     RechazoRe oRechazoRe = new();
     Respuesta<RechazoRe> oRespuesta = new();

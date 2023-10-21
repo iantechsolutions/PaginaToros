@@ -5,7 +5,7 @@ namespace PaginaToros.Shared.Models;
 
 public partial class RechazoRe
 {
-    public int? Nrores { get; set; }
+    public string? Nrores { get; set; }
 
     public string? Nropla { get; set; }
 

@@ -13,13 +13,11 @@ public partial class Certifseman
 
     public string? Nrocen { get; set; }
 
-    public string? Fecvtatemp { get; set; }
-
     public string? FchConst { get; set; }
 
     public string? Nven { get; set; }
 
-    public int? Nrocri { get; set; }
+    public string? Nrocri { get; set; }
 
     public string? CategSc { get; set; }
 
@@ -37,7 +35,7 @@ public partial class Certifseman
 
     public string? NrInsd { get; set; }
 
-    public string? NrDosi { get; set; }
+    public int? NrDosi { get; set; }
 
     public string? NrDosiOr { get; set; }
 

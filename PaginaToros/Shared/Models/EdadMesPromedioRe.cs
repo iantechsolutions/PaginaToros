@@ -25,7 +25,7 @@ public partial class EdadMesPromedioRe
 
     public string? Sexo { get; set; }
 
-    public int? Nrores { get; set; }
+    public string? Nrores { get; set; }
 
     public int Id { get; set; }
 }

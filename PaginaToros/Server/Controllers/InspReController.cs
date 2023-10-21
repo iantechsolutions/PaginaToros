@@ -95,7 +95,6 @@ namespace PaginaToros.Server.Controllers
         public IActionResult Edit(InspRe model)
         {
             Respuesta<List<InspRe>> oRespuesta = new Respuesta<List<InspRe>>();
-            IQueryable<Toro> TorosPorId; ;
             try
             {
                 using (BlazorCrudContext db = new BlazorCrudContext())

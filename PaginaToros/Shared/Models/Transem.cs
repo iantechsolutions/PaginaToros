@@ -9,7 +9,7 @@ public partial class Transem
 
     public string? Nrocen { get; set; }
 
-    public string? Fecvta { get; set; }
+    public DateTime? Fecvta { get; set; }
 
     public string? Nven { get; set; }
 

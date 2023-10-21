@@ -62,13 +62,7 @@ public partial class BlazorCrudContext : DbContext
 
     public virtual DbSet<SolicitudInspeccion> SolicitudInspeccions { get; set; }
 
-    public virtual DbSet<Toro> Toros { get; set; }
-
     public virtual DbSet<Torosuni> Torosunis { get; set; }
-
-    public virtual DbSet<Transaccione> Transacciones { get; set; }
-
-    public virtual DbSet<TransaccionesHistorica> TransaccionesHistoricas { get; set; }
 
     public virtual DbSet<Transan> Transans { get; set; }
 
@@ -186,10 +180,6 @@ public partial class BlazorCrudContext : DbContext
             entity.Property(e => e.Fecvta)
                 .HasColumnType("datetime")
                 .HasColumnName("FECVTA");
-            entity.Property(e => e.Fecvtatemp)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("FECVTATEMP");
             entity.Property(e => e.Hba)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -768,16 +758,6 @@ public partial class BlazorCrudContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<Toro>(entity =>
-        {
-            entity.Property(e => e.Nombre)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.NombreEst)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-        });
-
         modelBuilder.Entity<Torosuni>(entity =>
         {
             entity.ToTable("TOROSUNI");
@@ -954,23 +934,6 @@ public partial class BlazorCrudContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("VARIEDAD");
-        });
-
-        modelBuilder.Entity<Transaccione>(entity =>
-        {
-            entity.Property(e => e.Fecha).HasColumnType("datetime");
-            entity.Property(e => e.NombreComprador)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.NombreVendedor)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Toros).HasColumnType("text");
-        });
-
-        modelBuilder.Entity<TransaccionesHistorica>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK_TRA");
         });
 
         modelBuilder.Entity<Transan>(entity =>

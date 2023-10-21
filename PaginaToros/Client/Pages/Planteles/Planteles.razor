@@ -59,18 +59,7 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Plantele" Property="" Title="Año de Existencia" Width="70px">
-                <Template Context="data">
-                    @if (data.FechaExistencia.HasValue)
-                    {
-                        @data.FechaExistencia.Value.ToString("yyyy")
-                    }
-                    else
-                    {
-
-                    }
-                </Template>
-            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Plantele" Property="FechaExistencia" Title="Año de Existencia" Width="70px"/>
             <RadzenDataGridColumn TItem="Plantele" Property="NroUltInspeccion" Title="Nro ultima inspeccion" Width="100px" />
             <RadzenDataGridColumn TItem="Plantele" Property="NombreSocio" Title="Socio" Width="85px" />
             <RadzenDataGridColumn TItem="Plantele" Property="Vacas" Title="Vacas PR" Width="60px" />

@@ -56,7 +56,7 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpGet("Codigo/{nro}")]
-        public IActionResult GetByCod(int nro)
+        public IActionResult GetByCod(string nro)
         {
             Respuesta<Socio> oRespuesta = new Respuesta<Socio>();
 
@@ -116,7 +116,6 @@ namespace PaginaToros.Server.Controllers
         public IActionResult Edit(Socio model)
         {
             Respuesta<List<Socio>> oRespuesta = new Respuesta<List<Socio>>();
-            IQueryable<Toro> TorosPorId; ;
             try
             {
                 using (BlazorCrudContext db = new BlazorCrudContext())
@@ -142,7 +141,7 @@ namespace PaginaToros.Server.Controllers
                             cert.NombreSocio = model.NombreCompleto;
                             db.Entry(cert).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                         }
-                        List<Desepla1> declaraciones = db.Desepla1s.Where(x => Int32.Parse(x.Nrocri) == oSocio.NroSocio).ToList();
+                        List<Desepla1> declaraciones = db.Desepla1s.Where(x => x.Nrocri == oSocio.NroSocio).ToList();
                         foreach (var dec in declaraciones)
                         {
                             dec.NombreSocio = model.NombreCompleto;

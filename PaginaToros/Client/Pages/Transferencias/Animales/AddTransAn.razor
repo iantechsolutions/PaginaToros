@@ -48,22 +48,22 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Hembras</label>
-                    <InputText @bind-Value="@oTransan.CantHem" class="form-control" placeholder=""></InputText>
+                    <InputNumber @bind-Value="@oTransan.CantHem" class="form-control" placeholder=""></InputNumber>
                     <ValidationMessage For="(()=> oTransan.CantHem)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Machos</label>
-                    <InputText @bind-Value="@oTransan.CantMach" class="form-control" placeholder=""></InputText>
+                    <InputNumber @bind-Value="@oTransan.CantMach" class="form-control" placeholder=""></InputNumber>
                     <ValidationMessage For="(()=> oTransan.CantMach)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Crias Hembras</label>
-                    <InputText @bind-Value="@oTransan.CantChem" class="form-control" placeholder=""></InputText>
+                    <InputNumber @bind-Value="@oTransan.CantChem" class="form-control" placeholder=""></InputNumber>
                     <ValidationMessage For="(()=> oTransan.CantChem)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Crias Machos</label>
-                    <InputText @bind-Value="@oTransan.CantCmach" class="form-control" placeholder=""></InputText>
+                    <InputNumber @bind-Value="@oTransan.CantCmach" class="form-control" placeholder=""></InputNumber>
                     <ValidationMessage For="(()=> oTransan.CantCmach)" style="color:red;" />
                 </div>
             </div>
@@ -192,14 +192,14 @@
             {
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<Transan>>($"/api/Transan/{Id}");
                 oTransan = oRespuesta.List;
-                socioComprador = socios.Where(x => x.NroSocio == Int32.Parse(oTransan.Scom)).First();
-                socioVendedor = socios.Where(x => x.NroSocio == Int32.Parse(oTransan.Sven)).First();
+                socioComprador = socios.Where(x => x.NroSocio == oTransan.Scom).First();
+                socioVendedor = socios.Where(x => x.NroSocio == oTransan.Sven).First();
                 plantelOrigen = planteles.Where(x => x.NroPlantel == oTransan.Plant).First();
                 plantelDestino = planteles.Where(x => x.NroPlantel == oTransan.NvoPla).First();
                 temp1 = traductorCarga[oTransan.Tiphac];
                 temp2 = traductorCarga[oTransan.Tipani];
                 temp3 = traductorCarga[oTransan.Hemsta];
-                temp4 = traductorCarga[oTransan.Incorp];
+                temp4 = traductorCarga[oTransan.Incorp.ToString()];
             }
             catch (Exception ex)
             {
@@ -212,7 +212,7 @@
         oTransan.Tiphac = traductor[temp1];
         oTransan.Tipani = traductor[temp2];
         oTransan.Hemsta = traductor[temp3];
-        oTransan.Incorp = traductor[temp4];
+        oTransan.Incorp = Int32.Parse(traductor[temp4]);
         oTransan.Vnom = socioVendedor.NombreCompleto;
         oTransan.Cnom = socioComprador.NombreCompleto;
         oTransan.Sven = socioVendedor.NroSocio.ToString();

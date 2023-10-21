@@ -166,12 +166,8 @@
                 {
                     activo = oEstablecimiento.Activo.Value;
                 }
-                if (oEstablecimiento.FechaExistencia.HasValue)
-                {
-                    FechaTemp = oEstablecimiento.FechaExistencia.Value;
-                }
                 socioSeleccionado = socios.Where(x => x.NroSocio == oEstablecimiento.CodigoSocio).FirstOrDefault();
-                CodZona = oEstablecimiento.CodZona.Value.ToString("D2");
+                CodZona = oEstablecimiento.CodZona;
 
             }
             catch (Exception ex)
@@ -184,8 +180,8 @@
     {
         oEstablecimiento.NombreSocio = socioSeleccionado.NombreCompleto;
         oEstablecimiento.CodigoSocio = socioSeleccionado.NroSocio;
-        oEstablecimiento.FechaExistencia = FechaTemp;
-        oEstablecimiento.CodZona = Int16.Parse(CodZona.Substring(0,2));
+        oEstablecimiento.FechaExistencia = FechaTemp.ToString("dd/MM/yyyy");
+        oEstablecimiento.CodZona = CodZona.Substring(0,2);
         oEstablecimiento.Activo = activo;
         if (Id == 0)
         {

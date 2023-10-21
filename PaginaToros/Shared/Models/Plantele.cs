@@ -11,7 +11,7 @@ public partial class Plantele
 
     public bool? Activo { get; set; }
 
-    public DateTime? FechaExistencia { get; set; }
+    public string? FechaExistencia { get; set; }
 
     public string? NroUltInspeccion { get; set; }
 
@@ -19,19 +19,19 @@ public partial class Plantele
 
     public DateTime? UltimaReinspeccion { get; set; }
 
-    public int? CodSocio { get; set; }
+    public string? CodSocio { get; set; }
 
-    public int? Vacas { get; set; }
+    public double? Vacas { get; set; }
 
-    public int? VaquillServicio { get; set; }
+    public double? VaquillServicio { get; set; }
 
-    public int? VaquillNoServicio { get; set; }
+    public double? VaquillNoServicio { get; set; }
 
-    public int? VacasVip { get; set; }
+    public double? VacasVip { get; set; }
 
-    public int? PrenadasVip { get; set; }
+    public double? PrenadasVip { get; set; }
 
-    public int? VaquillNoServicioVip { get; set; }
+    public double? VaquillNoServicioVip { get; set; }
 
     public string? Comentarios { get; set; }
 

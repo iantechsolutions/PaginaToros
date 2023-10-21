@@ -7,7 +7,7 @@ public partial class Transsb
 {
     public string? NroTrans { get; set; }
 
-    public string? Fectrans { get; set; }
+    public DateTime? Fectrans { get; set; }
 
     public string? NroOrden { get; set; }
 

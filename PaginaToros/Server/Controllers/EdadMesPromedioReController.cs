@@ -34,7 +34,7 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
         [HttpGet("Nrores/{nro}")]
-        public IActionResult GetByRes(int nro)
+        public IActionResult GetByRes(string nro)
         {
             
             Respuesta<List<EdadMesPromedioRe>> oRespuesta = new Respuesta<List<EdadMesPromedioRe>>();
@@ -113,7 +113,6 @@ namespace PaginaToros.Server.Controllers
         public IActionResult Edit(EdadMesPromedioRe model)
         {
             Respuesta<List<EdadMesPromedioRe>> oRespuesta = new Respuesta<List<EdadMesPromedioRe>>();
-            IQueryable<Toro> TorosPorId; ;
             try
             {
                 using (BlazorCrudContext db = new BlazorCrudContext())

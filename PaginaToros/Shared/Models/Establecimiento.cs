@@ -7,9 +7,9 @@ public partial class Establecimiento
 {
     public int Id { get; set; }
 
-    public int? Codigo { get; set; }
+    public string? Codigo { get; set; }
 
-    public int? CodigoSocio { get; set; }
+    public string? CodigoSocio { get; set; }
 
     public bool? Activo { get; set; }
 
@@ -29,9 +29,9 @@ public partial class Establecimiento
 
     public string? Informacion { get; set; }
 
-    public int? CodZona { get; set; }
+    public string? CodZona { get; set; }
 
-    public DateTime? FechaExistencia { get; set; }
+    public string? FechaExistencia { get; set; }
 
     public string? NombreSocio { get; set; }
 

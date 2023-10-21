@@ -5,23 +5,23 @@ namespace PaginaToros.Shared.Models;
 
 public partial class MovimientosRe
 {
-    public int? Rdvac { get; set; }
+    public double? Rdvac { get; set; }
 
-    public int? Rdvaqcs { get; set; }
+    public double? Rdvaqcs { get; set; }
 
-    public int? Rdvaqss { get; set; }
+    public double? Rdvaqss { get; set; }
 
-    public int? Rpvac { get; set; }
+    public double? Rpvac { get; set; }
 
-    public int? Rpvaqcs { get; set; }
+    public double? Rpvaqcs { get; set; }
 
-    public int? Rpvaqss { get; set; }
+    public double? Rpvaqss { get; set; }
 
     public string? Ctomov { get; set; }
 
     public string? Tipmov { get; set; }
 
-    public int? Nrores { get; set; }
+    public string? Nrores { get; set; }
 
     public int Id { get; set; }
 }

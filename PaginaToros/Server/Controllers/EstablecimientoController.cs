@@ -56,7 +56,7 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpGet("Codigo/{nro}")]
-        public IActionResult GetByCod(int nro)
+        public IActionResult GetByCod(string nro)
         {
             Respuesta<Establecimiento> oRespuesta = new Respuesta<Establecimiento>();
 
@@ -119,7 +119,6 @@ namespace PaginaToros.Server.Controllers
         public IActionResult Edit(Establecimiento model)
         {
             Respuesta<List<Establecimiento>> oRespuesta = new Respuesta<List<Establecimiento>>();
-            IQueryable<Toro> TorosPorId; ;
             try
             {
                 using (BlazorCrudContext db = new BlazorCrudContext())

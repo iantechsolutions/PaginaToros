@@ -7,7 +7,7 @@ public partial class Socio
 {
     public int Id { get; set; }
 
-    public int NroSocio { get; set; }
+    public string NroSocio { get; set; }
 
     public bool? Activo { get; set; }
 

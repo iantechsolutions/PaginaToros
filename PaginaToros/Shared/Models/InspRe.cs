@@ -7,7 +7,7 @@ public partial class InspRe
 {
     public int Id { get; set; }
 
-    public int? Nrores { get; set; }
+    public string? Nrores { get; set; }
 
     public string? Nropla { get; set; }
 
@@ -31,11 +31,11 @@ public partial class InspRe
 
     public int? Editar { get; set; }
 
-    public int? Icod { get; set; }
+    public string? Icod { get; set; }
 
-    public int? Scod { get; set; }
+    public string? Scod { get; set; }
 
-    public int? Estcod { get; set; }
+    public string? Estcod { get; set; }
 
     public DateTime? FechaInspeccion { get; set; }
 

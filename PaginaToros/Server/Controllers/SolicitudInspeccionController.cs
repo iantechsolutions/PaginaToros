@@ -55,7 +55,7 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpGet("Nrores/{nro}")]
-        public IActionResult GetByRes(int nro)
+        public IActionResult GetByRes(string nro)
         {
             Respuesta<SolicitudInspeccion> oRespuesta = new Respuesta<SolicitudInspeccion>();
 
