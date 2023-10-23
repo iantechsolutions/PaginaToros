@@ -38,22 +38,22 @@
     <div class="tablacontent" style="position:relative;width:1400px;left:50px">
         <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@oRespuesta.List" TItem="CentrosIum" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Data="@oRespuesta.List" TItem="Centrosium" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="CentrosIum" Property="Nrocen" Title="Nro de centro" Width="430px" />
-                <RadzenDataGridColumn TItem="CentrosIum" Property="Nombre" Title="Nombre" Width="430px" />
-                <RadzenDataGridColumn TItem="CentrosIum" Property="NroCSayg" Title="Nro Secretaria Agric. y Ganaderia" Width="435px" />
-                <RadzenDataGridColumn TItem="CentrosIum" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Centrosium" Property="Nrocen" Title="Nro de centro" Width="430px" />
+                <RadzenDataGridColumn TItem="Centrosium" Property="Nombre" Title="Nombre" Width="430px" />
+                <RadzenDataGridColumn TItem="Centrosium" Property="NroCSayg" Title="Nro Secretaria Agric. y Ganaderia" Width="435px" />
+                <RadzenDataGridColumn TItem="Centrosium" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Establecimiento" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="CentrosIum" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Centrosium" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                @*            <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
+                @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
             <Template Context="data">
             <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
             </Template>
@@ -77,18 +77,18 @@ else
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<CentrosIum>? grid;
+    public RadzenDataGrid<Centrosium>? grid;
     int currentPage;
     public bool allowFiltering = false;
-    public string Url = "/api/CentrosIum";
-    public Respuesta<List<CentrosIum>> oRespuesta = new Respuesta<List<CentrosIum>>();
+    public string Url = "/api/Centrosium";
+    public Respuesta<List<Centrosium>> oRespuesta = new Respuesta<List<Centrosium>>();
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<CentrosIum>>>(Url);
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Centrosium>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
         StateHasChanged();
@@ -102,7 +102,7 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/CentrosIum/{id}");
+        await Http.DeleteAsync($"/api/Centrosium/{id}");
         await Get();
         if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
         {

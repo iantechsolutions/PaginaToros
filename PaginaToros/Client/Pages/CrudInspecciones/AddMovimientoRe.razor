@@ -7,7 +7,7 @@
 </style>
 <div class="card" >
     <div class="card-body">
-        <EditForm Model="@oMovimientosRe" OnValidSubmit="Guardar">
+        <EditForm Model="@oResin3" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
             <div class="row" style="width=100%;">
                 <div class="col-sm-5">
@@ -30,15 +30,15 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm-4">
                     <label>Vacas</label>
-                    <RadzenNumeric @bind-Value=@oMovimientosRe.Rdvac Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin3.Rdvac Style="width: 100%; max-width: 400px;" />
                 </div>
                 <div class="col-sm-4">
                     <label>Vaquillonas c/Servicio:</label>
-                    <RadzenNumeric @bind-Value=@oMovimientosRe.Rdvaqcs Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin3.Rdvaqcs Style="width: 100%; max-width: 400px;" />
                 </div>
                 <div class="col-sm-4">
                     <label>Vaquillonas sin servicio</label>
-                    <RadzenNumeric @bind-Value=@oMovimientosRe.Rdvaqss Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin3.Rdvaqss Style="width: 100%; max-width: 400px;" />
                 </div>
             </div>
             <br/>
@@ -54,15 +54,15 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm-4">
                     <label>Vacas</label>
-                    <RadzenNumeric @bind-Value=@oMovimientosRe.Rpvac Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin3.Rpvac Style="width: 100%; max-width: 400px;" />
                 </div>
                 <div class="col-sm-4">
                     <label>Vaquillonas sin servicio o preñadas</label>
-                    <RadzenNumeric @bind-Value=@oMovimientosRe.Rpvaqcs Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin3.Rpvaqcs Style="width: 100%; max-width: 400px;" />
                 </div>
                 <div class="col-sm-4">
                     <label>Vaquillonas con servicio</label>
-                    <RadzenNumeric @bind-Value=@oMovimientosRe.Rpvaqss Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin3.Rpvaqss Style="width: 100%; max-width: 400px;" />
                 </div>
             </div>
 
@@ -74,8 +74,8 @@
     </div>
 </div>
 @code {
-    MovimientosRe oMovimientosRe = new();
-    Respuesta<MovimientosRe> oRespuesta = new();
+    Resin3 oResin3 = new();
+    Respuesta<Resin3> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public string numeroRes { get; set; }
@@ -99,8 +99,8 @@
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<MovimientosRe>>($"/api/MovimientosRe/{Id}");
-                oMovimientosRe = oRespuesta.List;
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Resin3>>($"/api/Resin3/{Id}");
+                oResin3 = oRespuesta.List;
 
             }
             catch (Exception ex)
@@ -111,17 +111,17 @@
     }
     async Task Guardar()
     {
-        oMovimientosRe.Nrores = numeroRes;
-        oMovimientosRe.Tipmov = movimiento.Substring(0, 1);
-        oMovimientosRe.Ctomov = traductorMotivos[motivo];
+        oResin3.Nrores = numeroRes;
+        oResin3.Tipmov = movimiento.Substring(0, 1);
+        oResin3.Ctomov = traductorMotivos[motivo];
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<MovimientosRe>("/api/MovimientosRe", oMovimientosRe);
+            await Http.PostAsJsonAsync<Resin3>("/api/Resin3", oResin3);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<MovimientosRe>("/api/MovimientosRe", oMovimientosRe);
+            await Http.PutAsJsonAsync<Resin3>("/api/Resin3", oResin3);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

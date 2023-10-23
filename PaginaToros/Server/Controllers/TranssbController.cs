@@ -16,7 +16,7 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
                     var lst = db.Transsbs
@@ -39,7 +39,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Transsb>> oRespuesta = new Respuesta<List<Transsb>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     var lst = db.Transsbs.ToList();
                     oRespuesta.Exito = 1;
@@ -58,7 +58,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Transsb>> oRespuesta = new Respuesta<List<Transsb>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Transsb oTranssb = new Transsb();
                     oTranssb.NroTrans = model.NroTrans;
@@ -73,8 +73,6 @@ namespace PaginaToros.Server.Controllers
                     oTranssb.Ecod = model.Ecod;
                     oTranssb.FchUsu = model.FchUsu;
                     oTranssb.CodUsu = model.CodUsu;
-                    oTranssb.NombreEstablecimiento = model.NombreEstablecimiento;
-
                     db.Transsbs.Add(oTranssb);
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
@@ -93,7 +91,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Transsb>> oRespuesta = new Respuesta<List<Transsb>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Transsb oTranssb = db.Transsbs.Find(model.Id);
                     oTranssb.NroTrans = model.NroTrans;
@@ -108,14 +106,6 @@ namespace PaginaToros.Server.Controllers
                     oTranssb.Ecod = model.Ecod;
                     oTranssb.FchUsu = model.FchUsu;
                     oTranssb.CodUsu = model.CodUsu;
-                    oTranssb.NombreEstablecimiento = model.NombreEstablecimiento;
-
-                    //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
-                    //foreach (var row in TorosPorId)
-                    //{
-                    //    row.NombreEst = model.Nombre;
-                    //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    //}
                     db.Entry(oTranssb).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();
@@ -135,7 +125,7 @@ namespace PaginaToros.Server.Controllers
             //IQueryable<Toro> TorosPorId;
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Transsb oTranssb = db.Transsbs.Find(Id);
                     db.Remove(oTranssb);

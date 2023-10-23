@@ -7,19 +7,19 @@ namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class HembrasYmachosReController : ControllerBase
+    public class Resin6Controller : ControllerBase
     {
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Respuesta<HembrasYmachosRe> oRespuesta = new Respuesta<HembrasYmachosRe>();
+            Respuesta<Resin6> oRespuesta = new Respuesta<Resin6>();
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
-                    var lst = db.HembrasYmachosRes
+                    var lst = db.Resin6s
                 .Where(x => x.Id == id)
                 .First();
                     oRespuesta.Exito = 1;
@@ -36,12 +36,12 @@ namespace PaginaToros.Server.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            Respuesta<List<HembrasYmachosRe>> oRespuesta = new Respuesta<List<HembrasYmachosRe>>();
+            Respuesta<List<Resin6>> oRespuesta = new Respuesta<List<Resin6>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    var lst = db.HembrasYmachosRes.ToList();
+                    var lst = db.Resin6s.ToList();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
                 }
@@ -56,14 +56,14 @@ namespace PaginaToros.Server.Controllers
         [HttpGet("Nrores/{nro}")]
         public IActionResult GetByRes(string nro)
         {
-            Respuesta<List<HembrasYmachosRe>> oRespuesta = new Respuesta<List<HembrasYmachosRe>>();
+            Respuesta<List<Resin6>> oRespuesta = new Respuesta<List<Resin6>>();
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
-                    var lst = db.HembrasYmachosRes
+                    var lst = db.Resin6s
                     .Where(x => x.Nrores == nro).ToList();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
@@ -78,40 +78,40 @@ namespace PaginaToros.Server.Controllers
 
 
         [HttpPost]
-        public IActionResult Add(HembrasYmachosRe model)
+        public IActionResult Add(Resin6 model)
         {
-            Respuesta<List<HembrasYmachosRe>> oRespuesta = new Respuesta<List<HembrasYmachosRe>>();
+            Respuesta<List<Resin6>> oRespuesta = new Respuesta<List<Resin6>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    HembrasYmachosRe oHembrasYmachosRe = new HembrasYmachosRe();
-                    oHembrasYmachosRe.Hdp = model.Hdp;
-                    oHembrasYmachosRe.HdpM = model.HdpM;
-                    oHembrasYmachosRe.HdpAs = model.HdpAs;
-                    oHembrasYmachosRe.Hdt = model.Hdt;
-                    oHembrasYmachosRe.Hdb = model.Hdb;
-                    oHembrasYmachosRe.Hpp = model.Hpp;
-                    oHembrasYmachosRe.HppM = model.HppM;
-                    oHembrasYmachosRe.HppAs = model.HppAs;
-                    oHembrasYmachosRe.Hpt = model.Hpt;
-                    oHembrasYmachosRe.Hpb = model.Hpb;
-                    oHembrasYmachosRe.Hgvp = model.Hgvp;
-                    oHembrasYmachosRe.Hgvb = model.Hgvb;
-                    oHembrasYmachosRe.Hgqp = model.Hgqp;
-                    oHembrasYmachosRe.Hgqb = model.Hgqb;
-                    oHembrasYmachosRe.Mcp = model.Mcp;
-                    oHembrasYmachosRe.McpM = model.McpM;
-                    oHembrasYmachosRe.McpAs = model.McpAs;
-                    oHembrasYmachosRe.Mct = model.Mct;
-                    oHembrasYmachosRe.Msp = model.Msp;
-                    oHembrasYmachosRe.MspM = model.MspM;
-                    oHembrasYmachosRe.MspAs = model.MspAs;
-                    oHembrasYmachosRe.Mst = model.Mst;
-                    oHembrasYmachosRe.Mspsb = model.Mspsb;
-                    oHembrasYmachosRe.Nrores = model.Nrores;
+                    Resin6 oResin6 = new Resin6();
+                    oResin6.Hdp = model.Hdp;
+                    oResin6.HdpM = model.HdpM;
+                    oResin6.HdpAs = model.HdpAs;
+                    oResin6.Hdt = model.Hdt;
+                    oResin6.Hdb = model.Hdb;
+                    oResin6.Hpp = model.Hpp;
+                    oResin6.HppM = model.HppM;
+                    oResin6.HppAs = model.HppAs;
+                    oResin6.Hpt = model.Hpt;
+                    oResin6.Hpb = model.Hpb;
+                    oResin6.Hgvp = model.Hgvp;
+                    oResin6.Hgvb = model.Hgvb;
+                    oResin6.Hgqp = model.Hgqp;
+                    oResin6.Hgqb = model.Hgqb;
+                    oResin6.Mcp = model.Mcp;
+                    oResin6.McpM = model.McpM;
+                    oResin6.McpAs = model.McpAs;
+                    oResin6.Mct = model.Mct;
+                    oResin6.Msp = model.Msp;
+                    oResin6.MspM = model.MspM;
+                    oResin6.MspAs = model.MspAs;
+                    oResin6.Mst = model.Mst;
+                    oResin6.Mspsb = model.Mspsb;
+                    oResin6.Nrores = model.Nrores;
 
-                    db.HembrasYmachosRes.Add(oHembrasYmachosRe);
+                    db.Resin6s.Add(oResin6);
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
                 }
@@ -124,38 +124,38 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPut]
-        public IActionResult Edit(HembrasYmachosRe model)
+        public IActionResult Edit(Resin6 model)
         {
-            Respuesta<List<HembrasYmachosRe>> oRespuesta = new Respuesta<List<HembrasYmachosRe>>();
+            Respuesta<List<Resin6>> oRespuesta = new Respuesta<List<Resin6>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    HembrasYmachosRe oHembrasYmachosRe = db.HembrasYmachosRes.Find(model.Id);
-                    oHembrasYmachosRe.Hdp = model.Hdp;
-                    oHembrasYmachosRe.HdpM = model.HdpM;
-                    oHembrasYmachosRe.HdpAs = model.HdpAs;
-                    oHembrasYmachosRe.Hdt = model.Hdt;
-                    oHembrasYmachosRe.Hdb = model.Hdb;
-                    oHembrasYmachosRe.Hpp = model.Hpp;
-                    oHembrasYmachosRe.HppM = model.HppM;
-                    oHembrasYmachosRe.HppAs = model.HppAs;
-                    oHembrasYmachosRe.Hpt = model.Hpt;
-                    oHembrasYmachosRe.Hpb = model.Hpb;
-                    oHembrasYmachosRe.Hgvp = model.Hgvp;
-                    oHembrasYmachosRe.Hgvb = model.Hgvb;
-                    oHembrasYmachosRe.Hgqp = model.Hgqp;
-                    oHembrasYmachosRe.Hgqb = model.Hgqb;
-                    oHembrasYmachosRe.Mcp = model.Mcp;
-                    oHembrasYmachosRe.McpM = model.McpM;
-                    oHembrasYmachosRe.McpAs = model.McpAs;
-                    oHembrasYmachosRe.Mct = model.Mct;
-                    oHembrasYmachosRe.Msp = model.Msp;
-                    oHembrasYmachosRe.MspM = model.MspM;
-                    oHembrasYmachosRe.MspAs = model.MspAs;
-                    oHembrasYmachosRe.Mst = model.Mst;
-                    oHembrasYmachosRe.Mspsb = model.Mspsb;
-                    oHembrasYmachosRe.Nrores = model.Nrores;
+                    Resin6 oResin6 = db.Resin6s.Find(model.Id);
+                    oResin6.Hdp = model.Hdp;
+                    oResin6.HdpM = model.HdpM;
+                    oResin6.HdpAs = model.HdpAs;
+                    oResin6.Hdt = model.Hdt;
+                    oResin6.Hdb = model.Hdb;
+                    oResin6.Hpp = model.Hpp;
+                    oResin6.HppM = model.HppM;
+                    oResin6.HppAs = model.HppAs;
+                    oResin6.Hpt = model.Hpt;
+                    oResin6.Hpb = model.Hpb;
+                    oResin6.Hgvp = model.Hgvp;
+                    oResin6.Hgvb = model.Hgvb;
+                    oResin6.Hgqp = model.Hgqp;
+                    oResin6.Hgqb = model.Hgqb;
+                    oResin6.Mcp = model.Mcp;
+                    oResin6.McpM = model.McpM;
+                    oResin6.McpAs = model.McpAs;
+                    oResin6.Mct = model.Mct;
+                    oResin6.Msp = model.Msp;
+                    oResin6.MspM = model.MspM;
+                    oResin6.MspAs = model.MspAs;
+                    oResin6.Mst = model.Mst;
+                    oResin6.Mspsb = model.Mspsb;
+                    oResin6.Nrores = model.Nrores;
 
                     //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
                     //foreach (var row in TorosPorId)
@@ -163,7 +163,7 @@ namespace PaginaToros.Server.Controllers
                     //    row.NombreEst = model.Nombre;
                     //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     //}
-                    db.Entry(oHembrasYmachosRe).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    db.Entry(oResin6).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
@@ -178,14 +178,14 @@ namespace PaginaToros.Server.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int Id)
         {
-            Respuesta<List<HembrasYmachosRe>> oRespuesta = new Respuesta<List<HembrasYmachosRe>>();
+            Respuesta<List<Resin6>> oRespuesta = new Respuesta<List<Resin6>>();
             //IQueryable<Toro> TorosPorId;
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    HembrasYmachosRe oHembrasYmachosRe = db.HembrasYmachosRes.Find(Id);
-                    db.Remove(oHembrasYmachosRe);
+                    Resin6 oResin6 = db.Resin6s.Find(Id);
+                    db.Remove(oResin6);
                     //var dbToros = db.Toros.Where(x => x.IdEst == Id);
                     //foreach(Toro oElement in dbToros)
                     //    {

@@ -1,4 +1,4 @@
-﻿@page "/inspectores"
+﻿@page "/Inspectores"
 
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
@@ -39,27 +39,37 @@
     <div class="tablacontent" style="position:relative;width:1400px;left:50px">
         <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@oRespuesta.List" TItem="Inspectore" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Data="@oRespuesta.List" TItem="Inspect" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="Inspectore" Property="Codigo" Title="Codigo de Inspector" Width="55px" />
-                <RadzenDataGridColumn TItem="Inspectore" Property="Nombre" Title="Nombre" Width="110px" />
-                <RadzenDataGridColumn TItem="Inspectore" Property="Direccion" Title="Nombre" Width="100px" />
-                <RadzenDataGridColumn TItem="Inspectore" Property="Localidad" Title="Localidad" Width="70px" />
-                <RadzenDataGridColumn TItem="Inspectore" Property="CodPostal" Title="Codigo Postal" Width="70px" />
-                <RadzenDataGridColumn TItem="Inspectore" Property="Provincia" Title="Provincia" Width="75px" />
-                <RadzenDataGridColumn TItem="Inspectore" Property="Telefono" Title="Telefono" Width="75px" />
+                <RadzenDataGridColumn TItem="Inspect" Property="Icod" Title="Codigo de Inspector" Width="55px" />
+                <RadzenDataGridColumn TItem="Inspect" Property="Nombre" Title="Nombre" Width="110px" />
+                <RadzenDataGridColumn TItem="Inspect" Property="Direcc" Title="Direccion" Width="100px" />
+                <RadzenDataGridColumn TItem="Inspect" Property="Locali" Title="Localidad" Width="70px" />
+                <RadzenDataGridColumn TItem="Inspect" Property="Codpos" Title="Codigo Postal" Width="70px" />
+                <RadzenDataGridColumn TItem="Inspect" Property="" Title="Provincia" Width="75px">
+                    <Template Context="data">
+                        @if (traductorProvincia.ContainsKey(data.Codpro))
+                        {
+                            <a>@(traductorProvincia[data.Codpro])</a>
+                        }
+                        else
+                        {
+                            <a>Otras</a>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>                  <RadzenDataGridColumn TItem="Inspect" Property="Telefo" Title="Telefono" Width="75px" />
 
-                <RadzenDataGridColumn TItem="Inspectore" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Inspect" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Establecimiento" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Inspectore" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Inspect" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Inspectore" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Inspect" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Size="16" Color="blue" /></button>
                     </Template>
@@ -84,20 +94,52 @@ else
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Inspectore>? grid;
+    public RadzenDataGrid<Inspect>? grid;
     int currentPage;
+    List<Socio> socios = new();
+    Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
+    {
+        {"01", "Chaco"},
+        {"02", "Corrientes"},
+        {"03", "Entre Rios"},
+        {"04", "Santa Fe"},
+        {"05", "Cordoba"},
+        {"06", "La pampa"},
+        {"07", "San Luis"},
+        {"08", "Santa Cruz"},
+        {"09", "Tierra del fuego"},
+        {"10", "Chubut"},
+        {"11", "Neuquen"},
+        {"12", "Rio negro"},
+        {"13", "Buenos Aires"},
+        {"14", "Capital Federal"},
+        {"15", "Catamarca"},
+        {"16", "Formosa"},
+        {"17", "Jujuy"},
+        {"18", "La rioja"},
+        {"19", "Mendoza"},
+        {"20", "Misiones"},
+        {"21", "Salta"},
+        {"22", "San Juan"},
+        {"23", "Santiago Del Estero"},
+        {"24", "Tucuman"},
+        {"",""}
+    };
     public bool allowFiltering = false;
-    public string Url = "/api/Inspectore";
-    public Respuesta<List<Inspectore>> oRespuesta = new Respuesta<List<Inspectore>>();
+    public string Url = "/api/Inspect";
+    public Respuesta<List<Inspect>> oRespuesta = new Respuesta<List<Inspect>>();
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Inspectore>>>(Url);
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Inspect>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
+        socios = rta.List;
+
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -109,7 +151,7 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/Inspectore/{id}");
+        await Http.DeleteAsync($"/api/Inspect/{id}");
         await Get();
         if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
         {

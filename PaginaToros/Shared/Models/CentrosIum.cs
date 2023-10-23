@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PaginaToros.Shared.Models;
-
-public partial class CentrosIum
+namespace PaginaToros.Shared.Models
 {
-    public string? Nrocen { get; set; }
-
-    public string? Nombre { get; set; }
-
-    public string? NroCSayg { get; set; }
-
-    public string? FchUsu { get; set; }
-
-    public string? CodUsu { get; set; }
-
-    public int Id { get; set; }
+    public partial class Centrosium
+    {
+        public string Nrocen { get; set; } = null!;
+        public string? Nombre { get; set; }
+        public string? NroCSayg { get; set; }
+        public DateTime? FchUsu { get; set; }
+        public int? CodUsu { get; set; }
+        public int Id { get; set; }
+    }
 }

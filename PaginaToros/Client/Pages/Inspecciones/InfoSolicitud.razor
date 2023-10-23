@@ -2,22 +2,20 @@
 
 <RadzenCard Class="m-3">
     <div class="row">
-        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Numero de Socio</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.NroSocio</b></RadzenText>
         <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Establecimiento</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Establecimiento</b></RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1"><b>@establecimientos.Where(x=>x.Ecod==oSolicitud.Codest)</b></RadzenText>
         <div class="col-md-6 col-xl-6">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Control de Produccion?</RadzenText>
-            <RadzenText TextStyle="TextStyle.Body1"><b>@(oSolicitud.ControlProduccion.Value ? "SI" : "NO")</b></RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@(oSolicitud.Produc=="S" ? "SI" : "NO")</b></RadzenText>
         </div>
         <div class="col-md-6 col-xl-6">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">ReInspeccion?</RadzenText>
-            <RadzenText TextStyle="TextStyle.Body1"><b>@(oSolicitud.Reinspeccion.Value ? "SI" : "NO")</b></RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@(oSolicitud.Reinsp=="S" ? "SI" : "NO")</b></RadzenText>
         </div>
         <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion solicitada el</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.FechaSolicitud</b></RadzenText><RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion solicitada el ?</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecsol</b></RadzenText><RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion solicitada el ?</RadzenText>
         <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion autorizada el</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.FechaAutorizacion</b></RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecins</b></RadzenText>
         <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Plantel</RadzenText>
         <RadzenText TextStyle="TextStyle.Body1"><b>-</b></RadzenText>
     </div>
@@ -25,15 +23,21 @@
 </RadzenCard>
 
 @code {
-    SolicitudInspeccion oSolicitud = new();
-    Respuesta<SolicitudInspeccion> oRta = new();
+    Solici1 oSolicitud = new();
+    Respuesta<Solici1> oRta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int id { get; set; }
+    List<Estable> establecimientos = new();
+    List<Socio> socios = new();
     protected override async Task OnInitializedAsync()
     {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>($"/api/Estable");
+        establecimientos = rta.List;
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/Socio");
+        socios = rt.List;
         if (id != 0)
         {
-            oRta = await Http.GetFromJsonAsync<Respuesta<SolicitudInspeccion>>($"/api/SolicitudInspeccion/{id}");
+            oRta = await Http.GetFromJsonAsync<Respuesta<Solici1>>($"/api/Solici1/{id}");
             oSolicitud = oRta.List;
         }
     }

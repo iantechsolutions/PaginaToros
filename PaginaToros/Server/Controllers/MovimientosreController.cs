@@ -8,19 +8,19 @@ namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MovimientosreController : ControllerBase
+    public class Resin3Controller : ControllerBase
     {
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Respuesta<MovimientosRe> oRespuesta = new Respuesta<MovimientosRe>();
+            Respuesta<Resin3> oRespuesta = new Respuesta<Resin3>();
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
-                    var lst = db.MovimientosRes
+                    var lst = db.Resin3s
                         .Where(x => x.Id == id)
                         .First();
                     oRespuesta.Exito = 1;
@@ -37,12 +37,12 @@ namespace PaginaToros.Server.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            Respuesta<List<MovimientosRe>> oRespuesta = new Respuesta<List<MovimientosRe>>();
+            Respuesta<List<Resin3>> oRespuesta = new Respuesta<List<Resin3>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    var lst = db.MovimientosRes.ToList();
+                    var lst = db.Resin3s.ToList();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
                 }
@@ -57,14 +57,14 @@ namespace PaginaToros.Server.Controllers
         [HttpGet("Nrores/{nro}")]
         public IActionResult GetByRes(string nro)
         {
-            Respuesta<List<MovimientosRe>> oRespuesta = new Respuesta<List<MovimientosRe>>();
+            Respuesta<List<Resin3>> oRespuesta = new Respuesta<List<Resin3>>();
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
-                    var lst = db.MovimientosRes
+                    var lst = db.Resin3s
                     .Where(x => x.Nrores == nro).ToList();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
@@ -78,25 +78,25 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPost]
-        public IActionResult Add(MovimientosRe model)
+        public IActionResult Add(Resin3 model)
         {
-            Respuesta<List<MovimientosRe>> oRespuesta = new Respuesta<List<MovimientosRe>>();
+            Respuesta<List<Resin3>> oRespuesta = new Respuesta<List<Resin3>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    MovimientosRe oMovimientosRe = new MovimientosRe();
-                    oMovimientosRe.Rdvac = model.Rdvac;
-                    oMovimientosRe.Rdvaqcs = model.Rdvaqcs;
-                    oMovimientosRe.Rdvaqss = model.Rdvaqss;
-                    oMovimientosRe.Rpvac = model.Rpvac;
-                    oMovimientosRe.Rpvaqcs = model.Rpvaqcs;
-                    oMovimientosRe.Rpvaqss = model.Rpvaqss;
-                    oMovimientosRe.Ctomov = model.Ctomov;
-                    oMovimientosRe.Tipmov = model.Tipmov;
-                    oMovimientosRe.Nrores = model.Nrores;
+                    Resin3 oResin3 = new Resin3();
+                    oResin3.Rdvac = model.Rdvac;
+                    oResin3.Rdvaqcs = model.Rdvaqcs;
+                    oResin3.Rdvaqss = model.Rdvaqss;
+                    oResin3.Rpvac = model.Rpvac;
+                    oResin3.Rpvaqcs = model.Rpvaqcs;
+                    oResin3.Rpvaqss = model.Rpvaqss;
+                    oResin3.Ctomov = model.Ctomov;
+                    oResin3.Tipmov = model.Tipmov;
+                    oResin3.Nrores = model.Nrores;
 
-                    db.MovimientosRes.Add(oMovimientosRe);
+                    db.Resin3s.Add(oResin3);
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
                 }
@@ -109,23 +109,23 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPut]
-        public IActionResult Edit(MovimientosRe model)
+        public IActionResult Edit(Resin3 model)
         {
-            Respuesta<List<MovimientosRe>> oRespuesta = new Respuesta<List<MovimientosRe>>();
+            Respuesta<List<Resin3>> oRespuesta = new Respuesta<List<Resin3>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    MovimientosRe oMovimientosRe = db.MovimientosRes.Find(model.Id);
-                    oMovimientosRe.Rdvac = model.Rdvac;
-                    oMovimientosRe.Rdvaqcs = model.Rdvaqcs;
-                    oMovimientosRe.Rdvaqss = model.Rdvaqss;
-                    oMovimientosRe.Rpvac = model.Rpvac;
-                    oMovimientosRe.Rpvaqcs = model.Rpvaqcs;
-                    oMovimientosRe.Rpvaqss = model.Rpvaqss;
-                    oMovimientosRe.Ctomov = model.Ctomov;
-                    oMovimientosRe.Tipmov = model.Tipmov;
-                    oMovimientosRe.Nrores = model.Nrores;
+                    Resin3 oResin3 = db.Resin3s.Find(model.Id);
+                    oResin3.Rdvac = model.Rdvac;
+                    oResin3.Rdvaqcs = model.Rdvaqcs;
+                    oResin3.Rdvaqss = model.Rdvaqss;
+                    oResin3.Rpvac = model.Rpvac;
+                    oResin3.Rpvaqcs = model.Rpvaqcs;
+                    oResin3.Rpvaqss = model.Rpvaqss;
+                    oResin3.Ctomov = model.Ctomov;
+                    oResin3.Tipmov = model.Tipmov;
+                    oResin3.Nrores = model.Nrores;
 
                     //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
                     //foreach (var row in TorosPorId)
@@ -133,7 +133,7 @@ namespace PaginaToros.Server.Controllers
                     //    row.NombreEst = model.Nombre;
                     //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     //}
-                    db.Entry(oMovimientosRe).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    db.Entry(oResin3).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
@@ -148,14 +148,14 @@ namespace PaginaToros.Server.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int Id)
         {
-            Respuesta<List<MovimientosRe>> oRespuesta = new Respuesta<List<MovimientosRe>>();
+            Respuesta<List<Resin3>> oRespuesta = new Respuesta<List<Resin3>>();
             //IQueryable<Toro> TorosPorId;
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    MovimientosRe oMovimientosRe = db.MovimientosRes.Find(Id);
-                    db.Remove(oMovimientosRe);
+                    Resin3 oResin3 = db.Resin3s.Find(Id);
+                    db.Remove(oResin3);
                     //var dbToros = db.Toros.Where(x => x.IdEst == Id);
                     //foreach(Toro oElement in dbToros)
                     //    {

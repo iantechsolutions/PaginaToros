@@ -14,14 +14,14 @@ namespace PaginaToros.Server.Controllers
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Respuesta<Establecimiento> oRespuesta = new Respuesta<Establecimiento>();
+            Respuesta<Estable> oRespuesta = new Respuesta<Estable>();
             
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
-                    var lst = db.Establecimientos
+                    var lst = db.Estables
                         .Where(x => x.Id == id)
                         .First();
                     oRespuesta.Exito = 1;
@@ -38,12 +38,12 @@ namespace PaginaToros.Server.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            Respuesta<List<Establecimiento>> oRespuesta = new Respuesta<List<Establecimiento>>();
+            Respuesta<List<Estable>> oRespuesta = new Respuesta<List<Estable>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    var lst = db.Establecimientos.ToList();
+                    var lst = db.Estables.ToList();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
                 }
@@ -58,15 +58,15 @@ namespace PaginaToros.Server.Controllers
         [HttpGet("Codigo/{nro}")]
         public IActionResult GetByCod(string nro)
         {
-            Respuesta<Establecimiento> oRespuesta = new Respuesta<Establecimiento>();
+            Respuesta<Estable> oRespuesta = new Respuesta<Estable>();
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
-                    var lst = db.Establecimientos
-                    .Where(x => x.Codigo == nro).First();
+                    var lst = db.Estables
+                    .Where(x => x.Ecod == nro).First();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
                 }
@@ -79,31 +79,31 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPost]
-        public IActionResult Add(Establecimiento model)
+        public IActionResult Add(Estable model)
         {
-            Respuesta<List<Establecimiento>> oRespuesta = new Respuesta<List<Establecimiento>>();
+            Respuesta<List<Estable>> oRespuesta = new Respuesta<List<Estable>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    Establecimiento oEstablecimiento = new Establecimiento();
-                    var estviejo = db.Establecimientos.OrderByDescending(x => x.Id).First();
-                    oEstablecimiento.Codigo = estviejo.Codigo + 1;
-                    oEstablecimiento.NombreSocio = model.NombreSocio;
-                    oEstablecimiento.CodigoSocio = model.CodigoSocio;
+                    Estable oEstablecimiento = new Estable();
+                    var estviejo = db.Estables.OrderByDescending(x => x.Id).First();
+                    oEstablecimiento.Ecod = (Int32.Parse(estviejo.Ecod) + 1).ToString("D5");
+                    oEstablecimiento.Ecod = model.Ecod;
+                    oEstablecimiento.Codsoc = model.Codsoc;
                     oEstablecimiento.Activo = model.Activo;
                     oEstablecimiento.Nombre = model.Nombre;
                     oEstablecimiento.Encargado = model.Encargado;
-                    oEstablecimiento.Domicilio = model.Domicilio;
-                    oEstablecimiento.Telefono = model.Telefono;
-                    oEstablecimiento.Localidad = model.Localidad;
-                    oEstablecimiento.CodPostal = model.CodPostal;
-                    oEstablecimiento.Provincia = model.Provincia;
-                    oEstablecimiento.Informacion = model.Informacion;
-                    oEstablecimiento.CodZona = model.CodZona;
-                    oEstablecimiento.FechaExistencia = model.FechaExistencia;
-                    
-                    db.Establecimientos.Add(oEstablecimiento);
+                    oEstablecimiento.Direcc = model.Direcc;
+                    oEstablecimiento.Tel = model.Tel;
+                    oEstablecimiento.Locali = model.Locali;
+                    oEstablecimiento.Codpos = model.Codpos;
+                    oEstablecimiento.Codpro = model.Codpro;
+                    oEstablecimiento.Plano = model.Plano;
+                    oEstablecimiento.Codzon = model.Codzon;
+                    oEstablecimiento.Fecing = model.Fecing;
+
+                    db.Estables.Add(oEstablecimiento);
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
                 }
@@ -116,28 +116,27 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPut]
-        public IActionResult Edit(Establecimiento model)
+        public IActionResult Edit(Estable model)
         {
-            Respuesta<List<Establecimiento>> oRespuesta = new Respuesta<List<Establecimiento>>();
+            Respuesta<List<Estable>> oRespuesta = new Respuesta<List<Estable>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    Establecimiento oEstablecimiento = db.Establecimientos.Find(model.Id);
-                    oEstablecimiento.Codigo = model.Codigo;
-                    oEstablecimiento.NombreSocio = model.NombreSocio;
-                    oEstablecimiento.CodigoSocio = model.CodigoSocio;
+                    Estable oEstablecimiento = db.Estables.Find(model.Id);
+                    oEstablecimiento.Ecod = model.Ecod;
+                    oEstablecimiento.Codsoc = model.Codsoc;
                     oEstablecimiento.Activo = model.Activo;
                     oEstablecimiento.Nombre = model.Nombre;
                     oEstablecimiento.Encargado = model.Encargado;
-                    oEstablecimiento.Domicilio = model.Domicilio;
-                    oEstablecimiento.Telefono = model.Telefono;
-                    oEstablecimiento.Localidad = model.Localidad;
-                    oEstablecimiento.CodPostal = model.CodPostal;
-                    oEstablecimiento.Provincia = model.Provincia;
-                    oEstablecimiento.Informacion = model.Informacion;
-                    oEstablecimiento.CodZona = model.CodZona;
-                    oEstablecimiento.FechaExistencia = model.FechaExistencia;
+                    oEstablecimiento.Direcc = model.Direcc;
+                    oEstablecimiento.Tel = model.Tel;
+                    oEstablecimiento.Locali = model.Locali;
+                    oEstablecimiento.Codpos = model.Codpos;
+                    oEstablecimiento.Codpro = model.Codpro;
+                    oEstablecimiento.Plano = model.Plano;
+                    oEstablecimiento.Codzon = model.Codzon;
+                    oEstablecimiento.Fecing = model.Fecing;
                     db.Entry(oEstablecimiento).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();
@@ -153,13 +152,13 @@ namespace PaginaToros.Server.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int Id)
         {
-            Respuesta<List<Establecimiento>> oRespuesta = new Respuesta<List<Establecimiento>>();
+            Respuesta<List<Estable>> oRespuesta = new Respuesta<List<Estable>>();
             //IQueryable<Toro> TorosPorId;
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                Establecimiento oEstablecimiento = db.Establecimientos.Find(Id);
+                Estable oEstablecimiento = db.Estables.Find(Id);
                 db.Remove(oEstablecimiento);
                 //var dbToros = db.Toros.Where(x => x.IdEst == Id);
                 //foreach(Toro oElement in dbToros)

@@ -38,11 +38,11 @@
     <div class="tablacontent" style="position:relative;width:1400px;left:50px">
         <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@oRespuesta.List" TItem="FutControl" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Data="@oRespuesta.List" TItem="Futcontrol" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
 
-                <RadzenDataGridColumn TItem="FutControl" Property="NroTrans" Title="Nro Transferencia" Width="90px" />
-                <RadzenDataGridColumn TItem="FutControl" Property="" Title="Fecha de Transferencia" Width="110px">
+                <RadzenDataGridColumn TItem="Futcontrol" Property="NroTrans" Title="Nro Transferencia" Width="90px" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="" Title="Fecha de Transferencia" Width="110px">
                     <Template Context="data">
                         @if (data.Fectrans.HasValue)
                         {
@@ -54,24 +54,24 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="FutControl" Property="Vnom" Title="Socio Vendedor" Width="110px" />
-                <RadzenDataGridColumn TItem="FutControl" Property="Cnom" Title="Socio Comprador" Width="110px" />
-                <RadzenDataGridColumn TItem="FutControl" Property="Plantel" Title="De Plantel" Width="110px" />
-                <RadzenDataGridColumn TItem="FutControl" Property="PlantDest" Title="A Plantel" Width="110px" />
-                <RadzenDataGridColumn TItem="FutControl" Property="CantHem" Title="Cant Hembras" Width="110px" />
-                <RadzenDataGridColumn TItem="FutControl" Property="CantMach" Title="Cant Machos" Width="110px" />
-                <RadzenDataGridColumn TItem="FutControl" Property="Hemsta" Title="Estado de las Hembras" Width="110px" />
-                <RadzenDataGridColumn TItem="FutControl" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Futcontrol" Property="Vnom" Title="Socio Vendedor" Width="110px" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="Cnom" Title="Socio Comprador" Width="110px" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="Plantel" Title="De Plantel" Width="110px" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="PlantDest" Title="A Plantel" Width="110px" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="CantHem" Title="Cant Hembras" Width="110px" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="CantMach" Title="Cant Machos" Width="110px" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="Hemsta" Title="Estado de las Hembras" Width="110px" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="FutControl" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Futcontrol" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                @*            <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
+                @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
             <Template Context="data">
             <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
             </Template>
@@ -94,18 +94,18 @@ else
 }
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<FutControl>? grid;
+    public RadzenDataGrid<Futcontrol>? grid;
     int currentPage;
     public bool allowFiltering = false;
-    public string Url = "/api/FutControl";
-    public Respuesta<List<FutControl>> oRespuesta = new Respuesta<List<FutControl>>();
+    public string Url = "/api/Futcontrol";
+    public Respuesta<List<Futcontrol>> oRespuesta = new Respuesta<List<Futcontrol>>();
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<FutControl>>>(Url);
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Futcontrol>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
         StateHasChanged();
@@ -119,7 +119,7 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/FutControl/{id}");
+        await Http.DeleteAsync($"/api/Futcontrol/{id}");
         await Get();
         if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
         {

@@ -37,23 +37,28 @@
     <div class="tablacontent" style="position:relative;width:1400px">
     <RadzenDataGrid style="position:relative;width:1400px;left:50px" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                 Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                Data="@oRespuesta.List" TItem="SolicitudInspeccion" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                Data="@oRespuesta.List" TItem="Solici1" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or">
         <Columns>
-                <RadzenDataGridColumn TItem="SolicitudInspeccion" Property="NroSolicitud" Title="Nro Solicitud" Width="325px" />
-            <RadzenDataGridColumn TItem="SolicitudInspeccion" Property="NombreSocio" Title="Socio" Width="325px" />
-            <RadzenDataGridColumn TItem="SolicitudInspeccion" Property="FechaSolicitud" Title="Fecha De Solicitud" Width="325px">
+                <RadzenDataGridColumn TItem="Solici1" Property="Nrosol" Title="Nro Solicitud" Width="325px" />
+                <RadzenDataGridColumn TItem="Solici1" Property="" Title="Socio" Width="325px">
+                    <Template Context="data">
+                        @(socios.Where(t => t.Scod == (establecimientos.Where(x => x.Ecod == data.Codest).FirstOrDefault()).Codsoc).FirstOrDefault().Nombre)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Solici1" Property="Fecsol" Title="Fecha De Solicitud" Width="325px">
                 <Template Context="data">
-                    @if(data.FechaSolicitud.HasValue){
-                        @data.FechaSolicitud.Value.ToString("dd/MM/yyyy")
+                    @if(data.Fecsol.HasValue){
+                        @data.Fecsol.Value.ToString("dd/MM/yyyy")
                     }
                     else{
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="SolicitudInspeccion" Property="FechaAutorizacion" Title="Fecha De Autorizacion" Width="325px">
+                <RadzenDataGridColumn TItem="Solici1" Property="Fecins" Title="Fecha De Autorizacion" Width="325px">
                 <Template Context="data">
-                    @if (data.FechaAutorizacion.HasValue){
-                        @data.FechaAutorizacion.Value.ToString("dd/MM/yyyy")
+                    @if (data.Fecins.HasValue)
+                    {
+                        @data.Fecins.Value.ToString("dd/MM/yyyy")
                     }
                     else{
 
@@ -62,17 +67,17 @@
             </RadzenDataGridColumn>
 
 
-            <RadzenDataGridColumn TItem="SolicitudInspeccion" Property="" Title="" Filterable="false" Width="50px">
+            <RadzenDataGridColumn TItem="Solici1" Property="" Title="" Filterable="false" Width="50px">
                 <Template Context="data">
                     <button class="btn" position="absolute" title="Editar Solicitud" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="SolicitudInspeccion" Property="" Title="" Filterable="false" Width="50px">
+            <RadzenDataGridColumn TItem="Solici1" Property="" Title="" Filterable="false" Width="50px">
                 <Template Context="data">
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            @*            <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
+            @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
         <Template Context="data">
         <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
         </Template>
@@ -96,20 +101,26 @@ else
 @code {
 
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<SolicitudInspeccion>? grid;
+    public RadzenDataGrid<Solici1>? grid;
     int currentPage;
-    public bool allowFiltering = false;
-    public string Url = "/api/solicitudinspeccion";
-    public Respuesta<List<SolicitudInspeccion>> oRespuesta = new Respuesta<List<SolicitudInspeccion>>();
+    bool allowFiltering = false;
+    string Url = "/api/Solici1";
+    Respuesta<List<Solici1>> oRespuesta = new Respuesta<List<Solici1>>();
+    List<Socio> socios = new();
+    List<Estable> establecimientos = new();
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<SolicitudInspeccion>>>(Url);
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Solici1>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
+        socios = rta.List;
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>("/api/Establecimiento");
+        establecimientos = rt.List;
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -121,7 +132,7 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/SolicitudInspeccion/{id}");
+        await Http.DeleteAsync($"/api/Solici1/{id}");
         await Get();
         if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
         {

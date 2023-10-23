@@ -8,19 +8,19 @@ namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class InspReController : ControllerBase
+    public class Resin1Controller : ControllerBase
     {
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Respuesta<InspRe> oRespuesta = new Respuesta<InspRe>();
+            Respuesta<Resin1> oRespuesta = new Respuesta<Resin1>();
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
-                    var lst = db.InspRes
+                    var lst = db.Resin1s
                 .Where(x => x.Id == id)
                 .First();
                     oRespuesta.Exito = 1;
@@ -37,12 +37,12 @@ namespace PaginaToros.Server.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            Respuesta<List<InspRe>> oRespuesta = new Respuesta<List<InspRe>>();
+            Respuesta<List<Resin1>> oRespuesta = new Respuesta<List<Resin1>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    var lst = db.InspRes.ToList();
+                    var lst = db.Resin1s.ToList();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
                 }
@@ -54,32 +54,31 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
         [HttpPost]
-        public IActionResult Add(InspRe model)
+        public IActionResult Add(Resin1 model)
         {
-            Respuesta<List<InspRe>> oRespuesta = new Respuesta<List<InspRe>>();
+            Respuesta<List<Resin1>> oRespuesta = new Respuesta<List<Resin1>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    InspRe oInspRe = new InspRe();
-                    oInspRe.Nrores = model.Nrores;
-                    oInspRe.Nropla = model.Nropla;
-                    oInspRe.Observ = model.Observ;
-                    oInspRe.Ppajust = model.Ppajust;
-                    oInspRe.Epromedio = model.Epromedio;
-                    oInspRe.Emax = model.Emax;
-                    oInspRe.Emin = model.Emin;
-                    oInspRe.Tortot = model.Tortot;
-                    oInspRe.Torsb = model.Torsb;
-                    oInspRe.CodUsu = model.CodUsu;
-                    oInspRe.Editar = model.Editar;
-                    oInspRe.Icod = model.Icod;
-                    oInspRe.Scod = model.Scod;
-                    oInspRe.Estcod = model.Estcod;
-                    oInspRe.FechaInspeccion = model.FechaInspeccion;
-                    oInspRe.NombreSocio = model.NombreSocio;
+                    Resin1 oResin1 = new Resin1();
+                    oResin1.Nrores = model.Nrores;
+                    oResin1.Nropla = model.Nropla;
+                    oResin1.Observ = model.Observ;
+                    oResin1.Ppajust = model.Ppajust;
+                    oResin1.Epromedio = model.Epromedio;
+                    oResin1.Emax = model.Emax;
+                    oResin1.Emin = model.Emin;
+                    oResin1.Tortot = model.Tortot;
+                    oResin1.Torsb = model.Torsb;
+                    oResin1.CodUsu = model.CodUsu;
+                    oResin1.Editar = model.Editar;
+                    oResin1.Icod = model.Icod;
+                    oResin1.Scod = model.Scod;
+                    oResin1.Estcod = model.Estcod;
+                    oResin1.Freali = model.Freali;
 
-                    db.InspRes.Add(oInspRe);
+                    db.Resin1s.Add(oResin1);
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
                 }
@@ -92,31 +91,30 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPut]
-        public IActionResult Edit(InspRe model)
+        public IActionResult Edit(Resin1 model)
         {
-            Respuesta<List<InspRe>> oRespuesta = new Respuesta<List<InspRe>>();
+            Respuesta<List<Resin1>> oRespuesta = new Respuesta<List<Resin1>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    InspRe oInspRe = db.InspRes.Find(model.Id);
-                    oInspRe.Nrores = model.Nrores;
-                    oInspRe.Nropla = model.Nropla;
-                    oInspRe.Observ = model.Observ;
-                    oInspRe.Ppajust = model.Ppajust;
-                    oInspRe.Epromedio = model.Epromedio;
-                    oInspRe.Emax = model.Emax;
-                    oInspRe.Emin = model.Emin;
-                    oInspRe.Tortot = model.Tortot;
-                    oInspRe.Torsb = model.Torsb;
-                    oInspRe.FchUsu = model.FchUsu;
-                    oInspRe.CodUsu = model.CodUsu;
-                    oInspRe.Editar = model.Editar;
-                    oInspRe.Icod = model.Icod;
-                    oInspRe.Scod = model.Scod;
-                    oInspRe.Estcod = model.Estcod;
-                    oInspRe.FechaInspeccion = model.FechaInspeccion;
-                    oInspRe.NombreSocio = model.NombreSocio;
+                    Resin1 oResin1 = db.Resin1s.Find(model.Id);
+                    oResin1.Nrores = model.Nrores;
+                    oResin1.Nropla = model.Nropla;
+                    oResin1.Observ = model.Observ;
+                    oResin1.Ppajust = model.Ppajust;
+                    oResin1.Epromedio = model.Epromedio;
+                    oResin1.Emax = model.Emax;
+                    oResin1.Emin = model.Emin;
+                    oResin1.Tortot = model.Tortot;
+                    oResin1.Torsb = model.Torsb;
+                    oResin1.FchUsu = model.FchUsu;
+                    oResin1.CodUsu = model.CodUsu;
+                    oResin1.Editar = model.Editar;
+                    oResin1.Icod = model.Icod;
+                    oResin1.Scod = model.Scod;
+                    oResin1.Estcod = model.Estcod;
+                    oResin1.Freali = model.Freali;
 
                     //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
                     //foreach (var row in TorosPorId)
@@ -124,7 +122,7 @@ namespace PaginaToros.Server.Controllers
                     //    row.NombreEst = model.Nombre;
                     //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     //}
-                    db.Entry(oInspRe).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    db.Entry(oResin1).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
@@ -139,14 +137,14 @@ namespace PaginaToros.Server.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int Id)
         {
-            Respuesta<List<InspRe>> oRespuesta = new Respuesta<List<InspRe>>();
+            Respuesta<List<Resin1>> oRespuesta = new Respuesta<List<Resin1>>();
             //IQueryable<Toro> TorosPorId;
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    InspRe oInspRe = db.InspRes.Find(Id);
-                    db.Remove(oInspRe);
+                    Resin1 oResin1 = db.Resin1s.Find(Id);
+                    db.Remove(oResin1);
                     //var dbToros = db.Toros.Where(x => x.IdEst == Id);
                     //foreach(Toro oElement in dbToros)
                     //    {

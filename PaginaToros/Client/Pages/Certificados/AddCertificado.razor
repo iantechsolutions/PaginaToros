@@ -17,7 +17,7 @@
                 </div>
                 <div class="col-sm">
                     <label>Fecha de Venta</label><br />
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oCertifseman.Fecvta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <RadzenDatePicker TValue="DateOnly" @bind-Value="@oCertifseman.Fecvta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 
                 </div>
                 <div class="col-sm">
@@ -38,10 +38,10 @@
                     <label class="col-sm">Socio</label>
                     <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -136,8 +136,8 @@
 
     Socio socioSeleccionado = new();
     List<Socio> socios = new();
-    CentrosIum centroSeleccionado = new();
-    List<CentrosIum> centros = new();
+    Centrosium centroSeleccionado = new();
+    List<Centrosium> centros = new();
     string tipoToro = "";
 
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
@@ -147,7 +147,7 @@
     {
         var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
         socios = rta.List.ToList();
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<CentrosIum>>>($"/api/CentrosIum");
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Centrosium>>>($"/api/Centrosium");
         centros = rt.List.ToList();
 
         if (Id != 0)
@@ -166,10 +166,8 @@
     }
     async Task Guardar()
     {
-        oCertifseman.Nrocri = socioSeleccionado.NroSocio;
+        oCertifseman.Nrocri = socioSeleccionado.Scod;
         oCertifseman.Nrocen = centroSeleccionado.Nrocen;
-        oCertifseman.NombreSocio = socioSeleccionado.NombreCompleto;
-        oCertifseman.NombreCentro = centroSeleccionado.Nombre;
         if (Id == 0)
         {
             oCertifseman.NrDosi = Int32.Parse(oCertifseman.NrDosiOr);
@@ -188,7 +186,7 @@
 
     }
 
-    private async Task<IEnumerable<CentrosIum>> BusquedaCentros(string searchText)
+    private async Task<IEnumerable<Centrosium>> BusquedaCentros(string searchText)
     {
         var result = centros.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
@@ -196,7 +194,7 @@
 
     private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.NombreCompleto.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 

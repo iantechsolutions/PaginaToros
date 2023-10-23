@@ -46,14 +46,14 @@
             <br/>
             <RadzenDataList AllowVirtualization=false
                             WrapItems=true AllowPaging=false
-                            Data="@(establecimientos.GetRange(0,3))" TItem="Establecimiento" PageSize="3" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
+                            Data="@(establecimientos.GetRange(0,3))" TItem="Estable" PageSize="3" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
                 <Template Context="data">
                     <RadzenColumn Size="6" class="rz-p-0 rz-p-md-0">
-                        <RadzenCard Style="@(data.Activo.Value?"background-color: rgba(45, 255, 125, 0.5);":"background-color: rgba(255, 55, 46, 0.5);")">
+                        <RadzenCard Style="@(data.Activo=="S"?"background-color: rgba(45, 255, 125, 0.5);":"background-color: rgba(255, 55, 46, 0.5);")">
                             <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Nombre</RadzenText>
                             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H4" class="rz-display-flex rz-mt-0 rz-my-0">@(data.Nombre)</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Provincia</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H4" class="rz-display-flex rz-mt-0 rz-my-0">@(data.Provincia)</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H4" class="rz-display-flex rz-mt-0 rz-my-0">@(traductorProvincia[data.Codpro])</RadzenText>
                             </RadzenCard>
                         </RadzenColumn>
                     </Template>
@@ -72,24 +72,24 @@
                 <RadzenRow class="rz-text-align-center " Gap="1rem">
                     <RadzenColumn Size="4" >
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Nombre</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Prenom @socio.NombreCompleto @socio.Postnom</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Prenom @socio.Nombre @socio.Posnom</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Telefono</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Telefono</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Telefo1</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Plantel</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.UltimoPlantel</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Placod</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Mail</RadzenText>
                         <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Mail</RadzenText>
 
                     </RadzenColumn>
                     <RadzenColumn >
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Domicilio</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Domicilio</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Direcc1</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Localidad</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Localidad</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Locali1</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Codigo Postal</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.CodPostal</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Codpos1</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Provincia</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Provincia</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@traductorProvincia[socio.Codpro1]</RadzenText>
                     </RadzenColumn>
                     
                 </RadzenRow>
@@ -105,13 +105,43 @@
     [Parameter] public int id { get; set; }
     Socio socio = new();
     bool activo = true;
-    List<Establecimiento> establecimientos = new() { new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, new Establecimiento { Id = 0, Nombre = "IANTech", Activo = true, Provincia = "Salta", Encargado = "Juan" }, };
+    List<Estable> establecimientos = new() { new Estable { Id = 0, Nombre = "IANTech", Activo = "S", Codpro = "02", Encargado = "Juan" }, new Estable { Id = 0, Nombre = "IANTech", Activo = "S", Codpro = "04", Encargado = "Juan" }, new Estable { Id = 0, Nombre = "IANTech", Activo = "S", Codpro = "08", Encargado = "Juan" }, new Estable { Id = 0, Nombre = "IANTech", Activo = "S", Codpro = "18", Encargado = "Juan" }, new Estable { Id = 0, Nombre = "IANTech", Activo = "N", Codpro = "14", Encargado = "Juan" }, };
+
+    Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
+    {
+        {"01", "Chaco"},
+        {"02", "Corrientes"},
+        {"03", "Entre Rios"},
+        {"04", "Santa Fe"},
+        {"05", "Cordoba"},
+        {"06", "La pampa"},
+        {"07", "San Luis"},
+        {"08", "Santa Cruz"},
+        {"09", "Tierra del fuego"},
+        {"10", "Chubut"},
+        {"11", "Neuquen"},
+        {"12", "Rio negro"},
+        {"13", "Buenos Aires"},
+        {"14", "Capital Federal"},
+        {"15", "Catamarca"},
+        {"16", "Formosa"},
+        {"17", "Jujuy"},
+        {"18", "La rioja"},
+        {"19", "Mendoza"},
+        {"20", "Misiones"},
+        {"21", "Salta"},
+        {"22", "San Juan"},
+        {"23", "Santiago Del Estero"},
+        {"24", "Tucuman"},
+        {"",""}
+    };
+
 
     protected override async Task OnInitializedAsync()
     {
         if (id != 0)
         {
-            var rta = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>($"/api/Establecimiento");
+            var rta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>($"/api/Establecimiento");
             establecimientos = rta.List;
             var rt = await Http.GetFromJsonAsync<Respuesta<Socio>>($"/api/Socio/{id}");
             socio = rt.List;

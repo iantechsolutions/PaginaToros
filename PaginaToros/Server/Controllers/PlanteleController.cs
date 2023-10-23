@@ -7,16 +7,16 @@ namespace PaginaToros.Server.Cont{
     [Route("api/[controller]")]
     [ApiController]
      
-    public class PlanteleController : ControllerBase
+    public class PlantelController : ControllerBase
     {
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Respuesta<Plantele> oRespuesta = new Respuesta<Plantele>();
+            Respuesta<Plantel> oRespuesta = new Respuesta<Plantel>();
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
                         
                     var lst = db.Planteles
@@ -36,10 +36,10 @@ namespace PaginaToros.Server.Cont{
         [HttpGet]
         public IActionResult Get()
         {
-            Respuesta<List<Plantele>> oRespuesta = new Respuesta<List<Plantele>>();
+            Respuesta<List<Plantel>> oRespuesta = new Respuesta<List<Plantel>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     var lst = db.Planteles.ToList();
                     oRespuesta.Exito = 1;
@@ -53,28 +53,33 @@ namespace PaginaToros.Server.Cont{
             return Ok(oRespuesta);
         }
         [HttpPost]
-        public IActionResult Add(Plantele model)
+        public IActionResult Add(Plantel model)
         {
-            Respuesta<List<Plantele>> oRespuesta = new Respuesta<List<Plantele>>();
+            Respuesta<List<Plantel>> oRespuesta = new Respuesta<List<Plantel>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    Plantele oPlantel = new Plantele();
-                    oPlantel.NroPlantel = model.NroPlantel;
-                    oPlantel.Activo = model.Activo;
-                    oPlantel.FechaExistencia = model.FechaExistencia;
-                    oPlantel.NroUltInspeccion = model.NroUltInspeccion;
-                    oPlantel.UltimaInspeccion = model.UltimaInspeccion;
-                    oPlantel.UltimaReinspeccion = model.UltimaReinspeccion;
-                    oPlantel.NombreSocio = model.NombreSocio;
-                    oPlantel.CodSocio = model.CodSocio;
-                    oPlantel.Vacas = model.Vacas;
-                    oPlantel.VaquillServicio = model.VaquillServicio;
-                    oPlantel.VaquillNoServicio = model.VaquillNoServicio;
-                    oPlantel.VacasVip = model.VacasVip;
-                    oPlantel.PrenadasVip = model.PrenadasVip;
-                    oPlantel.VaquillNoServicioVip = model.VaquillNoServicioVip;
+                    Plantel oPlantel = new Plantel();
+                    oPlantel.Placod = model.Placod;
+                    oPlantel.Anioex = model.Anioex;
+                    oPlantel.Varede = model.Varede;
+                    oPlantel.Vqcsrd = model.Vqcsrd;
+                    oPlantel.Vqssrd = model.Vqssrd;
+                    oPlantel.Varepr = model.Varepr;
+                    oPlantel.Vqcsrp = model.Vqcsrp;
+                    oPlantel.Vqssrp = model.Vqssrp;
+                    oPlantel.Feulti = model.Feulti;
+                    oPlantel.Nroins = model.Nroins;
+                    oPlantel.Nrocri = model.Nrocri;
+                    oPlantel.Catego = model.Catego;
+                    oPlantel.Aniopa = model.Aniopa;
+                    oPlantel.Urein = model.Urein;
+                    oPlantel.FchUsu = model.FchUsu;
+                    oPlantel.CodUsu = model.CodUsu;
+                    oPlantel.Comment = model.Comment;
+                    oPlantel.Estado = model.Estado;
+                    oPlantel.Fecing = model.Fecing;
                     db.Planteles.Add(oPlantel);
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
@@ -88,27 +93,33 @@ namespace PaginaToros.Server.Cont{
         }
 
         [HttpPut]
-        public IActionResult Edit(Plantele model)
+        public IActionResult Edit(Plantel model)
         {
-            Respuesta<List<Plantele>> oRespuesta = new Respuesta<List<Plantele>>();
+            Respuesta<List<Plantel>> oRespuesta = new Respuesta<List<Plantel>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    Plantele oPlantel = db.Planteles.Find(model.Id);
-                    oPlantel.NroPlantel = model.NroPlantel;
-                    oPlantel.Activo = model.Activo;
-                    oPlantel.FechaExistencia = model.FechaExistencia;
-                    oPlantel.NroUltInspeccion = model.NroUltInspeccion;
-                    oPlantel.UltimaInspeccion = model.UltimaInspeccion;
-                    oPlantel.UltimaReinspeccion = model.UltimaReinspeccion;
-                    oPlantel.NombreSocio = model.NombreSocio;
-                    oPlantel.Vacas = model.Vacas;
-                    oPlantel.VaquillServicio = model.VaquillServicio;
-                    oPlantel.VaquillNoServicio = model.VaquillNoServicio;
-                    oPlantel.VacasVip = model.VacasVip;
-                    oPlantel.PrenadasVip = model.PrenadasVip;
-                    oPlantel.VaquillNoServicioVip = model.VaquillNoServicioVip;
+                    Plantel oPlantel = db.Planteles.Find(model.Id);
+                    oPlantel.Placod = model.Placod;
+                    oPlantel.Anioex = model.Anioex;
+                    oPlantel.Varede = model.Varede;
+                    oPlantel.Vqcsrd = model.Vqcsrd;
+                    oPlantel.Vqssrd = model.Vqssrd;
+                    oPlantel.Varepr = model.Varepr;
+                    oPlantel.Vqcsrp = model.Vqcsrp;
+                    oPlantel.Vqssrp = model.Vqssrp;
+                    oPlantel.Feulti = model.Feulti;
+                    oPlantel.Nroins = model.Nroins;
+                    oPlantel.Nrocri = model.Nrocri;
+                    oPlantel.Catego = model.Catego;
+                    oPlantel.Aniopa = model.Aniopa;
+                    oPlantel.Urein = model.Urein;
+                    oPlantel.FchUsu = model.FchUsu;
+                    oPlantel.CodUsu = model.CodUsu;
+                    oPlantel.Comment = model.Comment;
+                    oPlantel.Estado = model.Estado;
+                    oPlantel.Fecing = model.Fecing;
 
                     //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
                     //foreach (var row in TorosPorId)
@@ -132,14 +143,14 @@ namespace PaginaToros.Server.Cont{
         [HttpDelete("{id}")]
         public IActionResult Delete(int Id)
         {
-            Respuesta<List<Plantele>> oRespuesta = new Respuesta<List<Plantele>>();
+            Respuesta<List<Plantel>> oRespuesta = new Respuesta<List<Plantel>>();
             //IQueryable<Toro> TorosPorId;
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    Plantele oPlantele = db.Planteles.Find(Id);
-                    db.Remove(oPlantele);
+                    Plantel oPlantel = db.Planteles.Find(Id);
+                    db.Remove(oPlantel);
                     //var dbToros = db.Toros.Where(x => x.IdEst == Id);
                     //foreach(Toro oElement in dbToros)
                     //    {

@@ -58,27 +58,27 @@
     <br/>
     <RadzenDataGrid AllowColumnResize="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="20"
                     Density="Density.Compact" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                    Data="@inspectores" TItem="Inspectore" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    Data="@Inspects" TItem="Inspect" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
-            <RadzenDataGridColumn TItem="Inspectore" Property="Nombre" Title="Nombre" Width="55px" />
-            <RadzenDataGridColumn TItem="Inspectore" Property="" Title="Presentadas" Filterable="false" Width="100px">
+            <RadzenDataGridColumn TItem="Inspect" Property="Nombre" Title="Nombre" Width="55px" />
+            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Presentadas" Filterable="false" Width="100px">
                 <Template Context="data">
-                    @(ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.data.Hdp) + ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.data.Hpp));
+                    @(ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.Hdp) + ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.Hpp));
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Inspectore" Property="" Title="Marcadas" Filterable="false" Width="100px">
+            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Marcadas" Filterable="false" Width="100px">
                 <Template Context="data">
-                    @(ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.data.HdpM) + ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.data.HppM));
+                    @(ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.HdpM) + ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.HppM));
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Inspectore" Property="" Title="Astadas" Filterable="false" Width="100px">
+            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Astadas" Filterable="false" Width="100px">
                 <Template Context="data">
-                    @(ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.data.HdpAs) + ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.data.HppAs));
+                    @(ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.HdpAs) + ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.HppAs));
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Inspectore" Property="" Title="Rechazadas" Filterable="false" Width="100px">
+            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Rechazadas" Filterable="false" Width="100px">
                 <Template Context="data">
-                    @(ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.rechazadasDP) + ValoresInspectores.Where(x => x.ICod == data.Codigo).Sum(t => t.rechazadasPP));
+                    @(ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.rechazadasDP) + ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.rechazadasPP));
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
@@ -100,14 +100,14 @@ else
     class Datos
     {
         public string Tipo { get; set; }
-        public double Cantidad { get; set; }
+        public double? Cantidad { get; set; }
     }
     class Combinado
     {
-        public double rechazadasPP {get;set;}
-        public double rechazadasDP {get;set;}
+        public double? rechazadasPP {get;set;}
+        public double? rechazadasDP {get;set;}
         public string? ICod { get; set; }
-        public HembrasYmachosRe? data { get; set; }
+        public Resin6? data { get; set; }
     }
 
     [Parameter] 
@@ -127,11 +127,11 @@ else
     Datos Machados = new Datos { Tipo = "Machados", Cantidad = 0 };
     Datos Rechazados = new Datos { Tipo = "Rechazados", Cantidad = 0 };
     Datos Control = new Datos { Tipo = "Control S/", Cantidad = 0 };
-    List<InspRe> reportes = new();
-    List<HembrasYmachosRe> hemyma = new ();
-    List<Inspectore> inspectores = new();
+    List<Resin1> reportes = new();
+    List<Resin6> hemyma = new ();
+    List<Inspect> Inspects = new();
     List<Datos> Data = new();
-    List<Combinado> ValoresInspectores = new();
+    List<Combinado> ValoresInspects = new();
     protected override async Task OnInitializedAsync()
     {
         try
@@ -140,19 +140,19 @@ else
             FechaFinal = DateTime.Parse(fecha2);
 
         }catch{}
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<InspRe>>>($"/api/InspRe");
-        reportes = rta.List.Where(x => x.FechaInspeccion <= FechaFinal && x.FechaInspeccion>=FechaInicial).ToList();
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<HembrasYmachosRe>>>($"/api/HembrasYmachosRe");
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Resin1>>>($"/api/Resin1");
+        reportes = rta.List.Where(x => x.Freali <= FechaFinal && x.Freali >= FechaInicial).ToList();
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Resin6>>>($"/api/Resin6");
         hemyma = rt.List.Where(x => reportes.Any(i => i.Nrores == x.Nrores)).ToList();
-        var rtaa = await Http.GetFromJsonAsync<Respuesta<List<Inspectore>>>($"/api/Inspectore");
-        inspectores = rtaa.List.ToList();
+        var rtaa = await Http.GetFromJsonAsync<Respuesta<List<Inspect>>>($"/api/Inspect");
+        Inspects = rtaa.List.ToList();
 
         foreach(var rep in reportes)
         {
-            HembrasYmachosRe? item = hemyma.FirstOrDefault(x => x.Nrores == rep.Nrores);
+            Resin6? item = hemyma.FirstOrDefault(x => x.Nrores == rep.Nrores);
             var rechazadasDp = item.Hdp - item.HdpM - item.HdpAs;
             var rechazadasPp = item.Hpp - item.HppM - item.HppAs;
-            ValoresInspectores.Add(
+            ValoresInspects.Add(
             new Combinado
                 {
                     rechazadasDP = rechazadasDp,

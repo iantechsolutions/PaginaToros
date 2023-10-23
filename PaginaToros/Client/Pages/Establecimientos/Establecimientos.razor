@@ -38,48 +38,58 @@
     <div class="tablacontent" style="position:relative;width:1400px;left:50px">
         <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                     Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                    Data="@oRespuesta.List" TItem="Establecimiento" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    Data="@oRespuesta.List" TItem="Estable" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="Establecimiento" Property="CodigoSocio" Title="NroSocio" Width="55px" />
-                <RadzenDataGridColumn TItem="Establecimiento" Property="NombreSocio" Title="Socio" Width="110px" />
-                <RadzenDataGridColumn TItem="Establecimiento" Property="Activo" Title="Activo?" Width="55px">
+                <RadzenDataGridColumn TItem="Estable" Property="Ecod" Title="Cod. Establ." Width="55px" />
+                <RadzenDataGridColumn TItem="Estable" Property="" Title="Socio" Width="110px">
                     <Template Context="data">
-                        @if(data.Activo.HasValue){
-                            @if(data.Activo.Value){
-                                <a style="color:darkgreen">Si</a>
-                            }
-                            else
-                            {
-                                <a style="color:red">No</a>
-                            }
+                        @(socios.Where(x=>x.Scod==data.Codsoc).FirstOrDefault().Nombre)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Estable" Property="Activo" Title="Activo?" Width="55px">
+                    <Template Context="data">
+                        @if(data.Activo=="S"){
+                            <a style="color:darkgreen">Si</a>
                         }
                         else
                         {
-                        
+                            <a style="color:red">No</a>
                         }
+                        
                     </Template>    
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Establecimiento" Property="Nombre" Title="Nombre" Width="100px" />
-                <RadzenDataGridColumn TItem="Establecimiento" Property="Encargado" Title="Encargado" Width="70px" />
-                <RadzenDataGridColumn TItem="Establecimiento" Property="Domicilio" Title="Domicilio" Width="70px" />
-                <RadzenDataGridColumn TItem="Establecimiento" Property="Telefono" Title="Telefono" Width="75px" />
-                <RadzenDataGridColumn TItem="Establecimiento" Property="Localidad" Title="Localidad" Width="75px" />
-                <RadzenDataGridColumn TItem="Establecimiento" Property="CodPostal" Title="Codigo Postal" Width="85px" />
-                <RadzenDataGridColumn TItem="Establecimiento" Property="Provincia" Title="Provincia" Width="90px" />
-                <RadzenDataGridColumn TItem="Establecimiento" Property="Informacion" Title="Informacion" Width="80px" />
-                <RadzenDataGridColumn TItem="Establecimiento" Property="CodZona" Title="Cod. zona" Width="70px" />
-                <RadzenDataGridColumn TItem="Establecimiento" Property="FechaExistencia" Title="Año Creacion" Width="85px"/>
-                <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Estable" Property="Nombre" Title="Nombre" Width="100px" />
+                <RadzenDataGridColumn TItem="Estable" Property="Encargado" Title="Encargado" Width="70px" />
+                <RadzenDataGridColumn TItem="Estable" Property="Direcc" Title="Domicilio" Width="70px" />
+                <RadzenDataGridColumn TItem="Estable" Property="Tel" Title="Telefono" Width="75px" />
+                <RadzenDataGridColumn TItem="Estable" Property="Locali" Title="Localidad" Width="75px" />
+                <RadzenDataGridColumn TItem="Estable" Property="Codpos" Title="Codigo Postal" Width="85px" />
+                <RadzenDataGridColumn TItem="Estable" Property="" Title="Provincia" Width="75px">
+                    <Template Context="data">
+                        @if (traductorProvincia.ContainsKey(data.Codpro))
+                        {
+                            <a>@(traductorProvincia[data.Codpro])</a>
+                        }
+                        else
+                        {
+                            <a>Otras</a>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>                
+                <RadzenDataGridColumn TItem="Estable" Property="Plano" Title="Informacion" Width="80px" />
+                <RadzenDataGridColumn TItem="Estable" Property="Codzon" Title="Cod. zona" Width="70px" />
+                <RadzenDataGridColumn TItem="Estable" Property="Fechacreacion" Title="Año Creacion" Width="85px" />
+                <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Establecimiento" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-               <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
+               <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
                     <Template Context="data">
                         <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Size="16" Color="blue" /></button>
                     </Template>
@@ -104,20 +114,51 @@ else
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Establecimiento>? grid;
+    public RadzenDataGrid<Estable>? grid;
+    List<Socio> socios = new();
     int currentPage;
     public bool allowFiltering = false;
     public string Url = "/api/Establecimiento";
-    public Respuesta<List<Establecimiento>> oRespuesta = new Respuesta<List<Establecimiento>>();
+    Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
+    {
+        {"01", "Chaco"},
+        {"02", "Corrientes"},
+        {"03", "Entre Rios"},
+        {"04", "Santa Fe"},
+        {"05", "Cordoba"},
+        {"06", "La pampa"},
+        {"07", "San Luis"},
+        {"08", "Santa Cruz"},
+        {"09", "Tierra del fuego"},
+        {"10", "Chubut"},
+        {"11", "Neuquen"},
+        {"12", "Rio negro"},
+        {"13", "Buenos Aires"},
+        {"14", "Capital Federal"},
+        {"15", "Catamarca"},
+        {"16", "Formosa"},
+        {"17", "Jujuy"},
+        {"18", "La rioja"},
+        {"19", "Mendoza"},
+        {"20", "Misiones"},
+        {"21", "Salta"},
+        {"22", "San Juan"},
+        {"23", "Santiago Del Estero"},
+        {"24", "Tucuman"},
+        {"",""}
+    };
+    public Respuesta<List<Estable>> oRespuesta = new Respuesta<List<Estable>>();
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>(Url);
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
+        socios = rta.List;
         StateHasChanged();
     }
     public void CambiarModoFiltro()

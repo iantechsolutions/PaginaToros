@@ -1,35 +1,45 @@
-﻿@inherits LayoutComponentBase
-<AuthorizeView>
-    <Authorized>
-        <style>
-            @@media print {
-                table {
-                    break-inside: avoid;
-                }
+﻿﻿@inherits LayoutComponentBase
 
-                .no-print {
-                    display: none !important;
-                }
-            }
-        </style>
-        <div class="no-print">
-            <NavMenu />
-        </div>
-        <div class="grid-container">
-            <main class="container">
-                @Body
+<style>
+    @@media print {
+        table {
+            break-inside: avoid;
+        }
 
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+<div class="page">
+    <AuthorizeView>
+        <Authorized>
+            <div class="no-print">
+                <NavMenu />
+            </div>
+            <main>
+                <div class="grid-container">
+                    <main class="container">
+                        @Body
+
+                    </main>
+
+                </div>
+                <br />
+                <br />
+                <br />
+                <RadzenFooter class="no-print" Style="border-top:1px solid darkgrey">
+                    <p>&copy; 2023 IanTechSolutions. All rights reserved.</p>
+                </RadzenFooter>
             </main>
+        </Authorized>
+        <NotAuthorized>
+            <main>
+                <article class="content px-4">
+                    <Login></Login>
+                </article>
+            </main>
+        </NotAuthorized>
+    </AuthorizeView>
 
-        </div>
-        <br />
-        <br />
-        <br />
-        <RadzenFooter class="no-print" Style="border-top:1px solid darkgrey">
-            <p>&copy; 2023 IanTechSolutions. All rights reserved.</p>
-        </RadzenFooter>
-    </Authorized>
-    <NotAuthorized>
-        <Login></Login>
-    </NotAuthorized>
-</AuthorizeView>
+</div>

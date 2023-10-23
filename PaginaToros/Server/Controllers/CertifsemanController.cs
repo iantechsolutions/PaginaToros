@@ -17,7 +17,7 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
                     var lst = db.Certifsemen
@@ -40,7 +40,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Certifseman>> oRespuesta = new Respuesta<List<Certifseman>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     var lst = db.Certifsemen.ToList();
                     oRespuesta.Exito = 1;
@@ -59,7 +59,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Certifseman>> oRespuesta = new Respuesta<List<Certifseman>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Certifseman oCertifseman = new Certifseman();
                     oCertifseman.TipoCert = model.TipoCert;
@@ -86,8 +86,6 @@ namespace PaginaToros.Server.Controllers
                     oCertifseman.CodUsu = model.CodUsu;
                     oCertifseman.Id = model.Id;
                     oCertifseman.Apodo = model.Apodo;
-                    oCertifseman.NombreSocio = model.NombreSocio;
-                    oCertifseman.NombreCentro = model.NombreCentro;
 
                     db.Certifsemen.Add(oCertifseman);
                     db.SaveChanges();
@@ -107,7 +105,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Certifseman>> oRespuesta = new Respuesta<List<Certifseman>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Certifseman oCertifseman = db.Certifsemen.Find(model.Id);
                     oCertifseman.TipoCert = model.TipoCert;
@@ -134,14 +132,6 @@ namespace PaginaToros.Server.Controllers
                     oCertifseman.CodUsu = model.CodUsu;
                     oCertifseman.Id = model.Id;
                     oCertifseman.Apodo = model.Apodo;
-                    oCertifseman.NombreSocio = model.NombreSocio;
-                    oCertifseman.NombreCentro = model.NombreCentro;
-                    //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
-                    //foreach (var row in TorosPorId)
-                    //{
-                    //    row.NombreEst = model.Nombre;
-                    //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    //}
                     db.Entry(oCertifseman).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();
@@ -160,7 +150,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Certifseman>> oRespuesta = new Respuesta<List<Certifseman>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Certifseman oCertifseman = db.Certifsemen.Find(Id);
                     db.Remove(oCertifseman);

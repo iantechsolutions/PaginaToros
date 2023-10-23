@@ -2,30 +2,22 @@
 
 <RadzenCard Class="m-3">
     <div class="row">
-        <h4><strong>@oPlantel.NroPlantel</strong></h4>
+        <h4><strong>@oPlantel.Placod</strong></h4>
         <div class="col-md-6 col-xl-6">
             <div class="d-flex flex-row p-3">
                 <div>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Activo?</RadzenText>
-                    @if (oPlantel.Activo.HasValue)
-                    {
-                        @if (oPlantel.Activo.Value)
-                        {
-                            <RadzenText TextStyle="TextStyle.Body1"><b>Si</b></RadzenText>
-                        }
-                        else
-                        {
-                            <RadzenText TextStyle="TextStyle.Body1"><b>No</b></RadzenText>
-                        }
+                    @if (oPlantel.Estado=="S"){
+                        <RadzenText TextStyle="TextStyle.Body1"><b>Si</b></RadzenText>
                     }
                     else
                     {
-                        <br/>
+                        <RadzenText TextStyle="TextStyle.Body1"><b>No</b></RadzenText>
                     }
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Año de Existencia</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oPlantel.FechaExistencia</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oPlantel.Anioex</b></RadzenText>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Nombre de Socio</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@(oPlantel.NombreSocio ?? "")</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@socios.Where(x=>x.Scod==oPlantel.Nrocri)</b></RadzenText>
 
                 </div>
             </div>
@@ -34,11 +26,11 @@
             <div class="d-flex flex-row p-3">
                 <div>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Numero de ultima inspeccion</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@(oPlantel.NroUltInspeccion ?? "")</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@(oPlantel.Nroins ?? "")</b></RadzenText>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Fecha de ultima inspeccion</RadzenText>
-                    @if (oPlantel.UltimaInspeccion.HasValue)
+                    @if (oPlantel.Feulti.HasValue)
                     {
-                        <RadzenText TextStyle="TextStyle.Body1"><b>@oPlantel.UltimaInspeccion.Value.ToString("dd/MM/yyyy")</b></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1"><b>@oPlantel.Feulti.Value.ToString("dd/MM/yyyy")</b></RadzenText>
                     }
                     else
                     {
@@ -53,15 +45,15 @@
         <div class="row">
             <div class="col-sm-4">
                 <RadzenText TextStyle="TextStyle.Overline" Class="">Vacas</RadzenText>
-                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.Vacas</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.Varede</RadzenText>
             </div>
             <div class="col-sm-4">
                 <RadzenText TextStyle="TextStyle.Overline" Class="">Vaquillonas con servicio</RadzenText>
-                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.VaquillServicio</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.Vqcsrd</RadzenText>
             </div>
             <div class="col-sm-4">
                 <RadzenText TextStyle="TextStyle.Overline" Class="">Vaquillonas sin servicio</RadzenText>
-                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.VaquillNoServicio</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.Vqssrd</RadzenText>
             </div>
         </div>
 
@@ -71,15 +63,15 @@
         <div class="row">
             <div class="col-sm-4">
                 <RadzenText TextStyle="TextStyle.Overline" Class="">Vacas</RadzenText>
-                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.VacasVip</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.Varepr</RadzenText>
             </div>
             <div class="col-sm-4">
                 <RadzenText TextStyle="TextStyle.Overline" Class="">Vaquillonas con servicio o preñadas</RadzenText>
-                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.PrenadasVip</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.Vqcsrp</RadzenText>
             </div>
             <div class="col-sm-4">
                 <RadzenText TextStyle="TextStyle.Overline" Class="">Vaquillonas sin servicio</RadzenText>
-                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.VaquillNoServicioVip</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" Class="">@oPlantel.Vqssrp</RadzenText>
             </div>
         </div>
 
@@ -87,16 +79,19 @@
 </RadzenCard>
 
 @code {
-    Plantele oPlantel = new();
-    Respuesta<Plantele> oRta = new();
+    Plantel oPlantel = new();
+    Respuesta<Plantel> oRta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int id { get; set; }
+    List<Socio> socios = new();
     protected override async Task OnInitializedAsync()
     {
         if (id != 0)
         {
-            oRta = await Http.GetFromJsonAsync<Respuesta<Plantele>>($"/api/Plantele/{id}");
+            oRta = await Http.GetFromJsonAsync<Respuesta<Plantel>>($"/api/Plantel/{id}");
             oPlantel = oRta.List;
+            var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/Socio");
+            socios = rta.List;
         }
     }
     async Task cancel()
@@ -105,7 +100,4 @@
 
     }
 
-}
-
-blic int id { get; set; }
 }

@@ -9,19 +9,19 @@ namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class InspectoreController : ControllerBase
+    public class InspectController : ControllerBase
     {
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Respuesta<Inspectore> oRespuesta = new Respuesta<Inspectore>();
+            Respuesta<Inspect> oRespuesta = new Respuesta<Inspect>();
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
-                    var lst = db.Inspectores
+                    var lst = db.Inspects
                         .Where(x => x.Id == id)
                         .First();
                     oRespuesta.Exito = 1;
@@ -38,12 +38,12 @@ namespace PaginaToros.Server.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            Respuesta<List<Inspectore>> oRespuesta = new Respuesta<List<Inspectore>>();
+            Respuesta<List<Inspect>> oRespuesta = new Respuesta<List<Inspect>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    var lst = db.Inspectores.ToList();
+                    var lst = db.Inspects.ToList();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
                 }
@@ -55,23 +55,23 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
         [HttpPost]
-        public IActionResult Add(Inspectore model)
+        public IActionResult Add(Inspect model)
         {
-            Respuesta<List<Inspectore>> oRespuesta = new Respuesta<List<Inspectore>>();
+            Respuesta<List<Inspect>> oRespuesta = new Respuesta<List<Inspect>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    Inspectore oInspector = new Inspectore();
-                    oInspector.Codigo = model.Codigo;
+                    Inspect oInspector = new Inspect();
+                    oInspector.Icod = model.Icod;
                     oInspector.Nombre = model.Nombre;
-                    oInspector.Direccion = model.Direccion;
-                    oInspector.Localidad = model.Localidad;
-                    oInspector.CodPostal = model.CodPostal;
-                    oInspector.Provincia = model.Provincia;
-                    oInspector.Telefono = model.Telefono;
+                    oInspector.Direcc = model.Direcc;
+                    oInspector.Locali = model.Locali;
+                    oInspector.Codpos = model.Codpos;
+                    oInspector.Codpro = model.Codpro;
+                    oInspector.Telefo = model.Telefo;
                     oInspector.Mail = model.Mail;
-                    db.Inspectores.Add(oInspector);
+                    db.Inspects.Add(oInspector);
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
                 }
@@ -84,30 +84,22 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPut]
-        public IActionResult Edit(Inspectore model)
+        public IActionResult Edit(Inspect model)
         {
-            Respuesta<List<Inspectore>> oRespuesta = new Respuesta<List<Inspectore>>();
+            Respuesta<List<Inspect>> oRespuesta = new Respuesta<List<Inspect>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    Inspectore oInspector = db.Inspectores.Find(model.Id);
-                    oInspector.Codigo = model.Codigo;
+                    Inspect oInspector = db.Inspects.Find(model.Id);
+                    oInspector.Icod = model.Icod;
                     oInspector.Nombre = model.Nombre;
-                    oInspector.Direccion = model.Direccion;
-                    oInspector.Localidad = model.Localidad;
-                    oInspector.CodPostal = model.CodPostal;
-                    oInspector.Provincia = model.Provincia;
-                    oInspector.Telefono = model.Telefono;
+                    oInspector.Direcc = model.Direcc;
+                    oInspector.Locali = model.Locali;
+                    oInspector.Codpos = model.Codpos;
+                    oInspector.Codpro = model.Codpro;
+                    oInspector.Telefo = model.Telefo;
                     oInspector.Mail = model.Mail;
-
-                    //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
-                    //foreach (var row in TorosPorId)
-                    //{
-                    //    row.NombreEst = model.Nombre;
-                    //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    //}
-
                     db.Entry(oInspector).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();
@@ -123,13 +115,13 @@ namespace PaginaToros.Server.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int Id)
         {
-            Respuesta<List<Inspectore>> oRespuesta = new Respuesta<List<Inspectore>>();
+            Respuesta<List<Inspect>> oRespuesta = new Respuesta<List<Inspect>>();
             //IQueryable<Toro> TorosPorId;
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    Inspectore oInspector = db.Inspectores.Find(Id);
+                    Inspect oInspector = db.Inspects.Find(Id);
                     db.Remove(oInspector);
                     //var dbToros = db.Toros.Where(x => x.IdEst == Id);
                     //foreach(Toro oElement in dbToros)

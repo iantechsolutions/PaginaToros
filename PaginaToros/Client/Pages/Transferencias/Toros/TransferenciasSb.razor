@@ -44,7 +44,17 @@
                 <RadzenDataGridColumn TItem="Transsb" Property="NroOrden" Title="Nro Orden" Width="260px" />
                 <RadzenDataGridColumn TItem="Transsb" Property="Vnom" Title="Socio Vendedor" Width="260px"/>
                 <RadzenDataGridColumn TItem="Transsb" Property="Cnom" Title="Socio Comprador" Width="260px" />
-                <RadzenDataGridColumn TItem="Transsb" Property="NombreEstablecimiento" Title="Establecimiento" Width="260px" />
+                <RadzenDataGridColumn TItem="Transsb" Property="" Title="Establecimiento" Width="260px">
+                    <Template Context="data">
+                        @if(establecimientos.Where(x => x.Ecod == data.Ecod).Count()>0){
+                            <a>@(establecimientos.Where(x => x.Ecod == data.Ecod).First().Nombre)</a>
+                        }
+                        else
+                        {
+                            <a></a>
+                        }
+                    </Template>    
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Transsb" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
@@ -55,7 +65,7 @@
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                @*            <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
+                @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
             <Template Context="data">
             <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
             </Template>
@@ -88,6 +98,7 @@ else
     public bool allowFiltering = false;
     public string Url = "/api/Transsb";
     public Respuesta<List<Transsb>> oRespuesta = new Respuesta<List<Transsb>>();
+    List<Estable> establecimientos = new();
     protected override async Task OnInitializedAsync()
     {
         await Get();
@@ -97,6 +108,9 @@ else
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Transsb>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>("/api/Establecimiento");
+        establecimientos = rta.List;
+
         StateHasChanged();
     }
     public void CambiarModoFiltro()

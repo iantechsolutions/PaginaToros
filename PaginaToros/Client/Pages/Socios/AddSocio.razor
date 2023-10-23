@@ -12,31 +12,31 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Nombre Completo</label>
-                    <InputText class="form-control" @bind-Value="@oSocio.NombreCompleto"
+                    <InputText class="form-control" @bind-Value="@oSocio.Nombre"
                                placeholder="Nombre"></InputText>
-                    <ValidationMessage For="(()=> oSocio.NombreCompleto)" style="color:red;" />
+                    <ValidationMessage For="(()=> oSocio.Nombre)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Domicilio</label>
-                    <InputText @bind-Value="@oSocio.Domicilio" class="form-control" placeholder="Domicilio"></InputText>
-                    <ValidationMessage For="(()=> oSocio.Domicilio)" style="color:red;" />
+                    <InputText @bind-Value="@oSocio.Direcc1" class="form-control" placeholder="Domicilio"></InputText>
+                    <ValidationMessage For="(()=> oSocio.Direcc1)" style="color:red;" />
                 </div
                 <div class="col-sm">
                     <label class="col-sm">Localidad</label>
-                    <InputText @bind-Value="@oSocio.Localidad" class="form-control" placeholder="Localidad"></InputText>
-                    <ValidationMessage For="(()=> oSocio.Localidad)" style="color:red;" />
+                    <InputText @bind-Value="@oSocio.Locali1" class="form-control" placeholder="Localidad"></InputText>
+                    <ValidationMessage For="(()=> oSocio.Locali1)" style="color:red;" />
                 </div>
             </div>
             <br />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Codigo Postal</label>
-                    <InputText class="form-control" @bind-Value="@oSocio.CodPostal" placeholder="Cod. Postal"></InputText>
-                    <ValidationMessage For="(()=> oSocio.CodPostal)" style="color:red;" />
+                    <InputText class="form-control" @bind-Value="@oSocio.Codpos1" placeholder="Cod. Postal"></InputText>
+                    <ValidationMessage For="(()=> oSocio.Codpos1)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Provincia</label>
-                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,provincias))" placeholder="Busca por nombre"  EnableDropDown="true" @bind-Value="oSocio.Provincia">
+                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,provincias))" placeholder="Busca por nombre"  EnableDropDown="true" @bind-Value="tempProvincia">
                         <SelectedTemplate Context="eleccion">
                             @eleccion
                         </SelectedTemplate>
@@ -47,16 +47,16 @@
                 </div
                 <div class="col-sm">
                     <label class="col-sm">Telefono</label>
-                    <InputText @bind-Value="@oSocio.Telefono" class="form-control" placeholder="Telefono"></InputText>
-                    <ValidationMessage For="(()=> oSocio.Telefono)" style="color:red;" />
+                    <InputText @bind-Value="@oSocio.Telefo1" class="form-control" placeholder="Telefono"></InputText>
+                    <ValidationMessage For="(()=> oSocio.Telefo1)" style="color:red;" />
                 </div>
             </div>
             <br />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>2do Telefono</label>
-                    <InputText class="form-control" @bind-Value="@oSocio.Telefono2" placeholder="2do telefono"></InputText>
-                    <ValidationMessage For="(()=> oSocio.Telefono2)" style="color:red;" />
+                    <InputText class="form-control" @bind-Value="@oSocio.Telefo2" placeholder="2do telefono"></InputText>
+                    <ValidationMessage For="(()=> oSocio.Telefo2)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Mail</label>
@@ -76,8 +76,8 @@
                 </div>
                 <div class="col-sm">
                     <label>Plantel</label>
-                    <InputText class="form-control" @bind-Value="@oSocio.UltimoPlantel" placeholder="Plantel"></InputText>
-                    <ValidationMessage For="(()=> oSocio.UltimoPlantel)" style="color:red;" /> 
+                    <InputText class="form-control" @bind-Value="@oSocio.Placod" placeholder="Plantel"></InputText>
+                    <ValidationMessage For="(()=> oSocio.Placod)" style="color:red;" /> 
                 </div>
                 <div class="col-sm"/>
             </div>
@@ -94,10 +94,40 @@
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     DateTime FechaTemp = DateTime.Now.Date;
+    public string tempProvincia = "";
     //string CodZona = "  ";
     bool activo = true;
-    List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal","Catamarca","Chaco","Chubut","Cordoba","Corrientes","Entre Rios","Formosa","Jujuy","La pampa","La rioja","Mendoza","Misiones","Neuquen","Rio negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Santiago Del Estero","Tierra del fuego","Tucuman" };
-
+    List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal","Catamarca","Chaco","Chubut","Cordoba","Corrientes","Entre Rios","Formosa",
+    "Jujuy","La pampa","La rioja","Mendoza","Misiones","Neuquen","Rio negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Santiago Del Estero",
+    "Tierra del fuego","Tucuman" };
+    Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
+    {
+        {"Chaco","01"},
+        {"Corrientes","02"},
+        {"Entre Rios","03"},
+        {"Santa Fe","04"},
+        {"Cordoba","05"},
+        {"La pampa","06"},
+        {"San Luis","07"},
+        {"Santa Cruz","08"},
+        {"Tierra del fuego","09"},
+        {"Chubut","10"},
+        {"Neuquen","11"},
+        {"Rio negro","12"},
+        {"Buenos Aires","13"},
+        {"Capital Federal","14"},
+        {"Catamarca","15"},
+        {"Formosa","16"},
+        {"Jujuy","17"},
+        {"La rioja","18"},
+        {"Mendoza","19"},
+        {"Misiones","20"},
+        {"Salta","21"},
+        {"San Juan","22"},
+        {"Santiago Del Estero","23"},
+        {"Tucuman","24"},
+        {"",""}
+    };
     protected override async Task OnInitializedAsync()
     {
         if (Id != 0)
@@ -106,15 +136,21 @@
             {
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<Socio>>($"/api/Socio/{Id}");
                 oSocio = oRespuesta.List;
-                if (oSocio.Activo.HasValue)
+
+                if (oSocio.Criador == "S")
                 {
-                    activo = oSocio.Activo.Value;
+                    activo = true;
                 }
-                if (oSocio.FechaExistencia.HasValue)
+                else
                 {
-                    FechaTemp = oSocio.FechaExistencia.Value;
+                    activo = false;
                 }
-                
+
+                if (oSocio.Fecing.HasValue)
+                {
+                    FechaTemp = oSocio.Fecing.Value;
+                }
+
             }
             catch (Exception ex)
             {
@@ -124,8 +160,16 @@
     }
     async Task Guardar()
     {
-        oSocio.FechaExistencia = FechaTemp;
-        oSocio.Activo = activo;
+        oSocio.Codpro1 = traductorProvincia[tempProvincia];
+        oSocio.Fecing = FechaTemp;
+        if (activo)
+        {
+            oSocio.Criador = "S";
+        }
+        else
+        {
+            oSocio.Criador = "N";
+        }
         if (Id == 0)
         {
             await Http.PostAsJsonAsync<Socio>("/api/Socio", oSocio);

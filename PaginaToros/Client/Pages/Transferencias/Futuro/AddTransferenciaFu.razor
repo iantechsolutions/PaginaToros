@@ -7,17 +7,17 @@
 </style>
 <div class="card">
     <div class="card-body">
-        <EditForm Model="@oFutControl" OnValidSubmit="Guardar">
+        <EditForm Model="@oFutcontrol" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Nro de transferencia</label>
-                    <InputText @bind-Value="@oFutControl.NroTrans" class="form-control" placeholder=""></InputText>
-                    <ValidationMessage For="(()=> oFutControl.NroTrans)" style="color:red;" />
+                    <InputText @bind-Value="@oFutcontrol.NroTrans" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oFutcontrol.NroTrans)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Fecha de transferencia</label><br />
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oFutControl.Fectrans" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oFutcontrol.Fectrans" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 </div>
             </div>
             <br />
@@ -26,10 +26,10 @@
                     <label>Socio Vendedor</label><br />
                     <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioVendedor">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -37,10 +37,10 @@
                     <label class="col-sm">Socio Comprador</label>
                     <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioComprador">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -66,18 +66,18 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Cantidad de Hembras</label>
-                    <InputNumber @bind-Value="@oFutControl.CantHem" class="form-control" placeholder=""></InputNumber>
-                    <ValidationMessage For="(()=> oFutControl.CantHem)" style="color:red;" />
+                    <InputNumber @bind-Value="@oFutcontrol.CantHem" class="form-control" placeholder=""></InputNumber>
+                    <ValidationMessage For="(()=> oFutcontrol.CantHem)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Cantidad de Machos</label>
-                    <InputNumber @bind-Value="@oFutControl.CantMach" class="form-control" placeholder=""></InputNumber>
-                    <ValidationMessage For="(()=> oFutControl.CantMach)" style="color:red;" />
+                    <InputNumber @bind-Value="@oFutcontrol.CantMach" class="form-control" placeholder=""></InputNumber>
+                    <ValidationMessage For="(()=> oFutcontrol.CantMach)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Estado de las hembras</label>
-                    <RadzenDropDown @bind-Value=@oFutControl.Hemsta Data=@estadosHembra Style="width: 100%; max-width: 400px;" />
-                    <ValidationMessage For="(()=> oFutControl.Hemsta)" style="color:red;" />
+                    <RadzenDropDown @bind-Value=@oFutcontrol.Hemsta Data=@estadosHembra Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="(()=> oFutcontrol.Hemsta)" style="color:red;" />
                 </div>
             </div>
             <br />
@@ -89,8 +89,8 @@
     </div>
 </div>
 @code {
-    FutControl oFutControl = new();
-    Respuesta<FutControl> oRespuesta = new();
+    Futcontrol oFutcontrol = new();
+    Respuesta<Futcontrol> oRespuesta = new();
     Socio socioComprador = new();
     Socio socioVendedor = new();
     List<Socio> socios = new();
@@ -106,10 +106,10 @@
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<FutControl>>($"/api/FutControl/{Id}");
-                oFutControl = oRespuesta.List;
-                socioComprador = socios.Where(x => x.NroSocio == oFutControl.Scom).First();
-                socioVendedor = socios.Where(x => x.NroSocio == oFutControl.Sven).First();
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Futcontrol>>($"/api/Futcontrol/{Id}");
+                oFutcontrol = oRespuesta.List;
+                socioComprador = socios.Where(x => x.Scod == oFutcontrol.Scom).First();
+                socioVendedor = socios.Where(x => x.Scod == oFutcontrol.Sven).First();
             }
             catch (Exception ex)
             {
@@ -119,18 +119,18 @@
     }
     async Task Guardar()
     {
-        oFutControl.Vnom = socioVendedor.NombreCompleto;
-        oFutControl.Cnom = socioComprador.NombreCompleto;
-        oFutControl.Sven = socioVendedor.NroSocio.ToString();
-        oFutControl.Scom = socioComprador.NroSocio.ToString();
+        oFutcontrol.Vnom = socioVendedor.Nombre;
+        oFutcontrol.Cnom = socioComprador.Nombre;
+        oFutcontrol.Sven = socioVendedor.Scod.ToString();
+        oFutcontrol.Scom = socioComprador.Scod.ToString();
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<FutControl>("/api/FutControl", oFutControl);
+            await Http.PostAsJsonAsync<Futcontrol>("/api/Futcontrol", oFutcontrol);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<FutControl>("/api/FutControl", oFutControl);
+            await Http.PutAsJsonAsync<Futcontrol>("/api/Futcontrol", oFutcontrol);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
@@ -142,7 +142,7 @@
 
     private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.NombreCompleto.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 }

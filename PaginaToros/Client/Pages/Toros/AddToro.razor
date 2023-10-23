@@ -14,10 +14,10 @@
                     <label class="col-sm">Propietario</label>
                     <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -70,7 +70,7 @@
                     </div>
                     <div class="col-sm">
                         <label class="col-sm">Fecha de nacimiento</label>
-                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTorosuni.FechaNacimiento" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTorosuni.Nacido" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                     </div>
 
                 </div>
@@ -96,7 +96,7 @@
                     </div>
                     <div class="col-sm">
                         <label class="col-sm">Fecha de nacimiento</label>
-                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTorosuni.FechaNacimiento" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTorosuni.Nacido" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                     </div>
 
                 </div>
@@ -157,7 +157,7 @@
             {
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<Torosuni>>($"/api/Torosuni/{Id}");
                 oTorosuni = oRespuesta.List;
-                socioSeleccionado = socios.Where(x => x.NroSocio == oTorosuni.Criador).First();
+                socioSeleccionado = socios.Where(x => x.Scod == oTorosuni.Criador).First();
                 estadoTemp = traductorCarga[oTorosuni.CodEstado];
                 tipoTemp = traductorCarga[oTorosuni.TipToro];
             }
@@ -169,8 +169,7 @@
     }
     async Task Guardar()
     {
-        oTorosuni.NombreSocio = socioSeleccionado.NombreCompleto;
-        oTorosuni.Criador = socioSeleccionado.NroSocio;
+        oTorosuni.Criador = socioSeleccionado.Scod;
         oTorosuni.CodEstado = traductor[estadoTemp];
         try{
             oTorosuni.TipToro = traductor[tipoTemp];
@@ -200,7 +199,7 @@
 
     private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.NombreCompleto.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 

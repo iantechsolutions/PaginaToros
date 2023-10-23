@@ -31,10 +31,10 @@
                     <label>Socio Vendedor</label><br />
                     <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioVendedor">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -42,10 +42,10 @@
                     <label class="col-sm">Socio Comprador</label>
                     <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioComprador">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -75,8 +75,8 @@
     Socio socioComprador = new();
     Socio socioVendedor = new();
     List<Socio> socios = new();
-    List<Establecimiento> establecimientos = new();
-    Establecimiento establecimientoSeleccionado = new();
+    List<Estable> establecimientos = new();
+    Estable establecimientoSeleccionado = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
 
@@ -84,7 +84,7 @@
     {
         var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
         socios = rta.List.ToList();
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>($"/api/Establecimiento");
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>($"/api/Establecimiento");
         establecimientos = rt.List.ToList();
         if (Id != 0)
         {
@@ -93,13 +93,13 @@
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<Transsb>>($"/api/Transsb/{Id}");
                 oTranssb = oRespuesta.List;
                 try{
-                    socioComprador = socios.Where(x => x.NroSocio == oTranssb.Scom).First();
-                    socioVendedor = socios.Where(x => x.NroSocio == oTranssb.Sven).First();
-                    establecimientoSeleccionado = establecimientos.Where(x => x.Codigo == oTranssb.Ecod).First();
+                    socioComprador = socios.Where(x => x.Scod == oTranssb.Scom).First();
+                    socioVendedor = socios.Where(x => x.Scod == oTranssb.Sven).First();
+                    establecimientoSeleccionado = establecimientos.Where(x => x.Ecod == oTranssb.Ecod).First();
                 }
                 catch
                 {
-                    
+
                 }
             }
             catch (Exception ex)
@@ -110,12 +110,11 @@
     }
     async Task Guardar()
     {
-        oTranssb.Vnom = socioVendedor.NombreCompleto;
-        oTranssb.Cnom = socioComprador.NombreCompleto;
-        oTranssb.Sven = socioVendedor.NroSocio.ToString();
-        oTranssb.Scom = socioComprador.NroSocio.ToString();
-        oTranssb.Ecod = establecimientoSeleccionado.Codigo.ToString();
-        oTranssb.NombreEstablecimiento = establecimientoSeleccionado.Nombre;
+        oTranssb.Vnom = socioVendedor.Nombre;
+        oTranssb.Cnom = socioComprador.Nombre;
+        oTranssb.Sven = socioVendedor.Scod;
+        oTranssb.Scom = socioComprador.Scod;
+        oTranssb.Ecod = establecimientoSeleccionado.Ecod;
         if (Id == 0)
         {
             await Http.PostAsJsonAsync<Transsb>("/api/Transsb", oTranssb);
@@ -135,13 +134,13 @@
 
     private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.NombreCompleto.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 
-    private async Task<IEnumerable<Establecimiento>> BusquedaEstablecimientos(string searchText)
+    private async Task<IEnumerable<Estable>> BusquedaEstablecimientos(string searchText)
     {
-        var result = establecimientos.Where(x => x.CodigoSocio==socioComprador.NroSocio && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var result = establecimientos.Where(x => x.Codsoc==socioComprador.Scod && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 }

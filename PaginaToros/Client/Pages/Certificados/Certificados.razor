@@ -41,19 +41,27 @@
                         Data="@oRespuesta.List" TItem="Certifseman" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
                 <RadzenDataGridColumn TItem="Certifseman" Property="TipoCert" Title="Tipo cert." Width="90px" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="NombreCentro" Title="Nombre del centro" Width="110px" />
+                <RadzenDataGridColumn TItem="Certifseman" Property="" Title="Nombre del centro" Width="110px">
+                    <Template Context="data">
+                        @(centros.Where(x=>x.Nrocen==data.Nrocen).FirstOrDefault().Nombre)
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Certifseman" Property="Fecvta" Title="Fecha de Venta" Width="110px">
                     <Template Context="data">
-                        @if(data.Fecvta.HasValue){
-                            @(data.Fecvta.Value.ToString("dd/MM/yyyy"))
+                        @(data.Fecvta.ToString("dd/MM/yyyy"))
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Certifseman" Property="" Title="Socio" Width="110px">
+                    <Template Context="data">
+                        @if(socios.Where(x => x.Scod == data.Nrocri).Count()>0){
+                            <a>@(socios.Where(x => x.Scod == data.Nrocri).First().Nombre)</a>
                         }
                         else
                         {
-                            
+                            <a></a>
                         }
                     </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Certifseman" Property="NombreSocio" Title="Socio" Width="110px" />
+                </RadzenDataGridColumn>                
                 <RadzenDataGridColumn TItem="Certifseman" Property="Tatpart" Title="Tatuaje" Width="80px" />
                 <RadzenDataGridColumn TItem="Certifseman" Property="Hba" Title="HBA" Width="80px" />
                 <RadzenDataGridColumn TItem="Certifseman" Property="NomDad" Title="Nombre" Width="130px" />
@@ -73,7 +81,7 @@
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                @*            <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
+                @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
             <Template Context="data">
             <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
             </Template>
@@ -100,6 +108,8 @@ else
     int currentPage;
     public bool allowFiltering = false;
     public string Url = "/api/Certifseman";
+    List<Centrosium> centros = new();
+    List<Socio> socios = new();
     public Respuesta<List<Certifseman>> oRespuesta = new Respuesta<List<Certifseman>>();
     protected override async Task OnInitializedAsync()
     {
@@ -107,9 +117,18 @@ else
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Certifseman>>>(Url);
+        var jsonSerializerOptions = new JsonSerializerOptions
+        {
+            Converters = { new PaginaToros.Shared.JsonConversor.DateOnlyJsonConverter() }
+        };
+
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Certifseman>>>("/api/Certifseman");
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
+        socios = rta.List;
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Centrosium>>>("/api/Centrosium");
+        centros = rt.List;
         StateHasChanged();
     }
     public void CambiarModoFiltro()

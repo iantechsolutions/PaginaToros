@@ -1,4 +1,4 @@
-﻿@page "/planteles"
+﻿@page "/Planteles"
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @inject HttpClient Http
@@ -37,48 +37,45 @@
     <br />
     <RadzenDataGrid class="tablacontent" style="position:relative;width:1400px;left:50px" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                     AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                    Density="Density.Compact" Data="@oRespuesta.List" TItem="Plantele" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    Density="Density.Compact" Data="@oRespuesta.List" TItem="Plantel" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
-            <RadzenDataGridColumn TItem="Plantele" Property="NroPlantel" Title="Nro Plantel" Width="55px" />
-            <RadzenDataGridColumn TItem="Plantele" Property="Activo" Title="Activo?" Width="50px">
+            <RadzenDataGridColumn TItem="Plantel" Property="Placod" Title="Nro Plantel" Width="55px" />
+            <RadzenDataGridColumn TItem="Plantel" Property="Activo" Title="Activo?" Width="50px">
                 <Template Context="data">
-                    @if (data.Activo.HasValue)
+                    @if (data.Estado=="S")
                     {
-                        @if (data.Activo.Value)
-                        {
                             <a style="color:green">Si</a>
-                        }
-                        else
-                        {
-                            <a style="color:red">No</a>
-                        }
                     }
                     else
                     {
-
+                        <a style="color:red">No</a>
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Plantele" Property="FechaExistencia" Title="Año de Existencia" Width="70px"/>
-            <RadzenDataGridColumn TItem="Plantele" Property="NroUltInspeccion" Title="Nro ultima inspeccion" Width="100px" />
-            <RadzenDataGridColumn TItem="Plantele" Property="NombreSocio" Title="Socio" Width="85px" />
-            <RadzenDataGridColumn TItem="Plantele" Property="Vacas" Title="Vacas PR" Width="60px" />
-            <RadzenDataGridColumn TItem="Plantele" Property="VaquillServicio" Title="Vaquillonas PR C/S" Width="75px" />
-            <RadzenDataGridColumn TItem="Plantele" Property="VaquillNoServicio" Title="Vaquillonas PR S/S" Width="75px" />
-            <RadzenDataGridColumn TItem="Plantele" Property="VacasVip" Title="Vacas VIP" Width="60px" />
-            <RadzenDataGridColumn TItem="Plantele" Property="PrenadasVip" Title="Vaquillonas VIP C/S o preñadas" Width="100px" />
-            <RadzenDataGridColumn TItem="Plantele" Property="VaquillNoServicioVip" Title="Vaquillonas VIP S/S" Width="70px" />
-            <RadzenDataGridColumn TItem="Plantele" Property="" Title="" Filterable="false" Width="35px">
+            <RadzenDataGridColumn TItem="Plantel" Property="Anioex" Title="Año de Existencia" Width="70px" />
+            <RadzenDataGridColumn TItem="Plantel" Property="Nroins" Title="Nro ultima inspeccion" Width="100px" />
+            <RadzenDataGridColumn TItem="Plantel" Property="" Title="Socio" Width="110px">
                 <Template Context="data">
-                    <button class="btn" position="absolute" title="Editar Socio" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                    @(socios.Where(x => x.Scod == data.Nrocri).FirstOrDefault().Nombre)
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Plantele" Property="" Title="" Filterable="false" Width="35px">
+            <RadzenDataGridColumn TItem="Plantel" Property="Varede" Title="Vacas PR" Width="60px" />
+            <RadzenDataGridColumn TItem="Plantel" Property="Vqcsrd" Title="Vaquillonas PR C/S" Width="75px" />
+            <RadzenDataGridColumn TItem="Plantel" Property="Vqssrd" Title="Vaquillonas PR S/S" Width="75px" />
+            <RadzenDataGridColumn TItem="Plantel" Property="Varepr" Title="Vacas VIP" Width="60px" />
+            <RadzenDataGridColumn TItem="Plantel" Property="Vqcsrp" Title="Vaquillonas VIP C/S o preñadas" Width="100px" />
+            <RadzenDataGridColumn TItem="Plantel" Property="Vqssrp" Title="Vaquillonas VIP S/S" Width="70px" />
+            <RadzenDataGridColumn TItem="Plantel" Property="" Title="" Filterable="false" Width="35px">
+                <Template Context="data">
+                    <button class="btn" position="absolute" title="Editar Plantel" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Plantel" Property="" Title="" Filterable="false" Width="35px">
                 <Template Context="data">
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Plantele" Property="" Title="" Filterable="false" Width="35px">
+            <RadzenDataGridColumn TItem="Plantel" Property="" Title="" Filterable="false" Width="35px">
                 <Template Context="data">
                     <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Size="16" Color="blue" /></button>
                 </Template>
@@ -101,20 +98,24 @@ else
 @code {
 
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Plantele>? grid;
+    public RadzenDataGrid<Plantel>? grid;
     int currentPage;
     public bool allowFiltering = false;
-    public string Url = "/api/plantele";
-    public Respuesta<List<Plantele>> oRespuesta = new Respuesta<List<Plantele>>();
+    public string Url = "/api/Plantel";
+    List<Socio> socios = new();
+    public Respuesta<List<Plantel>> oRespuesta = new Respuesta<List<Plantel>>();
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Plantele>>>(Url);
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Plantel>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
+        socios = rta.List;
+
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -126,7 +127,7 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/plantele/{id}");
+        await Http.DeleteAsync($"/api/Plantel/{id}");
         await Get();
         if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
         {

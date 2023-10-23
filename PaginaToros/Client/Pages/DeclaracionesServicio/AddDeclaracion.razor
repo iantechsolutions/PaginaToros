@@ -15,10 +15,10 @@
                     <label>Socio</label>
                     <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -38,24 +38,24 @@
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Plantel</label>
-                    <BlazoredTypeahead @bind-Value="@plantelSeleccionado" SearchMethod="BusquedaPlanteles" placeholder="Busque plantel por numero" EnableDropDown="true" >
+                    <BlazoredTypeahead @bind-Value="@Plantelseleccionado" SearchMethod="BusquedaPlanteles" placeholder="Busque plantel por numero" EnableDropDown="true" >
                         <SelectedTemplate Context="eleccion">
-                            @(@eleccion.NroPlantel + "-" + @eleccion.FechaExistencia)
+                            @(@eleccion.Placod + "-" + @eleccion.Anioex)
                             </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @(@eleccion.NroPlantel + "-" + @eleccion.FechaExistencia)
+                            @(@eleccion.Placod + "-" + @eleccion.Anioex)
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
             </div>
             <br />
-            @if(plantelSeleccionado!=null){
+            @if(Plantelseleccionado!=null){
                 <div class="row" style="width=100%">
                     <div class="col-sm">
                         <label>Cantidad de Vientres PR</label>
                         <div class="card">
                             <div class="card-body">
-                                <a>@((plantelSeleccionado.Vacas ?? 0) + (plantelSeleccionado.VaquillNoServicio ?? 0) + (plantelSeleccionado.VaquillServicio ?? 0))</a>
+                                <a>@((Plantelseleccionado.Varede ?? 0) + (Plantelseleccionado.Vqssrd ?? 0) + (Plantelseleccionado.Vqcsrd ?? 0))</a>
                             </div>
                         </div>
                     </div>
@@ -63,7 +63,7 @@
                         <label>Cantidad de Vientres PR</label>
                         <div class="card">
                             <div class="card-body">
-                                <a>@((plantelSeleccionado.VacasVip ?? 0) + (plantelSeleccionado.VaquillNoServicioVip ?? 0) + (plantelSeleccionado.PrenadasVip ?? 0))</a>
+                                <a>@((Plantelseleccionado.Varepr ?? 0) + (Plantelseleccionado.Vqcsrp ?? 0) + (Plantelseleccionado.Vqssrp ?? 0))</a>
                             </div>
                         </div>
                     </div>
@@ -129,7 +129,7 @@
                 <div class="row">
                     <div class="col-sm">
                         <RadzenText TextStyle="TextStyle.H4" Style="text-align:center">Listado de Toros</RadzenText>
-                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.NroSocio)" TItem="Torosuni" SelectionMode="DataGridSelectionMode.Single" 
+                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod)" TItem="Torosuni" SelectionMode="DataGridSelectionMode.Single" 
                             RowClick="@((args) => AddToSelectedToros(args))" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                             <Columns>
                                 <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Estado" Width="55px">
@@ -166,9 +166,9 @@
                                 <RadzenDataGridColumn TItem="Torosuni" Property="Tatpart" Title="Tatuaje" Width="70px"/>
                                 <RadzenDataGridColumn TItem="Torosuni" Property="Hasta" Title="Fecha de nacimiento" Width="70px">
                                     <Template Context="data">
-                                        @if (data.FechaNacimiento.HasValue)
+                                        @if (data.Nacido.HasValue)
                                         {
-                                            <a>@data.FechaNacimiento.Value.ToString("dd/MM/yyyy")</a>
+                                                <a>@data.Nacido.Value.ToString("dd/MM/yyyy")</a>
                                         }
                                         else
                                         {
@@ -228,7 +228,7 @@
                 <div class="row">
                     <div class="col-sm">
                     <RadzenText TextStyle="TextStyle.H4" Style="text-align:center">Listado de Toros</RadzenText>
-                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.NroSocio)" TItem="Torosuni" ColumnWidth="50px" SelectionMode="DataGridSelectionMode.Single"
+                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod)" TItem="Torosuni" ColumnWidth="50px" SelectionMode="DataGridSelectionMode.Single"
                                             RowClick="@((args) => AddToSelectedToros(args))" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                         <Columns>
                             <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Estado" Width="55px">
@@ -265,9 +265,9 @@
                             <RadzenDataGridColumn TItem="Torosuni" Property="Tatpart" Title="Tatuaje" Width="70px" />
                             <RadzenDataGridColumn TItem="Torosuni" Property="Hasta" Title="Fecha de nacimiento" Width="70px">
                                 <Template Context="data">
-                                    @if (data.FechaNacimiento.HasValue)
+                                    @if (data.Nacido.HasValue)
                                     {
-                                        <a>@data.FechaNacimiento.Value.ToString("dd/MM/yyyy")</a>
+                                                <a>@data.Nacido.Value.ToString("dd/MM/yyyy")</a>
                                     }
                                     else
                                     {
@@ -317,7 +317,7 @@
                 <div class="row">
                     <div class="col-sm">
                         <RadzenText TextStyle="TextStyle.H4" Style="text-align:center">Listado de Toros IA</RadzenText>
-                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificados.Where(x=>x.Nrocri==socioSeleccionado.NroSocio)" SelectionMode="DataGridSelectionMode.Single" RowClick="@((args) => AddToSelectedCertif(args))"
+                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificados.Where(x=>x.Nrocri==socioSeleccionado.Scod)" SelectionMode="DataGridSelectionMode.Single" RowClick="@((args) => AddToSelectedCertif(args))"
                                             TItem="Certifseman" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" >
                             <Columns>
                                 <RadzenDataGridColumn TItem="Certifseman" Property="NomDad" Title="Nombre del toro" Width="110px" />
@@ -369,7 +369,7 @@
     Desepla1 oDeclaracion = new();
     Respuesta<Desepla1> oRespuesta = new();
     List<Socio> socios = new();
-    List<Plantele> planteles = new();
+    List<Plantel> Planteles = new();
     RadzenDataGrid<Torosuni> gridToro1;
     RadzenDataGrid<Torosuni> gridToro2;
     RadzenDataGrid<Certifseman> gridCertif;
@@ -377,7 +377,7 @@
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     Socio? socioSeleccionado = null;
-    Plantele? plantelSeleccionado = null;
+    Plantel? Plantelseleccionado = null;
     List<string> tipos = new List<string> { "Natural", "Natural a Corral", "Inseminacion c/celo", "Inseminacion c/celo y rep", "Inseminacion c/p y rep", "IATF c/rep" };
     Dictionary<string, string> traductorTipo = new Dictionary<string, string>{
         {"P","Puro Pedigree (SRA)"},
@@ -397,8 +397,8 @@
     {
         var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
         socios = rta.List;
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Plantele>>>($"/api/Plantele");
-        planteles = rt.List;
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Plantel>>>($"/api/Plantel");
+        Planteles = rt.List;
         var r = await Http.GetFromJsonAsync<Respuesta<List<Torosuni>>>($"/api/Torosuni");
         toros = r.List;
         var rtaa = await Http.GetFromJsonAsync<Respuesta<List<Certifseman>>>($"/api/Certifseman");
@@ -437,11 +437,11 @@
     }
     private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
     {
-        return await Task.FromResult(socios.Where(x => x.NombreCompleto.ToLower().Contains(searchText.ToLower())).ToList());
+        return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
-    private async Task<IEnumerable<Plantele>> BusquedaPlanteles(string searchText)
+    private async Task<IEnumerable<Plantel>> BusquedaPlanteles(string searchText)
     {
-        return await Task.FromResult(planteles.Where(x => x.CodSocio==socioSeleccionado.NroSocio && x.NroPlantel.ToLower().Contains(searchText.ToLower())).ToList());
+        return await Task.FromResult(Planteles.Where(x => x.Nrocri==socioSeleccionado.Scod && x.Placod.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
     protected async Task AddToSelectedToros(DataGridRowMouseEventArgs<Torosuni> args)

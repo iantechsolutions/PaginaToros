@@ -185,7 +185,7 @@
       "url": "_framework\/Microsoft.Extensions.Configuration.dll"
     },
     {
-      "hash": "sha256-HSqw5yE9QkGhr7UnS+y33dClPOQ0b9WvPd1l6TBxMvc=",
+      "hash": "sha256-5Otet+KKVUjNkE\/hqcNWmt75H1K2VNuKPFagpRd6Ces=",
       "url": "_framework\/Microsoft.Extensions.Configuration.Abstractions.dll"
     },
     {
@@ -289,7 +289,7 @@
       "url": "_framework\/System.Security.Cryptography.Xml.dll"
     },
     {
-      "hash": "sha256-YgaMD2v\/sOtOwcakWhZ4TK7nVl9sVATYNCCJ9P9LNxI=",
+      "hash": "sha256-jKmbTXbScI0nBA2C2HyfK+smmH4oMUauprwnXZLolc4=",
       "url": "_framework\/System.Security.Permissions.dll"
     },
     {
@@ -957,8 +957,8 @@
       "url": "_framework\/System.Private.CoreLib.dll"
     },
     {
-      "hash": "sha256-iXtnf0CK+zdIWjR0cpE38tWChIpNC6sO+aSQAW+aBQU=",
-      "url": "_framework\/dotnet.6.0.20.mdd40pgpjn.js"
+      "hash": "sha256-0OV6gibFzyVtG7NXEj8a6vG3u8Cbzv4l9kkEathZjQ8=",
+      "url": "_framework\/dotnet.6.0.21.kqg4jlg20v.js"
     },
     {
       "hash": "sha256-qzglp3nbykfmnfsUz92dqiKN6QkhG7mKOOV4q9TztDs=",
@@ -985,19 +985,19 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-MOLVO+uOTs\/60UIRJ1ASO64AJGqn8YFhZm++2baela8=",
+      "hash": "sha256-+ffG0\/gqoOoNo+JkIlF\/\/DsNbU7LfguQtUamXlZBCio=",
       "url": "_framework\/PaginaToros.Shared.dll"
     },
     {
-      "hash": "sha256-wtKTEbtt9BBdnhgST9aEq2rgRFeNNdMCRsAA2w1sajc=",
+      "hash": "sha256-NAc9J53LmNBA3bfVvSjJpv+kKM2+N2Tx\/db97oh8O8o=",
       "url": "_framework\/PaginaToros.Shared.pdb"
     },
     {
-      "hash": "sha256-6LIuBlDyecT3lYM7su5WS4xHcZvWu8Snd9V+k6ihun8=",
+      "hash": "sha256-w2LHzgc+efCfgNL4DvhOcC9dz2LhKUPllpaiEH3GyuM=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-BZW+VEV06nTFrp\/\/tH96vipXxfiv\/3wMguJYfkgHY0Y=",
+      "hash": "sha256-xGz3Ia1rvf7KJtyi4G0U5sXyr6NQ0Woj722XWwHnuo8=",
       "url": "_framework\/PaginaToros.Client.pdb"
     },
     {
@@ -1005,7 +1005,7 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-VTKz1z1JPnv8rIOJnR5IbZ2Ad9EGejtr5mGjSL3jk6s=",
+      "hash": "sha256-cgDsZLG49ZCGabVJaEKT6bUZVR7dTpT\/BLcvs6Rdt8g=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -1293,5 +1293,5 @@
       "url": "_content\/Blazored.Modal\/Blazored.Modal.bundle.scp.css"
     }
   ],
-  "version": "CQs3mE52"
+  "version": "r78d+QlJ"
 };

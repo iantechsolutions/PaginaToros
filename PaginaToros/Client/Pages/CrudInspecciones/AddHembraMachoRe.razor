@@ -3,17 +3,17 @@
     <div class="row" style="width=100%;">
         <div class="col-sm">
             <label class="col-sm">Presentadas</label><br />
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.Hdp />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.Hdp />
             <br />
         </div>
         <div class="col-sm">
             <label class="col-sm">Mochas Marcadas</label>
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.HdpM />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.HdpM />
             <br />
         </div>
         <div class="col-sm">
             <label class="col-sm">Astadas Marcadas</label>
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.HdpAs />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.HdpAs />
             <br />
         </div>
     </div>
@@ -23,17 +23,17 @@
     <div class="row" style="width=100%;">
         <div class="col-sm">
             <label class="col-sm">Presentadas</label><br />
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.Hpp />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.Hpp />
             <br />
         </div>
         <div class="col-sm">
             <label class="col-sm">Mochas Marcadas</label>
-            <RadzenNumeric TValue="int" @bind-Value=oHembrasYmachosRe.HppM />
+            <RadzenNumeric TValue="int?" @bind-Value=oResin6.HppM />
             <br />
         </div>
         <div class="col-sm">
             <label class="col-sm">Astadas Marcadas</label>
-            <RadzenNumeric TValue="int" @bind-Value=oHembrasYmachosRe.HppAs/>
+            <RadzenNumeric TValue="int?" @bind-Value=oResin6.HppAs/>
             <br />
         </div>
     </div>
@@ -43,13 +43,13 @@
     <div class="row" style="width=100%;">
         <div class="col-sm">
             <label class="col-sm">Presentadas</label><br />
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.Hgvp />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.Hgvp />
             <br />
         </div>
         <div class="col-sm">
             <label class="col-sm">VIP Total</label>
             <br />
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.Hgvb />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.Hgvb />
             <br />
         </div>
     </div>
@@ -59,13 +59,13 @@
     <div class="row" style="width=100%;">
         <div class="col-sm">
             <label class="col-sm">Presentadas</label><br />
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.Hgqp />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.Hgqp />
             <br />
         </div>
         <div class="col-sm">
             <label class="col-sm">VIP Total</label>
             <br />
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.Hgqb />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.Hgqb />
             <br />
         </div>
     </div>
@@ -75,19 +75,19 @@
     <div class="row" style="width=100%;">
         <div class="col-sm">
             <label class="col-sm">Presentados</label><br />
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.Mcp />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.Mcp />
             <br />
         </div>
         <div class="col-sm">
             <label class="col-sm">PR Mochos</label>
             <br />
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.McpM />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.McpM />
             <br />
         </div>
         <div class="col-sm">
             <label class="col-sm">PR Astados</label>
             <br />
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.McpAs />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.McpAs />
             <br />
         </div>
     </div>
@@ -97,22 +97,22 @@
     <div class="row" style="width=100%;">
         <div class="col-sm">
             <label class="col-sm">Presentados</label><br />
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.Msp />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.Msp />
             <br />
         </div>
         <div class="col-sm">
             <label class="col-sm">PR Mochos</label>
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.MspM />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.MspM />
             <br />
         </div>
         <div class="col-sm">
             <label class="col-sm">PR Astados</label>
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.MspAs />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.MspAs />
             <br />
         </div>
         <div class="col-sm">
             <label class="col-sm">Control S/</label>
-            <RadzenNumeric TValue="double" @bind-Value=oHembrasYmachosRe.Mspsb />
+            <RadzenNumeric TValue="double?" @bind-Value=oResin6.Mspsb />
             <br />
         </div>
     </div>
@@ -122,8 +122,8 @@
 <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
 
 @code {
-    HembrasYmachosRe oHembrasYmachosRe  = new();
-    Respuesta<HembrasYmachosRe> oRespuesta = new();
+    Resin6 oResin6  = new();
+    Respuesta<Resin6> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public string botonclick { get; set; }
@@ -136,8 +136,8 @@
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<HembrasYmachosRe>>($"/api/HembrasYmachosRe/{Id}");
-                oHembrasYmachosRe = oRespuesta.List;
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Resin6>>($"/api/Resin6/{Id}");
+                oResin6 = oRespuesta.List;
 
             }
             catch (Exception ex)
@@ -148,15 +148,15 @@
     }
     async Task Guardar()
     {
-        oHembrasYmachosRe.Nrores = numeroRes;
+        oResin6.Nrores = numeroRes;
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<HembrasYmachosRe>("/api/HembrasYmachosRe", oHembrasYmachosRe);
+            await Http.PostAsJsonAsync<Resin6>("/api/Resin6", oResin6);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<HembrasYmachosRe>("/api/HembrasYmachosRe", oHembrasYmachosRe);
+            await Http.PutAsJsonAsync<Resin6>("/api/Resin6", oResin6);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

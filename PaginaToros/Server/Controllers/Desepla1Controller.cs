@@ -17,7 +17,7 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
                     var lst = db.Desepla1s
@@ -39,7 +39,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Desepla1>> oRespuesta = new Respuesta<List<Desepla1>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     var lst = db.Desepla1s.ToList();
                     oRespuesta.Exito = 1;
@@ -58,7 +58,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Desepla1>> oRespuesta = new Respuesta<List<Desepla1>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Desepla1 oDesepla1 = new Desepla1();
                     oDesepla1.Nrodec = model.Nrodec;
@@ -107,7 +107,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Desepla1>> oRespuesta = new Respuesta<List<Desepla1>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Desepla1 oDesepla1 = db.Desepla1s.Find(model.Id);
                     oDesepla1.Nrodec = model.Nrodec;
@@ -155,7 +155,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Desepla1>> oRespuesta = new Respuesta<List<Desepla1>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Desepla1 oDesepla1 = db.Desepla1s.Find(Id);
                     db.Remove(oDesepla1);

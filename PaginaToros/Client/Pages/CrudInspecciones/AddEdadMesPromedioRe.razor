@@ -7,66 +7,66 @@
 </style>
 <div class="card" >
 <div class="card-body">
-    <EditForm Model="@oEdadMesPromedioRe" OnValidSubmit="Guardar">
+    <EditForm Model="@oResin4" OnValidSubmit="Guardar">
         <DataAnnotationsValidator />
         <table class="table table-bordered text-center">
             <tbody>
             <tr>
                 <th style="background-color:#008000">Sexo:</th>
-                <td><strong>@oEdadMesPromedioRe.Sexo</strong></td>
+                <td><strong>@oResin4.Sexo</strong></td>
             </tr>
             <tr>
                 <td>Promedio Edad:</td>
                 <td bgcolor="#FFFFFF">
-                    <RadzenNumeric @bind-Value=@oEdadMesPromedioRe.Pedad Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin4.Pedad Style="width: 100%; max-width: 400px;" />
                 </td>
             </tr>
             <tr>
                 <td>Promedio Peso:</td>
                 <td bgcolor="#FFFFFF">
-                    <RadzenNumeric @bind-Value=@oEdadMesPromedioRe.Ppeso Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin4.Ppeso Style="width: 100%; max-width: 400px;" />
                 </td>
             </tr>
             <tr>
                 <td style="background-color:#CCCCCC">Min. Edad:</td>
                 <td>
-                    <RadzenNumeric @bind-Value=@oEdadMesPromedioRe.Iedad Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin4.Iedad Style="width: 100%; max-width: 400px;" />
                 </td>
             </tr>
             <tr>
                 <td style="background-color:#CCCCCC">Max. Edad:</td>
                 <td bgcolor="#FFFFFF">
-                    <RadzenNumeric @bind-Value=@oEdadMesPromedioRe.Medad Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin4.Medad Style="width: 100%; max-width: 400px;" />
                 </td>
             </tr>
             <tr>
                 <td style="background-color:#999999">Min. Peso:</td>
                 <td bgcolor="#FFFFFF">
-                    <RadzenNumeric @bind-Value=@oEdadMesPromedioRe.Ipeso Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin4.Ipeso Style="width: 100%; max-width: 400px;" />
                 </td>
             </tr>
             <tr>
                 <td style="background-color:#999999">Max. Peso:</td>
                 <td bgcolor="#FFFFFF">
-                    <RadzenNumeric @bind-Value=@oEdadMesPromedioRe.Mpeso Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin4.Mpeso Style="width: 100%; max-width: 400px;" />
                 </td>
             </tr>
             <tr>
                 <td style="background-color:#333333;color:#FFF">Diente de leche %:</td>
                 <td bgcolor="#FFFFFF">
-                    <RadzenNumeric @bind-Value=@oEdadMesPromedioRe.Pdl Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin4.Pdl Style="width: 100%; max-width: 400px;" />
                 </td>
             </tr>
             <tr>
                 <td style="background-color:#333333;color:#FFF">Dos dientes %:</td>
                 <td bgcolor="#FFFFFF">
-                    <RadzenNumeric @bind-Value=@oEdadMesPromedioRe.P2d Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin4.P2d Style="width: 100%; max-width: 400px;" />
                 </td>
             </tr>
             <tr>
                 <td style="background-color:#333333;color:#FFF">Cuatro dientes %:</td>
                 <td bgcolor="#FFFFFF">
-                    <RadzenNumeric @bind-Value=@oEdadMesPromedioRe.P4d Style="width: 100%; max-width: 400px;" />
+                    <RadzenNumeric @bind-Value=@oResin4.P4d Style="width: 100%; max-width: 400px;" />
                 </td>
             </tr>
 
@@ -81,8 +81,8 @@
 </div>
 
 @code {
-    EdadMesPromedioRe oEdadMesPromedioRe = new();
-    Respuesta<EdadMesPromedioRe> oRespuesta = new();
+    Resin4 oResin4 = new();
+    Respuesta<Resin4> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public string nrores { get; set; }
@@ -94,8 +94,8 @@
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<EdadMesPromedioRe>>($"/api/EdadMesPromedioRe/{Id}");
-                oEdadMesPromedioRe = oRespuesta.List;
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Resin4>>($"/api/Resin4/{Id}");
+                oResin4 = oRespuesta.List;
 
             }
             catch (Exception ex)
@@ -105,20 +105,20 @@
         }
         else
         {
-            oEdadMesPromedioRe.Sexo = sexo;
+            oResin4.Sexo = sexo;
         }
     }
     async Task Guardar()
     {
         if (Id == 0)
         {
-            oEdadMesPromedioRe.Nrores = nrores;
-            await Http.PostAsJsonAsync<EdadMesPromedioRe>("/api/EdadMesPromedioRe", oEdadMesPromedioRe);
+            oResin4.Nrores = nrores;
+            await Http.PostAsJsonAsync<Resin4>("/api/Resin4", oResin4);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<EdadMesPromedioRe>("/api/EdadMesPromedioRe", oEdadMesPromedioRe);
+            await Http.PutAsJsonAsync<Resin4>("/api/Resin4", oResin4);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

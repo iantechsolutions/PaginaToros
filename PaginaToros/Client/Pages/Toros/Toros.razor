@@ -75,11 +75,16 @@
                 <RadzenDataGridColumn TItem="Torosuni" Property="Fechasba" Title="Fecha S/" Width="110px" />
                 <RadzenDataGridColumn TItem="Torosuni" Property="Hba" Title="HBA" Width="110px" />
                 <RadzenDataGridColumn TItem="Torosuni" Property="Tatpart" Title="Tatuaje" Width="110px" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="NombreSocio" Title="Propietario" Width="110px" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="FechaNacimiento" Title="Fecha de nacimiento" Width="110px">
+                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Socio" Width="110px">
                     <Template Context="data">
-                        @if(data.FechaNacimiento.HasValue){
-                            <a>@data.FechaNacimiento.Value.ToString("dd/MM/yyyy")</a>
+                        @(socios.Where(x => x.Scod == data.Criador).FirstOrDefault().Nombre)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Fecha de nacimiento" Width="110px">
+                    <Template Context="data">
+                        @if (data.Nacido.HasValue)
+                        {
+                            <a>@data.Nacido.Value.ToString("dd/MM/yyyy")</a>
                         }
                         else
                         {
@@ -98,7 +103,7 @@
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                @*            <RadzenDataGridColumn TItem="Establecimiento" Property="" Title="" Filterable="false" Width="30px">
+                @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
             <Template Context="data">
             <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
             </Template>
@@ -130,6 +135,7 @@ else
     };
     public bool allowFiltering = false;
     public string Url = "/api/Torosuni";
+    List<Socio> socios = new();
     public Respuesta<List<Torosuni>> oRespuesta = new Respuesta<List<Torosuni>>();
     protected override async Task OnInitializedAsync()
     {
@@ -137,6 +143,8 @@ else
     }
     async Task Get()
     {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
+        socios = rta.List;
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Torosuni>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;

@@ -16,7 +16,7 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
                     var lst = db.Transans
@@ -39,7 +39,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Transan>> oRespuesta = new Respuesta<List<Transan>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     var lst = db.Transans.ToList();
                     oRespuesta.Exito = 1;
@@ -58,7 +58,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Transan>> oRespuesta = new Respuesta<List<Transan>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Transan oTransan = new Transan();
                     oTransan.NroCert = model.NroCert;
@@ -101,7 +101,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Transan>> oRespuesta = new Respuesta<List<Transan>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Transan oTransan = db.Transans.Find(model.Id);
                     oTransan.NroCert = model.NroCert;
@@ -152,7 +152,7 @@ namespace PaginaToros.Server.Controllers
             //IQueryable<Toro> TorosPorId;
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Transan oTransan = db.Transans.Find(Id);
                     db.Remove(oTransan);

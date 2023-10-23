@@ -17,7 +17,7 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
                     var lst = db.Torosunis
@@ -40,7 +40,7 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Torosuni>> oRespuesta = new Respuesta<List<Torosuni>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     var lst = db.Torosunis.ToList();
                     oRespuesta.Exito = 1;
@@ -59,12 +59,11 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Torosuni>> oRespuesta = new Respuesta<List<Torosuni>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Torosuni oTorosuni = new Torosuni();
                     oTorosuni.Apodo = model.Apodo;
                     oTorosuni.Nombre = model.Nombre;
-                    oTorosuni.NombreSocio = model.NombreSocio;
                     oTorosuni.EstDoc = model.EstDoc;
                     oTorosuni.ResInsp = model.ResInsp;
                     oTorosuni.SbcodOld = model.SbcodOld;
@@ -125,12 +124,11 @@ namespace PaginaToros.Server.Controllers
             Respuesta<List<Torosuni>> oRespuesta = new Respuesta<List<Torosuni>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Torosuni oTorosuni = db.Torosunis.Find(model.Id);
                     oTorosuni.Apodo = model.Apodo;
                     oTorosuni.Nombre = model.Nombre;
-                    oTorosuni.NombreSocio = model.NombreSocio;
                     oTorosuni.EstDoc = model.EstDoc;
                     oTorosuni.ResInsp = model.ResInsp;
                     oTorosuni.SbcodOld = model.SbcodOld;
@@ -199,7 +197,7 @@ namespace PaginaToros.Server.Controllers
             //IQueryable<Toro> TorosPorId;
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
                     Torosuni oTorosuni = db.Torosunis.Find(Id);
                     db.Remove(oTorosuni);

@@ -8,19 +8,19 @@ namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RechazoReController : ControllerBase
+    public class Resin8Controller : ControllerBase
     {
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Respuesta<RechazoRe> oRespuesta = new Respuesta<RechazoRe>();
+            Respuesta<Resin8> oRespuesta = new Respuesta<Resin8>();
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
-                    var lst = db.RechazoRes
+                    var lst = db.Resin8s
                         .Where(x => x.Id == id)
                         .First();
                     oRespuesta.Exito = 1;
@@ -37,14 +37,14 @@ namespace PaginaToros.Server.Controllers
         [HttpGet("Nrores/{nro}")]
         public IActionResult GetByRes(string nro)
         {
-            Respuesta<List<RechazoRe>> oRespuesta = new Respuesta<List<RechazoRe>>();
+            Respuesta<List<Resin8>> oRespuesta = new Respuesta<List<Resin8>>();
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
-                    var lst = db.RechazoRes
+                    var lst = db.Resin8s
                     .Where(x => x.Nrores == nro).ToList();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
@@ -60,12 +60,12 @@ namespace PaginaToros.Server.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            Respuesta<List<RechazoRe>> oRespuesta = new Respuesta<List<RechazoRe>>();
+            Respuesta<List<Resin8>> oRespuesta = new Respuesta<List<Resin8>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    var lst = db.RechazoRes.ToList();
+                    var lst = db.Resin8s.ToList();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
                 }
@@ -77,21 +77,21 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
         [HttpPost]
-        public IActionResult Add(RechazoRe model)
+        public IActionResult Add(Resin8 model)
         {
-            Respuesta<List<RechazoRe>> oRespuesta = new Respuesta<List<RechazoRe>>();
+            Respuesta<List<Resin8>> oRespuesta = new Respuesta<List<Resin8>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    RechazoRe oRechazoRe = new RechazoRe();
-                    oRechazoRe.FchRealizada = model.FchRealizada;
-                    oRechazoRe.Nrores = model.Nrores;
-                    oRechazoRe.Nropla = model.Nropla;
-                    oRechazoRe.Hembras = model.Hembras;
-                    oRechazoRe.Machos = model.Machos;
-                    oRechazoRe.MotivoRechazo = model.MotivoRechazo;
-                    db.RechazoRes.Add(oRechazoRe);
+                    Resin8 oResin8 = new Resin8();
+                    oResin8.FchRealizada = model.FchRealizada;
+                    oResin8.Nrores = model.Nrores;
+                    oResin8.Nropla = model.Nropla;
+                    oResin8.Hembras = model.Hembras;
+                    oResin8.Machos = model.Machos;
+                    oResin8.MotivoRechazo = model.MotivoRechazo;
+                    db.Resin8s.Add(oResin8);
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
                 }
@@ -104,20 +104,20 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPut]
-        public IActionResult Edit(RechazoRe model)
+        public IActionResult Edit(Resin8 model)
         {
-            Respuesta<List<RechazoRe>> oRespuesta = new Respuesta<List<RechazoRe>>();
+            Respuesta<List<Resin8>> oRespuesta = new Respuesta<List<Resin8>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    RechazoRe oRechazoRe = db.RechazoRes.Find(model.Id);
-                    oRechazoRe.FchRealizada = model.FchRealizada;
-                    oRechazoRe.Nrores = model.Nrores;
-                    oRechazoRe.Nropla = model.Nropla;
-                    oRechazoRe.Hembras = model.Hembras;
-                    oRechazoRe.Machos = model.Machos;
-                    oRechazoRe.MotivoRechazo = model.MotivoRechazo;
+                    Resin8 oResin8 = db.Resin8s.Find(model.Id);
+                    oResin8.FchRealizada = model.FchRealizada;
+                    oResin8.Nrores = model.Nrores;
+                    oResin8.Nropla = model.Nropla;
+                    oResin8.Hembras = model.Hembras;
+                    oResin8.Machos = model.Machos;
+                    oResin8.MotivoRechazo = model.MotivoRechazo;
 
                     //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
                     //foreach (var row in TorosPorId)
@@ -125,7 +125,7 @@ namespace PaginaToros.Server.Controllers
                     //    row.NombreEst = model.Nombre;
                     //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     //}
-                    db.Entry(oRechazoRe).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    db.Entry(oResin8).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
@@ -140,14 +140,14 @@ namespace PaginaToros.Server.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int Id)
         {
-            Respuesta<List<RechazoRe>> oRespuesta = new Respuesta<List<RechazoRe>>();
+            Respuesta<List<Resin8>> oRespuesta = new Respuesta<List<Resin8>>();
             //IQueryable<Toro> TorosPorId;
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    RechazoRe oRechazoRe = db.RechazoRes.Find(Id);
-                    db.Remove(oRechazoRe);
+                    Resin8 oResin8 = db.Resin8s.Find(Id);
+                    db.Remove(oResin8);
                     //var dbToros = db.Toros.Where(x => x.IdEst == Id);
                     //foreach(Toro oElement in dbToros)
                     //    {

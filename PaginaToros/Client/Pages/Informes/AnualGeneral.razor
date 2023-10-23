@@ -12,7 +12,7 @@
         </RadzenText>
         <div class="datames" style="padding-left: 15px">
             <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
-                Total Controles realizados: @reportes.Where(x=>x.FechaInspeccion.Value.Month==coso.Item2).Count()
+                    Total Controles realizados: @reportes.Where(x=>x.Freali.Value.Month==coso.Item2).Count()
             </RadzenText>
             <div class="row">
                 <div class="col-sm-4">
@@ -120,17 +120,17 @@
             <div class="row">
                 <div class="col-sm-4">
                     <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
-                        Inspecciones Solicitadas:   @solicitudes.Where(x=>(x.FechaSolicitud ?? DateTime.MinValue).Month==coso.Item2).Count()
+                        Inspecciones Solicitadas:   @solicitudes.Where(x=>(x.Fecsol ?? DateTime.MinValue).Month==coso.Item2).Count()
                     </RadzenText>
                 </div>
                 <div class="col-sm-4">
                     <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
-                        Inspecciones Autorizadas:   @solicitudes.Where(x=>(x.FechaAutorizacion ?? DateTime.MinValue).Month==coso.Item2).Count()
+                        Inspecciones Autorizadas:   @solicitudes.Where(x=>(x.Fecins ?? DateTime.MinValue).Month==coso.Item2).Count()
                     </RadzenText>
                 </div>
                 <div class="col-sm-4">
                     <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
-                        Inspecciones realizadas:    @reportes.Where(x=>x.FechaInspeccion.Value.Month==coso.Item2).Count()
+                            Inspecciones realizadas:    @reportes.Where(x=>x.Freali.Value.Month==coso.Item2).Count()
                     </RadzenText>
                 </div>
             </div>
@@ -237,14 +237,14 @@ else
     public int anioSeleccionado { get; set; } = 2022;
     class Temp
     {
-        public double Cantidad { get; set; }
+        public double? Cantidad { get; set; }
         public DateTime fecha { get; set; }
         public string Provincia { get; set; }
     }
     class Datos
     {
         public string Tipo { get; set; }
-        public double Cantidad { get; set; }
+        public double? Cantidad { get; set; }
     }
     List<Datos[][]> Meses = new();
     List<Temp> AstadasT = new List<Temp> { };
@@ -257,92 +257,92 @@ else
     List<Temp> ControlT = new List<Temp> { };
     List<Temp> PresentadasT = new List<Temp> { };
     List<Temp> PresentadosT = new List<Temp> { };
-    List<InspRe> reportes = new();
+    List<Resin1> reportes = new();
     List<string> provincias = new List<string> { "BUENOS AIRES", "CAPITAL FEDERAL", "CATAMARCA", "CHACO", "CHUBUT", "CORDOBA", "CORRIENTES", "ENTRE RIOS", "FORMOSA", "JUJUY", "LA PAMPA", "LA RIOJA", "MENDOZA", "MISIONES", "NEUQUEN", "RIO NEGRO", "SALTA", "SAN JUAN", "SAN LUIS", "SANTA CRUZ", "SANTA FE", "SANTIAGO DEL ESTERO", "TIERRA DEL FUEGO", "TUCUMAN" };
     List<(string,int)> listaMeses = new List<(string,int)> { ("Enero",1), ("Febrero",2), ("Marzo",3), ("Abril",4), ("Mayo",5), ("Junio",6), ("Julio",7), ("Agosto",8), ("Septiembre",9), ("Octubre",10), ("Noviembre",11), ("Diciembre",12)};
-    List<SolicitudInspeccion> solicitudes = new();
-    List<HembrasYmachosRe> hemyma = new();
-    List<Inspectore> inspectores = new();
-    List<Establecimiento> establecimientos = new();
+    List<Solici1> solicitudes = new();
+    List<Resin6> hemyma = new();
+    List<Inspect> Inspects = new();
+    List<Estable> establecimientos = new();
     protected override async Task OnInitializedAsync()
     {
         anioSeleccionado = Int32.Parse(aniostr);
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<InspRe>>>($"/api/InspRe");
-        reportes = rta.List.Where(x => (x.FechaInspeccion ?? DateTime.MinValue).Year == anioSeleccionado).ToList();
-        var resp = await Http.GetFromJsonAsync<Respuesta<List<SolicitudInspeccion>>>($"/api/SolicitudInspeccion");
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Resin1>>>($"/api/Resin1");
+        reportes = rta.List.Where(x => (x.Freali ?? DateTime.MinValue).Year == anioSeleccionado).ToList();
+        var resp = await Http.GetFromJsonAsync<Respuesta<List<Solici1>>>($"/api/Solici1");
         solicitudes = resp.List.ToList();
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<HembrasYmachosRe>>>($"/api/HembrasYmachosRe");
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Resin6>>>($"/api/Resin6");
         hemyma = rt.List.Where(x => reportes.Any(i => i.Nrores == x.Nrores)).ToList();
-        var rtaa = await Http.GetFromJsonAsync<Respuesta<List<Inspectore>>>($"/api/Inspectore");
-        inspectores = rtaa.List.ToList();
-        var r = await Http.GetFromJsonAsync<Respuesta<List<Establecimiento>>>($"/api/Establecimiento");
+        var rtaa = await Http.GetFromJsonAsync<Respuesta<List<Inspect>>>($"/api/Inspect");
+        Inspects = rtaa.List.ToList();
+        var r = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>($"/api/Establecimiento");
         establecimientos = r.List.ToList();
 
 
         foreach (var rep in reportes)
         {
-            if(rep.FechaInspeccion.HasValue){
-                HembrasYmachosRe? item = hemyma.FirstOrDefault(x => x.Nrores == rep.Nrores);
-                var est = establecimientos.FirstOrDefault(x => x.Codigo == rep.Estcod);
+            if(rep.Freali.HasValue){
+                Resin6? item = hemyma.FirstOrDefault(x => x.Nrores == rep.Nrores);
+                var est = establecimientos.FirstOrDefault(x => x.Ecod == rep.Estcod);
                 AstadasT.Add(new Temp
                     {
-                    Provincia = est.Provincia,
-                    fecha=rep.FechaInspeccion.Value,
+                    Provincia = est.Codpro,
+                        fecha = rep.Freali.Value,
                     Cantidad = item.HdpAs + item.HppAs
                 });
                 MachadasT.Add(new Temp
                 {
-                    Provincia = est.Provincia,
-                    fecha = rep.FechaInspeccion.Value,
+                        Provincia = est.Codpro,
+                    fecha = rep.Freali.Value,
                     Cantidad = item.HdpM+ item.HppM
                 });
                 RechazadasT.Add(new Temp
                 {
-                    Provincia = est.Provincia,
-                    fecha = rep.FechaInspeccion.Value,
+                    Provincia = est.Codpro,
+                        fecha = rep.Freali.Value,
                     Cantidad = (item.Hdp - item.HdpM - item.HdpAs) + (item.Hpp - item.HppM - item.HppAs)
                 });
                 VipT.Add(new Temp
                 {
-                    Provincia = est.Provincia,
-                    fecha = rep.FechaInspeccion.Value,
+                    Provincia = est.Codpro,
+                        fecha = rep.Freali.Value,
                     Cantidad = item.Hgqb + item.Hgvb
                 });
                 PresentadasT.Add(new Temp
                 {
-                    Provincia = est.Provincia,
-                    fecha = rep.FechaInspeccion.Value,
+                        Provincia = est.Codpro,
+                    fecha = rep.Freali.Value,
                     Cantidad = item.Hdp + item.Hpp
                 });
 
                 AstadosT.Add(new Temp
                 {
-                    Provincia = est.Provincia,
-                    fecha=rep.FechaInspeccion.Value,
+                        Provincia = est.Codpro,
+                    fecha=rep.Freali.Value,
                     Cantidad = item.McpAs + item.MspAs
                 });
                 MachadosT.Add(new Temp
                 {
-                    Provincia = est.Provincia,
-                    fecha = rep.FechaInspeccion.Value,
+                        Provincia = est.Codpro,
+                    fecha = rep.Freali.Value,
                     Cantidad = item.McpM + item.MspM
                 });
                 RechazadosT.Add(new Temp
                 {
-                    Provincia = est.Provincia,
-                    fecha = rep.FechaInspeccion.Value,
+                        Provincia = est.Codpro,
+                    fecha = rep.Freali.Value,
                         Cantidad = (item.Mcp - item.McpM - item.McpAs + item.Msp - item.MspM - item.MspAs)
                 });
                 ControlT.Add(new Temp
                 {
-                    Provincia = est.Provincia,
-                    fecha = rep.FechaInspeccion.Value,
+                        Provincia = est.Codpro,
+                    fecha = rep.Freali.Value,
                     Cantidad = item.Mspsb
                 });
                 PresentadosT.Add(new Temp
                 {
-                    Provincia = est.Provincia,
-                    fecha = rep.FechaInspeccion.Value,
+                        Provincia = est.Codpro,
+                        fecha = rep.Freali.Value,
                     Cantidad = item.Mcp + item.Msp
                 });
             }

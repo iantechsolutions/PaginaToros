@@ -7,11 +7,11 @@
             <div class="d-flex flex-row p-3">
                 <div>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Provincia</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Provincia</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@traductorProvincia[oInspector.Codpro]</b></RadzenText>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Localidad</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Localidad</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Locali</b></RadzenText>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-1 mb-0">Direccion</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Direccion</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Direcc</b></RadzenText>
                 </div>
             </div>
         </div>
@@ -19,9 +19,9 @@
             <div class="d-flex flex-row p-3">
                 <div>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Codigo Postal</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.CodPostal</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Codpos</b></RadzenText>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Telefono</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Telefono</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Telefo</b></RadzenText>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Mail</RadzenText>
                     <RadzenText TextStyle="TextStyle.Body1"><b>@oInspector.Mail</b></RadzenText>
                 </div>
@@ -32,15 +32,45 @@
 </RadzenCard>
 
 @code {
-    Inspectore oInspector = new();
-    Respuesta<Inspectore> oRta = new();
+    Inspect oInspector = new();
+    Respuesta<Inspect> oRta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int id { get; set; }
+
+    Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
+    {
+        {"01", "Chaco"},
+        {"02", "Corrientes"},
+        {"03", "Entre Rios"},
+        {"04", "Santa Fe"},
+        {"05", "Cordoba"},
+        {"06", "La pampa"},
+        {"07", "San Luis"},
+        {"08", "Santa Cruz"},
+        {"09", "Tierra del fuego"},
+        {"10", "Chubut"},
+        {"11", "Neuquen"},
+        {"12", "Rio negro"},
+        {"13", "Buenos Aires"},
+        {"14", "Capital Federal"},
+        {"15", "Catamarca"},
+        {"16", "Formosa"},
+        {"17", "Jujuy"},
+        {"18", "La rioja"},
+        {"19", "Mendoza"},
+        {"20", "Misiones"},
+        {"21", "Salta"},
+        {"22", "San Juan"},
+        {"23", "Santiago Del Estero"},
+        {"24", "Tucuman"},
+        {"",""}
+    };
+
     protected override async Task OnInitializedAsync()
     {
         if (id != 0)
         {
-            oRta = await Http.GetFromJsonAsync<Respuesta<Inspectore>>($"/api/Inspectore/{id}");
+            oRta = await Http.GetFromJsonAsync<Respuesta<Inspect>>($"/api/Inspect/{id}");
             oInspector = oRta.List;
         }
     }

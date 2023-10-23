@@ -26,10 +26,10 @@
                     <label>Socio Vendedor</label><br />
                     <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioVendedor">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -37,10 +37,10 @@
                     <label class="col-sm">Socio Comprador</label>
                     <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioComprador">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.NombreCompleto
+                            @eleccion.Nombre
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -72,10 +72,10 @@
                     <label>Plantel Origen</label>
                     <BlazoredTypeahead SearchMethod="BusquedaPlantelesVendedor" style="max-width:400px" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelOrigen">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.NroPlantel
+                            @eleccion.Placod
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.NroPlantel
+                            @eleccion.Placod
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -83,10 +83,10 @@
                     <label>Plantel Destino</label>
                     <BlazoredTypeahead SearchMethod="BusquedaPlantelesComprador" style="max-width:400px" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelDestino">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.NroPlantel
+                            @eleccion.Placod
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.NroPlantel
+                            @eleccion.Placod
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -136,7 +136,7 @@
     Socio socioComprador = new();
     Socio socioVendedor = new();
     List<Socio> socios = new();
-    List<Plantele> planteles = new();
+    List<Plantel> Planteles = new();
     List<string> tiposHembra = new List<string> { "VQ", "VA" };
     List<string> tiposHacienda = new List<string> { "PHPR (Puro Registrado)", "HPR (Puro Registrado)", "PHVIP (VIP)", "HVIP (VIP)" };
     List<string> sexoAnimales = new List<string> { "Hembras", "Machos" };
@@ -146,8 +146,8 @@
     string temp2 = "";
     string temp3 = "";
     string temp4 = "";
-    Plantele plantelOrigen = new();
-    Plantele plantelDestino = new();
+    Plantel plantelOrigen = new();
+    Plantel plantelDestino = new();
     Dictionary<string, string> traductor = new Dictionary<string, string>{
         {"PHPR (Puro Registrado)","PHPR"},
         {"HPR (Puro Registrado)","HPR"},
@@ -184,18 +184,18 @@
     {
         var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
         socios = rta.List.ToList();
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Plantele>>>($"/api/Plantele");
-        planteles = rt.List.ToList();
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Plantel>>>($"/api/Plantel");
+        Planteles = rt.List.ToList();
         if (Id != 0)
         {
             try
             {
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<Transan>>($"/api/Transan/{Id}");
                 oTransan = oRespuesta.List;
-                socioComprador = socios.Where(x => x.NroSocio == oTransan.Scom).First();
-                socioVendedor = socios.Where(x => x.NroSocio == oTransan.Sven).First();
-                plantelOrigen = planteles.Where(x => x.NroPlantel == oTransan.Plant).First();
-                plantelDestino = planteles.Where(x => x.NroPlantel == oTransan.NvoPla).First();
+                socioComprador = socios.Where(x => x.Scod == oTransan.Scom).First();
+                socioVendedor = socios.Where(x => x.Scod == oTransan.Sven).First();
+                plantelOrigen = Planteles.Where(x => x.Placod == oTransan.Plant).First();
+                plantelDestino = Planteles.Where(x => x.Placod == oTransan.NvoPla).First();
                 temp1 = traductorCarga[oTransan.Tiphac];
                 temp2 = traductorCarga[oTransan.Tipani];
                 temp3 = traductorCarga[oTransan.Hemsta];
@@ -212,13 +212,13 @@
         oTransan.Tiphac = traductor[temp1];
         oTransan.Tipani = traductor[temp2];
         oTransan.Hemsta = traductor[temp3];
-        oTransan.Incorp = Int32.Parse(traductor[temp4]);
-        oTransan.Vnom = socioVendedor.NombreCompleto;
-        oTransan.Cnom = socioComprador.NombreCompleto;
-        oTransan.Sven = socioVendedor.NroSocio.ToString();
-        oTransan.Scom = socioComprador.NroSocio.ToString();
-        oTransan.Plant = plantelOrigen.NroPlantel;
-        oTransan.NvoPla = plantelDestino.NroPlantel;
+        oTransan.Incorp = Convert.ToSByte(traductor[temp4]);
+        oTransan.Vnom = socioVendedor.Nombre;
+        oTransan.Cnom = socioComprador.Nombre;
+        oTransan.Sven = socioVendedor.Scod.ToString();
+        oTransan.Scom = socioComprador.Scod.ToString();
+        oTransan.Plant = plantelOrigen.Placod;
+        oTransan.NvoPla = plantelDestino.Placod;
 
         if (Id == 0)
         {
@@ -239,18 +239,18 @@
 
     private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.NombreCompleto.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 
-    private async Task<IEnumerable<Plantele>> BusquedaPlantelesComprador(string searchText)
+    private async Task<IEnumerable<Plantel>> BusquedaPlantelesComprador(string searchText)
     {
-        return await Task.FromResult(planteles.Where(x => x.NroPlantel.Contains(searchText) && x.CodSocio == socioComprador.NroSocio).ToList());
+        return await Task.FromResult(Planteles.Where(x => x.Placod.Contains(searchText) && x.Nrocri == socioComprador.Scod).ToList());
     }
 
-    private async Task<IEnumerable<Plantele>> BusquedaPlantelesVendedor(string searchText)
+    private async Task<IEnumerable<Plantel>> BusquedaPlantelesVendedor(string searchText)
     {
-        return await Task.FromResult(planteles.Where(x => x.NroPlantel.Contains(searchText) && x.CodSocio == socioVendedor.NroSocio).ToList());
+        return await Task.FromResult(Planteles.Where(x => x.Placod.Contains(searchText) && x.Nrocri == socioVendedor.Scod).ToList());
     }
 
 }

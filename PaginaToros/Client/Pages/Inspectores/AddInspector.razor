@@ -12,8 +12,8 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Codigo de Inspector</label>
-                    <InputNumber @bind-Value="@oInspector.Codigo" class="form-control" placeholder="Codigo"></InputNumber>
-                    <ValidationMessage For="(()=> oInspector.Codigo)" style="color:red;" />
+                    <InputNumber @bind-Value="@oInspector.Icod" class="form-control" placeholder="Codigo"></InputNumber>
+                    <ValidationMessage For="(()=> oInspector.Icod)" style="color:red;" />
                 </div>
             </div>
             <br />
@@ -25,25 +25,25 @@
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Direccion</label>
-                    <InputText @bind-Value="@oInspector.Direccion" class="form-control" placeholder="Direccion"></InputText>
-                    <ValidationMessage For="(()=> oInspector.Direccion)" style="color:red;" />
+                    <InputText @bind-Value="@oInspector.Direcc" class="form-control" placeholder="Direccion"></InputText>
+                    <ValidationMessage For="(()=> oInspector.Direcc)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Localidad</label>
-                    <InputText @bind-Value="@oInspector.Localidad" class="form-control" placeholder="Direccion"></InputText>
-                    <ValidationMessage For="(()=> oInspector.Localidad)" style="color:red;" />
+                    <InputText @bind-Value="@oInspector.Locali" class="form-control" placeholder="Direccion"></InputText>
+                    <ValidationMessage For="(()=> oInspector.Locali)" style="color:red;" />
                 </div>
             </div>
             <br />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Codigo Postal</label>
-                    <InputNumber @bind-Value="@oInspector.CodPostal" class="form-control" placeholder="Cod Postal"></InputNumber>
-                    <ValidationMessage For="(()=> oInspector.CodPostal)" style="color:red;" />
+                    <InputNumber @bind-Value="@oInspector.Codpos" class="form-control" placeholder="Cod Postal"></InputNumber>
+                    <ValidationMessage For="(()=> oInspector.Codpos)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Provincia</label>
-                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,provincias))" placeholder="Busca por nombre" EnableDropDown="true" @bind-Value="oInspector.Provincia">
+                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,provincias))" placeholder="Busca por nombre" EnableDropDown="true" @bind-Value="provinciaTemp">
                         <SelectedTemplate Context="eleccion">
                             @eleccion
                         </SelectedTemplate>
@@ -54,8 +54,8 @@
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Localidad</label>
-                    <InputText @bind-Value="@oInspector.Telefono" class="form-control" placeholder="Telefono"></InputText>
-                    <ValidationMessage For="(()=> oInspector.Telefono)" style="color:red;" />
+                    <InputText @bind-Value="@oInspector.Telefo" class="form-control" placeholder="Telefono"></InputText>
+                    <ValidationMessage For="(()=> oInspector.Telefo)" style="color:red;" />
                 </div>
             </div>
             <br />
@@ -68,12 +68,13 @@
     </div>
 </div>
 @code {
-    Inspectore oInspector = new();
-    Respuesta<Inspectore> oRespuesta = new();
+    Inspect oInspector = new();
+    Respuesta<Inspect> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     DateTime FechaTemp = DateTime.Now.Date;
     string CodZona = "  ";
+    string provinciaTemp = "";
     bool activo = true;
     List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal", "Catamarca", "Chaco", "Chubut", "Cordoba", "Corrientes", "Entre Rios", "Formosa", "Jujuy", "La pampa", "La rioja", "Mendoza", "Misiones", "Neuquen", "Rio negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago Del Estero", "Tierra del fuego", "Tucuman" };
     List<string> zonas = new List<string>
@@ -112,6 +113,36 @@
         "33 - ( MENDOZA ) - TODA LA PROVINCIA"
     };
 
+    Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
+    {
+        {"Chaco","01"},
+        {"Corrientes","02"},
+        {"Entre Rios","03"},
+        {"Santa Fe","04"},
+        {"Cordoba","05"},
+        {"La pampa","06"},
+        {"San Luis","07"},
+        {"Santa Cruz","08"},
+        {"Tierra del fuego","09"},
+        {"Chubut","10"},
+        {"Neuquen","11"},
+        {"Rio negro","12"},
+        {"Buenos Aires","13"},
+        {"Capital Federal","14"},
+        {"Catamarca","15"},
+        {"Formosa","16"},
+        {"Jujuy","17"},
+        {"La rioja","18"},
+        {"Mendoza","19"},
+        {"Misiones","20"},
+        {"Salta","21"},
+        {"San Juan","22"},
+        {"Santiago Del Estero","23"},
+        {"Tucuman","24"},
+        {"",""}
+    };
+
+
     protected override async Task OnInitializedAsync()
     {
         if (Id != 0)
@@ -119,7 +150,7 @@
 
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Inspectore>>($"/api/Inspectore/{Id}");
+                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Inspect>>($"/api/Inspect/{Id}");
                 oInspector = oRespuesta.List;
 
             }
@@ -131,14 +162,15 @@
     }
     async Task Guardar()
     {
+        oInspector.Codpro = traductorProvincia[provinciaTemp];
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<Inspectore>("/api/Inspectore", oInspector);
+            await Http.PostAsJsonAsync<Inspect>("/api/Inspect", oInspector);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Inspectore>("/api/Inspectore", oInspector);
+            await Http.PutAsJsonAsync<Inspect>("/api/Inspect", oInspector);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

@@ -8,21 +8,21 @@ namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CentrosIumController : ControllerBase
+    public class CentrosiumController : ControllerBase
     {
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Respuesta<CentrosIum> oRespuesta = new Respuesta<CentrosIum>();
+            Respuesta<Centrosium> oRespuesta = new Respuesta<Centrosium>();
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
-                    var lst = db.CentrosIa
-                .Where(x => x.Id == id)
-                .First();
+                    var lst = db.Centrosia
+                    .Where(x => x.Id == id)
+                    .First();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
                 }
@@ -37,12 +37,12 @@ namespace PaginaToros.Server.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            Respuesta<List<CentrosIum>> oRespuesta = new Respuesta<List<CentrosIum>>();
+            Respuesta<List<Centrosium>> oRespuesta = new Respuesta<List<Centrosium>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    var lst = db.CentrosIa.ToList();
+                    var lst = db.Centrosia.ToList();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
                 }
@@ -54,22 +54,22 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
         [HttpPost]
-        public IActionResult Add(CentrosIum model)
+        public IActionResult Add(Centrosium model)
         {
-            Respuesta<List<CentrosIum>> oRespuesta = new Respuesta<List<CentrosIum>>();
+            Respuesta<List<Centrosium>> oRespuesta = new Respuesta<List<Centrosium>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    CentrosIum oCentrosIum = new CentrosIum();
-                    oCentrosIum.Nrocen = model.Nrocen;
-                    oCentrosIum.Nombre = model.Nombre;
-                    oCentrosIum.NroCSayg = model.NroCSayg;
-                    oCentrosIum.FchUsu = model.FchUsu;
-                    oCentrosIum.CodUsu = model.CodUsu;
-                    oCentrosIum.Id = model.Id;
+                    Centrosium oCentrosium = new Centrosium();
+                    oCentrosium.Nrocen = model.Nrocen;
+                    oCentrosium.Nombre = model.Nombre;
+                    oCentrosium.NroCSayg = model.NroCSayg;
+                    oCentrosium.FchUsu = model.FchUsu;
+                    oCentrosium.CodUsu = model.CodUsu;
+                    oCentrosium.Id = model.Id;
 
-                    db.CentrosIa.Add(oCentrosIum);
+                    db.Centrosia.Add(oCentrosium);
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
                 }
@@ -82,20 +82,20 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPut]
-        public IActionResult Edit(CentrosIum model)
+        public IActionResult Edit(Centrosium model)
         {
-            Respuesta<List<CentrosIum>> oRespuesta = new Respuesta<List<CentrosIum>>();
+            Respuesta<List<Centrosium>> oRespuesta = new Respuesta<List<Centrosium>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    CentrosIum oCentrosIum = db.CentrosIa.Find(model.Id);
-                    oCentrosIum.Nrocen = model.Nrocen;
-                    oCentrosIum.Nombre = model.Nombre;
-                    oCentrosIum.NroCSayg = model.NroCSayg;
-                    oCentrosIum.FchUsu = model.FchUsu;
-                    oCentrosIum.CodUsu = model.CodUsu;
-                    oCentrosIum.Id = model.Id;
+                    Centrosium oCentrosium = db.Centrosia.Find(model.Id);
+                    oCentrosium.Nrocen = model.Nrocen;
+                    oCentrosium.Nombre = model.Nombre;
+                    oCentrosium.NroCSayg = model.NroCSayg;
+                    oCentrosium.FchUsu = model.FchUsu;
+                    oCentrosium.CodUsu = model.CodUsu;
+                    oCentrosium.Id = model.Id;
 
                     //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
                     //foreach (var row in TorosPorId)
@@ -103,7 +103,7 @@ namespace PaginaToros.Server.Controllers
                     //    row.NombreEst = model.Nombre;
                     //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     //}
-                    db.Entry(oCentrosIum).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    db.Entry(oCentrosium).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
@@ -118,14 +118,14 @@ namespace PaginaToros.Server.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int Id)
         {
-            Respuesta<List<CentrosIum>> oRespuesta = new Respuesta<List<CentrosIum>>();
+            Respuesta<List<Centrosium>> oRespuesta = new Respuesta<List<Centrosium>>();
             //IQueryable<Toro> TorosPorId;
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    CentrosIum oCentrosIum = db.CentrosIa.Find(Id);
-                    db.Remove(oCentrosIum);
+                    Centrosium oCentrosium = db.Centrosia.Find(Id);
+                    db.Remove(oCentrosium);
                     //var dbToros = db.Toros.Where(x => x.IdEst == Id);
                     //foreach(Toro oElement in dbToros)
                     //    {

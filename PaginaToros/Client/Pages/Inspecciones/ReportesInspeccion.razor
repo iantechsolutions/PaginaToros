@@ -37,16 +37,20 @@
     <div class="tablacontent" style="position:relative;width:1400px">
         <RadzenDataGrid style="position:relative;width:1400px;left:50px" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
             Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-            Data="@oRespuesta.List" TItem="InspRe" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or">
+            Data="@oRespuesta.List" TItem="Resin1" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or">
             <Columns>
-                <RadzenDataGridColumn TItem="InspRe" Property="Nrores" Title="Nro Resultado" Width="325px"/>
-                <RadzenDataGridColumn TItem="InspRe" Property="Nropla" Title="Plantel" Width="325px" />
-                <RadzenDataGridColumn TItem="InspRe" Property="NombreSocio" Title="Socio" Width="325px" />
-                <RadzenDataGridColumn TItem="InspRe" Property="FechaInspeccion" Title="Fecha De Inspeccion" Width="325px">
+                <RadzenDataGridColumn TItem="Resin1" Property="Nrores" Title="Nro Resultado" Width="325px"/>
+                <RadzenDataGridColumn TItem="Resin1" Property="Nropla" Title="Plantel" Width="325px" />
+                <RadzenDataGridColumn TItem="Resin1" Property="" Title="Socio" Width="325px">
                     <Template Context="data">
-                        @if (data.FechaInspeccion.HasValue)
+                        @(socios.Where(x => x.Scod == data.Scod).FirstOrDefault().Nombre)
+                    </Template>
+                </RadzenDataGridColumn>                
+                <RadzenDataGridColumn TItem="Resin1" Property="FechaInspeccion" Title="Fecha De Inspeccion" Width="325px">
+                    <Template Context="data">
+                        @if (data.Freali.HasValue)
                         {
-                            @data.FechaInspeccion.Value.ToString("dd/MM/yyyy")
+                            @data.Freali.Value.ToString("dd/MM/yyyy")
                         }
                         else
                         {
@@ -54,12 +58,12 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="InspRe" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Resin1" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" title="Editar" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="InspRe" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Resin1" Property="" Title="" Filterable="false" Width="50px">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash Size="16" Color="red" /></button>
                     </Template>
@@ -87,19 +91,23 @@ else
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
     public bool allowFiltering = false;
-    public RadzenDataGrid<InspRe>? grid;
+    public RadzenDataGrid<Resin1>? grid;
     int currentPage;
-    public string Url = "/api/InspRe";
-    public Respuesta<List<InspRe>> oRespuesta = new Respuesta<List<InspRe>>();
+    public string Url = "/api/Resin1";
+    public Respuesta<List<Resin1>> oRespuesta = new Respuesta<List<Resin1>>();
+    List<Socio> socios = new();
+
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<InspRe>>>(Url);
+        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Resin1>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
+        socios = rta.List;
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -111,7 +119,7 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/InspRe/{id}");
+        await Http.DeleteAsync($"/api/Resin1/{id}");
         await Get();
         if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
         {

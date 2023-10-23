@@ -8,19 +8,19 @@ namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FutControlController : ControllerBase
+    public class FutcontrolController : ControllerBase
     {
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Respuesta<FutControl> oRespuesta = new Respuesta<FutControl>();
+            Respuesta<Futcontrol> oRespuesta = new Respuesta<Futcontrol>();
 
             try
             {
-                using (BlazorCrudContext db = new())
+                using (hereford_prContext db = new())
                 {
 
-                    var lst = db.FutControls
+                    var lst = db.Futcontrols
                 .Where(x => x.Id == id)
                 .First();
                     oRespuesta.Exito = 1;
@@ -37,12 +37,12 @@ namespace PaginaToros.Server.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            Respuesta<List<FutControl>> oRespuesta = new Respuesta<List<FutControl>>();
+            Respuesta<List<Futcontrol>> oRespuesta = new Respuesta<List<Futcontrol>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    var lst = db.FutControls.ToList();
+                    var lst = db.Futcontrols.ToList();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
                 }
@@ -54,33 +54,33 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
         [HttpPost]
-        public IActionResult Add(FutControl model)
+        public IActionResult Add(Futcontrol model)
         {
-            Respuesta<List<FutControl>> oRespuesta = new Respuesta<List<FutControl>>();
+            Respuesta<List<Futcontrol>> oRespuesta = new Respuesta<List<Futcontrol>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    FutControl oFutControl = new FutControl();
-                    oFutControl.NroTrans = model.NroTrans;
-                    oFutControl.Fectrans = model.Fectrans;
-                    oFutControl.Sven = model.Sven;
-                    oFutControl.CategSv = model.CategSv;
-                    oFutControl.Vnom = model.Vnom;
-                    oFutControl.Scom = model.Scom;
-                    oFutControl.CategSc = model.CategSc;
-                    oFutControl.Cnom = model.Cnom;
-                    oFutControl.Plantel = model.Plantel;
-                    oFutControl.EdadCrias = model.EdadCrias;
-                    oFutControl.CantHem = model.CantHem;
-                    oFutControl.CantMach = model.CantMach;
-                    oFutControl.PlantDest = model.PlantDest;
-                    oFutControl.Incorp = model.Incorp;
-                    oFutControl.Hemsta = model.Hemsta;
-                    oFutControl.FchUsu = model.FchUsu;
-                    oFutControl.CodUsu = model.CodUsu;
+                    Futcontrol oFutcontrol = new Futcontrol();
+                    oFutcontrol.NroTrans = model.NroTrans;
+                    oFutcontrol.Fectrans = model.Fectrans;
+                    oFutcontrol.Sven = model.Sven;
+                    oFutcontrol.CategSv = model.CategSv;
+                    oFutcontrol.Vnom = model.Vnom;
+                    oFutcontrol.Scom = model.Scom;
+                    oFutcontrol.CategSc = model.CategSc;
+                    oFutcontrol.Cnom = model.Cnom;
+                    oFutcontrol.Plantel = model.Plantel;
+                    oFutcontrol.EdadCrias = model.EdadCrias;
+                    oFutcontrol.CantHem = model.CantHem;
+                    oFutcontrol.CantMach = model.CantMach;
+                    oFutcontrol.PlantDest = model.PlantDest;
+                    oFutcontrol.Incorp = model.Incorp;
+                    oFutcontrol.Hemsta = model.Hemsta;
+                    oFutcontrol.FchUsu = model.FchUsu;
+                    oFutcontrol.CodUsu = model.CodUsu;
 
-                    db.FutControls.Add(oFutControl);
+                    db.Futcontrols.Add(oFutcontrol);
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
                 }
@@ -93,31 +93,31 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPut]
-        public IActionResult Edit(FutControl model)
+        public IActionResult Edit(Futcontrol model)
         {
-            Respuesta<List<FutControl>> oRespuesta = new Respuesta<List<FutControl>>();
+            Respuesta<List<Futcontrol>> oRespuesta = new Respuesta<List<Futcontrol>>();
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    FutControl oFutControl = db.FutControls.Find(model.Id);
-                    oFutControl.NroTrans = model.NroTrans;
-                    oFutControl.Fectrans = model.Fectrans;
-                    oFutControl.Sven = model.Sven;
-                    oFutControl.CategSv = model.CategSv;
-                    oFutControl.Vnom = model.Vnom;
-                    oFutControl.Scom = model.Scom;
-                    oFutControl.CategSc = model.CategSc;
-                    oFutControl.Cnom = model.Cnom;
-                    oFutControl.Plantel = model.Plantel;
-                    oFutControl.EdadCrias = model.EdadCrias;
-                    oFutControl.CantHem = model.CantHem;
-                    oFutControl.CantMach = model.CantMach;
-                    oFutControl.PlantDest = model.PlantDest;
-                    oFutControl.Incorp = model.Incorp;
-                    oFutControl.Hemsta = model.Hemsta;
-                    oFutControl.FchUsu = model.FchUsu;
-                    oFutControl.CodUsu = model.CodUsu;
+                    Futcontrol oFutcontrol = db.Futcontrols.Find(model.Id);
+                    oFutcontrol.NroTrans = model.NroTrans;
+                    oFutcontrol.Fectrans = model.Fectrans;
+                    oFutcontrol.Sven = model.Sven;
+                    oFutcontrol.CategSv = model.CategSv;
+                    oFutcontrol.Vnom = model.Vnom;
+                    oFutcontrol.Scom = model.Scom;
+                    oFutcontrol.CategSc = model.CategSc;
+                    oFutcontrol.Cnom = model.Cnom;
+                    oFutcontrol.Plantel = model.Plantel;
+                    oFutcontrol.EdadCrias = model.EdadCrias;
+                    oFutcontrol.CantHem = model.CantHem;
+                    oFutcontrol.CantMach = model.CantMach;
+                    oFutcontrol.PlantDest = model.PlantDest;
+                    oFutcontrol.Incorp = model.Incorp;
+                    oFutcontrol.Hemsta = model.Hemsta;
+                    oFutcontrol.FchUsu = model.FchUsu;
+                    oFutcontrol.CodUsu = model.CodUsu;
 
 
                     //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
@@ -126,7 +126,7 @@ namespace PaginaToros.Server.Controllers
                     //    row.NombreEst = model.Nombre;
                     //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     //}
-                    db.Entry(oFutControl).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    db.Entry(oFutcontrol).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
@@ -141,14 +141,14 @@ namespace PaginaToros.Server.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int Id)
         {
-            Respuesta<List<FutControl>> oRespuesta = new Respuesta<List<FutControl>>();
+            Respuesta<List<Futcontrol>> oRespuesta = new Respuesta<List<Futcontrol>>();
             //IQueryable<Toro> TorosPorId;
             try
             {
-                using (BlazorCrudContext db = new BlazorCrudContext())
+                using (hereford_prContext db = new hereford_prContext())
                 {
-                    FutControl oFutControl = db.FutControls.Find(Id);
-                    db.Remove(oFutControl);
+                    Futcontrol oFutcontrol = db.Futcontrols.Find(Id);
+                    db.Remove(oFutcontrol);
                     //var dbToros = db.Toros.Where(x => x.IdEst == Id);
                     //foreach(Toro oElement in dbToros)
                     //    {
