@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "XQearENdoeki+I/Kv/aA70v46ZllyI7FBRyJZgMnKHA=",
+  "Hash": "KLn+KYS2kkCJnTCBSXmVLoEirAE+TX1Kod0DRY2dySM=",
   "Source": "PaginaToros.Client",
   "BasePath": "/",
   "Mode": "Root",
@@ -9452,6 +9452,23 @@
       "OriginalItemSpec": "wwwroot\\icon-512.png"
     },
     {
+      "Identity": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\wwwroot\\images\\background.jpg",
+      "SourceId": "PaginaToros.Client",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\wwwroot\\",
+      "BasePath": "/",
+      "RelativePath": "images/background.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\background.jpg"
+    },
+    {
       "Identity": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\wwwroot\\images\\cargando.gif",
       "SourceId": "PaginaToros.Client",
       "SourceType": "Discovered",
@@ -9484,6 +9501,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\logo.png"
+    },
+    {
+      "Identity": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\wwwroot\\images\\logo_AACH.png",
+      "SourceId": "PaginaToros.Client",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\wwwroot\\",
+      "BasePath": "/",
+      "RelativePath": "images/logo_AACH.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\logo_AACH.png"
     },
     {
       "Identity": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\wwwroot\\index.html",

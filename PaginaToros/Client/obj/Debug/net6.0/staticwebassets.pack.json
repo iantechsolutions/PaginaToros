@@ -81,12 +81,20 @@
       "PackagePath": "staticwebassets\\icon-512.png"
     },
     {
+      "Id": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\wwwroot\\images\\background.jpg",
+      "PackagePath": "staticwebassets\\images\\background.jpg"
+    },
+    {
       "Id": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\wwwroot\\images\\cargando.gif",
       "PackagePath": "staticwebassets\\images\\cargando.gif"
     },
     {
       "Id": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\wwwroot\\images\\logo.png",
       "PackagePath": "staticwebassets\\images\\logo.png"
+    },
+    {
+      "Id": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\wwwroot\\images\\logo_AACH.png",
+      "PackagePath": "staticwebassets\\images\\logo_AACH.png"
     },
     {
       "Id": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\wwwroot\\index.html",

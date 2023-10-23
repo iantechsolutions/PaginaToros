@@ -49,7 +49,7 @@
       "url": "css\/open-iconic\/README.md"
     },
     {
-      "hash": "sha256-Jtxf9L+5ITKRc1gIRl4VbUpGkRNfOBXjYTdhJD4facM=",
+      "hash": "sha256-X+9ptNPRw7kWdKuyounQndZsvv23IYaCMeBSFRkmWhA=",
       "url": "favicon.ico"
     },
     {
@@ -61,6 +61,10 @@
       "url": "icon-512.png"
     },
     {
+      "hash": "sha256-6ho\/rg\/USB3GkfRuCjGnkxamNiJbk7g6lfiVquIK7oQ=",
+      "url": "images\/background.jpg"
+    },
+    {
       "hash": "sha256-Oh7oCEQ1y6sagPSLOdJgU9Vc\/F6xV37BJhh76bJtM7w=",
       "url": "images\/cargando.gif"
     },
@@ -69,7 +73,11 @@
       "url": "images\/logo.png"
     },
     {
-      "hash": "sha256-RPlt83XaxrJQcYfoY9bXT9kC7tJzdAco3pQfPVaCCXI=",
+      "hash": "sha256-X+9ptNPRw7kWdKuyounQndZsvv23IYaCMeBSFRkmWhA=",
+      "url": "images\/logo_AACH.png"
+    },
+    {
+      "hash": "sha256-JhUMoYpKxLWx\/AM\/1of359qLEKfFQS2KaHIU91YFbxI=",
       "url": "index.html"
     },
     {
@@ -77,7 +85,7 @@
       "url": "manifest.json"
     },
     {
-      "hash": "sha256-Yhj1agNWTYhOjaqQ5fTDqDD16pr+NQpyHfC6LaMJWNE=",
+      "hash": "sha256-aEAEjZvLX08q205flMFodrhPATyniNDFFjCGOCTBnrQ=",
       "url": "PaginaToros.Client.styles.css"
     },
     {
@@ -993,11 +1001,11 @@
       "url": "_framework\/PaginaToros.Shared.pdb"
     },
     {
-      "hash": "sha256-w2LHzgc+efCfgNL4DvhOcC9dz2LhKUPllpaiEH3GyuM=",
+      "hash": "sha256-lDg1guHnJl2W9Oq6xK+nsaBhPKvU0uNI7pe2CQnhAWg=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-xGz3Ia1rvf7KJtyi4G0U5sXyr6NQ0Woj722XWwHnuo8=",
+      "hash": "sha256-KBmoargodq4YkwpXWq3uL9ispxpIinwk1AFPIG4Zwrs=",
       "url": "_framework\/PaginaToros.Client.pdb"
     },
     {
@@ -1005,7 +1013,7 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-cgDsZLG49ZCGabVJaEKT6bUZVR7dTpT\/BLcvs6Rdt8g=",
+      "hash": "sha256-qI0mevfGGU\/jSKA1gUBVPzbuJnk9BJZhEPdxCSh8TIo=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -1293,5 +1301,5 @@
       "url": "_content\/Blazored.Modal\/Blazored.Modal.bundle.scp.css"
     }
   ],
-  "version": "r78d+QlJ"
+  "version": "ybf0FBD0"
 };
