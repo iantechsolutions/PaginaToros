@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "RPwY3GzvLcDW6G/Ci5yNp0HeT6abvGvV09iTHyoZI9C65z/fFYFFOVbeqLhb/3n7NJQ6dZX85KVdbBxKOIkbow==",
+  "dgSpecHash": "yT6gkYEMhgogNPtY08UrNxe5Zpc9YzMzzjmqGpHUmgQsqVeSePreb76u1LWuLd2HpFKTUkCVPhZMOoQeQAihBg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj",
+  "projectFilePath": "C:\\Users\\HP\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\HP\\.nuget\\packages\\blazored.modal\\7.1.0\\blazored.modal.7.1.0.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\blazored.sessionstorage\\2.3.0\\blazored.sessionstorage.2.3.0.nupkg.sha512",

@@ -3042,10 +3042,6 @@ C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-g
 C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\EtALOQAM.gz
 C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\USiIUjHb.gz
 C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\44p8EC0b.gz
-C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\hqoP3rDv.gz
-C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\sYC47elf.gz
-C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\iDA8adQw.gz
-C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\pcyZamqN.gz
 C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\P9TxJHtz.gz
 C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\blazor.boot.json
 C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\staticwebassets\msbuild.PaginaToros.Client.Microsoft.AspNetCore.StaticWebAssets.props
@@ -3067,3 +3063,8 @@ C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaT
 C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\ref\PaginaToros.Client.dll
 C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\4Jhk3D1k.gz
 C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\RJ1tWkmN.gz
+C:\Users\HP\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\Geb0u+Zr.gz
+C:\Users\HP\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\EW8t7Jr9.gz
+C:\Users\HP\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\91YhNA4h.gz
+C:\Users\HP\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\build-gz\mbKA4xYJ.gz
+C:\Users\HP\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\scopedcss\Pages\Auth\Login.razor.rz.scp.css

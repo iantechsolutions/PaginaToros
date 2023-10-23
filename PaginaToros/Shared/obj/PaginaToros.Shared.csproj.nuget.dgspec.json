@@ -1,15 +1,15 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {}
+    "C:\\Users\\HP\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {}
   },
   "projects": {
-    "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
+    "C:\\Users\\HP\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+        "projectUniqueName": "C:\\Users\\HP\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
         "projectName": "PaginaToros.Shared",
-        "projectPath": "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+        "projectPath": "C:\\Users\\HP\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
         "packagesPath": "C:\\Users\\HP\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\obj\\",
         "projectStyle": "PackageReference",

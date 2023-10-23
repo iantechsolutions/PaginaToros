@@ -4,52 +4,50 @@
 @inject PaginaToros.Client.Auth.ILoginServices loginService
 @inject IModalService ModalService
 
-<div class="row" style="margin-top: 30px;">
-    <div class="col-md-3 col-sm-12" style="background-image: linear-gradient(to right, #28a745 0%, #17a2b8 100%); border-radius: 5px; color: white; padding: 20px; margin: 0 auto auto auto;">
-        <img src="/images/logo.png" class=" img-fluid" alt="200" />
-        <br />
-        <h2>Iniciar Sesión</h2>
-        <EditForm Model="@userInfo" OnValidSubmit="Loger">
-            <DataAnnotationsValidator />
+<style>
+    body {
+        background-image: url("/images/background.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        width:100%;
+    }
 
-            <div class="form-group">
-                <label>Usuario</label>
-                <div>
-                    <InputText Class="form-control" @bind-Value="userInfo.UserName" />
-                    <ValidationMessage For="@(()=> userInfo.UserName)" />
-                </div>
-            </div>
+</style>
 
-            <div class="form-group">
-                <label>Password</label>
-                <div>
-                    <InputPassword Class="form-control" @bind-Value="userInfo.Password" />
-                    <ValidationMessage For="@(()=> userInfo.Password)" />
-                </div>
-            </div>
-            <br />
-            <div class="col-12" style="text-align:center;">
-                <button type="submit" class="btn btn-primary">Acceder</button>
-            </div>
-        </EditForm>
+<div class="login-page">
+    <div class="form">
+        <center>
+            <img class="img" src="images/logo_AACH.png" alt="Logo">
+        </center>
+
+        <form class="login-form">
+            <input type="text" @bind-value="@userInfo.UserName" placeholder="Usuario" />
+            <input type="password" @bind-value="@userInfo.Password" placeholder="Contraseña" />
+            <button type="button" @onclick="Loger">Acceder</button>
+            <p class="message">¿no está registrado? <a href="#">Cree su cuenta</a></p>
+        </form>
     </div>
 </div>
-
 
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; }
 
     private UserLogin userInfo = new UserLogin();
-
     private async Task Loger()
     {
-        var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
+        var options = new ModalOptions()
+            {
+                Position = ModalPosition.Middle,
+                HideCloseButton=true,
+            };
+        var modal = Modal.Show<ModalWait>("", options);
         var result = await http.PostAsJsonAsync<UserLogin>($"{http.BaseAddress}api/Account/Login", userInfo);
         if (result.IsSuccessStatusCode)
         {
             await loginService.Login(result.Content.ReadAsStringAsync().Result);
-            uriHelper.NavigateTo("");
+            uriHelper.NavigateTo("/");
         }
         else
         {
