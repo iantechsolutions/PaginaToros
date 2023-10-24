@@ -45,23 +45,31 @@
                     </BlazoredTypeahead>
                 </div>
             </div>
-@*             <div class="row" style="width=100%;">
+            <br/>
+            <div class="row" style="width=100%;">
                 <div class="col-sm">
-                    <label class="col-sm">Año de nacimientos</label>
-                    <InputText @bind-Value="@oTransan.CantHem" class="form-control" placeholder=""></InputText>
-                    <ValidationMessage For="(()=> oTransan.CantHem)" style="color:red;" />
+                    <label>Plantel Origen</label><br />
+                    <BlazoredTypeahead SearchMethod="BusquedaPlantelesVendedor" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="plantelOrigen">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.Placod
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.Placod
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
                 </div>
                 <div class="col-sm">
-                    <label class="col-sm">Toros PR del año</label>
-                    <InputText @bind-Value="@oTransan.CantMach" class="form-control" placeholder=""></InputText>
-                    <ValidationMessage For="(()=> oTransan.CantMach)" style="color:red;" />
+                    <label class="col-sm">Plantel Destino</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaPlantelesComprador" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="plantelDestino">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.Placod
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.Placod
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
                 </div>
-                <div class="col-sm">
-                    <label class="col-sm">Vacas PR del año</label>
-                    <InputText @bind-Value="@oTransan.CantChem" class="form-control" placeholder=""></InputText>
-                    <ValidationMessage For="(()=> oTransan.CantChem)" style="color:red;" />
-                </div>
-            </div> *@
+            </div>
             <br/>
             <div class="row" style="width=100%;">
                 <div class="col-sm">
@@ -94,6 +102,9 @@
     Socio socioComprador = new();
     Socio socioVendedor = new();
     List<Socio> socios = new();
+    List<Plantel> planteles = new();
+    Plantel? plantelOrigen = null;
+    Plantel? plantelDestino = null;
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     List<string> estadosHembra = new List<string> {"CC" ,"CCP", "SS","PR" };
@@ -102,6 +113,8 @@
     {
         var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
         socios = rta.List.ToList();
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Plantel>>>($"/api/Plantel");
+        planteles = rt.List.ToList();
         if (Id != 0)
         {
             try
@@ -123,7 +136,16 @@
         oFutcontrol.Cnom = socioComprador.Nombre;
         oFutcontrol.Sven = socioVendedor.Scod.ToString();
         oFutcontrol.Scom = socioComprador.Scod.ToString();
-        if (Id == 0)
+        try{
+            oFutcontrol.Plantel = plantelOrigen.Placod;
+        }
+        catch{}
+        try
+        {
+            oFutcontrol.PlantDest = plantelDestino.Placod;
+        }
+        catch{}
+    if (Id == 0)
         {
             await Http.PostAsJsonAsync<Futcontrol>("/api/Futcontrol", oFutcontrol);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
@@ -143,6 +165,16 @@
     private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
     {
         var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+    private async Task<IEnumerable<Plantel>> BusquedaPlantelesComprador(string searchText)
+    {
+        var result = planteles.Where(x => x.Nrocri == socioComprador.Scod && x.Placod.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+    private async Task<IEnumerable<Plantel>> BusquedaPlantelesVendedor(string searchText)
+    {
+        var result = planteles.Where(x => x.Nrocri==socioVendedor.Scod  && x.Placod.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 }

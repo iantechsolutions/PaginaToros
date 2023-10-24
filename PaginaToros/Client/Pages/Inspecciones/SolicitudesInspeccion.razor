@@ -42,7 +42,7 @@
                 <RadzenDataGridColumn TItem="Solici1" Property="Nrosol" Title="Nro Solicitud" Width="325px" />
                 <RadzenDataGridColumn TItem="Solici1" Property="" Title="Socio" Width="325px">
                     <Template Context="data">
-                        @(socios.Where(t => t.Scod == (establecimientos.Where(x => x.Ecod == data.Codest).FirstOrDefault()).Codsoc).FirstOrDefault().Nombre)
+                        @traductorEst[data.Codest]
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Solici1" Property="Fecsol" Title="Fecha De Solicitud" Width="325px">
@@ -108,8 +108,24 @@ else
     Respuesta<List<Solici1>> oRespuesta = new Respuesta<List<Solici1>>();
     List<Socio> socios = new();
     List<Estable> establecimientos = new();
+    Dictionary<string,string> traductorEst = new();
     protected override async Task OnInitializedAsync()
     {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
+        socios = rta.List;
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>("/api/Establecimiento");
+        establecimientos = rt.List;
+        foreach(var est in establecimientos)
+        {
+            try{
+                traductorEst.Add(est.Ecod,socios.Where(x=>x.Scod==est.Codsoc).FirstOrDefault().Nombre);
+            }
+            catch
+            {
+                traductorEst.Add(est.Ecod, "");
+            }
+        }
+
         await Get();
     }
     async Task Get()
@@ -117,10 +133,7 @@ else
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Solici1>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
-        socios = rta.List;
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>("/api/Establecimiento");
-        establecimientos = rt.List;
+
         StateHasChanged();
     }
     public void CambiarModoFiltro()

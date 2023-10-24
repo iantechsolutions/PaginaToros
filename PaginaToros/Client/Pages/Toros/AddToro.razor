@@ -50,58 +50,38 @@
                 </div>
             </div>
             <br />
-            @if (tipoTemp=="S/")
-            {
-                <div class="row" style="width=100%;">
-                    <div class="col-sm">
-                        <label class="col-sm">HBA</label>
-                        <InputText @bind-Value="@oTorosuni.Hba" class="form-control" placeholder=""></InputText>
-                        <ValidationMessage For="(()=> oTorosuni.Hba)" style="color:red;" />
-                    </div>
-                    <div class="col-sm">
-                        <label class="col-sm">Tatuaje</label>
-                        <InputText @bind-Value="@oTorosuni.Tatpart" class="form-control" placeholder=""></InputText>
-                        <ValidationMessage For="(()=> oTorosuni.Tatpart)" style="color:red;" />
-                    </div>
-                    <div class="col-sm">
-                        <label class="col-sm">Nombre del toro</label>
-                        <InputText @bind-Value=@oTorosuni.NomDad class="form-control" placeholder="" />
-                        <ValidationMessage For="(()=> oTorosuni.NomDad)" style="color:red;" />
-                    </div>
-                    <div class="col-sm">
-                        <label class="col-sm">Fecha de nacimiento</label>
-                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTorosuni.Nacido" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                    </div>
-
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">HBA</label>
+                    <InputText @bind-Value="@oTorosuni.Hba" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oTorosuni.Hba)" style="color:red;" />
                 </div>
-                <br />
-            }
-            else
-            {
-                <div class="row" style="width=100%;">
-                    <div class="col-sm">
-                        <label class="col-sm">HBA</label>
-                        <InputText @bind-Value="@oTorosuni.Hba" class="form-control" placeholder=""></InputText>
-                        <ValidationMessage For="(()=> oTorosuni.Hba)" style="color:red;" />
-                    </div>
-                    <div class="col-sm">
-                        <label class="col-sm">Tatuaje</label>
-                        <InputText @bind-Value="@oTorosuni.Tatpart" class="form-control" placeholder=""></InputText>
-                        <ValidationMessage For="(()=> oTorosuni.Tatpart)" style="color:red;" />
-                    </div>
-                    <div class="col-sm">
-                        <label class="col-sm">Nombre del toro</label>
-                        <RadzenDropDown @bind-Value=@oTorosuni.NomDad Data=@variedades Style="width: 100%; max-width: 400px;" />
-                        <ValidationMessage For="(()=> oTorosuni.NomDad)" style="color:red;" />
-                    </div>
-                    <div class="col-sm">
-                        <label class="col-sm">Fecha de nacimiento</label>
-                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTorosuni.Nacido" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                    </div>
-
+                <div class="col-sm">
+                    <label class="col-sm">Tatuaje</label>
+                    <InputText @bind-Value="@oTorosuni.Tatpart" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oTorosuni.Tatpart)" style="color:red;" />
                 </div>
-                <br />
-            }
+                <div class="col-sm">
+                    <label class="col-sm">Nombre del toro</label>
+                    <InputText @bind-Value=@oTorosuni.NomDad class="form-control" placeholder="" />
+                    <ValidationMessage For="(()=> oTorosuni.NomDad)" style="color:red;" />
+                </div>
+            </div>
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Fecha de nacimiento</label>
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTorosuni.Nacido" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Numero de Orden</label>
+                    <InputNumber @bind-Value="@oTorosuni.Sbcod" class="form-control" placeholder=""></InputNumber>
+                    <ValidationMessage For="(()=> oTorosuni.Sbcod)" style="color:red;" />
+                </div>
+                <div class="col-sm"/>
+
+            </div>
+            <br />
 
             <br />
 
@@ -139,7 +119,7 @@
     string estadoTemp = "";
     string tipoTemp = "";
     DateTime? dateTemp = DateTime.Now;
-    Socio socioSeleccionado = new();
+    Socio? socioSeleccionado = null;
     List<Socio> socios = new();
     string tipoToro = "";
 
@@ -177,7 +157,11 @@
         }
         catch
         {
-            
+
+        }
+        if (oTorosuni.Fecing == null)
+        {
+            oTorosuni.Fecing = "";
         }
         if (Id == 0)
         {

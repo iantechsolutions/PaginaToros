@@ -115,8 +115,8 @@
             {
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<Solici1>>($"/api/Solici1/{Id}");
                 oSolici1 = oRespuesta.List;
-                establecimientoSeleccionado = establecimientos.Where(x => x.Nombre == oSolici1.Codest).FirstOrDefault();
-                socioSeleccionado = socios.Where(x => x.Nombre == establecimientoSeleccionado.Codsoc).FirstOrDefault();
+                establecimientoSeleccionado = establecimientos.Where(x => x.Ecod == oSolici1.Codest).FirstOrDefault();
+                socioSeleccionado = socios.Where(x => x.Scod == establecimientoSeleccionado.Codsoc).FirstOrDefault();
                 if (oSolici1.Reinsp=="S")
                 {
                     activoReInspeccion = true;

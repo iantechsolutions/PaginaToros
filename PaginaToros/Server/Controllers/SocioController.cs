@@ -97,6 +97,7 @@ namespace PaginaToros.Server.Controllers
                     oSocio.Codpos1 = model.Codpos1;
                     oSocio.Codpro1 = model.Codpro1;
                     oSocio.Telefo2 = model.Telefo2;
+                    oSocio.Criador = model.Criador;
                     oSocio.Mail = model.Mail;
                     oSocio.Fecing = model.Fecing;
                     oSocio.Placod = model.Placod;
@@ -120,7 +121,7 @@ namespace PaginaToros.Server.Controllers
             {
                 using (hereford_prContext db = new hereford_prContext())
                 {
-                    Socio oSocio = db.Socios.Find(model.Id);
+                    Socio oSocio = db.Socios.Find(model.Id,model.Scod);
                     oSocio.Nombre = model.Nombre;
                     oSocio.Direcc1 = model.Direcc1;
                     oSocio.Telefo1 = model.Telefo1;
@@ -130,6 +131,7 @@ namespace PaginaToros.Server.Controllers
                     oSocio.Codpro1 = model.Codpro1;
                     oSocio.Telefo2 = model.Telefo2;
                     oSocio.Mail = model.Mail;
+                    oSocio.Criador = model.Criador;
                     oSocio.Fecing = model.Fecing;
                     oSocio.Placod = model.Placod;
                     db.Entry(oSocio).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
@@ -144,8 +146,8 @@ namespace PaginaToros.Server.Controllers
             }
             return Ok(oRespuesta);
         }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int Id)
+        [HttpDelete("{id}/{cod}")]
+        public IActionResult Delete(int Id,string cod)
         {
             Respuesta<List<Socio>> oRespuesta = new Respuesta<List<Socio>>();
             //IQueryable<Toro> TorosPorId;
@@ -153,7 +155,7 @@ namespace PaginaToros.Server.Controllers
             {
                 using (hereford_prContext db = new hereford_prContext())
                 {
-                    Socio oSocio = db.Socios.Find(Id);
+                    Socio oSocio = db.Socios.Find(Id,cod);
                     db.Remove(oSocio);
                     //var dbToros = db.Toros.Where(x => x.IdEst == Id);
                     //foreach (Toro oElement in dbToros)

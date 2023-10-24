@@ -88,8 +88,7 @@ namespace PaginaToros.Server.Controllers
                 {
                     Estable oEstablecimiento = new Estable();
                     var estviejo = db.Estables.OrderByDescending(x => x.Id).First();
-                    oEstablecimiento.Ecod = (Int32.Parse(estviejo.Ecod) + 1).ToString("D5");
-                    oEstablecimiento.Ecod = model.Ecod;
+                    oEstablecimiento.Ecod = (Int32.Parse(estviejo.Ecod) + 1).ToString("D6");
                     oEstablecimiento.Codsoc = model.Codsoc;
                     oEstablecimiento.Activo = model.Activo;
                     oEstablecimiento.Nombre = model.Nombre;
@@ -102,7 +101,7 @@ namespace PaginaToros.Server.Controllers
                     oEstablecimiento.Plano = model.Plano;
                     oEstablecimiento.Codzon = model.Codzon;
                     oEstablecimiento.Fecing = model.Fecing;
-
+                    oEstablecimiento.Fechacreacion = model.Fechacreacion;
                     db.Estables.Add(oEstablecimiento);
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
@@ -137,6 +136,7 @@ namespace PaginaToros.Server.Controllers
                     oEstablecimiento.Plano = model.Plano;
                     oEstablecimiento.Codzon = model.Codzon;
                     oEstablecimiento.Fecing = model.Fecing;
+                    oEstablecimiento.Fechacreacion = model.Fechacreacion;
                     db.Entry(oEstablecimiento).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();

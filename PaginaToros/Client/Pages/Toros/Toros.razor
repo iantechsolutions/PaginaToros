@@ -42,25 +42,26 @@
             <Columns>
                 <RadzenDataGridColumn TItem="Torosuni" Property="CodEstado" Title="Estado" Width="55px">
                     <Template Context="data">
-                        @if (data.CodEstado == "1")
+                        @switch (data.CodEstado)
                         {
+                        case "1":
                             <a style="color:darkgreen">Activo</a>
-                        }
-                        else if (data.CodEstado == "2")
-                        {
-                            <a style="color:red">Inactivo</a>
-                        }
-                        else if (data.CodEstado == "3")
-                        {
+                            break;
+                        case "2":
                             <a style="color:red">Inexistente</a>
-                        }
-                        else if (data.CodEstado == "4")
-                        {
+                            break;
+                        case "3":
+                            <a style="color:red">Inactivo</a>
+                            break;
+                        case "4":
                             <a style="color:black">Muerto</a>
-                        }
-                        else if (data.CodEstado=="5")
-                        {
+                            break;
+                        case "5":
                             <a style="color:red">Vendido</a>
+                            break;
+                        default:
+                        // Handle the default case if needed
+                        break;
                         }
                     </Template>
                 </RadzenDataGridColumn>

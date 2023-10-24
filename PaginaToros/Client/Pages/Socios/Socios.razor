@@ -6,7 +6,7 @@
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:50px">Socios</h3>
 
 
-<button style="position:relative;left:50px" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="()=>add(0)">Agregar Socio</button>
+<button style="position:relative;left:50px" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick='()=>add(0,"0")'>Agregar Socio</button>
 <style>
 
     .rz-cell-data,
@@ -84,17 +84,17 @@
 
             <RadzenDataGridColumn TItem="Socio" Property="" Title="" Filterable="false" Width="45px">
                 <Template Context="data">
-                    <button class="btn" position="absolute" title="Editar Socio" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                    <button class="btn" position="absolute" title="Editar Socio" @onclick="() => add(data.Id,data.Scod)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Socio" Property="" Title="" Filterable="false" Width="45px">
                 <Template Context="data">
-                    <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
+                    <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id,data.Scod)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Socio" Property="" Title="" Filterable="false" Width="45px">
                 <Template Context="data">
-                    <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Size="16" Color="blue" /></button>
+                    <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id,data.Scod)"><FeatherInfo Size="16" Color="blue" /></button>
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
@@ -167,10 +167,10 @@ else
         StateHasChanged();
     }
 
-    async Task delete(int id)
+    async Task delete(int id, string cod)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/Socio/{id}");
+        await Http.DeleteAsync($"/api/Socio/{id}/{cod}");
         await Get();
         if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
         {
@@ -183,7 +183,7 @@ else
 
     }
 
-    public async Task alertaDelete(int id)
+    public async Task alertaDelete(int id, string cod)
     {
         SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
             {
@@ -197,7 +197,7 @@ else
 
         if (!string.IsNullOrEmpty(result.Value))
         {
-            delete(id);
+            delete(id,cod);
 
         }
         else if (result.Dismiss == DismissReason.Cancel)
@@ -206,7 +206,7 @@ else
         }
     }
 
-    async Task add(int Id)
+    async Task add(int Id, string cod)
     {
         int numero = Id;
         if (numero != 0)
@@ -216,6 +216,7 @@ else
             {
                 var parameters = new ModalParameters();
                 parameters.Add(nameof(AddSocio.Id), Id);
+                parameters.Add(nameof(AddSocio.cod), cod);
                 var options = new ModalOptions()
                     {
                         Size = ModalSize.ExtraLarge
@@ -240,11 +241,13 @@ else
         }
         else
         {
+            var parameters = new ModalParameters();
             var options = new ModalOptions()
                 {
                     Size = ModalSize.ExtraLarge
                 };
-            var formModal = Modal.Show<AddSocio>("Agregar Socio", options);
+            parameters.Add(nameof(AddSocio.cod), cod);
+            var formModal = Modal.Show<AddSocio>("Agregar Socio", parameters,options);
             var result = await formModal.Result;
 
             if (result.Cancelled)
@@ -260,7 +263,7 @@ else
         }
     }
 
-    async Task gotoinfo(int id)
+    async Task gotoinfo(int id, string cod)
     {
         currentPage = grid.CurrentPage;
         var parameters = new ModalParameters();

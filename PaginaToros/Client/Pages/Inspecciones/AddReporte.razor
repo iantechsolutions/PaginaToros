@@ -578,11 +578,10 @@ else
             else{
                 var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
                 socios = rta.List.ToList();
-                var rtaa = await Http.GetFromJsonAsync<Respuesta<List<Solici1>>>("/api/Solici1");
+                var rtaa = await Http.GetFromJsonAsync<Respuesta<List<Solici1>>>("/api/Solici1/pendientes");
                 solicitudes = rtaa.List;
                 var rt = await Http.GetFromJsonAsync<Respuesta<List<Resin1>>>("/api/Resin1");
                 resultados = rt.List;
-                solicitudes = solicitudes.Where(a => !resultados.Any(b => a.Nrosol == b.Nrores)).ToList();
                 var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>($"/api/Establecimiento");
                 establecimientos = respuesta.List;
 

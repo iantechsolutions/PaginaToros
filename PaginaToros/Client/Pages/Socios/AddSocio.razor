@@ -93,6 +93,7 @@
     Respuesta<Socio> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
+    [Parameter] public string cod { get; set; }
     DateTime FechaTemp = DateTime.Now.Date;
     public string tempProvincia = "";
     //string CodZona = "  ";
@@ -160,6 +161,7 @@
     }
     async Task Guardar()
     {
+        oSocio.Scod = cod;
         oSocio.Codpro1 = traductorProvincia[tempProvincia];
         oSocio.Fecing = FechaTemp;
         if (activo)

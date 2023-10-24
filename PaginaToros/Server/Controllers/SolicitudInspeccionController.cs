@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using PaginaToros.Server.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -77,6 +78,29 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
 
+        [HttpGet("pendientes")]
+        public async Task <IActionResult> GetPendientes()
+        {
+            Respuesta<List<Solici1>> oRespuesta = new Respuesta<List<Solici1>>();
+
+            try
+            {
+                using (hereford_prContext db = new())
+                {
+                    var lst = await db.Solici1s
+                    .Where(t1 => !db.Resin1s.Any(t2 => t2.Nrores == t1.Nrosol))
+                    .ToListAsync();
+                    oRespuesta.Exito = 1;
+                    oRespuesta.List = lst;
+                }
+            }
+            catch (Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+            return Ok(oRespuesta);
+        }
+
         [HttpPost]
         public IActionResult Add(Solici1 model)
         {
@@ -87,8 +111,8 @@ namespace PaginaToros.Server.Controllers
                 {
                     Solici1 oSolici1 = new Solici1();
                     var solvieja = db.Solici1s.OrderByDescending(x => x.Id).First();
+                    oSolici1.Nrosol = (Int32.Parse(solvieja.Nrosol)+1).ToString("D6");
                     oSolici1.Codest = model.Codest;
-                    oSolici1.Nrosol = model.Nrosol;
                     oSolici1.Fecsol = model.Fecsol;
                     oSolici1.Lugar = model.Lugar;
                     oSolici1.Cantor = model.Cantor;

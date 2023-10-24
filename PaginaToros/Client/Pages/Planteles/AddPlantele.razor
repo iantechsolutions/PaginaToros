@@ -83,7 +83,7 @@
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas sin servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrp" placeholder=""></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrp" placeholder=""></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqcsrp)" style="color:red;" />
                 </div>
             </div>
@@ -150,6 +150,9 @@
         }
         if (Id == 0)
         {
+            if(oPlantel.Fecing==null){
+                oPlantel.Fecing = "";
+            }
             await Http.PostAsJsonAsync<Plantel>("/api/Plantel", oPlantel);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }

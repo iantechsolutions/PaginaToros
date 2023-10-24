@@ -17,7 +17,7 @@
                 </div>
                 <div class="col-sm">
                     <label>Fecha de Venta</label><br />
-                    <RadzenDatePicker TValue="DateOnly" @bind-Value="@oCertifseman.Fecvta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaVenta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 
                 </div>
                 <div class="col-sm">
@@ -134,12 +134,12 @@
     List<string> variedades = new List<string> {"H","PH"};
     List<string> tiposToro = new List<string> {"S/","PP"};
 
-    Socio socioSeleccionado = new();
+    Socio? socioSeleccionado = new();
     List<Socio> socios = new();
-    Centrosium centroSeleccionado = new();
+    Centrosium? centroSeleccionado = new();
     List<Centrosium> centros = new();
     string tipoToro = "";
-
+    DateTime fechaVenta = DateTime.Now;
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
 
@@ -156,6 +156,9 @@
             {
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<Certifseman>>($"/api/Certifseman/{Id}");
                 oCertifseman = oRespuesta.List;
+                centroSeleccionado = centros.Where(x => x.Nrocen == oCertifseman.Nrocen).FirstOrDefault();
+                socioSeleccionado = socios.Where(x => x.Scod == oCertifseman.Nrocri).FirstOrDefault();
+
             }
             catch (Exception ex)
             {
@@ -168,6 +171,7 @@
     {
         oCertifseman.Nrocri = socioSeleccionado.Scod;
         oCertifseman.Nrocen = centroSeleccionado.Nrocen;
+        oCertifseman.Fecvta = DateOnly.FromDateTime(fechaVenta);
         if (Id == 0)
         {
             oCertifseman.NrDosi = Int32.Parse(oCertifseman.NrDosiOr);

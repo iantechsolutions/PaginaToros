@@ -180,6 +180,34 @@
         {"Tucuman","24"},
         {"",""}
     };
+    Dictionary<string, string> traductorProvinciaInverso = new Dictionary<string, string>
+    {
+        {"01", "Chaco"},
+        {"02", "Corrientes"},
+        {"03", "Entre Rios"},
+        {"04", "Santa Fe"},
+        {"05", "Cordoba"},
+        {"06", "La pampa"},
+        {"07", "San Luis"},
+        {"08", "Santa Cruz"},
+        {"09", "Tierra del fuego"},
+        {"10", "Chubut"},
+        {"11", "Neuquen"},
+        {"12", "Rio negro"},
+        {"13", "Buenos Aires"},
+        {"14", "Capital Federal"},
+        {"15", "Catamarca"},
+        {"16", "Formosa"},
+        {"17", "Jujuy"},
+        {"18", "La rioja"},
+        {"19", "Mendoza"},
+        {"20", "Misiones"},
+        {"21", "Salta"},
+        {"22", "San Juan"},
+        {"23", "Santiago Del Estero"},
+        {"24", "Tucuman"},
+        {"",""}
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -202,7 +230,7 @@
                 }
                 socioSeleccionado = socios.Where(x => x.Scod == oEstablecimiento.Codsoc).FirstOrDefault();
                 CodZona = oEstablecimiento.Codzon;
-
+                provinciaTemp = traductorProvinciaInverso[oEstablecimiento.Codpro];
             }
             catch (Exception ex)
             {
@@ -214,6 +242,7 @@
     {
         oEstablecimiento.Codsoc = socioSeleccionado.Scod;
         oEstablecimiento.Fecing = FechaTemp.ToString("yyyy/MM/dd");
+        oEstablecimiento.Fechacreacion = FechaTemp.ToString("yyyy");
         oEstablecimiento.Codzon = CodZona.Substring(0,2);
         oEstablecimiento.Codpro = traductorProvincia[provinciaTemp];
         @if (activo)
