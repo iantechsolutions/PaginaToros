@@ -1,14 +1,14 @@
-﻿@*@attribute [Authorize(Roles = "UserMAESTRO")]*@
-@page "/RegistroUser"
+﻿@attribute [Authorize(Roles = "USUARIOMAESTRO")]
+@page "/RegistroUsuario"
 @inject HttpClient http
 @inject NavigationManager uriHelper
 
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:50px">Registro de User</h3>
 <br/>
 
-@*<AuthorizeView Roles="UserMAESTRO,ADMINISTRADOR">*@
+<AuthorizeView Roles="USUARIOMAESTRO,ADMINISTRADOR">
     <UserEditForm User="User" EventCallback="CreateUser" />
-@*</AuthorizeView>*@
+</AuthorizeView>
 
 
 @code {

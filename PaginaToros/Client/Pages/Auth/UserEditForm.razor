@@ -35,23 +35,26 @@
                 <div class="form-group mb-3">
                     <label>Posición:</label>
                     <InputSelect required class="form-control" @bind-Value="User.Rol">
-                    <option value=""></option>
-                        <option value="Test">Test</option>
+                        <option value=""></option>
+                        <option value="Socio">Socio</option>
+                        <option value="Inspector">Inspector</option>
 
-                     @if (oRespuestaRoles == null || oRespuestaRoles.List == null)
-                    {
-                        <text>cargando...</text>
-                    }
-                    else
-                    {
+                        @if (oRespuestaRoles == null || oRespuestaRoles.List == null)
+                        {
+                            <text>cargando...</text>
+                        }
+                        else
+                        {
 
-                        @foreach (var oElement in oRespuestaRoles.List)
+                            @foreach (var oElement in oRespuestaRoles.List)
+                            {
+                                if (oElement.Name != "USUARIOMAESTRO")
                                 {
                                     <option value="@oElement.Name">@oElement.Name</option>
-                        
                                 }
-                    }
-                </InputSelect>
+                            }
+                        }
+                    </InputSelect>
                 </div>
 
                 <div class="form-group mb-3">
@@ -80,12 +83,12 @@
     string Url = "/api/AspNetRole";
     protected override async Task OnInitializedAsync()
     {
-       
+
         //UserName = user.Identity.Name;
 
         oRespuestaRoles = await Http.GetFromJsonAsync<Respuesta<List<AspNetRole>>>(Url);
-        
-    
-    
+
+
+
     }
 }
