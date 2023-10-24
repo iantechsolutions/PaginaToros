@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using PaginaToros.Server.Models;
 using PaginaToros.Shared.Models;
 
 namespace PaginaToros.Server.Context
@@ -17,28 +18,51 @@ namespace PaginaToros.Server.Context
         {
         }
 
+        public virtual DbSet<Actualizacion> Actualizacions { get; set; } = null!;
+        public virtual DbSet<Archrural> Archrurals { get; set; } = null!;
+        public virtual DbSet<AspNetRole> AspNetRoles { get; set; } = null!;
+        public virtual DbSet<AspNetRoleClaim> AspNetRoleClaims { get; set; } = null!;
+        public virtual DbSet<AspNetUser> AspNetUsers { get; set; } = null!;
+        public virtual DbSet<AspNetUserClaim> AspNetUserClaims { get; set; } = null!;
+        public virtual DbSet<AspNetUserLogin> AspNetUserLogins { get; set; } = null!;
+        public virtual DbSet<AspNetUserToken> AspNetUserTokens { get; set; } = null!;
+        public virtual DbSet<Autoriza> Autorizas { get; set; } = null!;
         public virtual DbSet<Centrosium> Centrosia { get; set; } = null!;
         public virtual DbSet<Certifseman> Certifsemen { get; set; } = null!;
+        public virtual DbSet<DeseUsada> DeseUsadas { get; set; } = null!;
         public virtual DbSet<Desepla1> Desepla1s { get; set; } = null!;
-        //public virtual DbSet<Desepla2> Desepla2s { get; set; } = null!;
-        //public virtual DbSet<Desepla3> Desepla3s { get; set; } = null!;
+        public virtual DbSet<Desepla2> Desepla2s { get; set; } = null!;
+        public virtual DbSet<Desepla3> Desepla3s { get; set; } = null!;
+        public virtual DbSet<Desepla4NoUsadum> Desepla4NoUsada { get; set; } = null!;
+        public virtual DbSet<Desepla5NoUsadum> Desepla5NoUsada { get; set; } = null!;
         public virtual DbSet<Estable> Estables { get; set; } = null!;
         public virtual DbSet<Futcontrol> Futcontrols { get; set; } = null!;
         public virtual DbSet<Inspect> Inspects { get; set; } = null!;
-        //public virtual DbSet<Peg> Pegs { get; set; } = null!;
+        public virtual DbSet<Opcdecserv> Opcdecservs { get; set; } = null!;
+        public virtual DbSet<Peg> Pegs { get; set; } = null!;
         public virtual DbSet<Plantel> Planteles { get; set; } = null!;
+        public virtual DbSet<Provin> Provins { get; set; } = null!;
+        public virtual DbSet<Remansol> Remansols { get; set; } = null!;
         public virtual DbSet<Resin1> Resin1s { get; set; } = null!;
         public virtual DbSet<Resin2> Resin2s { get; set; } = null!;
         public virtual DbSet<Resin3> Resin3s { get; set; } = null!;
         public virtual DbSet<Resin4> Resin4s { get; set; } = null!;
         public virtual DbSet<Resin6> Resin6s { get; set; } = null!;
         public virtual DbSet<Resin8> Resin8s { get; set; } = null!;
+        public virtual DbSet<Resin9> Resin9s { get; set; } = null!;
+        public virtual DbSet<Retenida> Retenidas { get; set; } = null!;
         public virtual DbSet<Socio> Socios { get; set; } = null!;
         public virtual DbSet<Solici1> Solici1s { get; set; } = null!;
+        public virtual DbSet<Solici4> Solici4s { get; set; } = null!;
+        public virtual DbSet<Solici6> Solici6s { get; set; } = null!;
+        public virtual DbSet<TorosRural> TorosRurals { get; set; } = null!;
+        public virtual DbSet<Torospr> Torosprs { get; set; } = null!;
         public virtual DbSet<Torosuni> Torosunis { get; set; } = null!;
+        public virtual DbSet<Torosuniestado> Torosuniestados { get; set; } = null!;
         public virtual DbSet<Transan> Transans { get; set; } = null!;
         public virtual DbSet<Transem> Transems { get; set; } = null!;
         public virtual DbSet<Transsb> Transsbs { get; set; } = null!;
+        public virtual DbSet<User> User { get; set; } = null!;
         public virtual DbSet<Usuario> Usuarios { get; set; } = null!;
         public virtual DbSet<Zona> Zonas { get; set; } = null!;
 
@@ -47,7 +71,7 @@ namespace PaginaToros.Server.Context
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseMySql("server=vxsct3514.avnam.net;port=3306;user=herefordapp_com_ar;password=RWEr4dod6g3G;persist security info=True;database=hereford_pr;convert zero datetime=True", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.3.39-mariadb"));
+                optionsBuilder.UseMySql("server=vxsct3514.avnam.net;port=3306;user=herefordapp_com_ar;password=RWEr4dod6g3G;persist security info=True;database=hereford_pr;convert zero datetime=True", ServerVersion.Parse("10.3.39-mariadb"));
             }
         }
 
@@ -55,6 +79,283 @@ namespace PaginaToros.Server.Context
         {
             modelBuilder.UseCollation("latin1_swedish_ci")
                 .HasCharSet("latin1");
+
+            modelBuilder.Entity<Actualizacion>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToTable("actualizacion");
+
+                entity.Property(e => e.Archrural)
+                    .HasMaxLength(10)
+                    .HasColumnName("archrural");
+
+                entity.Property(e => e.Centrosia)
+                    .HasMaxLength(10)
+                    .HasColumnName("centrosia")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Certsemen)
+                    .HasMaxLength(10)
+                    .HasColumnName("certsemen");
+
+                entity.Property(e => e.Decserv)
+                    .HasMaxLength(10)
+                    .HasColumnName("decserv");
+
+                entity.Property(e => e.Establec)
+                    .HasMaxLength(10)
+                    .HasColumnName("establec");
+
+                entity.Property(e => e.Inspect)
+                    .HasMaxLength(10)
+                    .HasColumnName("inspect");
+
+                entity.Property(e => e.Planteles)
+                    .HasMaxLength(10)
+                    .HasColumnName("planteles");
+
+                entity.Property(e => e.Resultsol)
+                    .HasMaxLength(10)
+                    .HasColumnName("resultsol");
+
+                entity.Property(e => e.Socios)
+                    .HasMaxLength(10)
+                    .HasColumnName("socios");
+
+                entity.Property(e => e.Solicinspecc)
+                    .HasMaxLength(10)
+                    .HasColumnName("solicinspecc");
+
+                entity.Property(e => e.Torosp)
+                    .HasMaxLength(10)
+                    .HasColumnName("torosp");
+
+                entity.Property(e => e.Torospr)
+                    .HasMaxLength(10)
+                    .HasColumnName("torospr");
+
+                entity.Property(e => e.Transfafut)
+                    .HasMaxLength(10)
+                    .HasColumnName("transfafut");
+
+                entity.Property(e => e.Transfanim)
+                    .HasMaxLength(10)
+                    .HasColumnName("transfanim");
+
+                entity.Property(e => e.Transfsb)
+                    .HasMaxLength(10)
+                    .HasColumnName("transfsb");
+
+                entity.Property(e => e.Zonas)
+                    .HasMaxLength(10)
+                    .HasColumnName("zonas");
+            });
+
+            modelBuilder.Entity<Archrural>(entity =>
+            {
+                entity.ToTable("archrural");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Hba)
+                    .HasMaxLength(10)
+                    .HasColumnName("HBA");
+
+                entity.Property(e => e.Nac).HasColumnName("NAC");
+
+                entity.Property(e => e.Nombre)
+                    .HasMaxLength(100)
+                    .HasColumnName("NOMBRE");
+
+                entity.Property(e => e.Tat)
+                    .HasMaxLength(10)
+                    .HasColumnName("TAT");
+
+                entity.Property(e => e.Tipo)
+                    .HasMaxLength(10)
+                    .HasColumnName("TIPO");
+            });
+
+            modelBuilder.Entity<AspNetRole>(entity =>
+            {
+                entity.Property(e => e.Id).HasMaxLength(450);
+
+                entity.Property(e => e.Name).HasMaxLength(256);
+
+                entity.Property(e => e.NormalizedName).HasMaxLength(256);
+            });
+
+            modelBuilder.Entity<AspNetRoleClaim>(entity =>
+            {
+                entity.HasIndex(e => e.RoleId, "FK_AspNetRoleClaims_AspNetRoles_RoleId");
+
+                entity.Property(e => e.Id).HasColumnType("int(11)");
+
+                entity.Property(e => e.RoleId).HasMaxLength(450);
+
+                entity.HasOne(d => d.Role)
+                    .WithMany(p => p.AspNetRoleClaims)
+                    .HasForeignKey(d => d.RoleId)
+                    .HasConstraintName("AspNetRoleClaims_ibfk_1");
+            });
+
+            modelBuilder.Entity<AspNetUser>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasMaxLength(450);
+
+                entity.Property(e => e.AccessFailedCount).HasColumnType("int(11)");
+                entity.Property(e => e.Email).HasMaxLength(256);
+                entity.Property(e => e.LockoutEnd).HasMaxLength(6);
+                entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
+                entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
+                entity.Property(e => e.UserName).HasMaxLength(256);
+
+                entity.HasMany(d => d.Roles)
+                    .WithMany(p => p.Users)
+                    .UsingEntity<Dictionary<string, object>>(
+                        "AspNetUserRole",
+                        l => l.HasOne<AspNetRole>().WithMany().HasForeignKey("RoleId").HasConstraintName("AspNetUserRoles_ibfk_1"),
+                        r => r.HasOne<AspNetUser>().WithMany().HasForeignKey("UserId").HasConstraintName("AspNetUserRoles_ibfk_2"),
+                        j =>
+                        {
+                            j.HasKey("UserId", "RoleId").HasName("PRIMARY").HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+                            j.ToTable("AspNetUserRoles");
+                            j.HasIndex(new[] { "RoleId" }, "RoleId");
+                            j.IndexerProperty<string>("UserId").HasMaxLength(450);
+                            j.IndexerProperty<string>("RoleId").HasMaxLength(450);
+                        });
+            });
+
+            modelBuilder.Entity<AspNetRole>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasMaxLength(450);
+                // Other configuration for the AspNetRole entity
+            });
+
+            modelBuilder.Entity<AspNetUserRole>(entity =>
+            {
+                entity.HasKey(e => new { e.UserId, e.RoleId });
+                // Other configuration for the AspNetUserRole entity, if needed
+            });
+
+
+            modelBuilder.Entity<AspNetUserClaim>(entity =>
+            {
+                entity.HasIndex(e => e.UserId, "FK_AspNetUserClaims_AspNetUserUserId");
+
+                entity.Property(e => e.Id).HasColumnType("int(11)");
+
+                entity.Property(e => e.UserId).HasMaxLength(450);
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.AspNetUserClaims)
+                    .HasForeignKey(d => d.UserId);
+            });
+
+            modelBuilder.Entity<AspNetUserLogin>(entity =>
+            {
+                entity.HasKey(e => new { e.LoginProvider, e.ProviderKey })
+                    .HasName("PRIMARY")
+                    .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+
+                entity.HasIndex(e => e.UserId, "UserId");
+
+                entity.Property(e => e.LoginProvider).HasMaxLength(450);
+
+                entity.Property(e => e.ProviderKey).HasMaxLength(450);
+
+                entity.Property(e => e.UserId).HasMaxLength(450);
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.AspNetUserLogins)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("AspNetUserLogins_ibfk_1");
+            });
+
+            modelBuilder.Entity<AspNetUserToken>(entity =>
+            {
+                entity.HasKey(e => new { e.UserId, e.LoginProvider, e.Name })
+                    .HasName("PRIMARY")
+                    .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0, 0 });
+
+                entity.Property(e => e.UserId).HasMaxLength(450);
+
+                entity.Property(e => e.LoginProvider).HasMaxLength(450);
+
+                entity.Property(e => e.Name).HasMaxLength(450);
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.AspNetUserTokens)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("AspNetUserTokens_ibfk_1");
+            });
+
+            modelBuilder.Entity<Autoriza>(entity =>
+            {
+                entity.ToTable("AUTORIZA");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Aniopr)
+                    .HasMaxLength(4)
+                    .HasColumnName("ANIOPR");
+
+                entity.Property(e => e.Aniose)
+                    .HasMaxLength(4)
+                    .HasColumnName("ANIOSE");
+
+                entity.Property(e => e.Basvac)
+                    .HasColumnName("BASVAC")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Basvaq)
+                    .HasColumnName("BASVAQ")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Cantor)
+                    .HasColumnName("CANTOR")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Canvpr)
+                    .HasColumnName("CANVPR")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.CodUsu)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("COD_USU");
+
+                entity.Property(e => e.Fautor)
+                    .HasColumnType("datetime")
+                    .HasColumnName("FAUTOR");
+
+                entity.Property(e => e.FchUsu)
+                    .HasColumnType("datetime")
+                    .HasColumnName("FCH_USU");
+
+                entity.Property(e => e.Freali)
+                    .HasColumnType("datetime")
+                    .HasColumnName("FREALI");
+
+                entity.Property(e => e.Nrosol)
+                    .HasMaxLength(6)
+                    .HasColumnName("NROSOL");
+
+                entity.Property(e => e.Nrosolanual)
+                    .HasMaxLength(4)
+                    .HasColumnName("nrosolanual")
+                    .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.Procre).HasColumnName("PROCRE");
+
+                entity.Property(e => e.Vacser).HasColumnName("VACSER");
+            });
 
             modelBuilder.Entity<Centrosium>(entity =>
             {
@@ -193,6 +494,30 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("VARIEDAD");
             });
 
+            modelBuilder.Entity<DeseUsada>(entity =>
+            {
+                entity.ToTable("DESE_USADAS");
+
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_general_ci");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Certsemen)
+                    .HasMaxLength(10)
+                    .HasColumnName("CERTSEMEN");
+
+                entity.Property(e => e.DosisUsada)
+                    .HasMaxLength(10)
+                    .HasColumnName("DOSIS_USADA");
+
+                entity.Property(e => e.Nrodec)
+                    .HasMaxLength(6)
+                    .HasColumnName("NRODEC");
+            });
+
             modelBuilder.Entity<Desepla1>(entity =>
             {
                 entity.ToTable("DESEPLA1");
@@ -313,87 +638,129 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("TIPSE");
             });
 
-            //modelBuilder.Entity<Desepla2>(entity =>
-            //{
-            //    entity.ToTable("DESEPLA2");
+            modelBuilder.Entity<Desepla2>(entity =>
+            {
+                entity.ToTable("DESEPLA2");
 
-            //    entity.HasCharSet("utf8")
-            //        .UseCollation("utf8_general_ci");
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_general_ci");
 
-            //    entity.Property(e => e.Id)
-            //        .HasColumnType("int(10)")
-            //        .HasColumnName("id");
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
 
-            //    entity.Property(e => e.Apodo)
-            //        .HasMaxLength(50)
-            //        .HasColumnName("APODO");
+                entity.Property(e => e.Apodo)
+                    .HasMaxLength(50)
+                    .HasColumnName("APODO");
 
-            //    entity.Property(e => e.Desde)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("DESDE");
+                entity.Property(e => e.Desde)
+                    .HasMaxLength(10)
+                    .HasColumnName("DESDE");
 
-            //    entity.Property(e => e.Hardb)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("HARDB");
+                entity.Property(e => e.Hardb)
+                    .HasMaxLength(10)
+                    .HasColumnName("HARDB");
 
-            //    entity.Property(e => e.Hasta)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("HASTA");
+                entity.Property(e => e.Hasta)
+                    .HasMaxLength(10)
+                    .HasColumnName("HASTA");
 
-            //    entity.Property(e => e.Nrodec)
-            //        .HasMaxLength(6)
-            //        .HasColumnName("NRODEC");
+                entity.Property(e => e.Nrodec)
+                    .HasMaxLength(6)
+                    .HasColumnName("NRODEC");
 
-            //    entity.Property(e => e.Tatpart)
-            //        .HasMaxLength(8)
-            //        .HasColumnName("TATPART");
-            //});
+                entity.Property(e => e.Tatpart)
+                    .HasMaxLength(8)
+                    .HasColumnName("TATPART");
+            });
 
-            //modelBuilder.Entity<Desepla3>(entity =>
-            //{
-            //    entity.ToTable("DESEPLA3");
+            modelBuilder.Entity<Desepla3>(entity =>
+            {
+                entity.ToTable("DESEPLA3");
 
-            //    entity.HasCharSet("utf8")
-            //        .UseCollation("utf8_general_ci");
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_general_ci");
 
-            //    entity.Property(e => e.Id)
-            //        .HasColumnType("int(10)")
-            //        .HasColumnName("id");
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
 
-            //    entity.Property(e => e.Apodo)
-            //        .HasMaxLength(50)
-            //        .HasColumnName("APODO");
+                entity.Property(e => e.Apodo)
+                    .HasMaxLength(50)
+                    .HasColumnName("APODO");
 
-            //    entity.Property(e => e.Cantv).HasColumnName("CANTV");
+                entity.Property(e => e.Cantv).HasColumnName("CANTV");
 
-            //    entity.Property(e => e.Desde)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("DESDE");
+                entity.Property(e => e.Desde)
+                    .HasMaxLength(10)
+                    .HasColumnName("DESDE");
 
-            //    entity.Property(e => e.Hardb)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("HARDB");
+                entity.Property(e => e.Hardb)
+                    .HasMaxLength(10)
+                    .HasColumnName("HARDB");
 
-            //    entity.Property(e => e.Hasta)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("HASTA");
+                entity.Property(e => e.Hasta)
+                    .HasMaxLength(10)
+                    .HasColumnName("HASTA");
 
-            //    entity.Property(e => e.Nrodec)
-            //        .HasMaxLength(6)
-            //        .HasColumnName("NRODEC");
+                entity.Property(e => e.Nrodec)
+                    .HasMaxLength(6)
+                    .HasColumnName("NRODEC");
 
-            //    entity.Property(e => e.Servicio)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("SERVICIO");
+                entity.Property(e => e.Servicio)
+                    .HasMaxLength(10)
+                    .HasColumnName("SERVICIO");
 
-            //    entity.Property(e => e.Tatpart)
-            //        .HasMaxLength(8)
-            //        .HasColumnName("TATPART");
+                entity.Property(e => e.Tatpart)
+                    .HasMaxLength(8)
+                    .HasColumnName("TATPART");
 
-            //    entity.Property(e => e.Tipo)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("TIPO");
-            //});
+                entity.Property(e => e.Tipo)
+                    .HasMaxLength(10)
+                    .HasColumnName("TIPO");
+            });
+
+            modelBuilder.Entity<Desepla4NoUsadum>(entity =>
+            {
+                entity.ToTable("DESEPLA4 - No Usada");
+
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_general_ci");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Cantv).HasColumnName("CANTV");
+
+                entity.Property(e => e.Ctst)
+                    .HasMaxLength(6)
+                    .HasColumnName("CTST");
+
+                entity.Property(e => e.Nrodec)
+                    .HasMaxLength(6)
+                    .HasColumnName("NRODEC");
+            });
+
+            modelBuilder.Entity<Desepla5NoUsadum>(entity =>
+            {
+                entity.ToTable("DESEPLA5 - No Usada");
+
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_general_ci");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.ENom)
+                    .HasMaxLength(70)
+                    .HasColumnName("E_NOM");
+
+                entity.Property(e => e.Nrodec)
+                    .HasMaxLength(6)
+                    .HasColumnName("NRODEC");
+            });
 
             modelBuilder.Entity<Estable>(entity =>
             {
@@ -604,50 +971,157 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("TELEFO");
             });
 
-            //modelBuilder.Entity<Peg>(entity =>
-            //{
-            //    entity.ToTable("PEG");
+            modelBuilder.Entity<Opcdecserv>(entity =>
+            {
+                entity.HasNoKey();
 
-            //    entity.Property(e => e.Id)
-            //        .HasColumnType("int(10)")
-            //        .HasColumnName("id");
+                entity.ToTable("opcdecserv");
 
-            //    entity.Property(e => e.Apodo)
-            //        .HasMaxLength(255)
-            //        .HasColumnName("APODO");
+                entity.Property(e => e.Cotamax)
+                    .HasMaxLength(3)
+                    .HasColumnName("cotamax");
 
-            //    entity.Property(e => e.Cvientres)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("CVIENTRES");
+                entity.Property(e => e.Cotamin)
+                    .HasMaxLength(3)
+                    .HasColumnName("cotamin");
 
-            //    entity.Property(e => e.Desde)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("DESDE");
+                entity.Property(e => e.Hedadmax)
+                    .HasMaxLength(3)
+                    .HasColumnName("hedadmax");
 
-            //    entity.Property(e => e.Hasta)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("HASTA");
+                entity.Property(e => e.Hedadmin)
+                    .HasMaxLength(3)
+                    .HasColumnName("hedadmin");
 
-            //    entity.Property(e => e.Hba)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("HBA");
+                entity.Property(e => e.Ia1dosis)
+                    .HasMaxLength(3)
+                    .HasColumnName("ia1dosis");
 
-            //    entity.Property(e => e.Nrodec)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("NRODEC");
+                entity.Property(e => e.Ia1max)
+                    .HasMaxLength(3)
+                    .HasColumnName("ia1max");
 
-            //    entity.Property(e => e.Scod)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("Scod");
+                entity.Property(e => e.Ia1min)
+                    .HasMaxLength(3)
+                    .HasColumnName("ia1min");
 
-            //    entity.Property(e => e.Servicio)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("SERVICIO");
+                entity.Property(e => e.Ia2dosis)
+                    .HasMaxLength(3)
+                    .HasColumnName("ia2dosis");
 
-            //    entity.Property(e => e.Socio)
-            //        .HasMaxLength(200)
-            //        .HasColumnName("SOCIO");
-            //});
+                entity.Property(e => e.Ia2max)
+                    .HasMaxLength(3)
+                    .HasColumnName("ia2max");
+
+                entity.Property(e => e.Ia2min)
+                    .HasMaxLength(3)
+                    .HasColumnName("ia2min");
+
+                entity.Property(e => e.Ia3dosis)
+                    .HasMaxLength(3)
+                    .HasColumnName("ia3dosis");
+
+                entity.Property(e => e.Ia3max)
+                    .HasMaxLength(3)
+                    .HasColumnName("ia3max");
+
+                entity.Property(e => e.Ia3min)
+                    .HasMaxLength(3)
+                    .HasColumnName("ia3min");
+
+                entity.Property(e => e.Iadosis)
+                    .HasMaxLength(3)
+                    .HasColumnName("iadosis");
+
+                entity.Property(e => e.Iamax)
+                    .HasMaxLength(3)
+                    .HasColumnName("iamax");
+
+                entity.Property(e => e.Iamin)
+                    .HasMaxLength(3)
+                    .HasColumnName("iamin");
+
+                entity.Property(e => e.Medadmax)
+                    .HasMaxLength(3)
+                    .HasColumnName("medadmax");
+
+                entity.Property(e => e.Medadmin)
+                    .HasMaxLength(3)
+                    .HasColumnName("medadmin");
+
+                entity.Property(e => e.Natcorrdosis)
+                    .HasMaxLength(3)
+                    .HasColumnName("natcorrdosis");
+
+                entity.Property(e => e.Natcorrmax)
+                    .HasMaxLength(3)
+                    .HasColumnName("natcorrmax");
+
+                entity.Property(e => e.Natcorrmin)
+                    .HasMaxLength(3)
+                    .HasColumnName("natcorrmin");
+
+                entity.Property(e => e.Natdosis)
+                    .HasMaxLength(3)
+                    .HasColumnName("natdosis");
+
+                entity.Property(e => e.Natmax)
+                    .HasMaxLength(3)
+                    .HasColumnName("natmax");
+
+                entity.Property(e => e.Natmin)
+                    .HasMaxLength(3)
+                    .HasColumnName("natmin");
+
+                entity.Property(e => e.Unidadmes)
+                    .HasMaxLength(3)
+                    .HasColumnName("unidadmes");
+            });
+
+            modelBuilder.Entity<Peg>(entity =>
+            {
+                entity.ToTable("PEG");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Apodo)
+                    .HasMaxLength(255)
+                    .HasColumnName("APODO");
+
+                entity.Property(e => e.Cvientres)
+                    .HasMaxLength(10)
+                    .HasColumnName("CVIENTRES");
+
+                entity.Property(e => e.Desde)
+                    .HasMaxLength(10)
+                    .HasColumnName("DESDE");
+
+                entity.Property(e => e.Hasta)
+                    .HasMaxLength(10)
+                    .HasColumnName("HASTA");
+
+                entity.Property(e => e.Hba)
+                    .HasMaxLength(10)
+                    .HasColumnName("HBA");
+
+                entity.Property(e => e.Nrodec)
+                    .HasMaxLength(10)
+                    .HasColumnName("NRODEC");
+
+                entity.Property(e => e.Nrosocio)
+                    .HasMaxLength(10)
+                    .HasColumnName("NROSOCIO");
+
+                entity.Property(e => e.Servicio)
+                    .HasMaxLength(10)
+                    .HasColumnName("SERVICIO");
+
+                entity.Property(e => e.Socio)
+                    .HasMaxLength(200)
+                    .HasColumnName("SOCIO");
+            });
 
             modelBuilder.Entity<Plantel>(entity =>
             {
@@ -735,6 +1209,125 @@ namespace PaginaToros.Server.Context
                 entity.Property(e => e.Vqssrp)
                     .HasColumnName("VQSSRP")
                     .HasDefaultValueSql("'0'");
+            });
+
+            modelBuilder.Entity<Provin>(entity =>
+            {
+                entity.ToTable("PROVIN");
+
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_general_ci");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.CodUsu)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("COD_USU")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.FchUsu)
+                    .HasColumnType("datetime")
+                    .HasColumnName("FCH_USU");
+
+                entity.Property(e => e.Nombre)
+                    .HasMaxLength(20)
+                    .HasColumnName("NOMBRE");
+
+                entity.Property(e => e.Pcod)
+                    .HasMaxLength(2)
+                    .HasColumnName("PCOD");
+            });
+
+            modelBuilder.Entity<Remansol>(entity =>
+            {
+                entity.ToTable("REMANSOL");
+
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_general_ci");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Anio)
+                    .HasMaxLength(10)
+                    .HasColumnName("ANIO");
+
+                entity.Property(e => e.Auttoropr)
+                    .HasMaxLength(10)
+                    .HasColumnName("AUTTOROPR");
+
+                entity.Property(e => e.Autvqpr)
+                    .HasMaxLength(10)
+                    .HasColumnName("AUTVQPR");
+
+                entity.Property(e => e.Autvqvip)
+                    .HasMaxLength(10)
+                    .HasColumnName("AUTVQVIP");
+
+                entity.Property(e => e.CodUsu)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("COD_USU")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Disptoropr)
+                    .HasMaxLength(10)
+                    .HasColumnName("DISPTOROPR");
+
+                entity.Property(e => e.Dispvqpr)
+                    .HasMaxLength(10)
+                    .HasColumnName("DISPVQPR");
+
+                entity.Property(e => e.Dispvqvip)
+                    .HasMaxLength(10)
+                    .HasColumnName("DISPVQVIP");
+
+                entity.Property(e => e.FchUsu)
+                    .HasColumnType("datetime")
+                    .HasColumnName("FCH_USU");
+
+                entity.Property(e => e.Nrodec)
+                    .HasMaxLength(6)
+                    .HasColumnName("NRODEC");
+
+                entity.Property(e => e.Nroplan)
+                    .HasMaxLength(5)
+                    .HasColumnName("NROPLAN");
+
+                entity.Property(e => e.Nrosol)
+                    .HasMaxLength(10)
+                    .HasColumnName("NROSOL");
+
+                entity.Property(e => e.Nrosolanual)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("nrosolanual")
+                    .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.Pedtoropr)
+                    .HasMaxLength(10)
+                    .HasColumnName("PEDTOROPR");
+
+                entity.Property(e => e.Pedvqpr)
+                    .HasMaxLength(10)
+                    .HasColumnName("PEDVQPR");
+
+                entity.Property(e => e.Pedvqvip)
+                    .HasMaxLength(10)
+                    .HasColumnName("PEDVQVIP");
+
+                entity.Property(e => e.Remantoropr)
+                    .HasMaxLength(10)
+                    .HasColumnName("REMANTOROPR");
+
+                entity.Property(e => e.Remanvqpr)
+                    .HasMaxLength(10)
+                    .HasColumnName("REMANVQPR");
+
+                entity.Property(e => e.Remanvqvip)
+                    .HasMaxLength(10)
+                    .HasColumnName("REMANVQVIP");
             });
 
             modelBuilder.Entity<Resin1>(entity =>
@@ -1052,6 +1645,134 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("NRORES");
             });
 
+            modelBuilder.Entity<Resin9>(entity =>
+            {
+                entity.HasKey(e => e.MotivoRechazo)
+                    .HasName("PRIMARY");
+
+                entity.ToTable("RESIN9");
+
+                entity.Property(e => e.MotivoRechazo)
+                    .HasColumnType("int(11)")
+                    .ValueGeneratedNever()
+                    .HasColumnName("MOTIVO_RECHAZO");
+
+                entity.Property(e => e.Descripcion)
+                    .HasMaxLength(20)
+                    .HasColumnName("DESCRIPCION");
+            });
+
+            modelBuilder.Entity<Retenida>(entity =>
+            {
+                entity.ToTable("retenidas");
+
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_general_ci");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Cantb).HasColumnName("CANTB");
+
+                entity.Property(e => e.Cantor).HasColumnName("CANTOR");
+
+                entity.Property(e => e.Cantv).HasColumnName("CANTV");
+
+                entity.Property(e => e.CodUsu)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("COD_USU")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.CoefAutoIa)
+                    .HasColumnName("COEF_AUTO_IA")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.CoefAutoIar)
+                    .HasColumnName("COEF_AUTO_IAR")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.CoefAutoSn)
+                    .HasColumnName("COEF_AUTO_SN")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Ctrlm)
+                    .HasColumnName("CTRLM")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Ctrlu)
+                    .HasColumnName("CTRLU")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Desde)
+                    .HasMaxLength(10)
+                    .HasColumnName("DESDE");
+
+                entity.Property(e => e.FchUsu)
+                    .HasColumnType("datetime")
+                    .HasColumnName("FCH_USU");
+
+                entity.Property(e => e.Fchrecepcion)
+                    .HasMaxLength(10)
+                    .HasColumnName("FCHRECEPCION");
+
+                entity.Property(e => e.Fecdecl)
+                    .HasMaxLength(10)
+                    .HasColumnName("FECDECL");
+
+                entity.Property(e => e.Fecret)
+                    .HasMaxLength(10)
+                    .HasColumnName("FECRET");
+
+                entity.Property(e => e.Hasta)
+                    .HasMaxLength(10)
+                    .HasColumnName("HASTA");
+
+                entity.Property(e => e.IaSincro)
+                    .HasColumnName("IA_SINCRO")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.NrFolio)
+                    .HasMaxLength(9)
+                    .HasColumnName("NR_FOLIO");
+
+                entity.Property(e => e.Nrodec)
+                    .HasMaxLength(6)
+                    .HasColumnName("NRODEC");
+
+                entity.Property(e => e.Nroplan)
+                    .HasMaxLength(5)
+                    .HasColumnName("NROPLAN");
+
+                entity.Property(e => e.PastillasSincro)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("PASTILLAS_SINCRO")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Remba).HasColumnName("REMBA");
+
+                entity.Property(e => e.Remmpr).HasColumnName("REMMPR");
+
+                entity.Property(e => e.Rempr).HasColumnName("REMPR");
+
+                entity.Property(e => e.Reten)
+                    .HasMaxLength(1)
+                    .HasColumnName("reten")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Semen)
+                    .HasMaxLength(1)
+                    .HasColumnName("SEMEN");
+
+                entity.Property(e => e.Semprop)
+                    .HasColumnName("SEMPROP")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Tipse)
+                    .HasMaxLength(2)
+                    .HasColumnName("TIPSE");
+            });
+
             modelBuilder.Entity<Socio>(entity =>
             {
                 entity.HasKey(e => new { e.Id, e.Scod })
@@ -1278,6 +1999,215 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("TYNCTE");
             });
 
+            modelBuilder.Entity<Solici4>(entity =>
+            {
+                entity.ToTable("SOLICI4");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Codpla)
+                    .HasMaxLength(5)
+                    .HasColumnName("CODPLA");
+
+                entity.Property(e => e.Nrosol)
+                    .HasMaxLength(6)
+                    .HasColumnName("NROSOL");
+            });
+
+            modelBuilder.Entity<Solici6>(entity =>
+            {
+                entity.ToTable("SOLICI6");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.IndHemMac)
+                    .HasMaxLength(1)
+                    .HasColumnName("IND_HEM_MAC");
+
+                entity.Property(e => e.Nrodec)
+                    .HasMaxLength(6)
+                    .HasColumnName("NRODEC");
+
+                entity.Property(e => e.Nrosol)
+                    .HasMaxLength(6)
+                    .HasColumnName("NROSOL");
+            });
+
+            modelBuilder.Entity<TorosRural>(entity =>
+            {
+                entity.ToTable("TorosRural");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.CodUsu)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("cod_usu");
+
+                entity.Property(e => e.FchUsu)
+                    .HasColumnType("datetime")
+                    .HasColumnName("fch_usu");
+
+                entity.Property(e => e.FecNac)
+                    .HasColumnType("datetime")
+                    .HasColumnName("fec_nac");
+
+                entity.Property(e => e.Hba)
+                    .HasMaxLength(10)
+                    .HasColumnName("hba");
+
+                entity.Property(e => e.Nombre)
+                    .HasMaxLength(50)
+                    .HasColumnName("nombre");
+
+                entity.Property(e => e.Procesado)
+                    .HasColumnType("tinyint(4)")
+                    .HasColumnName("procesado");
+
+                entity.Property(e => e.Tatpart)
+                    .HasMaxLength(8)
+                    .HasColumnName("tatpart");
+
+                entity.Property(e => e.TipToro)
+                    .HasMaxLength(1)
+                    .HasColumnName("tip_toro");
+            });
+
+            modelBuilder.Entity<Torospr>(entity =>
+            {
+                entity.ToTable("TOROSPR");
+
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_general_ci");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Activo)
+                    .HasColumnName("ACTIVO")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Actualizado)
+                    .HasColumnName("ACTUALIZADO")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Apodo)
+                    .HasMaxLength(50)
+                    .HasColumnName("APODO");
+
+                entity.Property(e => e.Catego)
+                    .HasMaxLength(1)
+                    .HasColumnName("CATEGO");
+
+                entity.Property(e => e.CircEscrotal)
+                    .HasMaxLength(10)
+                    .HasColumnName("CIRC_ESCROTAL");
+
+                entity.Property(e => e.CodEstado)
+                    .HasMaxLength(15)
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.CodUsu)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("COD_USU")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Criador)
+                    .HasMaxLength(6)
+                    .HasColumnName("CRIADOR");
+
+                entity.Property(e => e.EstDoc)
+                    .HasMaxLength(2)
+                    .HasColumnName("EST_DOC");
+
+                entity.Property(e => e.Estcod)
+                    .HasMaxLength(6)
+                    .HasColumnName("ESTCOD");
+
+                entity.Property(e => e.FchBaja)
+                    .HasColumnType("datetime")
+                    .HasColumnName("FCH_BAJA");
+
+                entity.Property(e => e.FchUsu)
+                    .HasColumnType("datetime")
+                    .HasColumnName("FCH_USU");
+
+                entity.Property(e => e.Fecha)
+                    .HasColumnType("datetime")
+                    .HasColumnName("FECHA");
+
+                entity.Property(e => e.Fecing)
+                    .HasMaxLength(10)
+                    .HasColumnName("FECING");
+
+                entity.Property(e => e.Hba)
+                    .HasMaxLength(10)
+                    .HasColumnName("HBA");
+
+                entity.Property(e => e.IdTipo)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("Id_tipo")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.MotivoBaj)
+                    .HasMaxLength(50)
+                    .HasColumnName("MOTIVO_BAJ");
+
+                entity.Property(e => e.Nacido)
+                    .HasColumnType("datetime")
+                    .HasColumnName("NACIDO");
+
+                entity.Property(e => e.NomDad)
+                    .HasMaxLength(35)
+                    .HasColumnName("NOM_DAD");
+
+                entity.Property(e => e.Nombre)
+                    .HasMaxLength(50)
+                    .HasColumnName("NOMBRE");
+
+                entity.Property(e => e.NrInsc)
+                    .HasMaxLength(10)
+                    .HasColumnName("NR_INSC");
+
+                entity.Property(e => e.NrInsd)
+                    .HasMaxLength(10)
+                    .HasColumnName("NR_INSD");
+
+                entity.Property(e => e.NrTsan)
+                    .HasMaxLength(10)
+                    .HasColumnName("NR_TSAN");
+
+                entity.Property(e => e.Plantel)
+                    .HasMaxLength(5)
+                    .HasColumnName("PLANTEL");
+
+                entity.Property(e => e.ResInsp)
+                    .HasMaxLength(2)
+                    .HasColumnName("RES_INSP");
+
+                entity.Property(e => e.Sbcod)
+                    .HasMaxLength(6)
+                    .HasColumnName("SBCOD");
+
+                entity.Property(e => e.Tatpart)
+                    .HasMaxLength(8)
+                    .HasColumnName("TATPART");
+
+                entity.Property(e => e.TipToro)
+                    .HasMaxLength(1)
+                    .HasColumnName("TIP_TORO");
+
+                entity.Property(e => e.Variedad)
+                    .HasMaxLength(2)
+                    .HasColumnName("VARIEDAD");
+            });
+
             modelBuilder.Entity<Torosuni>(entity =>
             {
                 entity.ToTable("TOROSUNI");
@@ -1471,6 +2401,21 @@ namespace PaginaToros.Server.Context
                     .HasMaxLength(2)
                     .HasColumnName("VARIEDAD");
             });
+
+            modelBuilder.Entity<Torosuniestado>(entity =>
+            {
+                entity.ToTable("TOROSUNIestados");
+
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_unicode_ci");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(5)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.CodEstado).HasMaxLength(10);
+            });
+
             modelBuilder.Entity<Transan>(entity =>
             {
                 entity.ToTable("TRANSAN");
@@ -1704,77 +2649,107 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("VNOM");
             });
 
-            //modelBuilder.Entity<Usuario>(entity =>
-            //{
-            //    entity.ToTable("usuarios");
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_general_ci");
 
-            //    entity.Property(e => e.Id)
-            //        .HasColumnType("int(10)")
-            //        .HasColumnName("id");
+                entity.Property(e => e.Id).HasColumnType("int(11)");
 
-            //    entity.Property(e => e.Nrousu)
-            //        .HasMaxLength(10)
-            //        .HasColumnName("nrousu");
+                entity.Property(e => e.Created).HasColumnType("datetime");
 
-            //    entity.Property(e => e.Pass)
-            //        .HasMaxLength(50)
-            //        .HasColumnName("pass");
+                entity.Property(e => e.Dni)
+                    .HasMaxLength(30)
+                    .HasColumnName("DNI");
 
-            //    entity.Property(e => e.Passmd5)
-            //        .HasMaxLength(50)
-            //        .HasColumnName("passmd5");
+                entity.Property(e => e.Email).HasMaxLength(100);
 
-            //    entity.Property(e => e.Ultimahora)
-            //        .HasMaxLength(20)
-            //        .HasColumnName("ultimahora");
+                entity.Property(e => e.LastNames).HasMaxLength(100);
 
-            //    entity.Property(e => e.Ultimavis)
-            //        .HasMaxLength(20)
-            //        .HasColumnName("ultimavis");
+                entity.Property(e => e.Names).HasMaxLength(100);
 
-            //    entity.Property(e => e.User)
-            //        .HasMaxLength(50)
-            //        .HasColumnName("user");
-            //});
-            
-            //modelBuilder.Entity<Zona>(entity =>
-            //{
-            //    entity.ToTable("ZONAS");
+                entity.Property(e => e.Phone).HasMaxLength(30);
 
-            //    entity.HasCharSet("utf8")
-            //        .UseCollation("utf8_general_ci");
+                entity.Property(e => e.Rol).HasColumnType("text");
 
-            //    entity.Property(e => e.Id)
-            //        .HasColumnType("int(10)")
-            //        .HasColumnName("id");
+                entity.Property(e => e.Sid)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("SId");
 
-            //    entity.Property(e => e.CodUsu)
-            //        .HasColumnType("int(11)")
-            //        .HasColumnName("COD_USU")
-            //        .HasDefaultValueSql("'0'");
+                entity.Property(e => e.Status).HasMaxLength(15);
+            });
 
-            //    entity.Property(e => e.Codpro)
-            //        .HasMaxLength(2)
-            //        .HasColumnName("CODPRO");
+            modelBuilder.Entity<Usuario>(entity =>
+            {
+                entity.ToTable("usuarios");
 
-            //    entity.Property(e => e.FchUsu)
-            //        .HasColumnType("datetime")
-            //        .HasColumnName("FCH_USU");
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
 
-            //    entity.Property(e => e.Inspec)
-            //        .HasMaxLength(6)
-            //        .HasColumnName("INSPEC");
+                entity.Property(e => e.Nrousu)
+                    .HasMaxLength(10)
+                    .HasColumnName("nrousu");
 
-            //    entity.Property(e => e.Locali).HasColumnName("LOCALI");
+                entity.Property(e => e.Pass)
+                    .HasMaxLength(50)
+                    .HasColumnName("pass");
 
-            //    entity.Property(e => e.Meses)
-            //        .HasMaxLength(50)
-            //        .HasColumnName("MESES");
+                entity.Property(e => e.Passmd5)
+                    .HasMaxLength(50)
+                    .HasColumnName("passmd5");
 
-            //    entity.Property(e => e.Zcod)
-            //        .HasMaxLength(2)
-            //        .HasColumnName("ZCOD");
-            //});
+                entity.Property(e => e.Ultimahora)
+                    .HasMaxLength(20)
+                    .HasColumnName("ultimahora");
+
+                entity.Property(e => e.Ultimavis)
+                    .HasMaxLength(20)
+                    .HasColumnName("ultimavis");
+
+                entity.Property(e => e.User)
+                    .HasMaxLength(50)
+                    .HasColumnName("user");
+            });
+
+            modelBuilder.Entity<Zona>(entity =>
+            {
+                entity.ToTable("ZONAS");
+
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_general_ci");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.CodUsu)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("COD_USU")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Codpro)
+                    .HasMaxLength(2)
+                    .HasColumnName("CODPRO");
+
+                entity.Property(e => e.FchUsu)
+                    .HasColumnType("datetime")
+                    .HasColumnName("FCH_USU");
+
+                entity.Property(e => e.Inspec)
+                    .HasMaxLength(6)
+                    .HasColumnName("INSPEC");
+
+                entity.Property(e => e.Locali).HasColumnName("LOCALI");
+
+                entity.Property(e => e.Meses)
+                    .HasMaxLength(50)
+                    .HasColumnName("MESES");
+
+                entity.Property(e => e.Zcod)
+                    .HasMaxLength(2)
+                    .HasColumnName("ZCOD");
+            });
 
             OnModelCreatingPartial(modelBuilder);
         }

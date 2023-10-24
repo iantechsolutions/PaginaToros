@@ -30,24 +30,24 @@
 
             <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="true" FilterMode="FilterMode.Advanced"
                             AllowSorting="true" PageSize="5" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            Data="@Usuarios" TItem="Usuario" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            Data="@Usuarios" TItem="User" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or">
                 <Columns>
-                    <RadzenDataGridColumn TItem="Usuario" Property="Names" Filterable="false" Title="Nombre/s" Width="110px" />
-                    <RadzenDataGridColumn TItem="Usuario" Property="LastNames" Filterable="false" Title="Apellido/s" Width="110px" />
-                    <RadzenDataGridColumn TItem="Usuario" Property="Dni" Filterable="false" Title="Dni" Width="110px" />
-                    <RadzenDataGridColumn TItem="Usuario" Property="Phone" Filterable="false" Title="Número" Width="110px" />
-                    <RadzenDataGridColumn TItem="Usuario" Property="Rol" Filterable="false" Title="Rol" Width="110px" />
-                    <RadzenDataGridColumn TItem="Usuario" Property="" Filterable="false" Title="" Width="40px">
+                    <RadzenDataGridColumn TItem="User" Property="Names" Filterable="false" Title="Nombre/s" Width="110px" />
+                    <RadzenDataGridColumn TItem="User" Property="LastNames" Filterable="false" Title="Apellido/s" Width="110px" />
+                    <RadzenDataGridColumn TItem="User" Property="Dni" Filterable="false" Title="Dni" Width="110px" />
+                    <RadzenDataGridColumn TItem="User" Property="Phone" Filterable="false" Title="Número" Width="110px" />
+                    <RadzenDataGridColumn TItem="User" Property="Rol" Filterable="false" Title="Rol" Width="110px" />
+                    <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="40px">
                         <Template Context="data">
                             <button class="btn" title="Editar" @onclick="@(()=>nav.NavigateTo($"/ActualizarUsuario/{@data.Id}"))"><FeatherEdit3 Color="green" /></button>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Usuario" Property="" Filterable="false" Title="" Width="40px">
+                    <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="40px">
                         <Template Context="data">
                             <button class="btn" title="Eliminar" @onclick="@(()=>nav.NavigateTo($"/EliminarUsuario/{data.Id}"))"><FeatherTrash2 Color="red" /></button>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Usuario" Property="" Filterable="false" Title="" Width="40px">
+                    <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="40px">
                         <Template Context="data">
                             <button class="btn" title="Info" @onclick="@(() => ShowDetails(data))"><FeatherInfo Color="blue" /></button>
                         </Template>
@@ -100,7 +100,7 @@
     [CascadingParameter] public IModalService Modal { get; set; }
 
     ResponseForList response = new ResponseForList() { AllRegisters = 0 };
-    private IList<Usuario> Usuarios;
+    private IList<User> Usuarios;
 
     protected override async Task OnInitializedAsync()
     {
@@ -121,7 +121,7 @@
         {
             case System.Net.HttpStatusCode.OK:
                 response = JsonSerializer.Deserialize<ResponseForList>(result.Content.ReadAsStringAsync().Result);
-                Usuarios = JsonSerializer.Deserialize<IList<Usuario>>(response.EntitiesPricipal);
+                Usuarios = JsonSerializer.Deserialize<IList<User>>(response.EntitiesPricipal);
                 modal.Close();
                 break;
             case System.Net.HttpStatusCode.NotFound:
@@ -139,7 +139,7 @@
         StateHasChanged();
     }
 
-    private void ShowDetails(Usuario Usuario)
+    private void ShowDetails(User Usuario)
     {
         var modalOptions = new ModalOptions()
         {

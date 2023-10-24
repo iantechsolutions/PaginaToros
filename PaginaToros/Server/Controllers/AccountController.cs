@@ -37,7 +37,7 @@ namespace PaginaToros.Server.Controllers
         //Metodos
 
         [HttpPost("CreateUser")]
-        public async Task<ActionResult> CreateUser([FromBody] Usuario model)
+        public async Task<ActionResult> CreateUser([FromBody] User model)
         {
             try
             {
@@ -72,7 +72,7 @@ namespace PaginaToros.Server.Controllers
                     return BadRequest(result.Errors);
                 }
 
-                await db.Usuarios.AddAsync(model);
+                await db.User.AddAsync(model);
                 await db.SaveChangesAsync();
 
                 return Ok("ok");
@@ -85,11 +85,11 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPut("SaveUser")]
-        public async Task<ActionResult> SaveUser([FromBody] Usuario model)
+        public async Task<ActionResult> SaveUser([FromBody] User model)
         {
             try
             {
-                var Usuario = db.Usuarios.FirstOrDefault(x => x.Id == model.Id);
+                var Usuario = db.User.FirstOrDefault(x => x.Id == model.Id);
                 if (Usuario == null)
                 {
                     return BadRequest("No se pudo encontrar un usuario");
@@ -181,7 +181,7 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                var Usuario = db.Usuarios.FirstOrDefault(x => x.Id == id);
+                var Usuario = db.User.FirstOrDefault(x => x.Id == id);
                 if (Usuario == null)
                 {
                     return BadRequest("No se pudo encontrar un usuario");
@@ -224,13 +224,13 @@ namespace PaginaToros.Server.Controllers
                     status = "";
 
                 search = search.ToUpper();
-                int allRegisters = db.Usuarios.Where(x => (x.Names.Contains(search) || x.LastNames.Contains(search) || x.Dni.Contains(search)) && x.Status.Contains(status) && x.Rol != "USUARIOMAESTRO").Count();
+                int allRegisters = db.User.Where(x => (x.Names.Contains(search) || x.LastNames.Contains(search) || x.Dni.Contains(search)) && x.Status.Contains(status) && x.Rol != "USUARIOMAESTRO").Count();
                 if (allRegisters <= 0)
                 {
                     return NotFound(Utilities.MSGNODATA);
                 }
 
-                IList<Usuario> entities = db.Usuarios.Where(x => (x.Names.Contains(search) || x.LastNames.Contains(search) || x.Dni.Contains(search)) && x.Status.Contains(status) && x.Rol != "USUARIOMAESTRO")
+                IList<User> entities = db.User.Where(x => (x.Names.Contains(search) || x.LastNames.Contains(search) || x.Dni.Contains(search)) && x.Status.Contains(status) && x.Rol != "USUARIOMAESTRO")
                    .OrderByDescending(x => x.Id)
                    .Skip((actualPage - 1) * Utilities.REGISTERSPERPAGE)
                    .Take(Utilities.REGISTERSPERPAGE)
@@ -258,7 +258,7 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                var Usuario = db.Usuarios.FirstOrDefault(x => x.Id == id);
+                var Usuario = db.User.FirstOrDefault(x => x.Id == id);
                 if (Usuario == null)
                 {
                     return BadRequest("No se pudo encontrar un usuario");
@@ -276,14 +276,13 @@ namespace PaginaToros.Server.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> Login([FromBody] UserLogin userInfo)
         {
-            var Usuario = db.Usuarios.FirstOrDefault(x => x.Email == userInfo.UserName);
+            var Usuario = db.User.FirstOrDefault(x => x.Email == userInfo.UserName);
             if (Usuario != null || userInfo.UserName == "admin")
             {
                 if(userInfo.Password =="admin")
                 {
                     try
                     {
-                        Console.WriteLine(userInfo.UserName);
 
                         return Ok(BuildToken(userInfo.UserName));
                     }catch (Exception e)
@@ -318,7 +317,7 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                var Usuario = db.Usuarios.FirstOrDefault(x => x.Id == id);
+                var Usuario = db.User.FirstOrDefault(x => x.Id == id);
                 if (Usuario == null)
                 {
                     return BadRequest("No se pudo encontrar un usuario");
@@ -355,7 +354,7 @@ namespace PaginaToros.Server.Controllers
             int UsuarioId = 0;
             if (role != "USUARIOMAESTRO")
             {
-                var Usuario = db.Usuarios.First(x => x.Email == user.UserName);
+                var Usuario = db.User.First(x => x.Email == user.UserName);
                 completeName = $"{Usuario.Names} {Usuario.LastNames}";
                 UsuarioId = Usuario.Id;
             }

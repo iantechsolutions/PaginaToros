@@ -48,7 +48,7 @@
         if (result.IsSuccessStatusCode)
         {
             await loginService.Login(result.Content.ReadAsStringAsync().Result);
-            uriHelper.NavigateTo("/");
+            uriHelper.NavigateTo("");
         }
         else
         {

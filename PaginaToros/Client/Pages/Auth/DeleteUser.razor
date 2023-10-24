@@ -24,7 +24,7 @@
 
     [CascadingParameter] public IModalService Modal { get; set; }
     [Parameter] public int Id { get; set; }
-    Usuario Usuario { get; set; } = new Usuario();
+    User Usuario { get; set; } = new User();
 
     private bool logout = false;
 
@@ -36,7 +36,7 @@
         switch (result.StatusCode)
         {
             case System.Net.HttpStatusCode.OK:
-                Usuario = JsonSerializer.Deserialize<Usuario>(result.Content.ReadAsStringAsync().Result);
+                Usuario = JsonSerializer.Deserialize<User>(result.Content.ReadAsStringAsync().Result);
                 modal.Close();
                 break;
             case System.Net.HttpStatusCode.Unauthorized:

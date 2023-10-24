@@ -9,5 +9,7 @@
     protected async override Task OnInitializedAsync()
     {
         await loginService.Logout();
+        await Task.Delay(1);
+        uriHelper.NavigateTo("/");
     }
 }

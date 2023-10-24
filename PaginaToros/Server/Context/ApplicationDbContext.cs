@@ -51,6 +51,6 @@ namespace PaginaToros.Server.Context
             return user;
         }
 
-        public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<User> User { get; set; }
     }
 }
