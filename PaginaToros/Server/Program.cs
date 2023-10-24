@@ -47,7 +47,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("HerefordConnection")));
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseMySql("server=vxsct3514.avnam.net;port=3306;user=herefordapp_com_ar;password=RWEr4dod6g3G;persist security info=True;database=hereford_pr;convert zero datetime=True", ServerVersion.Parse("10.3.39-mariadb")));
 
 var app = builder.Build();
 

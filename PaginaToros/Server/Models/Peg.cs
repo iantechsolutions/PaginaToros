@@ -7,7 +7,7 @@ namespace PaginaToros.Server.Models
     {
         public int Id { get; set; }
         public string Nrodec { get; set; } = null!;
-        public string Scod { get; set; } = null!;
+        public string Nrosocio { get; set; } = null!;
         public string Socio { get; set; } = null!;
         public string Hba { get; set; } = null!;
         public string Desde { get; set; } = null!;

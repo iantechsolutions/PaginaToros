@@ -1,17 +1,17 @@
-﻿@attribute [Authorize(Roles = "USUARIOMAESTRO")]
-@page "/ActualizarUsuario/{Id:int}"
+﻿@attribute [Authorize(Roles = "UserMAESTRO")]
+@page "/ActualizarUser/{Id:int}"
 @inject HttpClient http
 @inject NavigationManager uriHelper
 
-<h3>Actualizar usuario</h3>
-<AuthorizeView Roles="USUARIOMAESTRO,ADMINISTRADOR">
+<h3>Actualizar User</h3>
+<AuthorizeView Roles="UserMAESTRO,ADMINISTRADOR">
     <div class="arrow text-right">
         <a class="btn btn-warning" @onclick="ResetPass">
             <span class="oi oi-key"></span> Resetear Contraseña
         </a>
     </div>
-    <UserEditForm Usuario="Usuario" EventCallback="SaveUser" />
-    @if(context.User.Claims.First(x => x.Type == "UsuarioId").Value == Usuario.Id.ToString())
+    <UserEditForm User="User" EventCallback="SaveUser" />
+    @if(context.User.Claims.First(x => x.Type == "UserId").Value == User.Id.ToString())
     {
         logout = true;
     }
@@ -21,7 +21,7 @@
 @code {
     [CascadingParameter] public IModalService Modal { get; set; }
     [Parameter] public int Id { get; set; }
-    Usuario Usuario { get; set; } = new Usuario();
+    User User { get; set; } = new User();
 
     private bool logout = false;
 
@@ -33,7 +33,7 @@
         switch (result.StatusCode)
         {
             case System.Net.HttpStatusCode.OK:
-                Usuario = JsonSerializer.Deserialize<Usuario>(result.Content.ReadAsStringAsync().Result);
+                User = JsonSerializer.Deserialize<User>(result.Content.ReadAsStringAsync().Result);
                 modal.Close();
                 break;
             case System.Net.HttpStatusCode.Unauthorized:
@@ -49,7 +49,7 @@
     private async Task ResetPass()
     {
         var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
-        var result = await http.PutAsJsonAsync<int>("api/Account/ResetPassword", Usuario.Id);
+        var result = await http.PutAsJsonAsync<int>("api/Account/ResetPassword", User.Id);
         switch (result.StatusCode)
         {
             case System.Net.HttpStatusCode.OK:
@@ -76,7 +76,7 @@
     private async Task SaveUser()
     {
         var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
-        var result = await http.PutAsJsonAsync<Usuario>("api/Account/SaveUser", Usuario);
+        var result = await http.PutAsJsonAsync<User>("api/Account/SaveUser", User);
         switch (result.StatusCode)
         {
             case System.Net.HttpStatusCode.OK:
@@ -86,7 +86,7 @@
                 }
                 else
                 {
-                    uriHelper.NavigateTo("/Usuarios");
+                    uriHelper.NavigateTo("/Users");
                 }
                 break;
             case System.Net.HttpStatusCode.Unauthorized:

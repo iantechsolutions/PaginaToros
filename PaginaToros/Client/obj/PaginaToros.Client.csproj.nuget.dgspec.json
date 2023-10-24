@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\PaginaToros.Client.csproj": {}
+    "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj": {}
   },
   "projects": {
-    "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\PaginaToros.Client.csproj": {
+    "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\PaginaToros.Client.csproj",
+        "projectUniqueName": "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj",
         "projectName": "PaginaToros.Client",
-        "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\PaginaToros.Client.csproj",
-        "packagesPath": "C:\\Users\\lolo1\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\obj\\",
+        "projectPath": "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj",
+        "packagesPath": "C:\\Users\\HP\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Client\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "E:\\LIBRERIAS\\NuGetPackages"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\lolo1\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\HP\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,17 +26,14 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
-          "C:\\Users\\lolo1\\DEVELOP\\nugets": {},
-          "https://api.nuget.org/v3/index.json": {},
-          "https://pkgs.dev.azure.com/sumato-id/AKIRA.SOLUTION/_packaging/SumatoNugets/nuget/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net6.0": {
             "targetAlias": "net6.0",
             "projectReferences": {
-              "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
-                "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\PaginaToros.Shared.csproj"
+              "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
+                "projectPath": "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj"
               }
             }
           }
@@ -115,7 +112,7 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.NETCore.App.Runtime.Mono.browser-wasm",
-              "version": "[6.0.21, 6.0.21]"
+              "version": "[6.0.20, 6.0.20]"
             }
           ],
           "frameworkReferences": {
@@ -123,7 +120,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.306\\RuntimeIdentifierGraph.json"
         }
       },
       "runtimes": {
@@ -132,20 +129,20 @@
         }
       }
     },
-    "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
+    "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+        "projectUniqueName": "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
         "projectName": "PaginaToros.Shared",
-        "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
-        "packagesPath": "C:\\Users\\lolo1\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\obj\\",
+        "projectPath": "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+        "packagesPath": "C:\\Users\\HP\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\HP\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "E:\\LIBRERIAS\\NuGetPackages"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\lolo1\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\HP\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -154,10 +151,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
-          "C:\\Users\\lolo1\\DEVELOP\\nugets": {},
-          "https://api.nuget.org/v3/index.json": {},
-          "https://pkgs.dev.azure.com/sumato-id/AKIRA.SOLUTION/_packaging/SumatoNugets/nuget/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net6.0": {
@@ -196,7 +190,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.306\\RuntimeIdentifierGraph.json"
         }
       }
     }

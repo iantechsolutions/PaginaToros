@@ -1,5 +1,5 @@
 ﻿@inject HttpClient Http
-<EditForm Context="myContext" Model="@Usuario" OnValidSubmit="@EventCallback">
+<EditForm Context="myContext" Model="@User" OnValidSubmit="@EventCallback">
     <div style="overflow-y: auto; max-height: 650px;">
         <DataAnnotationsValidator />
         <ValidationSummary />
@@ -7,34 +7,34 @@
             <div class="col-md-6">
                 <div class="form-group mb-3">
                     <label>Nombres:</label>
-                    <InputText required class="form-control" @bind-Value="Usuario.Names" />
+                    <InputText required class="form-control" @bind-Value="User.Names" />
                 </div>
 
                 <div class="form-group mb-3">
                     <label>Apellidos:</label>
-                    <InputText required class="form-control" @bind-Value="Usuario.LastNames" />
+                    <InputText required class="form-control" @bind-Value="User.LastNames" />
                 </div>
 
                 <div class="form-group mb-3">
                     <label>Dni:</label>
-                    <InputText required class="form-control" @bind-Value="Usuario.Dni" />
+                    <InputText required class="form-control" @bind-Value="User.Dni" />
                 </div>
 
                 <div class="form-group mb-3">
                     <label>Télefono:</label>
-                    <InputText required class="form-control" @bind-Value="Usuario.Phone" />
+                    <InputText required class="form-control" @bind-Value="User.Phone" />
                 </div>
             </div>
 
             <div class="col-md-6">
                 <div class="form-group mb-3">
                     <label>Email:</label>
-                    <InputText class="form-control" @bind-Value="Usuario.Email" />
+                    <InputText class="form-control" @bind-Value="User.Email" />
                 </div>
 
                 <div class="form-group mb-3">
                     <label>Posición:</label>
-                    <InputSelect required class="form-control" @bind-Value="Usuario.Rol">
+                    <InputSelect required class="form-control" @bind-Value="User.Rol">
                     <option value=""></option>
                         <option value="Test">Test</option>
 
@@ -56,14 +56,14 @@
 
                 <div class="form-group mb-3">
                     <label>Estado:</label>
-                    <InputSelect required class="form-control" @bind-Value="Usuario.Status">
+                    <InputSelect required class="form-control" @bind-Value="User.Status">
                         <option value="ACTIVO">ACTIVO</option>
                         <option value="SUSPENDIDO">SUSPENDIDO</option>
                     </InputSelect>
                 </div>
 
             </div>
-            <a class="btn btn-info" href="Usuarios">
+            <a class="btn btn-info" href="Users">
                 <span class="oi oi-arrow-left" aria-hidden="true"></span> Volver
             </a> |
             <button class="btn btn-primary" type="submit">
@@ -74,7 +74,7 @@
 </EditForm>
 
 @code {
-    [Parameter] public Usuario Usuario { get; set; }
+    [Parameter] public User User { get; set; }
     [Parameter] public EventCallback EventCallback { get; set; }
     Respuesta<List<AspNetRole>> oRespuestaRoles = new Respuesta<List<AspNetRole>>();
     string Url = "/api/AspNetRole";
