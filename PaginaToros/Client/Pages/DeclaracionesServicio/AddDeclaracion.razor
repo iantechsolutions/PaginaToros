@@ -463,9 +463,9 @@
         }
         if (Id == 0)
         {
-            foreach(var cert in certificadosSeleccionados)
+            foreach(var cert in certificadosAlterados)
             {
-                await Http.PutAsJsonAsync<Certifseman>("/api/Certifseman", certificadosAlterados);
+                await Http.PutAsJsonAsync<Certifseman>("/api/Certifseman", cert);
             }
             await Http.PostAsJsonAsync<List<Desepla3>>("/api/desepla3", seleccionFinal);
             await Http.PostAsJsonAsync<Desepla1>("/api/desepla1", oDeclaracion);
