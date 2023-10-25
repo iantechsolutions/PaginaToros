@@ -17,8 +17,8 @@
     z-index: 1;
     background: #FFFFFF;
     max-width: 360px;
-    margin: 0 auto 100px;
-    padding: 45px;
+    margin: 0 auto 6.6%;
+    padding: 3%;
     text-align: center;
     box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
 }
@@ -83,7 +83,7 @@
     }
 
     .container .info {
-        margin: 50px auto;
+        margin: 3.33% auto;
         text-align: center;
     }
 

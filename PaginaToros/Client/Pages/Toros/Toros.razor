@@ -22,25 +22,25 @@
         border-top: solid #E0E0E0 1px;
     }
 </style>
-<h3 class="pb-3 font-bold text-xl" style="position:relative;left:50px">Toros</h3>
+<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Toros</h3>
 
 
-<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:50px" @onclick="()=>add(0)">Agregar Toro</button>
+<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0)">Agregar Toro</button>
 
 
 
 @if (oRespuesta.List != null)
 {
 
-    <button style="outline:none; float: right;margin-right:45px;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+    <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
     <br />
     <br />
-    <div class="tablacontent" style="position:relative;width:1400px;left:50px">
+    <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
         <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@oRespuesta.List" TItem="Torosuni" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Data="@oRespuesta.List" TItem="Torosuni" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="Torosuni" Property="CodEstado" Title="Estado" Width="55px">
+                <RadzenDataGridColumn TItem="Torosuni" Property="CodEstado" Title="Estado" Width="3.6%">
                     <Template Context="data">
                         @switch (data.CodEstado)
                         {
@@ -65,23 +65,23 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Tipo de toro" Width="110px">
+                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Tipo de toro" Width="7.34%">
                     <Template Context="data">
                         <a>@traductorTipo[data.TipToro]</a>
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Torosuni" Property="Variedad" Title="Variedad" Width="90px" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="NomDad" Title="Nombre del toro" Width="110px" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="Sbcod" Title="Numero de orden" Width="110px" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="Fechasba" Title="Fecha S/" Width="110px" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="Hba" Title="HBA" Width="110px" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="Tatpart" Title="Tatuaje" Width="110px" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Socio" Width="110px">
+                <RadzenDataGridColumn TItem="Torosuni" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Torosuni" Property="Sbcod" Title="Numero de orden" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Torosuni" Property="Fechasba" Title="Fecha S/" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Torosuni" Property="Hba" Title="HBA" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Torosuni" Property="Tatpart" Title="Tatuaje" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Socio" Width="7.34%">
                     <Template Context="data">
                         @(socios.Where(x => x.Scod == data.Criador).FirstOrDefault().Nombre)
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Fecha de nacimiento" Width="110px">
+                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Fecha de nacimiento" Width="7.34%">
                     <Template Context="data">
                         @if (data.Nacido.HasValue)
                         {
@@ -93,13 +93,13 @@
                         }
                     </Template>    
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Torosuni" Property="CircEscrotal" Title="Circunf. Escrotal" Width="110px" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Torosuni" Property="CircEscrotal" Title="Circunf. Escrotal" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
@@ -121,7 +121,7 @@ else
     <center>
         <div class="mb-2">
             <br />
-            <RadzenProgressBar style="position:relative;width:1400px" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </center>
 }

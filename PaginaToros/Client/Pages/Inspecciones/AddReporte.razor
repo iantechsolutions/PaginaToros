@@ -437,7 +437,7 @@
                                                 <th>Motivo</th>
                                                 <th>Hembras</th>
                                                 <th>Machos</th>
-                                                <th style="background-color: #FFFFFF;width:150px;"></th>
+                                                <th style="background-color: #FFFFFF;width:13.33%;"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -448,7 +448,7 @@
                                                     <td>@traductor[re.MotivoRechazo.ToString()]</td>
                                                     <td>@re.Hembras</td>
                                                     <td>@re.Machos</td>
-                                                    <td style="width:150px;">
+                                                    <td style="width:13.33%;">
                                                         <button class="btn" title="Editar Rechazo" @onclick='() => (agregarRechazo(re.Id))'><FeatherEdit Color="green" /></button>
                                                         <button class="btn" title="Editar Rechazo" @onclick='() => (alertaDeleteRechazo(re.Id))'><FeatherTrash Color="red" /></button>
                                                     </td>
@@ -473,7 +473,7 @@ else
     <center>
         <div class="mb-2">
             <br />
-            <RadzenProgressBar style="position:relative;width:1400px" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </center>
 }

@@ -22,27 +22,27 @@
         border-top: solid #E0E0E0 1px;
     }
 </style>
-<h3 class="pb-3 font-bold text-xl" style="position:relative;left:50px">Transferencias A Futuro Control</h3>
+<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias A Futuro Control</h3>
 
 
-<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:50px" @onclick='()=>add(0)'>Agregar Transferencia</button>
+<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick='()=>add(0)'>Agregar Transferencia</button>
 
 
 
 @if (oRespuesta.List != null)
 {
 
-    <button style="outline:none; float: right;margin-right:45px;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+    <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
     <br />
     <br />
-    <div class="tablacontent" style="position:relative;width:1400px;left:50px">
+    <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
         <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@oRespuesta.List" TItem="Futcontrol" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Data="@oRespuesta.List" TItem="Futcontrol" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
 
                 <RadzenDataGridColumn TItem="Futcontrol" Property="NroTrans" Title="Nro Transferencia" Width="90px" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="" Title="Fecha de Transferencia" Width="110px">
+                <RadzenDataGridColumn TItem="Futcontrol" Property="" Title="Fecha de Transferencia" Width="7.34%">
                     <Template Context="data">
                         @if (data.Fectrans.HasValue)
                         {
@@ -54,19 +54,19 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Futcontrol" Property="Vnom" Title="Socio Vendedor" Width="110px" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="Cnom" Title="Socio Comprador" Width="110px" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="Plantel" Title="De Plantel" Width="110px" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="PlantDest" Title="A Plantel" Width="110px" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="CantHem" Title="Cant Hembras" Width="110px" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="CantMach" Title="Cant Machos" Width="110px" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="Hemsta" Title="Estado de las Hembras" Width="110px" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Futcontrol" Property="Vnom" Title="Socio Vendedor" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="Cnom" Title="Socio Comprador" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="Plantel" Title="De Plantel" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="PlantDest" Title="A Plantel" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="CantHem" Title="Cant Hembras" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="CantMach" Title="Cant Machos" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="Hemsta" Title="Estado de las Hembras" Width="7.34%" />
+                <RadzenDataGridColumn TItem="Futcontrol" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Futcontrol" Property="" Title="" Filterable="false" Width="50px">
+                <RadzenDataGridColumn TItem="Futcontrol" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
@@ -88,7 +88,7 @@ else
     <center>
         <div class="mb-2">
             <br />
-            <RadzenProgressBar style="position:relative;width:1400px" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </center>
 }

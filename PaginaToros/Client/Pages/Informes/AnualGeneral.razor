@@ -143,7 +143,7 @@
                                 Density="Density.Compact" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                 Data="@provincias.Where(i=>PresentadasT.Where(x=>x.fecha.Month==coso.Item2 && x.Provincia==i).Count()>0)" TItem="string" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                     <Columns>
-                        <RadzenDataGridColumn TItem="string" Property="" Title="Provincia" Filterable="false" Width="100px">
+                        <RadzenDataGridColumn TItem="string" Property="" Title="Provincia" Filterable="false" Width="6.6%">
                             <Template Context="data">
                                 @data
                             </Template>
@@ -227,7 +227,7 @@ else
     <center>
         <div class="mb-2">
             <br />
-            <RadzenProgressBar style="position:relative;right:100px;width:1300px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenProgressBar style="position:relative;right:6.6%;width:1300px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </center>
 }

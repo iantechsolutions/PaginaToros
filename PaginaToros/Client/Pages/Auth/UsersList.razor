@@ -22,21 +22,22 @@
         border-top: solid #E0E0E0 1px;
     }
 </style>
+<br/>
 <center>
     <AuthorizeView>
-        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:50px">Usuarios</h3>
+        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Usuarios</h3>
         <br/>
         <div class="tablacontent" style="position:relative;width:80%;">
 
             <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="true" FilterMode="FilterMode.Advanced"
                             AllowSorting="true" PageSize="5" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            Data="@Usuarios" TItem="User" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                            Data="@Usuarios" TItem="User" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
                 <Columns>
-                    <RadzenDataGridColumn TItem="User" Property="Names" Filterable="false" Title="Nombre/s" Width="110px" />
-                    <RadzenDataGridColumn TItem="User" Property="LastNames" Filterable="false" Title="Apellido/s" Width="110px" />
-                    <RadzenDataGridColumn TItem="User" Property="Dni" Filterable="false" Title="Dni" Width="110px" />
-                    <RadzenDataGridColumn TItem="User" Property="Phone" Filterable="false" Title="Número" Width="110px" />
-                    <RadzenDataGridColumn TItem="User" Property="Rol" Filterable="false" Title="Rol" Width="110px" />
+                    <RadzenDataGridColumn TItem="User" Property="Names" Filterable="false" Title="Nombre/s" Width="7.34%" />
+                    <RadzenDataGridColumn TItem="User" Property="LastNames" Filterable="false" Title="Apellido/s" Width="7.34%" />
+                    <RadzenDataGridColumn TItem="User" Property="Dni" Filterable="false" Title="Dni" Width="7.34%" />
+                    <RadzenDataGridColumn TItem="User" Property="Phone" Filterable="false" Title="Número" Width="7.34%" />
+                    <RadzenDataGridColumn TItem="User" Property="Rol" Filterable="false" Title="Rol" Width="7.34%" />
                     <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="40px">
                         <Template Context="data">
                             <button class="btn" title="Editar" @onclick="@(()=>nav.NavigateTo($"/ActualizarUsuario/{@data.Id}"))"><FeatherEdit3 Color="green" /></button>

@@ -60,23 +60,23 @@
                     Density="Density.Compact" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                     Data="@Inspects" TItem="Inspect" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
-            <RadzenDataGridColumn TItem="Inspect" Property="Nombre" Title="Nombre" Width="55px" />
-            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Presentadas" Filterable="false" Width="100px">
+            <RadzenDataGridColumn TItem="Inspect" Property="Nombre" Title="Nombre" Width="3.6%" />
+            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Presentadas" Filterable="false" Width="6.6%">
                 <Template Context="data">
                     @(ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.Hdp) + ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.Hpp));
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Marcadas" Filterable="false" Width="100px">
+            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Marcadas" Filterable="false" Width="6.6%">
                 <Template Context="data">
                     @(ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.HdpM) + ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.HppM));
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Astadas" Filterable="false" Width="100px">
+            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Astadas" Filterable="false" Width="6.6%">
                 <Template Context="data">
                     @(ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.HdpAs) + ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.HppAs));
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Rechazadas" Filterable="false" Width="100px">
+            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Rechazadas" Filterable="false" Width="6.6%">
                 <Template Context="data">
                     @(ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.rechazadasDP) + ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.rechazadasPP));
                 </Template>
@@ -91,7 +91,7 @@ else
     <center>
         <div class="mb-2">
             <br />
-            <RadzenProgressBar style="position:relative;right:100px;width:1300px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenProgressBar style="position:relative;right:6.6%;width:1300px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </center>
 }

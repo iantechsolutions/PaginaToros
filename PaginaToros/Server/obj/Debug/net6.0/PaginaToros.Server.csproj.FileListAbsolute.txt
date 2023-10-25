@@ -218,3 +218,5 @@ C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Server\obj\Debug\net6.0\PaginaT
 C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Server\obj\Debug\net6.0\ref\PaginaToros.Server.dll
 C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\appsettingspublish.Development.json
 C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\appsettingspublish.json
+C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Server\bin\Debug\net6.0\appsettingspublish.Development.json
+C:\Users\lolo1\source\repos\Hereford - testing\PaginaToros\Server\bin\Debug\net6.0\appsettingspublish.json

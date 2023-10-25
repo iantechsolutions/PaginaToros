@@ -3,10 +3,10 @@
 @using PaginaToros.Shared.Models
 @inject HttpClient Http
 
-<h3 class="pb-3 font-bold text-xl" style="position:relative;left:50px">Socios</h3>
+<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Socios</h3>
 
 
-<button style="position:relative;left:50px" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick='()=>add(0,"0")'>Agregar Socio</button>
+<button style="position:relative;left:3.33%" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick='()=>add(0,"0")'>Agregar Socio</button>
 <style>
 
     .rz-cell-data,
@@ -32,16 +32,16 @@
 @if (oRespuesta.List != null)
 {
 
-    <button style="outline:none; float: right;margin-right:45px;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+    <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
     <br />
     <br />
-    <RadzenDataGrid class="tablacontent" style="position:relative;width:1400px;left:50px" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+    <RadzenDataGrid class="tablacontent" style="position:relative;width:93.5%;left:3.33%" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                 AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                Density="Density.Compact" Data="@oRespuesta.List" TItem="Socio" ColumnWidth="50px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                Density="Density.Compact" Data="@oRespuesta.List" TItem="Socio" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
-            <RadzenDataGridColumn TItem="Socio" Property="Id" Title="Nro Socio" Width="55px" />
+            <RadzenDataGridColumn TItem="Socio" Property="Id" Title="Nro Socio" Width="3.6%" />
             <RadzenDataGridColumn TItem="Socio" Property="Placod" Title="Plantel" Width="60px" />
-            <RadzenDataGridColumn TItem="Socio" Property="Criador" Title="Activo?" Width="50px">
+            <RadzenDataGridColumn TItem="Socio" Property="Criador" Title="Activo?" Width="3.33%">
                 <Template Context="data">
                     @if (data.Criador=="S")
                     {
@@ -55,9 +55,9 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Socio" Property="Nombre" Title="Nombre" Width="140px" />
             <RadzenDataGridColumn TItem="Socio" Property="Direcc1" Title="Domicilio" Width="85px" />
-            <RadzenDataGridColumn TItem="Socio" Property="Locali1" Title="Localidad" Width="70px" />
+            <RadzenDataGridColumn TItem="Socio" Property="Locali1" Title="Localidad" Width="4.6%" />
             <RadzenDataGridColumn TItem="Socio" Property="Codpos1" Title="Cod. Postal" Width="80px" />
-            <RadzenDataGridColumn TItem="Socio" Property="" Title="Provincia" Width="75px">
+            <RadzenDataGridColumn TItem="Socio" Property="" Title="Provincia" Width="5%">
                 <Template Context="data">
                     @if (traductorProvincia.ContainsKey(data.Codpro1))
                     {
@@ -68,9 +68,9 @@
                     }
                 </Template>    
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Socio" Property="Telefo1" Title="Telefono" Width="75px" />
-            <RadzenDataGridColumn TItem="Socio" Property="Mail" Title="Mail" Width="100px" />
-            <RadzenDataGridColumn TItem="Socio" Property="FechaExistencia" Title="Fecha de Creacion" Width="100px">
+            <RadzenDataGridColumn TItem="Socio" Property="Telefo1" Title="Telefono" Width="5%" />
+            <RadzenDataGridColumn TItem="Socio" Property="Mail" Title="Mail" Width="6.6%" />
+            <RadzenDataGridColumn TItem="Socio" Property="FechaExistencia" Title="Fecha de Creacion" Width="6.6%">
                 <Template Context="data">
                     @if(data.Fecing.HasValue){
                         @data.Fecing.Value.ToString("dd/MM/yyyy")
@@ -82,17 +82,17 @@
             </RadzenDataGridColumn>
 
 
-            <RadzenDataGridColumn TItem="Socio" Property="" Title="" Filterable="false" Width="45px">
+            <RadzenDataGridColumn TItem="Socio" Property="" Title="" Filterable="false" Width="3%">
                 <Template Context="data">
                     <button class="btn" position="absolute" title="Editar Socio" @onclick="() => add(data.Id,data.Scod)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Socio" Property="" Title="" Filterable="false" Width="45px">
+            <RadzenDataGridColumn TItem="Socio" Property="" Title="" Filterable="false" Width="3%">
                 <Template Context="data">
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id,data.Scod)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Socio" Property="" Title="" Filterable="false" Width="45px">
+            <RadzenDataGridColumn TItem="Socio" Property="" Title="" Filterable="false" Width="3%">
                 <Template Context="data">
                     <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id,data.Scod)"><FeatherInfo Size="16" Color="blue" /></button>
                 </Template>
@@ -108,7 +108,7 @@ else
     <center>
         <div class="mb-2">
             <br />
-            <RadzenProgressBar style="position:relative;width:1400px" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </center>
 }
