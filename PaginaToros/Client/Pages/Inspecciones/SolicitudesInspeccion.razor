@@ -37,36 +37,30 @@
     <div class="tablacontent" style="position:relative;width:93.5%">
     <RadzenDataGrid style="position:relative;width:93.5%;left:3.33%" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                 Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                Data="@oRespuesta.List" TItem="Solici1" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
+                Data="@listaMerged" TItem="ClaseTabla" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
         <Columns>
-                <RadzenDataGridColumn TItem="Solici1" Property="Nrosol" Title="Nro Solicitud" Width="21.7%" />
-                <RadzenDataGridColumn TItem="Solici1" Property="" Title="Socio" Width="21.7%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="NroSol" Title="Nro Solicitud" Width="21.7%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreSocio" Title="Socio" Width="21.7%"/>
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="FechaSol" Title="Fecha De Solicitud" Width="21.7%">
                     <Template Context="data">
-                        @traductorEst[data.Codest]
+                    @if(data.FechaSol.HasValue){
+                            @data.FechaSol.Value.ToString("dd/MM/yyyy")
+                    }
+                    else{
+                    }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Solici1" Property="Fecsol" Title="Fecha De Solicitud" Width="21.7%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="FechaAu" Title="Fecha De Autorizacion" Width="21.7%">
                 <Template Context="data">
-                    @if(data.Fecsol.HasValue){
-                        @data.Fecsol.Value.ToString("dd/MM/yyyy")
-                    }
-                    else{
-                    }
-                </Template>
-            </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Solici1" Property="Fecins" Title="Fecha De Autorizacion" Width="21.7%">
-                <Template Context="data">
-                    @if (data.Fecins.HasValue)
+                    @if (data.FechaAu.HasValue)
                     {
-                        @data.Fecins.Value.ToString("dd/MM/yyyy")
+                            @data.FechaAu.Value.ToString("dd/MM/yyyy")
                     }
                     else{
 
                     }
                 </Template>
             </RadzenDataGridColumn>
-
-
             <RadzenDataGridColumn TItem="Solici1" Property="" Title="" Filterable="false" Width="3.33%">
                 <Template Context="data">
                     <button class="btn" position="absolute" title="Editar Solicitud" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
@@ -101,7 +95,8 @@ else
 @code {
 
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Solici1>? grid;
+    public RadzenDataGrid<ClaseTabla>? grid;
+    List<ClaseTabla> listaMerged = new();
     int currentPage;
     bool allowFiltering = false;
     string Url = "/api/Solici1";
@@ -126,6 +121,7 @@ else
             }
         }
 
+
         await Get();
     }
     async Task Get()
@@ -133,7 +129,14 @@ else
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Solici1>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
-
+        listaMerged = oRespuesta.List.Select(soli => new ClaseTabla
+            {
+                Id = soli.Id,
+                NroSol = soli.Nrosol,
+                NombreSocio = soli.Codest!=null ? (traductorEst.ContainsKey(soli.Codest) ? traductorEst[soli.Codest]:""):"",
+                FechaSol = soli.Fecsol,
+                FechaAu = soli.Fecins
+            }).ToList();
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -259,4 +262,14 @@ else
     //        await grid.GoToPage(currentPage);
     //    }
     //}
+
+    public class ClaseTabla
+    {
+        public int Id { get; set; }
+        public string? NroSol { get; set; }
+        public string? NombreSocio { get; set; }
+        public DateTime? FechaSol { get; set; }
+        public DateTime? FechaAu { get; set; }
+    }
+
 }

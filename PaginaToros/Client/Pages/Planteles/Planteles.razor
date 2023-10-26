@@ -37,12 +37,12 @@
     <br />
     <RadzenDataGrid class="tablacontent" style="position:relative;width:93.5%;left:3.33%" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                     AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                    Density="Density.Compact" Data="@oRespuesta.List" TItem="Plantel" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    Density="Density.Compact" Data="@listaMerged" TItem="ClaseTabla" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
-            <RadzenDataGridColumn TItem="Plantel" Property="Placod" Title="Nro Plantel" Width="3.6%" />
-            <RadzenDataGridColumn TItem="Plantel" Property="Activo" Title="Activo?" Width="3.33%">
+            <RadzenDataGridColumn TItem="ClaseTabla" Property="Placod" Title="Nro Plantel" Width="3.6%" />
+            <RadzenDataGridColumn TItem="ClaseTabla" Property="Activo" Title="Activo?" Width="3.33%">
                 <Template Context="data">
-                    @if (data.Estado=="S")
+                    @if (data.Activo)
                     {
                             <a style="color:green">Si</a>
                     }
@@ -52,20 +52,16 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Plantel" Property="Anioex" Title="Año de Existencia" Width="4.6%" />
-            <RadzenDataGridColumn TItem="Plantel" Property="Nroins" Title="Nro ultima inspeccion" Width="6.6%" />
-            <RadzenDataGridColumn TItem="Plantel" Property="" Title="Socio" Width="7.34%">
-                <Template Context="data">
-                    @(socios.Where(x => x.Scod == data.Nrocri).FirstOrDefault().Nombre)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Plantel" Property="Varede" Title="Vacas PR" Width="4%" />
-            <RadzenDataGridColumn TItem="Plantel" Property="Vqcsrd" Title="Vaquillonas PR C/S" Width="5%" />
-            <RadzenDataGridColumn TItem="Plantel" Property="Vqssrd" Title="Vaquillonas PR S/S" Width="5%" />
-            <RadzenDataGridColumn TItem="Plantel" Property="Varepr" Title="Vacas VIP" Width="4%" />
-            <RadzenDataGridColumn TItem="Plantel" Property="Vqcsrp" Title="Vaquillonas VIP C/S o preñadas" Width="6.6%" />
-            <RadzenDataGridColumn TItem="Plantel" Property="Vqssrp" Title="Vaquillonas VIP S/S" Width="4.6%" />
-            <RadzenDataGridColumn TItem="Plantel" Property="" Title="" Filterable="false" Width="2.3%">
+            <RadzenDataGridColumn TItem="ClaseTabla" Property="Anioex" Title="Año de Existencia" Width="4.6%" />
+            <RadzenDataGridColumn TItem="ClaseTabla" Property="Nroins" Title="Nro ultima inspeccion" Width="6.6%" />
+            <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreSocio" Title="Socio" Width="7.34%"/>
+            <RadzenDataGridColumn TItem="ClaseTabla" Property="Varede" Title="Vacas PR" Width="4%" />
+            <RadzenDataGridColumn TItem="ClaseTabla" Property="Vqcsrd" Title="Vaquillonas PR C/S" Width="5%" />
+            <RadzenDataGridColumn TItem="ClaseTabla" Property="Vqssrd" Title="Vaquillonas PR S/S" Width="5%" />
+            <RadzenDataGridColumn TItem="ClaseTabla" Property="Varepr" Title="Vacas VIP" Width="4%" />
+            <RadzenDataGridColumn TItem="ClaseTabla" Property="Vqcsrp" Title="Vaquillonas VIP C/S o preñadas" Width="6.6%" />
+            <RadzenDataGridColumn TItem="ClaseTabla" Property="Vqssrp" Title="Vaquillonas VIP S/S" Width="4.6%" />
+            <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="2.3%">
                 <Template Context="data">
                     <button class="btn" position="absolute" title="Editar Plantel" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
@@ -98,7 +94,8 @@ else
 @code {
 
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Plantel>? grid;
+    public RadzenDataGrid<ClaseTabla>? grid;
+    List<ClaseTabla> listaMerged = new();
     int currentPage;
     public bool allowFiltering = false;
     public string Url = "/api/Plantel";
@@ -106,6 +103,8 @@ else
     public Respuesta<List<Plantel>> oRespuesta = new Respuesta<List<Plantel>>();
     protected override async Task OnInitializedAsync()
     {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
+        socios = rta.List;
         await Get();
     }
     async Task Get()
@@ -113,8 +112,21 @@ else
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Plantel>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
-        socios = rta.List;
+        listaMerged = oRespuesta.List.Select(plan => new ClaseTabla
+            {
+                Id = plan.Id,
+                Placod = plan.Placod,
+                Activo = plan.Estado=="S",
+                Anioex = plan.Anioex,
+                Nroins = plan.Nroins,
+                NombreSocio = socios.Where(x => x.Scod == plan.Nrocri).Count()>0?socios.Where(x => x.Scod == plan.Nrocri).First().Nombre:"",
+                Varede = plan.Varede,
+                Vqcsrd = plan.Vqcsrd,
+                Vqssrd = plan.Vqssrd,
+                Varepr = plan.Varepr,
+                Vqcsrp = plan.Vqcsrp,
+                Vqssrp = plan.Vqssrp,
+            }).ToList();
 
         StateHasChanged();
     }
@@ -240,5 +252,22 @@ else
             await Get();
             await grid.GoToPage(currentPage);
         }
+    }
+
+
+    public class ClaseTabla
+    {
+        public int Id{ get; set; }
+        public string? Placod { get; set; }
+        public bool Activo { get; set; }
+        public string? Anioex { get; set; }
+        public string? Nroins { get; set; }
+        public string? NombreSocio  { get; set; }
+        public double? Varede { get; set; }
+        public double? Vqcsrd { get; set; }
+        public double? Vqssrd { get; set; }
+        public double? Varepr { get; set; }
+        public double? Vqcsrp { get; set; }
+        public double? Vqssrp { get; set; }
     }
 }

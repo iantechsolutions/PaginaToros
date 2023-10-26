@@ -38,17 +38,13 @@
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
         <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                     Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                    Data="@oRespuesta.List" TItem="Estable" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Data="@listaMerged" TItem="ClaseTabla" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="Estable" Property="Ecod" Title="Cod. Establ." Width="3.6%" />
-                <RadzenDataGridColumn TItem="Estable" Property="" Filterable="true" Title="Socio" Width="7.34%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Ecod" Title="Cod. Establ." Width="3.6%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreSocio" Title="Socio" Width="7.34%"/>
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Activo" Title="Activo?" Width="3.6%">
                     <Template Context="data">
-                        @(socios.Where(x=>x.Scod==data.Codsoc).FirstOrDefault().Nombre)
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Estable" Property="Activo" Title="Activo?" Width="3.6%">
-                    <Template Context="data">
-                        @if(data.Activo=="S"){
+                        @if(data.Activo){
                             <a style="color:darkgreen">Si</a>
                         }
                         else
@@ -57,33 +53,22 @@
                         }
                     </Template>    
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Estable" Property="Nombre" Title="Nombre" Width="6.6%" />
-                <RadzenDataGridColumn TItem="Estable" Property="Encargado" Title="Encargado" Width="4.6%" />
-                <RadzenDataGridColumn TItem="Estable" Property="Direcc" Title="Domicilio" Width="4.6%" />
-                <RadzenDataGridColumn TItem="Estable" Property="Tel" Title="Telefono" Width="5%" />
-                <RadzenDataGridColumn TItem="Estable" Property="Locali" Title="Localidad" Width="5%" />
-                <RadzenDataGridColumn TItem="Estable" Property="Codpos" Title="Codigo Postal" Width="5.6%" />
-                <RadzenDataGridColumn TItem="Estable" Property="" Title="Provincia" Width="5%">
-                    <Template Context="data">
-                        @if (traductorProvincia.ContainsKey(data.Codpro))
-                        {
-                            <a>@(traductorProvincia[data.Codpro])</a>
-                        }
-                        else
-                        {
-                            <a>Otras</a>
-                        }
-                    </Template>
-                </RadzenDataGridColumn>                
-                <RadzenDataGridColumn TItem="Estable" Property="Plano" Title="Informacion" Width="5.3%" />
-                <RadzenDataGridColumn TItem="Estable" Property="Codzon" Title="Cod. zona" Width="4.6%" />
-                <RadzenDataGridColumn TItem="Estable" Property="Fechacreacion" Title="Año Creacion" Width="5.6%" />
-                <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Nombre" Title="Nombre" Width="6.6%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Encargado" Title="Encargado" Width="4.6%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Domicilio" Title="Domicilio" Width="4.6%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Telefono" Title="Telefono" Width="5%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Localidad" Title="Localidad" Width="5%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="CodPostal" Title="Codigo Postal" Width="5.6%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="provincia" Title="Provincia" Width="5%"/>
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Informacion" Title="Informacion" Width="5.3%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="CodZona" Title="Cod. zona" Width="4.6%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="AnioCreacion" Title="Año Creacion" Width="5.6%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Establecimiento" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
@@ -113,11 +98,12 @@ else
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Estable>? grid;
+    public RadzenDataGrid<ClaseTabla>? grid;
     List<Socio> socios = new();
     int currentPage;
     public bool allowFiltering = false;
     public string Url = "/api/Establecimiento";
+    List<ClaseTabla> listaMerged = new();
     Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
     {
         {"01", "Chaco"},
@@ -151,7 +137,6 @@ else
     {
         var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
         socios = rta.List;
-
         await Get();
     }
     async Task Get()
@@ -159,6 +144,23 @@ else
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
+        listaMerged = oRespuesta.List.Select(estable => new ClaseTabla
+            {
+                Id = estable.Id,
+                Ecod = estable.Ecod,
+                NombreSocio = socios.FirstOrDefault(x => x.Scod == estable.Codsoc)?.Nombre,
+                Activo = estable.Activo == "S",
+                Nombre = estable.Nombre,
+                Encargado = estable.Encargado,
+                Domicilio = estable.Direcc,
+                Telefono = estable.Tel,
+                Localidad = estable.Locali,
+                CodPostal = estable.Codpos,
+                provincia = traductorProvincia.ContainsKey(estable.Codpro) ? traductorProvincia[estable.Codpro] : "",
+                Informacion = estable.Plano,
+                CodZona = estable.Codzon,
+                AnioCreacion = estable.Fechacreacion
+            }).ToList();
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -285,17 +287,22 @@ else
         }
     }
 
-    private bool CustomSocioFilter(Estable estable, string filter)
+    public class ClaseTabla
     {
-        // Perform the custom filtering logic here.
-        // Check if the Nombre of the Socio associated with the Estable matches the filter.
-        var socio = socios.FirstOrDefault(x => x.Scod == estable.Codsoc);
-        if (socio != null)
-        {
-            return socio.Nombre.Contains(filter, StringComparison.OrdinalIgnoreCase);
-        }
-
-        return false;
+        public int Id { get; set; }
+        public string? Ecod { get; set; }
+        public string? NombreSocio { get; set; }
+        public bool Activo { get; set; }
+        public string? Nombre { get; set; }
+        public string? Encargado { get; set; }
+        public string? Domicilio { get; set; }
+        public string? Telefono { get; set; }
+        public string? Localidad { get; set; }
+        public string? CodPostal { get; set; }
+        public string? provincia { get; set; }
+        public string? Informacion { get; set; }
+        public string? CodZona { get; set; }
+        public string? AnioCreacion { get; set; }
     }
 
 }

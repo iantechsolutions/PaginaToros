@@ -38,50 +38,18 @@
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
         <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@oRespuesta.List" TItem="Torosuni" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Data="@listaMerged" TItem="ClaseTabla" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="Torosuni" Property="CodEstado" Title="Estado" Width="3.6%">
-                    <Template Context="data">
-                        @switch (data.CodEstado)
-                        {
-                        case "1":
-                            <a style="color:darkgreen">Activo</a>
-                            break;
-                        case "2":
-                            <a style="color:red">Inexistente</a>
-                            break;
-                        case "3":
-                            <a style="color:red">Inactivo</a>
-                            break;
-                        case "4":
-                            <a style="color:black">Muerto</a>
-                            break;
-                        case "5":
-                            <a style="color:red">Vendido</a>
-                            break;
-                        default:
-                        // Handle the default case if needed
-                        break;
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Tipo de toro" Width="7.34%">
-                    <Template Context="data">
-                        <a>@traductorTipo[data.TipToro]</a>
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Torosuni" Property="Variedad" Title="Variedad" Width="6%" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="Sbcod" Title="Numero de orden" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="Fechasba" Title="Fecha S/" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="Hba" Title="HBA" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="Tatpart" Title="Tatuaje" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Socio" Width="7.34%">
-                    <Template Context="data">
-                        @(socios.Where(x => x.Scod == data.Criador).FirstOrDefault().Nombre)
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Fecha de nacimiento" Width="7.34%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Estado" Title="Estado" Width="3.6%"/>
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="TipoToro" Title="Tipo de toro" Width="7.34%"/>
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Variedad" Title="Variedad" Width="6%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Sbcod" Title="Numero de orden" Width="7.34%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Fechasba" Title="Fecha S/" Width="7.34%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Hba" Title="HBA" Width="7.34%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Tatpart" Title="Tatuaje" Width="7.34%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreSocio" Title="Socio" Width="7.34%"/>
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Nacido" Title="Fecha de nacimiento" Width="7.34%">
                     <Template Context="data">
                         @if (data.Nacido.HasValue)
                         {
@@ -93,13 +61,13 @@
                         }
                     </Template>    
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Torosuni" Property="CircEscrotal" Title="Circunf. Escrotal" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="CircEscrotal" Title="Circunf. Escrotal" Width="7.34%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
-                        <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                        <button class="btn" position="absolute" title="Editar Toro" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Torosuni" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
@@ -127,7 +95,8 @@ else
 }
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Torosuni>? grid;
+    public RadzenDataGrid<ClaseTabla>? grid;
+    List<ClaseTabla> listaMerged = new();
     int currentPage;
     Dictionary<string, string> traductorTipo = new Dictionary<string, string>{
         {"P","Puro Pedigree (SRA)"},
@@ -140,15 +109,30 @@ else
     public Respuesta<List<Torosuni>> oRespuesta = new Respuesta<List<Torosuni>>();
     protected override async Task OnInitializedAsync()
     {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
+        socios = rta.List;
         await Get();
     }
     async Task Get()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
-        socios = rta.List;
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Torosuni>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
+        listaMerged = oRespuesta.List.Select(toro => new ClaseTabla
+            {
+                Id = toro.Id,
+                Estado = toro.CodEstado=="1"?"Activo":toro.CodEstado=="2"?"Inexistente":toro.CodEstado=="3"?"Inactivo":toro.CodEstado=="4"?"Muerto":toro.CodEstado=="5"?"Vendido":"",
+                Variedad = toro.Variedad,
+                TipoToro = toro.TipToro != null ?( traductorTipo.ContainsKey(toro.TipToro) ? traductorTipo[toro.TipToro] : ""):"",
+                NomDad = toro.NomDad,
+                Sbcod = toro.Sbcod,
+                Fechasba = toro.Fechasba,
+                Hba = toro.Hba,
+                Tatpart = toro.Tatpart,
+                NombreSocio = socios.Where(x => x.Scod == toro.Criador).Count()>0?socios.Where(x => x.Scod == toro.Criador).FirstOrDefault().Nombre:"",
+                Nacido = toro.Nacido,
+                CircEscrotal = toro.CircEscrotal,
+            }).ToList();
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -187,7 +171,7 @@ else
 
         if (!string.IsNullOrEmpty(result.Value))
         {
-             delete(id);
+            delete(id);
 
         }
         else if (result.Dismiss == DismissReason.Cancel)
@@ -275,6 +259,20 @@ else
     //     }
     // }
 
-
+    public class ClaseTabla
+    {
+        public int Id { get; set; }
+        public string? Estado { get; set; }
+        public string? TipoToro { get; set; }
+        public string? Variedad { get; set; }
+        public string? NomDad { get; set; }
+        public int? Sbcod { get; set; }
+        public string? Fechasba { get; set; }
+        public string? Hba { get; set; }
+        public string? Tatpart { get; set; }
+        public string? NombreSocio { get; set; }
+        public DateTime? Nacido { get; set; }
+        public string? CircEscrotal { get; set; }
+    }
 
 }

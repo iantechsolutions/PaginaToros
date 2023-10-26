@@ -38,45 +38,31 @@
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
         <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@oRespuesta.List" TItem="Certifseman" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Data="@listaMerged" TItem="ClaseTabla" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="Certifseman" Property="TipoCert" Title="Tipo cert." Width="6%" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="" Title="Nombre del centro" Width="7.34%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Tipo" Title="Tipo cert." Width="6%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreCentro" Title="Nombre del centro" Width="7.34%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Fecvta" Title="Fecha de Venta" Width="7.34%">
                     <Template Context="data">
-                        @(centros.Where(x=>x.Nrocen==data.Nrocen).FirstOrDefault().Nombre)
+                        @(data.FechaVenta.ToString("dd/MM/yyyy"))
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Certifseman" Property="Fecvta" Title="Fecha de Venta" Width="7.34%">
-                    <Template Context="data">
-                        @(data.Fecvta.ToString("dd/MM/yyyy"))
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Certifseman" Property="" Title="Socio" Width="7.34%">
-                    <Template Context="data">
-                        @if(socios.Where(x => x.Scod == data.Nrocri).Count()>0){
-                            <a>@(socios.Where(x => x.Scod == data.Nrocri).First().Nombre)</a>
-                        }
-                        else
-                        {
-                            <a></a>
-                        }
-                    </Template>
-                </RadzenDataGridColumn>                
-                <RadzenDataGridColumn TItem="Certifseman" Property="Tatpart" Title="Tatuaje" Width="5.3%" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="Hba" Title="HBA" Width="5.3%" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="NomDad" Title="Nombre" Width="8.6%" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="NrTsan" Title="Tip/ADN" Width="5.3%" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="NrInsd" Title="Nro Macho Dador" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="NrDosiOr" Title="Cant. de dosis" Width="6.6%" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="NrDosi" Title="Cant. dosis restantes" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="TipEnv" Title="Tipo de Envase" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="Variedad" Title="Variedad" Width="5.3%" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreSocio" Title="Socio" Width="7.34%"/>
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Tatuaje" Title="Tatuaje" Width="5.3%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="HBA" Title="HBA" Width="5.3%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Nombre" Title="Nombre" Width="8.6%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="ADN" Title="Tip/ADN" Width="5.3%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="NroMacho" Title="Nro Macho Dador" Width="7.34%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="CantDosiOr" Title="Cant. de dosis" Width="6.6%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="CantDosi" Title="Cant. dosis restantes" Width="7.34%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Envase" Title="Tipo de Envase" Width="7.34%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Variedad" Title="Variedad" Width="5.3%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Certifseman" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
@@ -104,15 +90,20 @@ else
 }
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Certifseman>? grid;
+    public RadzenDataGrid<ClaseTabla>? grid;
     int currentPage;
     public bool allowFiltering = false;
     public string Url = "/api/Certifseman";
     List<Centrosium> centros = new();
+    List<ClaseTabla> listaMerged = new();
     List<Socio> socios = new();
     public Respuesta<List<Certifseman>> oRespuesta = new Respuesta<List<Certifseman>>();
     protected override async Task OnInitializedAsync()
     {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
+        socios = rta.List;
+        var rt = await Http.GetFromJsonAsync<Respuesta<List<Centrosium>>>("/api/Centrosium");
+        centros = rt.List;
         await Get();
     }
     async Task Get()
@@ -125,10 +116,25 @@ else
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Certifseman>>>("/api/Certifseman");
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
-        socios = rta.List;
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Centrosium>>>("/api/Centrosium");
-        centros = rt.List;
+
+        listaMerged = oRespuesta.List.Select(cert => new ClaseTabla
+            {
+                Id = cert.Id,
+                Tipo = cert.TipoCert,
+                FechaVenta = cert.Fecvta.ToDateTime(TimeOnly.Parse("00:01 AM")),
+                NombreCentro = centros.FirstOrDefault(x => x.Nrocen == cert.Nrocen)?.Nombre,
+                NombreSocio = socios.FirstOrDefault(x => x.Scod == cert.Scod)?.Nombre,
+                Tatuaje = cert.Tatpart,
+                HBA = cert.Hba,
+                Nombre = cert.NomDad,
+                ADN = cert.NrTsan,
+                NroMacho = cert.NrInsd,
+                CantDosi = cert.NrDosi,
+                CantDosiOr = cert.NrDosiOr,
+                Envase = cert.TipEnv,
+                Variedad = cert.Variedad,
+            }).ToList();
+
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -255,6 +261,22 @@ else
     //     }
     // }
 
-
+    public class ClaseTabla
+    {
+        public int Id { get; set; }
+        public string? Tipo { get; set; }
+        public DateTime FechaVenta { get; set; }
+        public string? NombreCentro { get; set; }
+        public string? NombreSocio { get; set; }
+        public string? Tatuaje { get; set; }
+        public string? HBA { get; set; }
+        public string? Nombre { get; set; }
+        public string? ADN { get; set; }
+        public string? NroMacho { get; set; }
+        public int? CantDosi { get; set; }
+        public string? CantDosiOr { get; set; }
+        public string? Envase { get; set; }
+        public string? Variedad { get; set; }
+    }
 
 }

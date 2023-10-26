@@ -38,29 +38,19 @@
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
         <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@oRespuesta.List" TItem="Transsb" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Data="@listaMerged" TItem="ClaseTabla" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="Transsb" Property="NroTrans" Title="Nro Certificado" Width="24%" />
-                <RadzenDataGridColumn TItem="Transsb" Property="NroOrden" Title="Nro Orden" Width="24%" />
-                <RadzenDataGridColumn TItem="Transsb" Property="Vnom" Title="Socio Vendedor" Width="24%"/>
-                <RadzenDataGridColumn TItem="Transsb" Property="Cnom" Title="Socio Comprador" Width="24%" />
-                <RadzenDataGridColumn TItem="Transsb" Property="" Title="Establecimiento" Width="24%">
-                    <Template Context="data">
-                        @if(establecimientos.Where(x => x.Ecod == data.Ecod).Count()>0){
-                            <a>@(establecimientos.Where(x => x.Ecod == data.Ecod).First().Nombre)</a>
-                        }
-                        else
-                        {
-                            <a></a>
-                        }
-                    </Template>    
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Transsb" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="NroTrans" Title="Nro Certificado" Width="24%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="NroOrden" Title="Nro Orden" Width="24%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Vnom" Title="Socio Vendedor" Width="24%"/>
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="Cnom" Title="Socio Comprador" Width="24%" />
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreEstablecimiento" Title="Establecimiento" Width="24%"/>
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Transsb" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
@@ -88,7 +78,8 @@ else
 }
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Transsb>? grid;
+    public RadzenDataGrid<ClaseTabla>? grid;
+    List<ClaseTabla> listaMerged = new();
     int currentPage;
     Dictionary<string, string> traductorTipo = new Dictionary<string, string>{
         {"P","Puro Pedigree (SRA)"},
@@ -101,6 +92,8 @@ else
     List<Estable> establecimientos = new();
     protected override async Task OnInitializedAsync()
     {
+        var rta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>("/api/Establecimiento");
+        establecimientos = rta.List;
         await Get();
     }
     async Task Get()
@@ -108,9 +101,15 @@ else
         var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Transsb>>>(Url);
         respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
         oRespuesta = respuesta;
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>("/api/Establecimiento");
-        establecimientos = rta.List;
-
+        listaMerged = oRespuesta.List.Select(tran => new ClaseTabla
+            {
+                Id = tran.Id,
+                NroOrden = tran.NroOrden,
+                NroTrans = tran.NroTrans,
+                Vnom = tran.Vnom,
+                Cnom = tran.Cnom,
+                NombreEstablecimiento = establecimientos.Where(x => x.Ecod == tran.Ecod).Count()>0?(establecimientos.Where(x => x.Ecod == tran.Ecod).First().Nombre):""
+            }).ToList();
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -237,6 +236,14 @@ else
     //     }
     // }
 
-
+    public class ClaseTabla
+    {
+        public int Id { get; set; }
+        public string? NroTrans { get; set; }
+        public string? NroOrden { get; set; }
+        public string? Vnom { get; set; }
+        public string? Cnom { get; set; }
+        public string? NombreEstablecimiento { get; set; }
+    }
 
 }
