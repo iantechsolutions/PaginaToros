@@ -39,13 +39,13 @@
                 Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                 Data="@oRespuesta.List" TItem="Solici1" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
         <Columns>
-                <RadzenDataGridColumn TItem="Solici1" Property="Nrosol" Title="Nro Solicitud" Width="325px" />
-                <RadzenDataGridColumn TItem="Solici1" Property="" Title="Socio" Width="325px">
+                <RadzenDataGridColumn TItem="Solici1" Property="Nrosol" Title="Nro Solicitud" Width="21.7%" />
+                <RadzenDataGridColumn TItem="Solici1" Property="" Title="Socio" Width="21.7%">
                     <Template Context="data">
                         @traductorEst[data.Codest]
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Solici1" Property="Fecsol" Title="Fecha De Solicitud" Width="325px">
+                <RadzenDataGridColumn TItem="Solici1" Property="Fecsol" Title="Fecha De Solicitud" Width="21.7%">
                 <Template Context="data">
                     @if(data.Fecsol.HasValue){
                         @data.Fecsol.Value.ToString("dd/MM/yyyy")
@@ -54,7 +54,7 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Solici1" Property="Fecins" Title="Fecha De Autorizacion" Width="325px">
+                <RadzenDataGridColumn TItem="Solici1" Property="Fecins" Title="Fecha De Autorizacion" Width="21.7%">
                 <Template Context="data">
                     @if (data.Fecins.HasValue)
                     {

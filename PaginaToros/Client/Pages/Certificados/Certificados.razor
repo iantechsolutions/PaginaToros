@@ -40,7 +40,7 @@
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                         Data="@oRespuesta.List" TItem="Certifseman" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="Certifseman" Property="TipoCert" Title="Tipo cert." Width="90px" />
+                <RadzenDataGridColumn TItem="Certifseman" Property="TipoCert" Title="Tipo cert." Width="6%" />
                 <RadzenDataGridColumn TItem="Certifseman" Property="" Title="Nombre del centro" Width="7.34%">
                     <Template Context="data">
                         @(centros.Where(x=>x.Nrocen==data.Nrocen).FirstOrDefault().Nombre)
@@ -62,15 +62,15 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>                
-                <RadzenDataGridColumn TItem="Certifseman" Property="Tatpart" Title="Tatuaje" Width="80px" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="Hba" Title="HBA" Width="80px" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="NomDad" Title="Nombre" Width="130px" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="NrTsan" Title="Tip/ADN" Width="80px" />
+                <RadzenDataGridColumn TItem="Certifseman" Property="Tatpart" Title="Tatuaje" Width="5.3%" />
+                <RadzenDataGridColumn TItem="Certifseman" Property="Hba" Title="HBA" Width="5.3%" />
+                <RadzenDataGridColumn TItem="Certifseman" Property="NomDad" Title="Nombre" Width="8.6%" />
+                <RadzenDataGridColumn TItem="Certifseman" Property="NrTsan" Title="Tip/ADN" Width="5.3%" />
                 <RadzenDataGridColumn TItem="Certifseman" Property="NrInsd" Title="Nro Macho Dador" Width="7.34%" />
                 <RadzenDataGridColumn TItem="Certifseman" Property="NrDosiOr" Title="Cant. de dosis" Width="6.6%" />
                 <RadzenDataGridColumn TItem="Certifseman" Property="NrDosi" Title="Cant. dosis restantes" Width="7.34%" />
                 <RadzenDataGridColumn TItem="Certifseman" Property="TipEnv" Title="Tipo de Envase" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Certifseman" Property="Variedad" Title="Variedad" Width="80px" />
+                <RadzenDataGridColumn TItem="Certifseman" Property="Variedad" Title="Variedad" Width="5.3%" />
                 <RadzenDataGridColumn TItem="Certifseman" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>

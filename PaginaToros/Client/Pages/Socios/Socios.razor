@@ -40,7 +40,7 @@
                 Density="Density.Compact" Data="@oRespuesta.List" TItem="Socio" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
             <RadzenDataGridColumn TItem="Socio" Property="Id" Title="Nro Socio" Width="3.6%" />
-            <RadzenDataGridColumn TItem="Socio" Property="Placod" Title="Plantel" Width="60px" />
+            <RadzenDataGridColumn TItem="Socio" Property="Placod" Title="Plantel" Width="4%" />
             <RadzenDataGridColumn TItem="Socio" Property="Criador" Title="Activo?" Width="3.33%">
                 <Template Context="data">
                     @if (data.Criador=="S")
@@ -53,10 +53,10 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Socio" Property="Nombre" Title="Nombre" Width="140px" />
-            <RadzenDataGridColumn TItem="Socio" Property="Direcc1" Title="Domicilio" Width="85px" />
+            <RadzenDataGridColumn TItem="Socio" Property="Nombre" Title="Nombre" Width="9.3%" />
+            <RadzenDataGridColumn TItem="Socio" Property="Direcc1" Title="Domicilio" Width="5.6%" />
             <RadzenDataGridColumn TItem="Socio" Property="Locali1" Title="Localidad" Width="4.6%" />
-            <RadzenDataGridColumn TItem="Socio" Property="Codpos1" Title="Cod. Postal" Width="80px" />
+            <RadzenDataGridColumn TItem="Socio" Property="Codpos1" Title="Cod. Postal" Width="5.3%" />
             <RadzenDataGridColumn TItem="Socio" Property="" Title="Provincia" Width="5%">
                 <Template Context="data">
                     @if (traductorProvincia.ContainsKey(data.Codpro1))

@@ -92,6 +92,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRGVjbGFyYWNpb25lc1NlcnZpY2lvXEFkZERlY2xhcmFjaW9uLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/lolo1/source/repos/Hereford - testing/PaginaToros/Client/Pages/DeclaracionesServicio/AddDeclaracionAnual.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRGVjbGFyYWNpb25lc1NlcnZpY2lvXEFkZERlY2xhcmFjaW9uQW51YWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/lolo1/source/repos/Hereford - testing/PaginaToros/Client/Pages/DeclaracionesServicio/Declaraciones.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRGVjbGFyYWNpb25lc1NlcnZpY2lvXERlY2xhcmFjaW9uZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 

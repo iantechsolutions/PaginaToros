@@ -59,23 +59,23 @@
                     @(socios.Where(x => x.Scod == data.Nrocri).FirstOrDefault().Nombre)
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Plantel" Property="Varede" Title="Vacas PR" Width="60px" />
+            <RadzenDataGridColumn TItem="Plantel" Property="Varede" Title="Vacas PR" Width="4%" />
             <RadzenDataGridColumn TItem="Plantel" Property="Vqcsrd" Title="Vaquillonas PR C/S" Width="5%" />
             <RadzenDataGridColumn TItem="Plantel" Property="Vqssrd" Title="Vaquillonas PR S/S" Width="5%" />
-            <RadzenDataGridColumn TItem="Plantel" Property="Varepr" Title="Vacas VIP" Width="60px" />
+            <RadzenDataGridColumn TItem="Plantel" Property="Varepr" Title="Vacas VIP" Width="4%" />
             <RadzenDataGridColumn TItem="Plantel" Property="Vqcsrp" Title="Vaquillonas VIP C/S o preñadas" Width="6.6%" />
             <RadzenDataGridColumn TItem="Plantel" Property="Vqssrp" Title="Vaquillonas VIP S/S" Width="4.6%" />
-            <RadzenDataGridColumn TItem="Plantel" Property="" Title="" Filterable="false" Width="35px">
+            <RadzenDataGridColumn TItem="Plantel" Property="" Title="" Filterable="false" Width="2.3%">
                 <Template Context="data">
                     <button class="btn" position="absolute" title="Editar Plantel" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Plantel" Property="" Title="" Filterable="false" Width="35px">
+            <RadzenDataGridColumn TItem="Plantel" Property="" Title="" Filterable="false" Width="2.3%">
                 <Template Context="data">
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Plantel" Property="" Title="" Filterable="false" Width="35px">
+            <RadzenDataGridColumn TItem="Plantel" Property="" Title="" Filterable="false" Width="2.3%">
                 <Template Context="data">
                     <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Size="16" Color="blue" /></button>
                 </Template>

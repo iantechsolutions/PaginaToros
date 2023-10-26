@@ -80,7 +80,7 @@ namespace PaginaToros.Server.Controllers
             return Ok(oRespuesta);
         }
 
-        [HttpPost]
+        [HttpPost("lista")]
         public IActionResult AddList(List<Desepla3> list)
         {
             Respuesta<List<Desepla3>> oRespuesta = new Respuesta<List<Desepla3>>();

@@ -41,7 +41,7 @@
                     Data="@oRespuesta.List" TItem="Estable" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
                 <RadzenDataGridColumn TItem="Estable" Property="Ecod" Title="Cod. Establ." Width="3.6%" />
-                <RadzenDataGridColumn TItem="Estable" Property="" Title="Socio" Width="7.34%">
+                <RadzenDataGridColumn TItem="Estable" Property="" Filterable="true" Title="Socio" Width="7.34%">
                     <Template Context="data">
                         @(socios.Where(x=>x.Scod==data.Codsoc).FirstOrDefault().Nombre)
                     </Template>
@@ -55,7 +55,6 @@
                         {
                             <a style="color:red">No</a>
                         }
-                        
                     </Template>    
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Estable" Property="Nombre" Title="Nombre" Width="6.6%" />
@@ -63,7 +62,7 @@
                 <RadzenDataGridColumn TItem="Estable" Property="Direcc" Title="Domicilio" Width="4.6%" />
                 <RadzenDataGridColumn TItem="Estable" Property="Tel" Title="Telefono" Width="5%" />
                 <RadzenDataGridColumn TItem="Estable" Property="Locali" Title="Localidad" Width="5%" />
-                <RadzenDataGridColumn TItem="Estable" Property="Codpos" Title="Codigo Postal" Width="85px" />
+                <RadzenDataGridColumn TItem="Estable" Property="Codpos" Title="Codigo Postal" Width="5.6%" />
                 <RadzenDataGridColumn TItem="Estable" Property="" Title="Provincia" Width="5%">
                     <Template Context="data">
                         @if (traductorProvincia.ContainsKey(data.Codpro))
@@ -76,9 +75,9 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>                
-                <RadzenDataGridColumn TItem="Estable" Property="Plano" Title="Informacion" Width="80px" />
+                <RadzenDataGridColumn TItem="Estable" Property="Plano" Title="Informacion" Width="5.3%" />
                 <RadzenDataGridColumn TItem="Estable" Property="Codzon" Title="Cod. zona" Width="4.6%" />
-                <RadzenDataGridColumn TItem="Estable" Property="Fechacreacion" Title="Año Creacion" Width="85px" />
+                <RadzenDataGridColumn TItem="Estable" Property="Fechacreacion" Title="Año Creacion" Width="5.6%" />
                 <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Establecimiento" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
@@ -286,6 +285,17 @@ else
         }
     }
 
+    private bool CustomSocioFilter(Estable estable, string filter)
+    {
+        // Perform the custom filtering logic here.
+        // Check if the Nombre of the Socio associated with the Estable matches the filter.
+        var socio = socios.FirstOrDefault(x => x.Scod == estable.Codsoc);
+        if (socio != null)
+        {
+            return socio.Nombre.Contains(filter, StringComparison.OrdinalIgnoreCase);
+        }
 
+        return false;
+    }
 
 }

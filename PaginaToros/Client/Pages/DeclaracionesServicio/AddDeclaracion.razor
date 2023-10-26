@@ -8,6 +8,12 @@
         font-size: 25px;
         font-weight: bold;
     }
+
+    table span.rz-calendar input {
+        color: yourDesiredColor;
+    }
+}
+
 </style>
 <div class="card">
     <div class="card-body">
@@ -38,7 +44,7 @@
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Fecha de declaracion</label>
-                    <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oDeclaracion.Fecdecl" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Plantel</label>
@@ -129,12 +135,12 @@
                     <div class="col-sm">
                         <label>Desde</label>
                         <br/>
-                        <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaDesde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oDeclaracion.Desde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                     </div>
                     <div class="col-sm">
                         <label>Hasta</label>
                         <br />
-                        <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaHasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oDeclaracion.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                     </div>
                 </div>
                 <br/>
@@ -274,12 +280,12 @@
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="4.6%">
                                     <Template Context="data">
-                                        <RadzenDatePicker TValue="DateTime" @bind-Value="@data.Desde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                        <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Desde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="4.6%">
                                     <Template Context="data">
-                                        <RadzenDatePicker TValue="DateTime" @bind-Value="@data.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                            <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cant Vientres" Width="7.34%">
@@ -304,8 +310,8 @@
                             <Columns>
                                 <RadzenDataGridColumn TItem="Certifseman" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
                                 <RadzenDataGridColumn TItem="Certifseman" Property="Hba" Title="HBA" Width="7.34%" />
-                                <RadzenDataGridColumn TItem="Certifseman" Property="Tatpart" Title="Tatuaje" Width="7" />
-                                <RadzenDataGridColumn TItem="Certifseman" Property="NrDosi" Title="Dosis Reman Totales" Width="7.34%%" />
+                                <RadzenDataGridColumn TItem="Certifseman" Property="Tatpart" Title="Tatuaje" Width="7%" />
+                                <RadzenDataGridColumn TItem="Certifseman" Property="NrDosi" Title="Dosis Reman Totales" Width="7.34%" />
                             </Columns>
                         </RadzenDataGrid>
                     </div>
@@ -325,37 +331,43 @@
                                         @certificados.Where(x=>x.Hba == data.original.Hardb).First().NrDosi
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Vientres" Width="4%">
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Vientres" Width="6%">
                                     <Template Context="data">
                                         <RadzenNumeric @bind-Value="data.original.Cantv" class="w-100"></RadzenNumeric>
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Dosis Necesaria" Width="7%">
                                     <Template Context="data">
-                                        @switch (tipoTemp)
-                                        {
-                                            case "Inseminacion c/celo":
-                                                <a>@Math.Round((decimal)(data.original.Cantv*1.5))</a>
-                                                break;
-                                            case "Inseminacion c/celo y rep":
+                                        @if(data.original.Cantv!=null){
+                                            @switch (tipoTemp)
+                                            {
+                                                case "Inseminacion c/celo":
+                                                    <a>@Math.Round((decimal)(data.original.Cantv*1.5))</a>
+                                                    break;
+                                                case "Inseminacion c/celo y rep":
 
-                                            case "IATF c/rep":
-                                                <a>@data.original.Cantv</a>
-                                                break;
-                                            case "Inseminacion c/p y rep":
-                                                <a>@Math.Round((decimal)(data.original.Cantv*0.8))</a>
-                                                break;
+                                                case "IATF c/rep":
+                                                    <a>@data.original.Cantv</a>
+                                                    break;
+                                                case "Inseminacion c/p y rep":
+                                                    <a>@Math.Round((decimal)(data.original.Cantv*0.8))</a>
+                                                    break;
+                                                    }
+                                                }
+                                        else
+                                        {
+                                            <a>0</a>    
                                         }
+                                        </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="5%">
+                                    <Template Context="data">
+                                        <RadzenDatePicker Style="max-width:auto;color:white" @bind-Value="data.Desde" TValue="DateTime" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="4%">
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="5%">
                                     <Template Context="data">
-                                        <RadzenDatePicker @bind-Value="data.Desde" TValue="DateTime" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                                    </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="4%">
-                                    <Template Context="data">
-                                        <RadzenDatePicker @bind-Value="data.Hasta" TValue="DateTime" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                            <RadzenDatePicker Style="max-width:auto;color:white" @bind-Value="data.Hasta" TValue="DateTime" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                                     </Template>
                                 </RadzenDataGridColumn>
                             </Columns>
@@ -390,8 +402,6 @@
     Plantel? Plantelseleccionado = null;
     List<string> tipos = new List<string> { "Natural", "Natural a Corral", "Inseminacion c/celo", "Inseminacion c/celo y rep", "Inseminacion c/p y rep", "IATF c/rep" };
     DateTime FechaTemp = DateTime.Now;
-    DateTime FechaDesde = DateTime.Now;
-    DateTime FechaHasta = DateTime.Now;
     List<Torosuni> toros = new();
     List<Desepla3Data> torosSeleccionados = new();
     List<Certifseman> certificados = new();
@@ -413,6 +423,8 @@
             {
                 oRespuesta = await Http.GetFromJsonAsync<Respuesta<Desepla1>>($"/api/desepla1/{Id}");
                 oDeclaracion = oRespuesta.List;
+                socioSeleccionado = socios.Where(x=>x.Scod==oDeclaracion.Nrocri).FirstOrDefault();
+                Plantelseleccionado = Planteles.Where(x => x.Placod == oDeclaracion.Nroplan).FirstOrDefault();
 
             }
             catch (Exception ex)
@@ -425,11 +437,17 @@
             var resp = await Http.GetFromJsonAsync<Respuesta<List<Desepla1>>>($"/api/Desepla1");
             var nroDecAnterior = resp.List.OrderByDescending(x => x.Id).First().Nrodec;
             nrodec = Int32.Parse(nroDecAnterior)+1.ToString();
-
+            oDeclaracion.Fecdecl = DateTime.Now;
+            oDeclaracion.Nrodec = nrodec;
+            oDeclaracion.Desde = DateTime.Now;
+            oDeclaracion.Hasta = DateTime.Now;
+            oDeclaracion.Tipse = "NA";
         }
     }
     async Task Guardar()
     {
+        oDeclaracion.Nrocri = socioSeleccionado.Scod;
+        oDeclaracion.Nroplan = Plantelseleccionado.Placod;
         double multiplicador = 0;
         @switch (tipoTemp)
         {
@@ -451,6 +469,8 @@
             adaptacion.original.Desde = adaptacion.Desde.ToString("yyy-MM-dd");
             adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyy-MM-dd");
             seleccionFinal.Add(adaptacion.original);
+            oDeclaracion.Desde = adaptacion.Desde;
+            oDeclaracion.Hasta = adaptacion.Hasta;
         }
         foreach (var adaptacion in certificadosSeleccionados)
         {
@@ -460,6 +480,8 @@
             var cert = certificados.Where(x => x.Hba == adaptacion.original.Hardb).First();
             cert.NrDosi = cert.NrDosi - Convert.ToInt32(Math.Round((decimal)(adaptacion.original.Cantv * multiplicador)));
             certificadosAlterados.Add(cert);
+            oDeclaracion.Desde = adaptacion.Desde;
+            oDeclaracion.Hasta = adaptacion.Hasta;
         }
         if (Id == 0)
         {
@@ -467,7 +489,11 @@
             {
                 await Http.PutAsJsonAsync<Certifseman>("/api/Certifseman", cert);
             }
-            await Http.PostAsJsonAsync<List<Desepla3>>("/api/desepla3", seleccionFinal);
+            if (oDeclaracion.Nrodec == null)
+            {
+                oDeclaracion.Nrodec = "0";
+            }
+            await Http.PostAsJsonAsync<List<Desepla3>>("/api/desepla3/lista", seleccionFinal);
             await Http.PostAsJsonAsync<Desepla1>("/api/desepla1", oDeclaracion);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
@@ -509,12 +535,14 @@
         );
         try{
             await InvokeAsync(gridToro1.Reload);
-            await InvokeAsync(gridToro2.Reload);
         }
         catch
         {
-
         }
+        try{
+            await InvokeAsync(gridToro2.Reload);
+        }
+        catch{}
     }
 
     protected void AddToSelectedCertif(DataGridRowMouseEventArgs<Certifseman> args)
@@ -542,8 +570,8 @@
     public class Desepla3Data
     {
         public Desepla3 original {get;set;}
-        public DateTime Desde {get;set;}
-        public DateTime Hasta { get; set; }
+        public DateTime Desde { get; set; } = DateTime.Now;
+        public DateTime Hasta { get; set; } = DateTime.Now;
     }
 
 }

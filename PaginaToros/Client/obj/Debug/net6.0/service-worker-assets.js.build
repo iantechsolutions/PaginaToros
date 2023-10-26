@@ -5,11 +5,11 @@
       "url": "css\/app.css"
     },
     {
-      "hash": "sha256-ig+nNNvveGZg5mNE5xxRICflB4VVXeS3T+f7xk2Jijo=",
+      "hash": "sha256-KZf9dy0xH+U0ke52xznlZUZTiEm65GQhLNw1QXA2Z\/8=",
       "url": "css\/bootstrap\/bootstrap.min.css"
     },
     {
-      "hash": "sha256-g33de5nUUx8xguvfk368UtDXUeOx72VfNfe3TNWfdeQ=",
+      "hash": "sha256-JCR4A+sfMmVpgainoqUm0kI65Fhz6VR43BBp8IBTkJ8=",
       "url": "css\/bootstrap\/bootstrap.min.css.map"
     },
     {
@@ -993,19 +993,19 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-gbtbOIgd7H9IRH001GBQ5qZ2SxWXqhDGGxJnWM9eizg=",
+      "hash": "sha256-xnghxdcYjco+XuR4exR5+fNW\/AfZ4PhpVriIR1p4O6M=",
       "url": "_framework\/PaginaToros.Shared.dll"
     },
     {
-      "hash": "sha256-W42kco0avwmW3jqN7dSi2JqwCtTTbrrnI6KXeYQX2FM=",
+      "hash": "sha256-J2YUzfoC8MSj\/dEkGynoIxc27BGZwaxyrBrnaeRZRew=",
       "url": "_framework\/PaginaToros.Shared.pdb"
     },
     {
-      "hash": "sha256-Z396uYYq+jyY9cWgH677gnwPzfqg9+rQMQgrgyw4uPI=",
+      "hash": "sha256-KcrJ8QmwjhJx87jlOtaex\/VnXCe2ETatMEDGwDHuKfE=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-2XySeY+XppwnCDWlOB1u\/77iYAxRlRY2lQGVZ8gVnug=",
+      "hash": "sha256-C0lPoE5NgU29FL\/6YAC1I2fPO\/IRQSVEmgLGsAEoEvY=",
       "url": "_framework\/PaginaToros.Client.pdb"
     },
     {
@@ -1013,7 +1013,7 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-uMP7JbyG1NFBlF6P+W7VGX8gaL86+o3Zq3Kovb5tBB4=",
+      "hash": "sha256-yM5HFkYb5w6PXUsaiBh92RS\/KToajPKsw3gVaBeBjpI=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -1301,5 +1301,5 @@
       "url": "_content\/Blazored.Modal\/Blazored.Modal.bundle.scp.css"
     }
   ],
-  "version": "dU+8eT0c"
+  "version": "\/0hOB1Us"
 };

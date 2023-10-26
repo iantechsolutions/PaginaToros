@@ -40,9 +40,9 @@
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                         Data="@oRespuesta.List" TItem="Centrosium" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="Centrosium" Property="Nrocen" Title="Nro de centro" Width="430px" />
-                <RadzenDataGridColumn TItem="Centrosium" Property="Nombre" Title="Nombre" Width="430px" />
-                <RadzenDataGridColumn TItem="Centrosium" Property="NroCSayg" Title="Nro Secretaria Agric. y Ganaderia" Width="435px" />
+                <RadzenDataGridColumn TItem="Centrosium" Property="Nrocen" Title="Nro de centro" Width="28.7%" />
+                <RadzenDataGridColumn TItem="Centrosium" Property="Nombre" Title="Nombre" Width="28.7%" />
+                <RadzenDataGridColumn TItem="Centrosium" Property="NroCSayg" Title="Nro Secretaria Agric. y Ganaderia" Width="42.3%" />
                 <RadzenDataGridColumn TItem="Centrosium" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Establecimiento" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>

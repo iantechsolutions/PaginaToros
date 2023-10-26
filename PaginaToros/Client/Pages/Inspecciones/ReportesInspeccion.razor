@@ -39,14 +39,14 @@
             Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
             Data="@oRespuesta.List" TItem="Resin1" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
             <Columns>
-                <RadzenDataGridColumn TItem="Resin1" Property="Nrores" Title="Nro Resultado" Width="325px"/>
-                <RadzenDataGridColumn TItem="Resin1" Property="Nropla" Title="Plantel" Width="325px" />
-                <RadzenDataGridColumn TItem="Resin1" Property="" Title="Socio" Width="325px">
+                <RadzenDataGridColumn TItem="Resin1" Property="Nrores" Title="Nro Resultado" Width="21.7%"/>
+                <RadzenDataGridColumn TItem="Resin1" Property="Nropla" Title="Plantel" Width="21.7%" />
+                <RadzenDataGridColumn TItem="Resin1" Property="" Title="Socio" Width="21.7%">
                     <Template Context="data">
                         @(socios.Where(x => x.Scod == data.Scod).FirstOrDefault().Nombre)
                     </Template>
                 </RadzenDataGridColumn>                
-                <RadzenDataGridColumn TItem="Resin1" Property="FechaInspeccion" Title="Fecha De Inspeccion" Width="325px">
+                <RadzenDataGridColumn TItem="Resin1" Property="FechaInspeccion" Title="Fecha De Inspeccion" Width="21.7%">
                     <Template Context="data">
                         @if (data.Freali.HasValue)
                         {
