@@ -2402,6 +2402,12 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("VARIEDAD");
             });
 
+            modelBuilder.Entity<Torosuni>()
+               .HasOne(t => t.Socio)
+               .WithMany(s => s.Torosunis)
+               .HasForeignKey(t => t.Criador)
+               .HasPrincipalKey(s => s.Scod);
+
             modelBuilder.Entity<Torosuniestado>(entity =>
             {
                 entity.ToTable("TOROSUNIestados");

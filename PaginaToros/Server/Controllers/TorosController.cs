@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
-using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
 using AutoMapper;
+using PaginaToros.Server.Repositorio.Implementacion;
+using Microsoft.EntityFrameworkCore;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -14,7 +14,7 @@ namespace PaginaToros.Server.Controllers
     {
         private readonly IMapper _mapper;
         private readonly ITorosRepositorio _torosRepositorio;
-        public TorosController(ITorosRepositorio torosRepositorio, IMapper mapper)
+        public TorosController( ITorosRepositorio torosRepositorio,IMapper mapper)
         {
             _mapper = mapper;
             _torosRepositorio = torosRepositorio;
@@ -22,25 +22,29 @@ namespace PaginaToros.Server.Controllers
 
         [HttpGet]
         [Route("Lista")]
-        public async Task<IActionResult> Lista()
+        public async Task<IActionResult> Lista(int page,int count)
         {
-            Respuesta<List<TorosuniDTO>> _Respuesta = new Respuesta<List<TorosuniDTO>>();
+
+            Respuesta<List<TorosuniDTO>> _ResponseDTO = new Respuesta<List<TorosuniDTO>>();
 
             try
             {
-                List<TorosuniDTO> listaCategorias = new List<TorosuniDTO>();
-                var categorias = await _torosRepositorio.Lista();
+                List<TorosuniDTO> listaPedido = new List<TorosuniDTO>();
+                var a = await _torosRepositorio.Lista(page,count);
 
-                listaCategorias = _mapper.Map<List<TorosuniDTO>>(categorias);
 
-                _Respuesta = new Respuesta<List<TorosuniDTO>>() { Exito = 1, List = listaCategorias };
+                listaPedido = _mapper.Map<List<TorosuniDTO>>(a);
 
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                _ResponseDTO = new Respuesta<List<TorosuniDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+             
+
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<List<TorosuniDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                _ResponseDTO = new Respuesta<List<TorosuniDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
 

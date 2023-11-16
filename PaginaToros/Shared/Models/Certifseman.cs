@@ -12,8 +12,8 @@ namespace PaginaToros.Shared.Models
         public string? NroCert { get; set; }
         public string? Nrocen { get; set; }
 
-        [JsonConverter(typeof(DateOnlyJsonConverter))] 
-        public DateOnly Fecvta { get; set; }
+        //[JsonConverter(typeof(DateOnlyJsonConverter))] 
+        public DateTime? Fecvta { get; set; }
         public DateTime? FchConst { get; set; }
         public string? Nven { get; set; }
         public string? Nrocri { get; set; }

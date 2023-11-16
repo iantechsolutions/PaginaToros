@@ -12,9 +12,9 @@ namespace PaginaToros.Client.Servicios.Implementacion
         {
             _http = http;
         }
-        public async Task<Respuesta<List<TorosuniDTO>>> Lista()
+        public async Task<Respuesta<List<TorosuniDTO>>> Lista(int page,int count)
         {
-            var result = await _http.GetFromJsonAsync<Respuesta<List<TorosuniDTO>>>("api/categoria/lista");
+            var result = await _http.GetFromJsonAsync<Respuesta<List<TorosuniDTO>>>($"api/toros/lista?page={page}&count={count}");
             return result!;
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PaginaToros.Shared.Models
 {
@@ -51,5 +52,8 @@ namespace PaginaToros.Shared.Models
         public string? Frame { get; set; }
         public string? Otros2 { get; set; }
         public string? Comentario { get; set; }
+        [JsonIgnore]
+        public Socio Socio { get; set; }
+
     }
 }

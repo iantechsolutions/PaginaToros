@@ -5,7 +5,7 @@ namespace PaginaToros.Client.Servicios.Contrato
 {
     public interface ITorosServicio
     {
-        Task<Respuesta<List<TorosuniDTO>>> Lista();
+        Task<Respuesta<List<TorosuniDTO>>> Lista(int page,int count);
         Task<bool> Eliminar(int id);
         Task<Respuesta<TorosuniDTO>> Crear(TorosuniDTO entidad);
         Task<bool> Editar(TorosuniDTO entidad);

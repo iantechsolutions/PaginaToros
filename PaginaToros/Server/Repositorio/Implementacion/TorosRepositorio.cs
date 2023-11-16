@@ -14,11 +14,19 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             _dbContext = dbContext;
         }
-        public async Task<List<Torosuni>> Lista()
+        public async Task<List<Torosuni>> Lista(int page, int count)
         {
+
             try
             {
-                return await _dbContext.Torosunis.ToListAsync();
+                int pageSize = count;
+                int skipAmount = (page - 1) * pageSize; // Calculate the number of items to skip
+
+                // Use Skip and Take for paging, and include Socio
+                return await _dbContext.Torosunis.Include(t => t.Socio)
+                                                 .Skip(skipAmount)
+                                                 .Take(pageSize)
+                                                 .ToListAsync();
             }
             catch
             {
@@ -81,8 +89,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         }
         public async Task<IQueryable<Torosuni>> Consultar(Expression<Func<Torosuni, bool>> filtro = null)
         {
-            IQueryable<Torosuni> queryEntidad = filtro == null ? _dbContext.Torosunis : _dbContext.Torosunis.Where(filtro);
-            return queryEntidad;
+            IQueryable<Torosuni> queryEntidad = filtro == null
+                    ? _dbContext.Torosunis.Take(30)  // Apply Take(30) before filtering
+                    : _dbContext.Torosunis.Where(filtro);
+
+            return queryEntidad; 
         }
     }
 }

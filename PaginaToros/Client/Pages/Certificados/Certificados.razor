@@ -42,11 +42,11 @@
             <Columns>
                 <RadzenDataGridColumn TItem="ClaseTabla" Property="Tipo" Title="Tipo cert." Width="6%" />
                 <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreCentro" Title="Nombre del centro" Width="7.34%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="Fecvta" Title="Fecha de Venta" Width="7.34%">
+               @* <RadzenDataGridColumn TItem="ClaseTabla" Property="Fecvta" Title="Fecha de Venta" Width="7.34%">
                     <Template Context="data">
                         @(data.FechaVenta.ToString("dd/MM/yyyy"))
                     </Template>
-                </RadzenDataGridColumn>
+                </RadzenDataGridColumn>*@
                 <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreSocio" Title="Socio" Width="7.34%"/>
                 <RadzenDataGridColumn TItem="ClaseTabla" Property="Tatuaje" Title="Tatuaje" Width="5.3%" />
                 <RadzenDataGridColumn TItem="ClaseTabla" Property="HBA" Title="HBA" Width="5.3%" />
@@ -121,7 +121,7 @@ else
             {
                 Id = cert.Id,
                 Tipo = cert.TipoCert,
-                FechaVenta = cert.Fecvta.ToDateTime(TimeOnly.Parse("00:01 AM")),
+                FechaVenta = cert.Fecvta,
                 NombreCentro = centros.FirstOrDefault(x => x.Nrocen == cert.Nrocen)?.Nombre,
                 NombreSocio = socios.FirstOrDefault(x => x.Scod == cert.Scod)?.Nombre,
                 Tatuaje = cert.Tatpart,
@@ -265,7 +265,7 @@ else
     {
         public int Id { get; set; }
         public string? Tipo { get; set; }
-        public DateTime FechaVenta { get; set; }
+        public DateTime? FechaVenta { get; set; }
         public string? NombreCentro { get; set; }
         public string? NombreSocio { get; set; }
         public string? Tatuaje { get; set; }

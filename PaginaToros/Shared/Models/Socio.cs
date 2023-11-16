@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PaginaToros.Shared.Models
 {
@@ -33,5 +34,8 @@ namespace PaginaToros.Shared.Models
         public string? Placod { get; set; }
         public string? Mailreg { get; set; }
         public string? Diaregautog { get; set; }
+        [JsonIgnore]
+        public List<Torosuni>? Torosunis { get; set; }
+
     }
 }

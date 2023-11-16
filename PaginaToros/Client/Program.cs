@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using PaginaToros.Client;
 using PaginaToros.Client.Auth;
+using PaginaToros.Client.Servicios.Contrato;
+using PaginaToros.Client.Servicios.Implementacion;
 using Radzen;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -22,6 +24,8 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<JwtAuthenticatorProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticatorProvider>(provider => provider.GetRequiredService<JwtAuthenticatorProvider>());
 builder.Services.AddScoped<ILoginServices, JwtAuthenticatorProvider>(provider => provider.GetRequiredService<JwtAuthenticatorProvider>());
+builder.Services.AddScoped<ITorosServicio, TorosServicio>();
+
 await builder.Build().RunAsync();
 
 

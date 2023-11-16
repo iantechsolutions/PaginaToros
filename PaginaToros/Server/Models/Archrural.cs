@@ -10,6 +10,6 @@ namespace PaginaToros.Server.Models
         public string? Hba { get; set; }
         public string? Tipo { get; set; }
         public string? Nombre { get; set; }
-        public DateOnly? Nac { get; set; }
+        public DateTime? Nac { get; set; }
     }
 }
