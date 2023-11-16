@@ -1,7 +1,9 @@
 ﻿@page "/toros"
+@using PaginaToros.Client.Servicios.Contrato;
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @inject HttpClient Http
+@inject ITorosServicio _torosServicio
 <style>
 
     .rz-cell-data,
@@ -104,9 +106,8 @@ else
         {"A","Patagonico"}
     };
     public bool allowFiltering = false;
-    public string Url = "/api/Torosuni";
     List<Socio> socios = new();
-    public Respuesta<List<Torosuni>> oRespuesta = new Respuesta<List<Torosuni>>();
+    public Respuesta<List<TorosuniDTO>> oRespuesta = new Respuesta<List<TorosuniDTO>>();
     protected override async Task OnInitializedAsync()
     {
         var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
@@ -115,9 +116,8 @@ else
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Torosuni>>>(Url);
-        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
-        oRespuesta = respuesta;
+        var result = await _torosServicio.Lista();
+        oRespuesta = result;
         listaMerged = oRespuesta.List.Select(toro => new ClaseTabla
             {
                 Id = toro.Id,

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using PaginaToros.Client.Servicios.Contrato;
+using PaginaToros.Client.Servicios.Implementacion;
 using PaginaToros.Server.Context;
 using System.Text;
 
@@ -44,11 +46,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 /*FIN*/
 // Add services to the container.
-
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseMySql("server=vxsct3514.avnam.net;port=3306;user=herefordapp_com_ar;password=RWEr4dod6g3G;persist security info=True;database=hereford_pr;convert zero datetime=True", ServerVersion.Parse("10.3.39-mariadb")));
-
+builder.Services.AddScoped<ITorosServicio, TorosServicio>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

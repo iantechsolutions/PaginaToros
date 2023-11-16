@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "O9XBpVdN5FslQc67Cj6kZ5l+pwe9KDYqhpUPUd4ybM8oTRtFtVrM0oZS2JAKozNn3+4HnLausMM79Qrwd1rIQw==",
+  "dgSpecHash": "DXKGGZM8opQsH9ELObNKEiMwqx7O0VHbwresmzD1l9kAZ4pZ00KrqSDQf4W6Io1qLlOKl7Ebr7Ad1/DatFwhlQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Server\\PaginaToros.Server.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\lolo1\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
+    "C:\\Users\\lolo1\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\blazored.modal\\7.1.0\\blazored.modal.7.1.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\blazored.sessionstorage\\2.3.0\\blazored.sessionstorage.2.3.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\blazored.typeahead\\4.7.0\\blazored.typeahead.4.7.0.nupkg.sha512",
@@ -36,7 +38,7 @@
     "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.aspnetcore.identity.entityframeworkcore\\6.0.7\\microsoft.aspnetcore.identity.entityframeworkcore.6.0.7.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.aspnetcore.metadata\\6.0.23\\microsoft.aspnetcore.metadata.6.0.23.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.aspnetcore.webutilities\\2.2.0\\microsoft.aspnetcore.webutilities.2.2.0.nupkg.sha512",
-    "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.csharp\\4.5.0\\microsoft.csharp.4.5.0.nupkg.sha512",
+    "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.data.sqlclient\\2.1.4\\microsoft.data.sqlclient.2.1.4.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.data.sqlclient.sni.runtime\\2.1.1\\microsoft.data.sqlclient.sni.runtime.2.1.1.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.entityframeworkcore\\6.0.7\\microsoft.entityframeworkcore.6.0.7.nupkg.sha512",
