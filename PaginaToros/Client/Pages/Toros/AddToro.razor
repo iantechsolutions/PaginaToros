@@ -1,4 +1,7 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ITorosServicio _torosServicio
+@inject ISocioServicio _sociosServicio
 <style>
     .bm-title {
         font-size: 25px;
@@ -91,8 +94,7 @@
     </div>
 </div>
 @code {
-    Torosuni oTorosuni = new();
-    Respuesta<Torosuni> oRespuesta = new();
+    TorosuniDTO oTorosuni = new();
     List<string> estados = new List<string> { "Activo", "Inexistente", "Muerto","Vendido" };
     List<string> variedades = new List<string> { "H", "PH" };
     List<string> tiposToro = new List<string> { "S/", "Puro Pedigree (SRA)","Patagonico" };
@@ -119,8 +121,8 @@
     string estadoTemp = "";
     string tipoTemp = "";
     DateTime? dateTemp = DateTime.Now;
-    Socio? socioSeleccionado = null;
-    List<Socio> socios = new();
+    SocioDTO? socioSeleccionado = null;
+    List<SocioDTO> socios = new();
     string tipoToro = "";
 
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
@@ -128,22 +130,21 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
-        socios = rta.List.ToList();
+        var rta = await _sociosServicio.Lista(0,1000000);
+        socios = rta.List;
 
         if (Id != 0)
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Torosuni>>($"/api/Torosuni/{Id}");
-                oTorosuni = oRespuesta.List;
+                var rt = await _torosServicio.Lista(0,1000000);
+                oTorosuni = rt.List.Where(x => x.Id == Id).FirstOrDefault();
                 socioSeleccionado = socios.Where(x => x.Scod == oTorosuni.Criador).First();
                 estadoTemp = traductorCarga[oTorosuni.CodEstado];
                 tipoTemp = traductorCarga[oTorosuni.TipToro];
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
             }
         }
     }
@@ -165,12 +166,12 @@
         }
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<Torosuni>("/api/Torosuni", oTorosuni);
+            _torosServicio.Crear(oTorosuni);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Torosuni>("/api/Torosuni", oTorosuni);
+            _torosServicio.Editar(oTorosuni);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
@@ -181,7 +182,7 @@
     }
 
 
-    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);

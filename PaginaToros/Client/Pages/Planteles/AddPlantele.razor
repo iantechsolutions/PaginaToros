@@ -1,4 +1,7 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject IPlantelServicio _plantelServicio
+@inject ISocioServicio _socioServicio
 
 <div class="card" >
     <div class="card-body">
@@ -95,10 +98,9 @@
     </div>
 </div>
 @code {
-    List<Socio> socios = new();
-    Socio? socioSeleccionado = null;
-    Plantel oPlantel = new();
-    Respuesta<Plantel> oRespuesta = new();
+    List<SocioDTO> socios = new();
+    SocioDTO? socioSeleccionado = null;
+    PlantelDTO oPlantel = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     DateTime FechaTempInspeccion = DateTime.Now.Date;
@@ -110,14 +112,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
+        var rta = await _socioServicio.Lista(0,1000000);
         socios = rta.List.ToList();
         if (Id != 0)
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Plantel>>($"/api/Plantel/{Id}");
-                oPlantel = oRespuesta.List;
+                var rt = await _plantelServicio.Lista(0, 1000000);
+                oPlantel = rt.List.Where(x=>x.Id==Id).FirstOrDefault();
                 if (oPlantel.Estado=="S")
                 {
                     activo = true;
@@ -132,7 +134,6 @@
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
             }
         }
     }
@@ -153,12 +154,12 @@
             if(oPlantel.Fecing==null){
                 oPlantel.Fecing = "";
             }
-            await Http.PostAsJsonAsync<Plantel>("/api/Plantel", oPlantel);
+            await _plantelServicio.Crear(oPlantel);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Plantel>("/api/Plantel", oPlantel);
+            await _plantelServicio.Editar(oPlantel);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
@@ -172,7 +173,7 @@
         var result = lista.Where(x => x.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
-    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }

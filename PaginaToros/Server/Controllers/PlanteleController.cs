@@ -1,170 +1,204 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PaginaToros.Server.Context;
+using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
-namespace PaginaToros.Server.Cont{
+
+namespace PaginaPlantels.Server.Cont{
     [Route("api/[controller]")]
     [ApiController]
      
     public class PlantelController : ControllerBase
     {
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        private readonly IMapper _mapper;
+        private readonly IPlantelRepositorio _plantelRepositorio;
+        public PlantelController(IPlantelRepositorio plantelRepositorio, IMapper mapper)
         {
-            Respuesta<Plantel> oRespuesta = new Respuesta<Plantel>();
+            _mapper = mapper;
+            _plantelRepositorio = plantelRepositorio;
+        }
+        [Route("Lista")]
+        public async Task<IActionResult> Lista(int skip, int take)
+        {
+
+            Respuesta<List<PlantelDTO>> _ResponseDTO = new Respuesta<List<PlantelDTO>>();
 
             try
             {
-                using (hereford_prContext db = new())
-                {
-                        
-                    var lst = db.Planteles
-                        .Where(x => x.Id == id)
-                        .First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+                List<PlantelDTO> listaPedido = new List<PlantelDTO>();
+                var a = await _plantelRepositorio.Lista(skip, take);
+
+
+                listaPedido = _mapper.Map<List<PlantelDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpGet]
-        public IActionResult Get()
+        [Route("Cantidad")]
+        public async Task<IActionResult> CantidadTotal()
         {
-            Respuesta<List<Plantel>> oRespuesta = new Respuesta<List<Plantel>>();
+
+            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.Planteles.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+                var a = await _plantelRepositorio.CantidadTotal();
+
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
-        [HttpPost]
-        public IActionResult Add(Plantel model)
+        [HttpGet]
+        [Route("LimitadosFiltrados")]
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
         {
-            Respuesta<List<Plantel>> oRespuesta = new Respuesta<List<Plantel>>();
+
+            Respuesta<List<PlantelDTO>> _ResponseDTO = new Respuesta<List<PlantelDTO>>();
+
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Plantel oPlantel = new Plantel();
-                    oPlantel.Placod = model.Placod;
-                    oPlantel.Anioex = model.Anioex;
-                    oPlantel.Varede = model.Varede;
-                    oPlantel.Vqcsrd = model.Vqcsrd;
-                    oPlantel.Vqssrd = model.Vqssrd;
-                    oPlantel.Varepr = model.Varepr;
-                    oPlantel.Vqcsrp = model.Vqcsrp;
-                    oPlantel.Vqssrp = model.Vqssrp;
-                    oPlantel.Feulti = model.Feulti;
-                    oPlantel.Nroins = model.Nroins;
-                    oPlantel.Nrocri = model.Nrocri;
-                    oPlantel.Catego = model.Catego;
-                    oPlantel.Aniopa = model.Aniopa;
-                    oPlantel.Urein = model.Urein;
-                    oPlantel.FchUsu = model.FchUsu;
-                    oPlantel.CodUsu = model.CodUsu;
-                    oPlantel.Comment = model.Comment;
-                    oPlantel.Estado = model.Estado;
-                    oPlantel.Fecing = model.Fecing;
-                    db.Planteles.Add(oPlantel);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+                var a = await _plantelRepositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<PlantelDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
+        }
+
+        [HttpDelete]
+        [Route("Eliminar/{id:int}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            Respuesta<string> _Respuesta = new Respuesta<string>();
+            try
+            {
+                Plantel _PlantelEliminar = await _plantelRepositorio.Obtener(u => u.Id == id);
+                if (_PlantelEliminar != null)
+                {
+
+                    bool respuesta = await _plantelRepositorio.Eliminar(_PlantelEliminar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
+                    else
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
+        }
+
+        [HttpPost]
+        [Route("Guardar")]
+        public async Task<IActionResult> Guardar([FromBody] PlantelDTO request)
+        {
+            Respuesta<PlantelDTO> _Respuesta = new Respuesta<PlantelDTO>();
+            try
+            {
+                Plantel _Plantel = _mapper.Map<Plantel>(request);
+
+                Plantel _PlantelCreado = await _plantelRepositorio.Crear(_Plantel);
+
+                if (_PlantelCreado.Id != 0)
+                    _Respuesta = new Respuesta<PlantelDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<PlantelDTO>(_PlantelCreado) };
+                else
+                    _Respuesta = new Respuesta<PlantelDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<PlantelDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
         }
 
         [HttpPut]
-        public IActionResult Edit(Plantel model)
+        [Route("Editar")]
+        public async Task<IActionResult> Editar([FromBody] PlantelDTO request)
         {
-            Respuesta<List<Plantel>> oRespuesta = new Respuesta<List<Plantel>>();
+            Respuesta<PlantelDTO> _Respuesta = new Respuesta<PlantelDTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
+                Plantel _Plantel = _mapper.Map<Plantel>(request);
+                Plantel _PlantelParaEditar = await _plantelRepositorio.Obtener(u => u.Id == _Plantel.Id);
+
+                if (_PlantelParaEditar != null)
                 {
-                    Plantel oPlantel = db.Planteles.Find(model.Id);
-                    oPlantel.Placod = model.Placod;
-                    oPlantel.Anioex = model.Anioex;
-                    oPlantel.Varede = model.Varede;
-                    oPlantel.Vqcsrd = model.Vqcsrd;
-                    oPlantel.Vqssrd = model.Vqssrd;
-                    oPlantel.Varepr = model.Varepr;
-                    oPlantel.Vqcsrp = model.Vqcsrp;
-                    oPlantel.Vqssrp = model.Vqssrp;
-                    oPlantel.Feulti = model.Feulti;
-                    oPlantel.Nroins = model.Nroins;
-                    oPlantel.Nrocri = model.Nrocri;
-                    oPlantel.Catego = model.Catego;
-                    oPlantel.Aniopa = model.Aniopa;
-                    oPlantel.Urein = model.Urein;
-                    oPlantel.FchUsu = model.FchUsu;
-                    oPlantel.CodUsu = model.CodUsu;
-                    oPlantel.Comment = model.Comment;
-                    oPlantel.Estado = model.Estado;
-                    oPlantel.Fecing = model.Fecing;
 
-                    //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
-                    //foreach (var row in TorosPorId)
-                    //{
-                    //    row.NombreEst = model.Nombre;
-                    //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    //}
+                    _PlantelParaEditar.Placod = _Plantel.Placod;
+                    _PlantelParaEditar.Anioex = _Plantel.Anioex;
+                    _PlantelParaEditar.Varede = _Plantel.Varede;
+                    _PlantelParaEditar.Vqcsrd = _Plantel.Vqcsrd;
+                    _PlantelParaEditar.Vqssrd = _Plantel.Vqssrd;
+                    _PlantelParaEditar.Varepr = _Plantel.Varepr;
+                    _PlantelParaEditar.Vqcsrp = _Plantel.Vqcsrp;
+                    _PlantelParaEditar.Vqssrp = _Plantel.Vqssrp;
+                    _PlantelParaEditar.Feulti = _Plantel.Feulti;
+                    _PlantelParaEditar.Nroins = _Plantel.Nroins;
+                    _PlantelParaEditar.Nrocri = _Plantel.Nrocri;
+                    _PlantelParaEditar.Catego = _Plantel.Catego;
+                    _PlantelParaEditar.Aniopa = _Plantel.Aniopa;
+                    _PlantelParaEditar.Urein = _Plantel.Urein;
+                    _PlantelParaEditar.FchUsu = _Plantel.FchUsu;
+                    _PlantelParaEditar.CodUsu = _Plantel.CodUsu;
+                    _PlantelParaEditar.Comment = _Plantel.Comment;
+                    _PlantelParaEditar.Estado = _Plantel.Estado;
+                    _PlantelParaEditar.Fecing = _Plantel.Fecing;
 
-                    db.Entry(oPlantel).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    bool respuesta = await _plantelRepositorio.Editar(_PlantelParaEditar);
 
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
+                    if (respuesta)
+                        _Respuesta = new Respuesta<PlantelDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<PlantelDTO>(_PlantelParaEditar) };
+                    else
+                        _Respuesta = new Respuesta<PlantelDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
                 }
+                else
+                {
+                    _Respuesta = new Respuesta<PlantelDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<PlantelDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int Id)
-        {
-            Respuesta<List<Plantel>> oRespuesta = new Respuesta<List<Plantel>>();
-            //IQueryable<Toro> TorosPorId;
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Plantel oPlantel = db.Planteles.Find(Id);
-                    db.Remove(oPlantel);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach(Toro oElement in dbToros)
-                    //    {
-                    //        db.Remove(oElement);
-                    //    }
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
         }
     }
 }

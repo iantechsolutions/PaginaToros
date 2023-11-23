@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using PaginaToros.Client.Pages.Establecimientos;
 using PaginaToros.Client.Pages.Socios;
 using PaginaToros.Server.Context;
+using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Request;
 using PaginaToros.Shared.Models.Response;
@@ -11,169 +14,192 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class EstablecimientoController : ControllerBase
     {
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        private readonly IMapper _mapper;
+        private readonly IEstableRepositorio _EstableRepositorio;
+        public EstablecimientoController(IEstableRepositorio EstableRepositorio, IMapper mapper)
         {
-            Respuesta<Estable> oRespuesta = new Respuesta<Estable>();
-            
+            _mapper = mapper;
+            _EstableRepositorio = EstableRepositorio;
+        }
+        [Route("Lista")]
+        public async Task<IActionResult> Lista(int skip, int take)
+        {
+
+            Respuesta<List<EstableDTO>> _ResponseDTO = new Respuesta<List<EstableDTO>>();
+
             try
             {
-                using (hereford_prContext db = new())
-                {
+                List<EstableDTO> listaPedido = new List<EstableDTO>();
+                var a = await _EstableRepositorio.Lista(skip, take);
 
-                    var lst = db.Estables
-                        .Where(x => x.Id == id)
-                        .First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+
+                listaPedido = _mapper.Map<List<EstableDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<EstableDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<EstableDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpGet]
-        public IActionResult Get()
+        [Route("Cantidad")]
+        public async Task<IActionResult> CantidadTotal()
         {
-            Respuesta<List<Estable>> oRespuesta = new Respuesta<List<Estable>>();
+
+            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.Estables.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+                var a = await _EstableRepositorio.CantidadTotal();
+
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
+        }
+        [HttpGet]
+        [Route("LimitadosFiltrados")]
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
+        {
+
+            Respuesta<List<EstableDTO>> _ResponseDTO = new Respuesta<List<EstableDTO>>();
+
+            try
+            {
+                var a = await _EstableRepositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<EstableDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<EstableDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<EstableDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
         }
 
-        [HttpGet("Codigo/{nro}")]
-        public IActionResult GetByCod(string nro)
+        [HttpDelete]
+        [Route("Eliminar/{id:int}")]
+        public async Task<IActionResult> Eliminar(int id)
         {
-            Respuesta<Estable> oRespuesta = new Respuesta<Estable>();
-
+            Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
-                using (hereford_prContext db = new())
+                Estable _EstableEliminar = await _EstableRepositorio.Obtener(u => u.Id == id);
+                if (_EstableEliminar != null)
                 {
 
-                    var lst = db.Estables
-                    .Where(x => x.Ecod == nro).First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
+                    bool respuesta = await _EstableRepositorio.Eliminar(_EstableEliminar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
+                    else
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
                 }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpPost]
-        public IActionResult Add(Estable model)
+        [Route("Guardar")]
+        public async Task<IActionResult> Guardar([FromBody] EstableDTO request)
         {
-            Respuesta<List<Estable>> oRespuesta = new Respuesta<List<Estable>>();
+            Respuesta<EstableDTO> _Respuesta = new Respuesta<EstableDTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Estable oEstablecimiento = new Estable();
-                    var estviejo = db.Estables.OrderByDescending(x => x.Id).First();
-                    oEstablecimiento.Ecod = (Int32.Parse(estviejo.Ecod) + 1).ToString("D6");
-                    oEstablecimiento.Codsoc = model.Codsoc;
-                    oEstablecimiento.Activo = model.Activo;
-                    oEstablecimiento.Nombre = model.Nombre;
-                    oEstablecimiento.Encargado = model.Encargado;
-                    oEstablecimiento.Direcc = model.Direcc;
-                    oEstablecimiento.Tel = model.Tel;
-                    oEstablecimiento.Locali = model.Locali;
-                    oEstablecimiento.Codpos = model.Codpos;
-                    oEstablecimiento.Codpro = model.Codpro;
-                    oEstablecimiento.Plano = model.Plano;
-                    oEstablecimiento.Codzon = model.Codzon;
-                    oEstablecimiento.Fecing = model.Fecing;
-                    oEstablecimiento.Fechacreacion = model.Fechacreacion;
-                    db.Estables.Add(oEstablecimiento);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+                Estable _Estable = _mapper.Map<Estable>(request);
+                Estable _EstableViejo = await _EstableRepositorio.Obtener(u => u.Id == (_Estable.Id-1));
+                _Estable.Ecod = (Int32.Parse(_EstableViejo.Ecod) + 1).ToString("D6");
+
+                Estable _EstableCreado = await _EstableRepositorio.Crear(_Estable);
+
+                if (_EstableCreado.Id != 0)
+                    _Respuesta = new Respuesta<EstableDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<EstableDTO>(_EstableCreado) };
+                else
+                    _Respuesta = new Respuesta<EstableDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<EstableDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpPut]
-        public IActionResult Edit(Estable model)
+        [Route("Editar")]
+        public async Task<IActionResult> Editar([FromBody] EstableDTO request)
         {
-            Respuesta<List<Estable>> oRespuesta = new Respuesta<List<Estable>>();
+            Respuesta<EstableDTO> _Respuesta = new Respuesta<EstableDTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Estable oEstablecimiento = db.Estables.Find(model.Id);
-                    oEstablecimiento.Ecod = model.Ecod;
-                    oEstablecimiento.Codsoc = model.Codsoc;
-                    oEstablecimiento.Activo = model.Activo;
-                    oEstablecimiento.Nombre = model.Nombre;
-                    oEstablecimiento.Encargado = model.Encargado;
-                    oEstablecimiento.Direcc = model.Direcc;
-                    oEstablecimiento.Tel = model.Tel;
-                    oEstablecimiento.Locali = model.Locali;
-                    oEstablecimiento.Codpos = model.Codpos;
-                    oEstablecimiento.Codpro = model.Codpro;
-                    oEstablecimiento.Plano = model.Plano;
-                    oEstablecimiento.Codzon = model.Codzon;
-                    oEstablecimiento.Fecing = model.Fecing;
-                    oEstablecimiento.Fechacreacion = model.Fechacreacion;
-                    db.Entry(oEstablecimiento).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                Estable _Estable = _mapper.Map<Estable>(request);
+                Estable _EstableParaEditar = await _EstableRepositorio.Obtener(u => u.Id == _Estable.Id);
 
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int Id)
-        {
-            Respuesta<List<Estable>> oRespuesta = new Respuesta<List<Estable>>();
-            //IQueryable<Toro> TorosPorId;
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
+                if (_EstableParaEditar != null)
                 {
-                Estable oEstablecimiento = db.Estables.Find(Id);
-                db.Remove(oEstablecimiento);
-                //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                //foreach(Toro oElement in dbToros)
-                //    {
-                //        db.Remove(oElement);
-                //    }
-                db.SaveChanges();
-                oRespuesta.Exito = 1;
+
+                    _EstableParaEditar.Ecod = _Estable.Ecod;
+                    _EstableParaEditar.Codsoc = _Estable.Codsoc;
+                    _EstableParaEditar.Activo = _Estable.Activo;
+                    _EstableParaEditar.Nombre = _Estable.Nombre;
+                    _EstableParaEditar.Encargado = _Estable.Encargado;
+                    _EstableParaEditar.Direcc = _Estable.Direcc;
+                    _EstableParaEditar.Locali = _Estable.Locali;
+                    _EstableParaEditar.Tel = _Estable.Tel;
+                    _EstableParaEditar.Codpos = _Estable.Codpos;
+                    _EstableParaEditar.Codpro = _Estable.Codpro;
+                    _EstableParaEditar.Plano = _Estable.Plano;
+                    _EstableParaEditar.Catego = _Estable.Catego;
+                    _EstableParaEditar.Codzon = _Estable.Codzon;
+                    _EstableParaEditar.Fechacreacion = _Estable.Fechacreacion;
+                    _EstableParaEditar.Fecing = _Estable.Fecing;
+
+                    bool respuesta = await _EstableRepositorio.Editar(_EstableParaEditar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<EstableDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<EstableDTO>(_EstableParaEditar) };
+                    else
+                        _Respuesta = new Respuesta<EstableDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
                 }
+                else
+                {
+                    _Respuesta = new Respuesta<EstableDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<EstableDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
         }
     }
 }

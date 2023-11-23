@@ -1,4 +1,8 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ICertifsemanServicio _certifsemanServicio
+@inject ISocioServicio _socioServicio
+@inject ICentrosiumServicio _centrosiumServicio
 <style>
     .bm-title {
         font-size: 25px;
@@ -128,16 +132,15 @@
     </div>
 </div>
 @code {
-    Certifseman oCertifseman = new();
-    Respuesta<Certifseman> oRespuesta = new();
+    CertifsemanDTO oCertifseman = new();
     List<string> tipos = new List<string> {"Tercero","Propio","Importado"};
     List<string> variedades = new List<string> {"H","PH"};
     List<string> tiposToro = new List<string> {"S/","PP"};
 
-    Socio? socioSeleccionado = null;
-    List<Socio> socios = new();
-    Centrosium? centroSeleccionado = null;
-    List<Centrosium> centros = new();
+    SocioDTO? socioSeleccionado = null;
+    List<SocioDTO> socios = new();
+    CentrosiumDTO? centroSeleccionado = null;
+    List<CentrosiumDTO> centros = new();
     string tipoToro = "";
     DateTime fechaVenta = DateTime.Now;
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
@@ -145,24 +148,27 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
-        socios = rta.List.ToList();
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Centrosium>>>($"/api/Centrosium");
-        centros = rt.List.ToList();
+        var can = await _socioServicio.CantidadTotal();
+        var rta = await _socioServicio.Lista(0, can.List);
+        socios = rta.List;
+        var cant = await _centrosiumServicio.CantidadTotal();
+        var rt = await _centrosiumServicio.Lista(0, cant.List);
+        centros = rt.List;
 
         if (Id != 0)
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Certifseman>>($"/api/Certifseman/{Id}");
-                oCertifseman = oRespuesta.List;
+                var c = await _certifsemanServicio.CantidadTotal();
+                var rtt = await _certifsemanServicio.Lista(0, c.List);
+
+                oCertifseman = rtt.List.Where(x=>x.Id==Id).FirstOrDefault();
                 centroSeleccionado = centros.Where(x => x.Nrocen == oCertifseman.Nrocen).FirstOrDefault();
                 socioSeleccionado = socios.Where(x => x.Scod == oCertifseman.Nrocri).FirstOrDefault();
 
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
             }
         }
         oCertifseman.TipEnv = "PAJUELAS";
@@ -175,12 +181,12 @@
         if (Id == 0)
         {
             oCertifseman.NrDosi = Int32.Parse(oCertifseman.NrDosiOr);
-            await Http.PostAsJsonAsync<Certifseman>("/api/Certifseman", oCertifseman);
+            await _certifsemanServicio.Crear(oCertifseman);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Certifseman>("/api/Certifseman", oCertifseman);
+            await _certifsemanServicio.Editar(oCertifseman);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
@@ -190,13 +196,13 @@
 
     }
 
-    private async Task<IEnumerable<Centrosium>> BusquedaCentros(string searchText)
+    private async Task<IEnumerable<CentrosiumDTO>> BusquedaCentros(string searchText)
     {
         var result = centros.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 
-    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);

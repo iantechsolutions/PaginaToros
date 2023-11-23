@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using PaginaToros.Server.Context;
+using AutoMapper;
+using PaginaToros.Server.Repositorio.Contrato;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -10,136 +12,180 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class CentrosiumController : ControllerBase
     {
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        private readonly IMapper _mapper;
+        private readonly ICentrosiumRepositorio _CentrosiumRepositorio;
+        public CentrosiumController(ICentrosiumRepositorio CentrosiumRepositorio, IMapper mapper)
         {
-            Respuesta<Centrosium> oRespuesta = new Respuesta<Centrosium>();
+            _mapper = mapper;
+            _CentrosiumRepositorio = CentrosiumRepositorio;
+        }
+        [Route("Lista")]
+        public async Task<IActionResult> Lista(int skip, int take)
+        {
+
+            Respuesta<List<CentrosiumDTO>> _ResponseDTO = new Respuesta<List<CentrosiumDTO>>();
 
             try
             {
-                using (hereford_prContext db = new())
-                {
+                List<CentrosiumDTO> listaPedido = new List<CentrosiumDTO>();
+                var a = await _CentrosiumRepositorio.Lista(skip, take);
 
-                    var lst = db.Centrosia
-                    .Where(x => x.Id == id)
-                    .First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+
+                listaPedido = _mapper.Map<List<CentrosiumDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<CentrosiumDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<CentrosiumDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
-        
+
         [HttpGet]
-        public IActionResult Get()
+        [Route("Cantidad")]
+        public async Task<IActionResult> CantidadTotal()
         {
-            Respuesta<List<Centrosium>> oRespuesta = new Respuesta<List<Centrosium>>();
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.Centrosia.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
-        }
-        [HttpPost]
-        public IActionResult Add(Centrosium model)
-        {
-            Respuesta<List<Centrosium>> oRespuesta = new Respuesta<List<Centrosium>>();
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Centrosium oCentrosium = new Centrosium();
-                    oCentrosium.Nrocen = model.Nrocen;
-                    oCentrosium.Nombre = model.Nombre;
-                    oCentrosium.NroCSayg = model.NroCSayg;
-                    oCentrosium.FchUsu = model.FchUsu;
-                    oCentrosium.CodUsu = model.CodUsu;
-                    oCentrosium.Id = model.Id;
 
-                    db.Centrosia.Add(oCentrosium);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+
+            try
+            {
+                var a = await _CentrosiumRepositorio.CantidadTotal();
+
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
+        }
+        [HttpGet]
+        [Route("LimitadosFiltrados")]
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
+        {
+
+            Respuesta<List<CentrosiumDTO>> _ResponseDTO = new Respuesta<List<CentrosiumDTO>>();
+
+            try
+            {
+                var a = await _CentrosiumRepositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<CentrosiumDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<CentrosiumDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<CentrosiumDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+
+        [HttpDelete]
+        [Route("Eliminar/{id:int}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            Respuesta<string> _Respuesta = new Respuesta<string>();
+            try
+            {
+                Centrosium _CentrosiumEliminar = await _CentrosiumRepositorio.Obtener(u => u.Id == id);
+                if (_CentrosiumEliminar != null)
+                {
+
+                    bool respuesta = await _CentrosiumRepositorio.Eliminar(_CentrosiumEliminar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
+                    else
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
+        }
+
+        [HttpPost]
+        [Route("Guardar")]
+        public async Task<IActionResult> Guardar([FromBody] CentrosiumDTO request)
+        {
+            Respuesta<CentrosiumDTO> _Respuesta = new Respuesta<CentrosiumDTO>();
+            try
+            {
+                Centrosium _Centrosium = _mapper.Map<Centrosium>(request);
+
+                Centrosium _CentrosiumCreado = await _CentrosiumRepositorio.Crear(_Centrosium);
+
+                if (_CentrosiumCreado.Id != 0)
+                    _Respuesta = new Respuesta<CentrosiumDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<CentrosiumDTO>(_CentrosiumCreado) };
+                else
+                    _Respuesta = new Respuesta<CentrosiumDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<CentrosiumDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
         }
 
         [HttpPut]
-        public IActionResult Edit(Centrosium model)
+        [Route("Editar")]
+        public async Task<IActionResult> Editar([FromBody] CentrosiumDTO request)
         {
-            Respuesta<List<Centrosium>> oRespuesta = new Respuesta<List<Centrosium>>();
+            Respuesta<CentrosiumDTO> _Respuesta = new Respuesta<CentrosiumDTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
+                Centrosium _Centrosium = _mapper.Map<Centrosium>(request);
+                Centrosium _CentrosiumParaEditar = await _CentrosiumRepositorio.Obtener(u => u.Id == _Centrosium.Id);
+
+                if (_CentrosiumParaEditar != null)
                 {
-                    Centrosium oCentrosium = db.Centrosia.Find(model.Id);
-                    oCentrosium.Nrocen = model.Nrocen;
-                    oCentrosium.Nombre = model.Nombre;
-                    oCentrosium.NroCSayg = model.NroCSayg;
-                    oCentrosium.FchUsu = model.FchUsu;
-                    oCentrosium.CodUsu = model.CodUsu;
-                    oCentrosium.Id = model.Id;
+                    _CentrosiumParaEditar.Nrocen = _Centrosium.Nrocen;
+                    _CentrosiumParaEditar.Nombre = _Centrosium.Nombre;
+                    _CentrosiumParaEditar.NroCSayg = _Centrosium.NroCSayg;
+                    _CentrosiumParaEditar.FchUsu = _Centrosium.FchUsu;
+                    _CentrosiumParaEditar.CodUsu = _Centrosium.CodUsu;
+                    _CentrosiumParaEditar.Id = _Centrosium.Id;
 
-                    //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
-                    //foreach (var row in TorosPorId)
-                    //{
-                    //    row.NombreEst = model.Nombre;
-                    //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    //}
-                    db.Entry(oCentrosium).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    bool respuesta = await _CentrosiumRepositorio.Editar(_CentrosiumParaEditar);
 
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
+                    if (respuesta)
+                        _Respuesta = new Respuesta<CentrosiumDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<CentrosiumDTO>(_CentrosiumParaEditar) };
+                    else
+                        _Respuesta = new Respuesta<CentrosiumDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
                 }
+                else
+                {
+                    _Respuesta = new Respuesta<CentrosiumDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<CentrosiumDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int Id)
-        {
-            Respuesta<List<Centrosium>> oRespuesta = new Respuesta<List<Centrosium>>();
-            //IQueryable<Toro> TorosPorId;
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Centrosium oCentrosium = db.Centrosia.Find(Id);
-                    db.Remove(oCentrosium);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach(Toro oElement in dbToros)
-                    //    {
-                    //        db.Remove(oElement);
-                    //    }
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
         }
     }
 }

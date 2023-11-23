@@ -4,6 +4,9 @@ using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using PaginaToros.Client.Pages.Socios;
 using PaginaToros.Server.Context;
+using AutoMapper;
+using PaginaToros.Server.Repositorio.Contrato;
+using PaginaToros.Server.Repositorio.Implementacion;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -11,166 +14,187 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class SocioController : ControllerBase
     {
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        private readonly IMapper _mapper;
+        private readonly ISocioRepositorio _SocioRepositorio;
+        public SocioController(ISocioRepositorio SocioRepositorio, IMapper mapper)
         {
-            Respuesta<Socio> oRespuesta = new Respuesta<Socio>();
+            _mapper = mapper;
+            _SocioRepositorio = SocioRepositorio;
+        }
+        [Route("Lista")]
+        public async Task<IActionResult> Lista(int skip, int take)
+        {
+
+            Respuesta<List<SocioDTO>> _ResponseDTO = new Respuesta<List<SocioDTO>>();
 
             try
             {
-                using (hereford_prContext db = new())
-                {
+                List<SocioDTO> listaPedido = new List<SocioDTO>();
+                var a = await _SocioRepositorio.Lista(skip, take);
 
-                    var lst = db.Socios
-                        .Where(x => x.Id == id)
-                        .First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+
+                listaPedido = _mapper.Map<List<SocioDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<SocioDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<SocioDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpGet]
-        public IActionResult Get()
+        [Route("Cantidad")]
+        public async Task<IActionResult> CantidadTotal()
         {
-            Respuesta<List<Socio>> oRespuesta = new Respuesta<List<Socio>>();
+
+            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.Socios.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+                var a = await _SocioRepositorio.CantidadTotal();
+
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
+        }
+        [HttpGet]
+        [Route("LimitadosFiltrados")]
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
+        {
+
+            Respuesta<List<SocioDTO>> _ResponseDTO = new Respuesta<List<SocioDTO>>();
+
+            try
+            {
+                var a = await _SocioRepositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<SocioDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<SocioDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<SocioDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
         }
 
-        [HttpGet("Codigo/{nro}")]
-        public IActionResult GetByCod(string nro)
+        [HttpDelete]
+        [Route("Eliminar/{id:int}")]
+        public async Task<IActionResult> Eliminar(int id)
         {
-            Respuesta<Socio> oRespuesta = new Respuesta<Socio>();
-
+            Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
-                using (hereford_prContext db = new())
+                Socio _SocioEliminar = await _SocioRepositorio.Obtener(u => u.Id == id);
+                if (_SocioEliminar != null)
                 {
 
-                    var lst = db.Socios
-                    .Where(x => x.Scod == nro).First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
+                    bool respuesta = await _SocioRepositorio.Eliminar(_SocioEliminar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
+                    else
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
                 }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpPost]
-        public IActionResult Add(Socio model)
+        [Route("Guardar")]
+        public async Task<IActionResult> Guardar([FromBody] SocioDTO request)
         {
-            Respuesta<List<Socio>> oRespuesta = new Respuesta<List<Socio>>();
+            Respuesta<SocioDTO> _Respuesta = new Respuesta<SocioDTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Socio oSocio = new Socio();
-                    var socioViejo = db.Socios.OrderByDescending(x => x.Id).First();
-                    oSocio.Scod = (Int32.Parse(socioViejo.Scod)+1).ToString("D5");
-                    oSocio.Nombre = model.Nombre;
-                    oSocio.Direcc1 = model.Direcc1;
-                    oSocio.Telefo1 = model.Telefo1;
-                    oSocio.Telefo2 = model.Telefo2;
-                    oSocio.Locali1 = model.Locali1;
-                    oSocio.Codpos1 = model.Codpos1;
-                    oSocio.Codpro1 = model.Codpro1;
-                    oSocio.Telefo2 = model.Telefo2;
-                    oSocio.Criador = model.Criador;
-                    oSocio.Mail = model.Mail;
-                    oSocio.Fecing = model.Fecing;
-                    oSocio.Placod = model.Placod;
-                    db.Socios.Add(oSocio);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+                Socio _Socio = _mapper.Map<Socio>(request);
+                Socio _SocioViejo = await _SocioRepositorio.Obtener(u => u.Id == (_Socio.Id - 1));
+                _Socio.Scod = (Int32.Parse(_SocioViejo.Scod) + 1).ToString("D5");
+                Socio _SocioCreado = await _SocioRepositorio.Crear(_Socio);
+
+                if (_SocioCreado.Id != 0)
+                    _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<SocioDTO>(_SocioCreado) };
+                else
+                    _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpPut]
-        public IActionResult Edit(Socio model)
+        [Route("Editar")]
+        public async Task<IActionResult> Editar([FromBody] SocioDTO request)
         {
-            Respuesta<List<Socio>> oRespuesta = new Respuesta<List<Socio>>();
+            Respuesta<SocioDTO> _Respuesta = new Respuesta<SocioDTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
+                Socio _Socio = _mapper.Map<Socio>(request);
+                Socio _SocioParaEditar = await _SocioRepositorio.Obtener(u => u.Id == _Socio.Id);
+
+                if (_SocioParaEditar != null)
                 {
-                    Socio oSocio = db.Socios.Find(model.Id,model.Scod);
-                    oSocio.Nombre = model.Nombre;
-                    oSocio.Direcc1 = model.Direcc1;
-                    oSocio.Telefo1 = model.Telefo1;
-                    oSocio.Telefo2 = model.Telefo2;
-                    oSocio.Locali1 = model.Locali1;
-                    oSocio.Codpos1 = model.Codpos1;
-                    oSocio.Codpro1 = model.Codpro1;
-                    oSocio.Telefo2 = model.Telefo2;
-                    oSocio.Mail = model.Mail;
-                    oSocio.Criador = model.Criador;
-                    oSocio.Fecing = model.Fecing;
-                    oSocio.Placod = model.Placod;
-                    db.Entry(oSocio).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                    
+                    _SocioParaEditar.Nombre = _Socio.Nombre;
+                    _SocioParaEditar.Direcc1 = _Socio.Direcc1;
+                    _SocioParaEditar.Telefo1 = _Socio.Telefo1;
+                    _SocioParaEditar.Telefo2 = _Socio.Telefo2;
+                    _SocioParaEditar.Locali1 = _Socio.Locali1;
+                    _SocioParaEditar.Codpos1 = _Socio.Codpos1;
+                    _SocioParaEditar.Codpro1 = _Socio.Codpro1;
+                    _SocioParaEditar.Telefo2 = _Socio.Telefo2;
+                    _SocioParaEditar.Criador = _Socio.Criador;
+                    _SocioParaEditar.Mail = _Socio.Mail;
+                    _SocioParaEditar.Fecing = _Socio.Fecing;
+                    _SocioParaEditar.Placod = _Socio.Placod;
+
+                    bool respuesta = await _SocioRepositorio.Editar(_SocioParaEditar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<SocioDTO>(_SocioParaEditar) };
+                    else
+                        _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
                 }
+                else
+                {
+                    _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
-        }
-        [HttpDelete("{id}/{cod}")]
-        public IActionResult Delete(int Id,string cod)
-        {
-            Respuesta<List<Socio>> oRespuesta = new Respuesta<List<Socio>>();
-            //IQueryable<Toro> TorosPorId;
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Socio oSocio = db.Socios.Find(Id,cod);
-                    db.Remove(oSocio);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach (Toro oElement in dbToros)
-                    //{
-                    //    db.Remove(oElement);
-                    //}
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
         }
     }
 }

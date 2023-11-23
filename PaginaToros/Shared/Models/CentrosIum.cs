@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PaginaToros.Shared.Models
 {
@@ -11,5 +12,7 @@ namespace PaginaToros.Shared.Models
         public DateTime? FchUsu { get; set; }
         public int? CodUsu { get; set; }
         public int Id { get; set; }
+        [JsonIgnore]
+        public List<Certifseman>? Certificados { get; set; }
     }
 }

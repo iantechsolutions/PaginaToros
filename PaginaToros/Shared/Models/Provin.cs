@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PaginaToros.Server.Models
+namespace PaginaToros.Shared.Models
 {
     public partial class Provin
     {

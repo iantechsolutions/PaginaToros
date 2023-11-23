@@ -1,4 +1,5 @@
-﻿
+﻿@using PaginaToros.Client.Servicios.Contrato;
+@inject IResin8Servicio _resin8Servicio
 <div class="card-body">
     <EditForm Model="@oResin8" OnValidSubmit="Guardar">
         <DataAnnotationsValidator />
@@ -25,8 +26,7 @@
     [Parameter] public int Id { get; set; }
     [Parameter] public string nrores { get; set; }
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
-    Resin8 oResin8 = new();
-    Respuesta<Resin8> oRespuesta = new();
+    Resin8DTO oResin8 = new();
     List<string> motivos = new List<string> { "Pelaje", "Estado", "Desarrollo", "Aplomo", "Estructura", "Conformacion", "Pureza", "Sanidad", "Otros" };
     string motivo = "";
     Dictionary<string, int> traductorMotivos = new Dictionary<string, int>{
@@ -47,13 +47,13 @@
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Resin8>>($"/api/Resin8/{Id}");
-                oResin8 = oRespuesta.List;
+                var can = await _resin8Servicio.CantidadTotal();
+                var rt = await _resin8Servicio.Lista(0,can.List);
+                oResin8 = rt.List.Where(x=>x.Id==Id).FirstOrDefault();
 
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
             }
         }
     }
@@ -64,12 +64,12 @@
         if (Id == 0)
         {
             oResin8.Nrores = nrores;
-            await Http.PostAsJsonAsync<Resin8>("/api/Resin8", oResin8);
+            await _resin8Servicio.Crear(oResin8);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Resin8>("/api/Resin8", oResin8);
+            await _resin8Servicio.Editar(oResin8);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

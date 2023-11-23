@@ -1,4 +1,7 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject IEstableServicio _estableServicio
+@inject ISocioServicio _socioServicio
 <style>
     .bm-title{
         font-size:25px;
@@ -105,14 +108,14 @@
     </div>
 </div>
 @code {
-    Estable oEstablecimiento = new();
-    Respuesta<Estable> oRespuesta = new();
+    EstableDTO oEstablecimiento = new();
+    Respuesta<EstableDTO> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     DateTime FechaTemp = DateTime.Now.Date;
     string CodZona = "  ";
     bool activo = true;
-    List<Socio> socios = new();
+    List<SocioDTO> socios = new();
     Socio? socioSeleccionado = null;
     string provinciaTemp = "";
     List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal","Catamarca","Chaco","Chubut","Cordoba","Corrientes","Entre Rios","Formosa","Jujuy","La pampa","La rioja","Mendoza","Misiones","Neuquen","Rio negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Santiago Del Estero","Tierra del fuego","Tucuman" };
@@ -211,15 +214,17 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
-        socios = rta.List.ToList();
+        var c = await _socioServicio.CantidadTotal();
+        var rta = await _socioServicio.Lista(0, c.List);
+        socios = rta.List;
         if (Id != 0)
         {
 
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Estable>>($"/api/Establecimiento/{Id}");
-                oEstablecimiento = oRespuesta.List;
+                var ca = await _estableServicio.CantidadTotal();
+                var rt = await _estableServicio.Lista(0,ca.List);
+                oEstablecimiento = rt.List.Where(x=>x.Id==Id).FirstOrDefault();
                 if (oEstablecimiento.Activo == "S")
                 {
                     activo = true;
@@ -228,7 +233,7 @@
                 {
                     activo = false;
                 }
-                socioSeleccionado = socios.Where(x => x.Scod == oEstablecimiento.Codsoc).FirstOrDefault();
+                socioSeleccionado = oEstablecimiento.Socio;
                 CodZona = oEstablecimiento.Codzon;
                 provinciaTemp = traductorProvinciaInverso[oEstablecimiento.Codpro];
             }
@@ -254,12 +259,12 @@
         }
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<Estable>("/api/Establecimiento", oEstablecimiento);
+            await _estableServicio.Crear(oEstablecimiento);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Estable>("/api/Establecimiento", oEstablecimiento);
+            await _estableServicio.Editar(oEstablecimiento);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
@@ -274,7 +279,7 @@
         return await Task.FromResult(result);
     }
 
-    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }

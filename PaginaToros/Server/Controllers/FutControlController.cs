@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using PaginaToros.Server.Context;
+using AutoMapper;
+using PaginaToros.Server.Repositorio.Contrato;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -10,159 +12,190 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class FutcontrolController : ControllerBase
     {
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        private readonly IMapper _mapper;
+        private readonly IFutcontrolRepositorio _FutcontrolRepositorio;
+        public FutcontrolController(IFutcontrolRepositorio FutcontrolRepositorio, IMapper mapper)
         {
-            Respuesta<Futcontrol> oRespuesta = new Respuesta<Futcontrol>();
+            _mapper = mapper;
+            _FutcontrolRepositorio = FutcontrolRepositorio;
+        }
+        [Route("Lista")]
+        public async Task<IActionResult> Lista(int skip, int take)
+        {
+
+            Respuesta<List<FutcontrolDTO>> _ResponseDTO = new Respuesta<List<FutcontrolDTO>>();
 
             try
             {
-                using (hereford_prContext db = new())
-                {
+                List<FutcontrolDTO> listaPedido = new List<FutcontrolDTO>();
+                var a = await _FutcontrolRepositorio.Lista(skip, take);
 
-                    var lst = db.Futcontrols
-                .Where(x => x.Id == id)
-                .First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+
+                listaPedido = _mapper.Map<List<FutcontrolDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<FutcontrolDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<FutcontrolDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpGet]
-        public IActionResult Get()
+        [Route("Cantidad")]
+        public async Task<IActionResult> CantidadTotal()
         {
-            Respuesta<List<Futcontrol>> oRespuesta = new Respuesta<List<Futcontrol>>();
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.Futcontrols.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
-        }
-        [HttpPost]
-        public IActionResult Add(Futcontrol model)
-        {
-            Respuesta<List<Futcontrol>> oRespuesta = new Respuesta<List<Futcontrol>>();
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Futcontrol oFutcontrol = new Futcontrol();
-                    oFutcontrol.NroTrans = model.NroTrans;
-                    oFutcontrol.Fectrans = model.Fectrans;
-                    oFutcontrol.Sven = model.Sven;
-                    oFutcontrol.CategSv = model.CategSv;
-                    oFutcontrol.Vnom = model.Vnom;
-                    oFutcontrol.Scom = model.Scom;
-                    oFutcontrol.CategSc = model.CategSc;
-                    oFutcontrol.Cnom = model.Cnom;
-                    oFutcontrol.Plantel = model.Plantel;
-                    oFutcontrol.EdadCrias = model.EdadCrias;
-                    oFutcontrol.CantHem = model.CantHem;
-                    oFutcontrol.CantMach = model.CantMach;
-                    oFutcontrol.PlantDest = model.PlantDest;
-                    oFutcontrol.Incorp = model.Incorp;
-                    oFutcontrol.Hemsta = model.Hemsta;
-                    oFutcontrol.FchUsu = model.FchUsu;
-                    oFutcontrol.CodUsu = model.CodUsu;
 
-                    db.Futcontrols.Add(oFutcontrol);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+
+            try
+            {
+                var a = await _FutcontrolRepositorio.CantidadTotal();
+
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
+        }
+        [HttpGet]
+        [Route("LimitadosFiltrados")]
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
+        {
+
+            Respuesta<List<FutcontrolDTO>> _ResponseDTO = new Respuesta<List<FutcontrolDTO>>();
+
+            try
+            {
+                var a = await _FutcontrolRepositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<FutcontrolDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<FutcontrolDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<FutcontrolDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+
+        [HttpDelete]
+        [Route("Eliminar/{id:int}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            Respuesta<string> _Respuesta = new Respuesta<string>();
+            try
+            {
+                Futcontrol _FutcontrolEliminar = await _FutcontrolRepositorio.Obtener(u => u.Id == id);
+                if (_FutcontrolEliminar != null)
+                {
+
+                    bool respuesta = await _FutcontrolRepositorio.Eliminar(_FutcontrolEliminar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
+                    else
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
+        }
+
+        [HttpPost]
+        [Route("Guardar")]
+        public async Task<IActionResult> Guardar([FromBody] FutcontrolDTO request)
+        {
+            Respuesta<FutcontrolDTO> _Respuesta = new Respuesta<FutcontrolDTO>();
+            try
+            {
+                Futcontrol _Futcontrol = _mapper.Map<Futcontrol>(request);
+
+                Futcontrol _FutcontrolCreado = await _FutcontrolRepositorio.Crear(_Futcontrol);
+
+                if (_FutcontrolCreado.Id != 0)
+                    _Respuesta = new Respuesta<FutcontrolDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<FutcontrolDTO>(_FutcontrolCreado) };
+                else
+                    _Respuesta = new Respuesta<FutcontrolDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<FutcontrolDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
         }
 
         [HttpPut]
-        public IActionResult Edit(Futcontrol model)
+        [Route("Editar")]
+        public async Task<IActionResult> Editar([FromBody] FutcontrolDTO request)
         {
-            Respuesta<List<Futcontrol>> oRespuesta = new Respuesta<List<Futcontrol>>();
+            Respuesta<FutcontrolDTO> _Respuesta = new Respuesta<FutcontrolDTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
+                Futcontrol _Futcontrol = _mapper.Map<Futcontrol>(request);
+                Futcontrol _FutcontrolParaEditar = await _FutcontrolRepositorio.Obtener(u => u.Id == _Futcontrol.Id);
+
+                if (_FutcontrolParaEditar != null)
                 {
-                    Futcontrol oFutcontrol = db.Futcontrols.Find(model.Id);
-                    oFutcontrol.NroTrans = model.NroTrans;
-                    oFutcontrol.Fectrans = model.Fectrans;
-                    oFutcontrol.Sven = model.Sven;
-                    oFutcontrol.CategSv = model.CategSv;
-                    oFutcontrol.Vnom = model.Vnom;
-                    oFutcontrol.Scom = model.Scom;
-                    oFutcontrol.CategSc = model.CategSc;
-                    oFutcontrol.Cnom = model.Cnom;
-                    oFutcontrol.Plantel = model.Plantel;
-                    oFutcontrol.EdadCrias = model.EdadCrias;
-                    oFutcontrol.CantHem = model.CantHem;
-                    oFutcontrol.CantMach = model.CantMach;
-                    oFutcontrol.PlantDest = model.PlantDest;
-                    oFutcontrol.Incorp = model.Incorp;
-                    oFutcontrol.Hemsta = model.Hemsta;
-                    oFutcontrol.FchUsu = model.FchUsu;
-                    oFutcontrol.CodUsu = model.CodUsu;
+                    _FutcontrolParaEditar.NroTrans = _Futcontrol.NroTrans;
+                    _FutcontrolParaEditar.Fectrans = _Futcontrol.Fectrans;
+                    _FutcontrolParaEditar.Sven = _Futcontrol.Sven;
+                    _FutcontrolParaEditar.CategSv = _Futcontrol.CategSv;
+                    _FutcontrolParaEditar.Vnom = _Futcontrol.Vnom;
+                    _FutcontrolParaEditar.Scom = _Futcontrol.Scom;
+                    _FutcontrolParaEditar.CategSc = _Futcontrol.CategSc;
+                    _FutcontrolParaEditar.Cnom = _Futcontrol.Cnom;
+                    _FutcontrolParaEditar.Plantel = _Futcontrol.Plantel;
+                    _FutcontrolParaEditar.EdadCrias = _Futcontrol.EdadCrias;
+                    _FutcontrolParaEditar.CantHem = _Futcontrol.CantHem;
+                    _FutcontrolParaEditar.CantMach = _Futcontrol.CantMach;
+                    _FutcontrolParaEditar.PlantDest = _Futcontrol.PlantDest;
+                    _FutcontrolParaEditar.Incorp = _Futcontrol.Incorp;
+                    _FutcontrolParaEditar.Hemsta = _Futcontrol.Hemsta;
+                    _FutcontrolParaEditar.FchUsu = _Futcontrol.FchUsu;
+                    _FutcontrolParaEditar.CodUsu = _Futcontrol.CodUsu;
+                    bool respuesta = await _FutcontrolRepositorio.Editar(_FutcontrolParaEditar);
 
-
-                    //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
-                    //foreach (var row in TorosPorId)
-                    //{
-                    //    row.NombreEst = model.Nombre;
-                    //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    //}
-                    db.Entry(oFutcontrol).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
+                    if (respuesta)
+                        _Respuesta = new Respuesta<FutcontrolDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<FutcontrolDTO>(_FutcontrolParaEditar) };
+                    else
+                        _Respuesta = new Respuesta<FutcontrolDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
                 }
+                else
+                {
+                    _Respuesta = new Respuesta<FutcontrolDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<FutcontrolDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int Id)
-        {
-            Respuesta<List<Futcontrol>> oRespuesta = new Respuesta<List<Futcontrol>>();
-            //IQueryable<Toro> TorosPorId;
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Futcontrol oFutcontrol = db.Futcontrols.Find(Id);
-                    db.Remove(oFutcontrol);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach(Toro oElement in dbToros)
-                    //    {
-                    //        db.Remove(oElement);
-                    //    }
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
         }
     }
 }

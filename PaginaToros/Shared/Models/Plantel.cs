@@ -25,5 +25,6 @@ namespace PaginaToros.Shared.Models
         public string Estado { get; set; } = null!;
         public string Fecing { get; set; } = null!;
         public int Id { get; set; }
-    }
+        public Socio Socio {get;set;}
+}
 }

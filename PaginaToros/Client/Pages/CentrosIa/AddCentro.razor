@@ -1,4 +1,6 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ICentrosiumServicio _centrosiumServicio
 <style>
     .bm-title {
         font-size: 25px;
@@ -7,23 +9,23 @@
 </style>
 <div class="card">
     <div class="card-body">
-        <EditForm Model="@oCentrosium" OnValidSubmit="Guardar">
+        <EditForm Model="@oCentrosiumDTO" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Numero de centro</label>
-                    <InputText @bind-Value="@oCentrosium.Nrocen" class="form-control" placeholder="Numero de centro"></InputText>
-                    <ValidationMessage For="(()=> oCentrosium.Nrocen)" style="color:red;" />
+                    <InputText @bind-Value="@oCentrosiumDTO.Nrocen" class="form-control" placeholder="Numero de centro"></InputText>
+                    <ValidationMessage For="(()=> oCentrosiumDTO.Nrocen)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Nombre </label>
-                    <InputText @bind-Value="@oCentrosium.Nombre" class="form-control" placeholder="Nombre"></InputText>
-                    <ValidationMessage For="(()=> oCentrosium.Nombre)" style="color:red;" />
+                    <InputText @bind-Value="@oCentrosiumDTO.Nombre" class="form-control" placeholder="Nombre"></InputText>
+                    <ValidationMessage For="(()=> oCentrosiumDTO.Nombre)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Nro segun Secretaria Agric y Ganaderia</label>
-                    <InputText @bind-Value="@oCentrosium.NroCSayg" class="form-control" placeholder="Numero"></InputText>
-                    <ValidationMessage For="(()=> oCentrosium.NroCSayg)" style="color:red;" />
+                    <InputText @bind-Value="@oCentrosiumDTO.NroCSayg" class="form-control" placeholder="Numero"></InputText>
+                    <ValidationMessage For="(()=> oCentrosiumDTO.NroCSayg)" style="color:red;" />
                 </div>
             </div>
             <br />
@@ -35,8 +37,8 @@
     </div>
 </div>
 @code {
-    Centrosium oCentrosium = new();
-    Respuesta<Centrosium> oRespuesta = new();
+    CentrosiumDTO oCentrosiumDTO = new();
+    Respuesta<List<CentrosiumDTO>> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
 
@@ -46,8 +48,9 @@
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Centrosium>>($"/api/Centrosium/{Id}");
-                oCentrosium = oRespuesta.List;
+                var rt = await _centrosiumServicio.CantidadTotal();
+                oRespuesta = await _centrosiumServicio.Lista(0, rt.List);
+                oCentrosiumDTO = oRespuesta.List.Where(x=>x.Id==Id).FirstOrDefault();
             }
             catch (Exception ex)
             {
@@ -59,12 +62,12 @@
     {
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<Centrosium>("/api/Centrosium", oCentrosium);
+            await _centrosiumServicio.Crear(oCentrosiumDTO);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Centrosium>("/api/Centrosium", oCentrosium);
+            await _centrosiumServicio.Editar(oCentrosiumDTO);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

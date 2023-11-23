@@ -1,4 +1,6 @@
-﻿@if (botonclick == "vaqpr")
+﻿@using PaginaToros.Client.Servicios.Contrato;
+@inject IResin6Servicio _resin6Servicio
+@if (botonclick == "vaqpr")
 {
     <div class="row" style="width=100%;">
         <div class="col-sm">
@@ -122,8 +124,7 @@
 <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
 
 @code {
-    Resin6 oResin6  = new();
-    Respuesta<Resin6> oRespuesta = new();
+    Resin6DTO oResin6  = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public string botonclick { get; set; }
@@ -136,13 +137,14 @@
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Resin6>>($"/api/Resin6/{Id}");
-                oResin6 = oRespuesta.List;
+                var can = await _resin6Servicio.CantidadTotal();
+                var rt = await _resin6Servicio.Lista(0, can.List);
+
+                oResin6 = rt.List.Where(x=>x.Id==Id).FirstOrDefault();
 
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
             }
         }
     }
@@ -151,12 +153,12 @@
         oResin6.Nrores = numeroRes;
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<Resin6>("/api/Resin6", oResin6);
+            await _resin6Servicio.Crear(oResin6);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Resin6>("/api/Resin6", oResin6);
+            await _resin6Servicio.Editar(oResin6);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

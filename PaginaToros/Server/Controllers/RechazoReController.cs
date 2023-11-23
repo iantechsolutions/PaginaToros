@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication.OAuth.Claims;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Server.Context;
+using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
 namespace PaginaToros.Server.Controllers
@@ -10,158 +12,180 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class Resin8Controller : ControllerBase
     {
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        private readonly IMapper _mapper;
+        private readonly IResin8Repositorio _Resin8Repositorio;
+        public Resin8Controller(IResin8Repositorio Resin8Repositorio, IMapper mapper)
         {
-            Respuesta<Resin8> oRespuesta = new Respuesta<Resin8>();
-
-            try
-            {
-                using (hereford_prContext db = new())
-                {
-
-                    var lst = db.Resin8s
-                        .Where(x => x.Id == id)
-                        .First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
+            _mapper = mapper;
+            _Resin8Repositorio = Resin8Repositorio;
         }
-
-        [HttpGet("Nrores/{nro}")]
-        public IActionResult GetByRes(string nro)
+        [Route("Lista")]
+        public async Task<IActionResult> Lista(int skip, int take)
         {
-            Respuesta<List<Resin8>> oRespuesta = new Respuesta<List<Resin8>>();
+
+            Respuesta<List<Resin8DTO>> _ResponseDTO = new Respuesta<List<Resin8DTO>>();
 
             try
             {
-                using (hereford_prContext db = new())
-                {
+                List<Resin8DTO> listaPedido = new List<Resin8DTO>();
+                var a = await _Resin8Repositorio.Lista(skip, take);
 
-                    var lst = db.Resin8s
-                    .Where(x => x.Nrores == nro).ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+
+                listaPedido = _mapper.Map<List<Resin8DTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<Resin8DTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<Resin8DTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpGet]
-        public IActionResult Get()
+        [Route("Cantidad")]
+        public async Task<IActionResult> CantidadTotal()
         {
-            Respuesta<List<Resin8>> oRespuesta = new Respuesta<List<Resin8>>();
+
+            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.Resin8s.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+                var a = await _Resin8Repositorio.CantidadTotal();
+
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
-        [HttpPost]
-        public IActionResult Add(Resin8 model)
+        [HttpGet]
+        [Route("LimitadosFiltrados")]
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
         {
-            Respuesta<List<Resin8>> oRespuesta = new Respuesta<List<Resin8>>();
+
+            Respuesta<List<Resin8DTO>> _ResponseDTO = new Respuesta<List<Resin8DTO>>();
+
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Resin8 oResin8 = new Resin8();
-                    oResin8.FchRealizada = model.FchRealizada;
-                    oResin8.Nrores = model.Nrores;
-                    oResin8.Nropla = model.Nropla;
-                    oResin8.Hembras = model.Hembras;
-                    oResin8.Machos = model.Machos;
-                    oResin8.MotivoRechazo = model.MotivoRechazo;
-                    db.Resin8s.Add(oResin8);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+                var a = await _Resin8Repositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<Resin8DTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<Resin8DTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<Resin8DTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
+        }
+
+        [HttpDelete]
+        [Route("Eliminar/{id:int}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            Respuesta<string> _Respuesta = new Respuesta<string>();
+            try
+            {
+                Resin8 _Resin8Eliminar = await _Resin8Repositorio.Obtener(u => u.Id == id);
+                if (_Resin8Eliminar != null)
+                {
+
+                    bool respuesta = await _Resin8Repositorio.Eliminar(_Resin8Eliminar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
+                    else
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
+        }
+
+        [HttpPost]
+        [Route("Guardar")]
+        public async Task<IActionResult> Guardar([FromBody] Resin8DTO request)
+        {
+            Respuesta<Resin8DTO> _Respuesta = new Respuesta<Resin8DTO>();
+            try
+            {
+                Resin8 _Resin8 = _mapper.Map<Resin8>(request);
+
+                Resin8 _Resin8Creado = await _Resin8Repositorio.Crear(_Resin8);
+
+                if (_Resin8Creado.Id != 0)
+                    _Respuesta = new Respuesta<Resin8DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Resin8DTO>(_Resin8Creado) };
+                else
+                    _Respuesta = new Respuesta<Resin8DTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<Resin8DTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
         }
 
         [HttpPut]
-        public IActionResult Edit(Resin8 model)
+        [Route("Editar")]
+        public async Task<IActionResult> Editar([FromBody] Resin8DTO request)
         {
-            Respuesta<List<Resin8>> oRespuesta = new Respuesta<List<Resin8>>();
+            Respuesta<Resin8DTO> _Respuesta = new Respuesta<Resin8DTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
+                Resin8 _Resin8 = _mapper.Map<Resin8>(request);
+                Resin8 _Resin8ParaEditar = await _Resin8Repositorio.Obtener(u => u.Id == _Resin8.Id);
+
+                if (_Resin8ParaEditar != null)
                 {
-                    Resin8 oResin8 = db.Resin8s.Find(model.Id);
-                    oResin8.FchRealizada = model.FchRealizada;
-                    oResin8.Nrores = model.Nrores;
-                    oResin8.Nropla = model.Nropla;
-                    oResin8.Hembras = model.Hembras;
-                    oResin8.Machos = model.Machos;
-                    oResin8.MotivoRechazo = model.MotivoRechazo;
+                    _Resin8ParaEditar.FchRealizada = _Resin8.FchRealizada;
+                    _Resin8ParaEditar.Nrores = _Resin8.Nrores;
+                    _Resin8ParaEditar.Nropla = _Resin8.Nropla;
+                    _Resin8ParaEditar.Hembras = _Resin8.Hembras;
+                    _Resin8ParaEditar.Machos = _Resin8.Machos;
+                    _Resin8ParaEditar.MotivoRechazo = _Resin8.MotivoRechazo;
 
-                    //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
-                    //foreach (var row in TorosPorId)
-                    //{
-                    //    row.NombreEst = model.Nombre;
-                    //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    //}
-                    db.Entry(oResin8).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    bool respuesta = await _Resin8Repositorio.Editar(_Resin8ParaEditar);
 
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
+                    if (respuesta)
+                        _Respuesta = new Respuesta<Resin8DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Resin8DTO>(_Resin8ParaEditar) };
+                    else
+                        _Respuesta = new Respuesta<Resin8DTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
                 }
+                else
+                {
+                    _Respuesta = new Respuesta<Resin8DTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<Resin8DTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int Id)
-        {
-            Respuesta<List<Resin8>> oRespuesta = new Respuesta<List<Resin8>>();
-            //IQueryable<Toro> TorosPorId;
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Resin8 oResin8 = db.Resin8s.Find(Id);
-                    db.Remove(oResin8);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach(Toro oElement in dbToros)
-                    //    {
-                    //        db.Remove(oElement);
-                    //    }
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
         }
     }
 }

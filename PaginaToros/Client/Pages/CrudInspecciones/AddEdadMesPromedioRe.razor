@@ -1,4 +1,6 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject IResin4Servicio _resin4Servicio
 <style>
     .bm-title {
         font-size: 25px;
@@ -81,8 +83,7 @@
 </div>
 
 @code {
-    Resin4 oResin4 = new();
-    Respuesta<Resin4> oRespuesta = new();
+    Resin4DTO oResin4 = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public string nrores { get; set; }
@@ -94,13 +95,13 @@
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Resin4>>($"/api/Resin4/{Id}");
-                oResin4 = oRespuesta.List;
+                var can = await _resin4Servicio.CantidadTotal();
+                var rt = await _resin4Servicio.Lista(0, can.List);
+                oResin4 = rt.List.Where(x => x.Id == Id).FirstOrDefault();
 
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
             }
         }
         else
@@ -113,12 +114,12 @@
         if (Id == 0)
         {
             oResin4.Nrores = nrores;
-            await Http.PostAsJsonAsync<Resin4>("/api/Resin4", oResin4);
+            _resin4Servicio.Crear(oResin4);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Resin4>("/api/Resin4", oResin4);
+            _resin4Servicio.Editar(oResin4);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

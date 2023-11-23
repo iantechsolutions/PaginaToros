@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Server.Context;
+using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
 namespace PaginaToros.Server.Controllers
@@ -9,140 +11,185 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class TranssbController : ControllerBase
     {
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        private readonly IMapper _mapper;
+        private readonly ITranssbRepositorio _TranssbRepositorio;
+        public TranssbController(ITranssbRepositorio TranssbRepositorio, IMapper mapper)
         {
-            Respuesta<Transsb> oRespuesta = new Respuesta<Transsb>();
+            _mapper = mapper;
+            _TranssbRepositorio = TranssbRepositorio;
+        }
+        [Route("Lista")]
+        public async Task<IActionResult> Lista(int skip, int take)
+        {
+
+            Respuesta<List<TranssbDTO>> _ResponseDTO = new Respuesta<List<TranssbDTO>>();
 
             try
             {
-                using (hereford_prContext db = new())
-                {
+                List<TranssbDTO> listaPedido = new List<TranssbDTO>();
+                var a = await _TranssbRepositorio.Lista(skip, take);
 
-                    var lst = db.Transsbs
-                .Where(x => x.Id == id)
-                .First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+
+                listaPedido = _mapper.Map<List<TranssbDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<TranssbDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<TranssbDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpGet]
-        public IActionResult Get()
+        [Route("Cantidad")]
+        public async Task<IActionResult> CantidadTotal()
         {
-            Respuesta<List<Transsb>> oRespuesta = new Respuesta<List<Transsb>>();
+
+            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.Transsbs.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+                var a = await _TranssbRepositorio.CantidadTotal();
+
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
-        [HttpPost]
-        public IActionResult Add(Transsb model)
+        [HttpGet]
+        [Route("LimitadosFiltrados")]
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
         {
-            Respuesta<List<Transsb>> oRespuesta = new Respuesta<List<Transsb>>();
+
+            Respuesta<List<TranssbDTO>> _ResponseDTO = new Respuesta<List<TranssbDTO>>();
+
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Transsb oTranssb = new Transsb();
-                    oTranssb.NroTrans = model.NroTrans;
-                    oTranssb.Fectrans = model.Fectrans;
-                    oTranssb.NroOrden = model.NroOrden;
-                    oTranssb.Sven = model.Sven;
-                    oTranssb.CategSv = model.CategSv;
-                    oTranssb.Vnom = model.Vnom;
-                    oTranssb.Scom = model.Scom;
-                    oTranssb.CategSc = model.CategSc;
-                    oTranssb.Cnom = model.Cnom;
-                    oTranssb.Ecod = model.Ecod;
-                    oTranssb.FchUsu = model.FchUsu;
-                    oTranssb.CodUsu = model.CodUsu;
-                    db.Transsbs.Add(oTranssb);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+                var a = await _TranssbRepositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<TranssbDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<TranssbDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<TranssbDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
+        }
+
+        [HttpDelete]
+        [Route("Eliminar/{id:int}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            Respuesta<string> _Respuesta = new Respuesta<string>();
+            try
+            {
+                Transsb _TranssbEliminar = await _TranssbRepositorio.Obtener(u => u.Id == id);
+                if (_TranssbEliminar != null)
+                {
+
+                    bool respuesta = await _TranssbRepositorio.Eliminar(_TranssbEliminar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
+                    else
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
+        }
+
+        [HttpPost]
+        [Route("Guardar")]
+        public async Task<IActionResult> Guardar([FromBody] TranssbDTO request)
+        {
+            Respuesta<TranssbDTO> _Respuesta = new Respuesta<TranssbDTO>();
+            try
+            {
+                Transsb _Transsb = _mapper.Map<Transsb>(request);
+
+                Transsb _TranssbCreado = await _TranssbRepositorio.Crear(_Transsb);
+
+                if (_TranssbCreado.Id != 0)
+                    _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TranssbDTO>(_TranssbCreado) };
+                else
+                    _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
         }
 
         [HttpPut]
-        public IActionResult Edit(Transsb model)
+        [Route("Editar")]
+        public async Task<IActionResult> Editar([FromBody] TranssbDTO request)
         {
-            Respuesta<List<Transsb>> oRespuesta = new Respuesta<List<Transsb>>();
+            Respuesta<TranssbDTO> _Respuesta = new Respuesta<TranssbDTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Transsb oTranssb = db.Transsbs.Find(model.Id);
-                    oTranssb.NroTrans = model.NroTrans;
-                    oTranssb.Fectrans = model.Fectrans;
-                    oTranssb.NroOrden = model.NroOrden;
-                    oTranssb.Sven = model.Sven;
-                    oTranssb.CategSv = model.CategSv;
-                    oTranssb.Vnom = model.Vnom;
-                    oTranssb.Scom = model.Scom;
-                    oTranssb.CategSc = model.CategSc;
-                    oTranssb.Cnom = model.Cnom;
-                    oTranssb.Ecod = model.Ecod;
-                    oTranssb.FchUsu = model.FchUsu;
-                    oTranssb.CodUsu = model.CodUsu;
-                    db.Entry(oTranssb).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                Transsb _Transsb = _mapper.Map<Transsb>(request);
+                Transsb _TranssbParaEditar = await _TranssbRepositorio.Obtener(u => u.Id == _Transsb.Id);
 
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int Id)
-        {
-            Respuesta<List<Transsb>> oRespuesta = new Respuesta<List<Transsb>>();
-            //IQueryable<Toro> TorosPorId;
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
+                if (_TranssbParaEditar != null)
                 {
-                    Transsb oTranssb = db.Transsbs.Find(Id);
-                    db.Remove(oTranssb);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach(Toro oElement in dbToros)
-                    //    {
-                    //        db.Remove(oElement);
-                    //    }
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
+                    _TranssbParaEditar.NroTrans = _Transsb.NroTrans;
+                    _TranssbParaEditar.Fectrans = _Transsb.Fectrans;
+                    _TranssbParaEditar.NroOrden = _Transsb.NroOrden;
+                    _TranssbParaEditar.Sven = _Transsb.Sven;
+                    _TranssbParaEditar.CategSv = _Transsb.CategSv;
+                    _TranssbParaEditar.Vnom = _Transsb.Vnom;
+                    _TranssbParaEditar.Scom = _Transsb.Scom;
+                    _TranssbParaEditar.CategSc = _Transsb.CategSc;
+                    _TranssbParaEditar.Cnom = _Transsb.Cnom;
+                    _TranssbParaEditar.Ecod = _Transsb.Ecod;
+                    _TranssbParaEditar.FchUsu = _Transsb.FchUsu;
+                    _TranssbParaEditar.CodUsu = _Transsb.CodUsu;
+                    bool respuesta = await _TranssbRepositorio.Editar(_TranssbParaEditar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TranssbDTO>(_TranssbParaEditar) };
+                    else
+                        _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
                 }
+                else
+                {
+                    _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
         }
     }
 }

@@ -24,7 +24,25 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<JwtAuthenticatorProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticatorProvider>(provider => provider.GetRequiredService<JwtAuthenticatorProvider>());
 builder.Services.AddScoped<ILoginServices, JwtAuthenticatorProvider>(provider => provider.GetRequiredService<JwtAuthenticatorProvider>());
+builder.Services.AddScoped<ICentrosiumServicio, CentrosiumServicio>();
+builder.Services.AddScoped<ICertifsemanServicio, CertifsemanServicio>();
+builder.Services.AddScoped<IDesepla1Servicio, Desepla1Servicio>();
+builder.Services.AddScoped<IDesepla3Servicio, Desepla3Servicio>();
+builder.Services.AddScoped<IEstableServicio, EstableServicio>();
+builder.Services.AddScoped<IFutcontrolServicio, FutcontrolServicio>();
+builder.Services.AddScoped<IInspectServicio, InspectServicio>();
+builder.Services.AddScoped<IPlantelServicio, PlantelServicio>();
+builder.Services.AddScoped<IResin1Servicio, Resin1Servicio>();
+builder.Services.AddScoped<IResin2Servicio, Resin2Servicio>();
+builder.Services.AddScoped<IResin3Servicio, Resin3Servicio>();
+builder.Services.AddScoped<IResin4Servicio, Resin4Servicio>();
+builder.Services.AddScoped<IResin6Servicio, Resin6Servicio>();
+builder.Services.AddScoped<IResin8Servicio, Resin8Servicio>();
+builder.Services.AddScoped<ISocioServicio, SocioServicio>();
+builder.Services.AddScoped<ISolici1Servicio, Solici1Servicio>();
 builder.Services.AddScoped<ITorosServicio, TorosServicio>();
+builder.Services.AddScoped<ITransanServicio, TransanServicio>();
+builder.Services.AddScoped<ITranssbServicio, TranssbServicio>();
 
 await builder.Build().RunAsync();
 

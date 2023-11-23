@@ -2,6 +2,7 @@
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
+using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 
 namespace PaginaToros.Server.Repositorio.Implementacion
@@ -14,18 +15,17 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             _dbContext = dbContext;
         }
-        public async Task<List<Torosuni>> Lista(int page, int count)
+        public async Task<List<Torosuni>> Lista(int skip, int take)
         {
 
             try
             {
-                int pageSize = count;
-                int skipAmount = (page - 1) * pageSize; // Calculate the number of items to skip
 
                 // Use Skip and Take for paging, and include Socio
                 return await _dbContext.Torosunis.Include(t => t.Socio)
-                                                 .Skip(skipAmount)
-                                                 .Take(pageSize)
+                                                 .OrderByDescending(t => t.Id)
+                                                 .Skip(skip)
+                                                 .Take(take)
                                                  .ToListAsync();
             }
             catch
@@ -46,6 +46,31 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+        public async Task<(List<Torosuni>,int)> LimitadosFiltrados(int skip, int take,string filtro = null)
+        {
+            var p = Expression.Parameter(typeof(Torosuni));
+            var exp = DynamicExpressionParser.ParseLambda<Torosuni, bool>(ParsingConfig.Default, false, filtro);
+            try
+            {
+                Console.WriteLine(filtro);
+                var filtrado = _dbContext.Torosunis.OrderByDescending(t => t.Id)
+                                 .Include(t => t.Socio)
+                                 .Where(exp);
+
+                var cant = filtrado.Count();
+
+                var lista = await filtrado.Skip(skip)
+                                 .Take(take)
+                                 .ToListAsync();
+                return (lista, cant);
+                                 
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
         public async Task<bool> Eliminar(Torosuni entidad)
         {
             try
@@ -94,6 +119,18 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     : _dbContext.Torosunis.Where(filtro);
 
             return queryEntidad; 
+        }
+
+        public async Task<int> CantidadTotal()
+        {
+            try
+            {
+                return _dbContext.Torosunis.Count();
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }

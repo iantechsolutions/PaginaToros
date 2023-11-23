@@ -35,5 +35,7 @@ namespace PaginaToros.Shared.Models
         public string Reten { get; set; } = "0";
         public string Edicion { get; set; } = "0";
         public string Nrocri { get; set; } = null!;
+        public Socio Socio { get; set; }
+        public Plantel Plantel { get; set; }
     }
 }

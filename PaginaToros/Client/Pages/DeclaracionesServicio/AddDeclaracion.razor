@@ -1,4 +1,11 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject IDesepla1Servicio _desepla1Servicio
+@inject IDesepla3Servicio _desepla3Servicio
+@inject ISocioServicio _socioServicio
+@inject IPlantelServicio _plantelServicio
+@inject ITorosServicio _torosServicio
+@inject ICertifsemanServicio _certifsemanServicio
 <style>
     .td
     {
@@ -148,7 +155,7 @@
                     <div class="col-sm">
                             <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros</RadzenText>
                             <br />
-                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod)" TItem="Torosuni" SelectionMode="DataGridSelectionMode.Single" 
+                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod)" TItem="TorosuniDTO" SelectionMode="DataGridSelectionMode.Single" 
                             RowClick="@((args) => AddToSelectedToros(args))" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                             <Columns>
                                 <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Estado" Width="3.6%">
@@ -221,7 +228,7 @@
                     <div class="col-sm">
                     <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros</RadzenText>
                     <br/>
-                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod)" TItem="Torosuni" ColumnWidth="3.33%" SelectionMode="DataGridSelectionMode.Single"
+                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod)" TItem="TorosuniDTO" ColumnWidth="3.33%" SelectionMode="DataGridSelectionMode.Single"
                                             RowClick="@((args) => AddToSelectedToros(args))" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                         <Columns>
                             <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Estado" Width="3.6%">
@@ -306,12 +313,12 @@
                             <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros IA</RadzenText>
                             <br />
                             <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificados.Where(x=>x.Nrocri==socioSeleccionado.Scod)" SelectionMode="DataGridSelectionMode.Single" RowClick="@((args) => AddToSelectedCertif(args))"
-                                            TItem="Certifseman" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" >
+                                            TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" >
                             <Columns>
-                                <RadzenDataGridColumn TItem="Certifseman" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
-                                <RadzenDataGridColumn TItem="Certifseman" Property="Hba" Title="HBA" Width="7.34%" />
-                                <RadzenDataGridColumn TItem="Certifseman" Property="Tatpart" Title="Tatuaje" Width="7%" />
-                                <RadzenDataGridColumn TItem="Certifseman" Property="NrDosi" Title="Dosis Reman Totales" Width="7.34%" />
+                                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
+                                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="7.34%" />
+                                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="7%" />
+                                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosi" Title="Dosis Reman Totales" Width="7.34%" />
                             </Columns>
                         </RadzenDataGrid>
                     </div>
@@ -386,11 +393,10 @@
 </div>
 
 @code {
-    Desepla1 oDeclaracion = new();
-    Respuesta<Desepla1> oRespuesta = new();
-    List<Socio> socios = new();
-    List<Plantel> Planteles = new();
-    List<Desepla3> seleccionFinal = new();
+    Desepla1DTO oDeclaracion = new();
+    List<SocioDTO> socios = new();
+    List<PlantelDTO> Planteles = new();
+    List<Desepla3DTO> seleccionFinal = new();
     RadzenDataGrid<Desepla3Data> gridToro1;
     RadzenDataGrid<Desepla3Data> gridToro2;
     RadzenDataGrid<Desepla3Data> gridCertif;
@@ -402,39 +408,47 @@
     Plantel? Plantelseleccionado = null;
     List<string> tipos = new List<string> { "Natural", "Natural a Corral", "Inseminacion c/celo", "Inseminacion c/celo y rep", "Inseminacion c/p y rep", "IATF c/rep" };
     DateTime FechaTemp = DateTime.Now;
-    List<Torosuni> toros = new();
+    List<TorosuniDTO> toros = new();
     List<Desepla3Data> torosSeleccionados = new();
-    List<Certifseman> certificados = new();
+    List<CertifsemanDTO> certificados = new();
     List<Desepla3Data> certificadosSeleccionados = new();
     string tipoTemp = "";
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
-        socios = rta.List;
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Plantel>>>($"/api/Plantel");
+        var c = await _socioServicio.CantidadTotal();
+        var r = await _socioServicio.Lista(0,c.List);
+        socios = r.List;
+
+        var ca = await _plantelServicio.CantidadTotal();
+        var rt = await _plantelServicio.Lista(0,ca.List);
         Planteles = rt.List;
-        var r = await Http.GetFromJsonAsync<Respuesta<List<Torosuni>>>($"/api/Torosuni");
-        toros = r.List;
-        var rtaa = await Http.GetFromJsonAsync<Respuesta<List<Certifseman>>>($"/api/Certifseman");
+
+        var can = await _torosServicio.CantidadTotal();
+        var rta = await _torosServicio.Lista(0,can.List);
+        toros = rta.List;
+
+        var cant = await _certifsemanServicio.CantidadTotal();
+        var rtaa = await _certifsemanServicio.Lista(0, cant.List);
         certificados = rtaa.List;
         if (Id != 0)
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Desepla1>>($"/api/desepla1/{Id}");
-                oDeclaracion = oRespuesta.List;
-                socioSeleccionado = socios.Where(x=>x.Scod==oDeclaracion.Nrocri).FirstOrDefault();
-                Plantelseleccionado = Planteles.Where(x => x.Placod == oDeclaracion.Nroplan).FirstOrDefault();
+                var canD = await _desepla1Servicio.CantidadTotal();
+                var rtaD = await _desepla1Servicio.Lista(0, canD.List);
+                oDeclaracion = rtaD.List.Where(x => x.Id == Id).FirstOrDefault();
+                socioSeleccionado = oDeclaracion.Socio;
+                Plantelseleccionado = oDeclaracion.Plantel;
 
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
             }
         }
         else
         {
-            var resp = await Http.GetFromJsonAsync<Respuesta<List<Desepla1>>>($"/api/Desepla1");
+            var ctaD = await _desepla1Servicio.CantidadTotal();
+            var resp = await _desepla1Servicio.Lista(0, c.List);
             var nroDecAnterior = resp.List.OrderByDescending(x => x.Id).First().Nrodec;
             nrodec = Int32.Parse(nroDecAnterior)+1.ToString();
             oDeclaracion.Fecdecl = DateTime.Now;
@@ -463,7 +477,7 @@
                 multiplicador = 0.8;
                 break;
         }
-        List<Certifseman> certificadosAlterados = new();
+        List<CertifsemanDTO> certificadosAlterados = new();
         foreach(var adaptacion in torosSeleccionados)
         {
             adaptacion.original.Desde = adaptacion.Desde.ToString("yyy-MM-dd");
@@ -487,21 +501,26 @@
         {
             foreach(var cert in certificadosAlterados)
             {
-                await Http.PutAsJsonAsync<Certifseman>("/api/Certifseman", cert);
+                await _certifsemanServicio.Editar(cert);
             }
             if (oDeclaracion.Nrodec == null)
             {
                 oDeclaracion.Nrodec = "0";
             }
-            await Http.PostAsJsonAsync<List<Desepla3>>("/api/desepla3/lista", seleccionFinal);
-            await Http.PostAsJsonAsync<Desepla1>("/api/desepla1", oDeclaracion);
+            foreach(var dese in seleccionFinal)
+            {
+                await _desepla3Servicio.Crear(dese);
+            }
+            await _desepla1Servicio.Crear(oDeclaracion);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-
-            await Http.PutAsJsonAsync<List<Desepla3>>("/api/desepla3", seleccionFinal);
-            await Http.PutAsJsonAsync<Desepla1>("/api/desepla1", oDeclaracion);
+            foreach (var dese in seleccionFinal)
+            {
+                await _desepla3Servicio.Editar(dese);
+            }
+            await _desepla1Servicio.Editar(oDeclaracion);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
@@ -510,22 +529,22 @@
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
 
     }
-    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
-    private async Task<IEnumerable<Plantel>> BusquedaPlanteles(string searchText)
+    private async Task<IEnumerable<PlantelDTO>> BusquedaPlanteles(string searchText)
     {
         return await Task.FromResult(Planteles.Where(x => x.Nrocri==socioSeleccionado.Scod && x.Placod.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
-    protected async Task AddToSelectedToros(DataGridRowMouseEventArgs<Torosuni> args)
+    protected async Task AddToSelectedToros(DataGridRowMouseEventArgs<TorosuniDTO> args)
     {
         var toro = args.Data;
         torosSeleccionados.Add(
         new Desepla3Data
         {
-            original = new Desepla3
+            original = new Desepla3DTO
             {
                 Hardb = toro.Hba,
                 Nrodec = nrodec,
@@ -545,13 +564,13 @@
         catch{}
     }
 
-    protected void AddToSelectedCertif(DataGridRowMouseEventArgs<Certifseman> args)
+    protected void AddToSelectedCertif(DataGridRowMouseEventArgs<CertifsemanDTO> args)
     {
         var certif = args.Data;
         certificadosSeleccionados.Add(
         new Desepla3Data
         {
-            original = new Desepla3
+            original = new Desepla3DTO
             {
                 Hardb = certif.Hba,
                 Nrodec = nrodec,
@@ -569,7 +588,7 @@
     }
     public class Desepla3Data
     {
-        public Desepla3 original {get;set;}
+        public Desepla3DTO original {get;set;}
         public DateTime Desde { get; set; } = DateTime.Now;
         public DateTime Hasta { get; set; } = DateTime.Now;
     }

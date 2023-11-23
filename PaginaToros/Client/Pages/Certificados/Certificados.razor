@@ -1,7 +1,8 @@
 ﻿@page "/certificados"
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
-@inject HttpClient Http
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ICertifsemanServicio _certifsemanServicio
 <style>
 
     .rz-cell-data,
@@ -36,33 +37,28 @@
     <br />
     <br />
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-        <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+        <RadzenDataGrid AllowFiltering="allowFiltering" LoadData="LoadData" IsLoading=@isLoading AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@listaMerged" TItem="ClaseTabla" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Data="@oRespuesta.List" Count="cantotal" TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="Tipo" Title="Tipo cert." Width="6%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreCentro" Title="Nombre del centro" Width="7.34%" />
-               @* <RadzenDataGridColumn TItem="ClaseTabla" Property="Fecvta" Title="Fecha de Venta" Width="7.34%">
-                    <Template Context="data">
-                        @(data.FechaVenta.ToString("dd/MM/yyyy"))
-                    </Template>
-                </RadzenDataGridColumn>*@
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreSocio" Title="Socio" Width="7.34%"/>
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="Tatuaje" Title="Tatuaje" Width="5.3%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="HBA" Title="HBA" Width="5.3%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="Nombre" Title="Nombre" Width="8.6%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="ADN" Title="Tip/ADN" Width="5.3%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="NroMacho" Title="Nro Macho Dador" Width="7.34%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="CantDosiOr" Title="Cant. de dosis" Width="6.6%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="CantDosi" Title="Cant. dosis restantes" Width="7.34%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="Envase" Title="Tipo de Envase" Width="7.34%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="Variedad" Title="Variedad" Width="5.3%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipoCert" Title="Tipo cert." Width="6%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Centro.Nombre" Title="Nombre del centro" Width="7.34%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%"/>
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="5.3%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="5.3%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre" Width="8.6%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrTsan" Title="Tip/ADN" Width="5.3%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrInsd" Title="Nro Macho Dador" Width="7.34%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosiOr" Title="Cant. de dosis" Width="6.6%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosi" Title="Cant. dosis restantes" Width="7.34%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipEnv" Title="Tipo de Envase" Width="7.34%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Variedad" Title="Variedad" Width="5.3%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
@@ -90,51 +86,23 @@ else
 }
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<ClaseTabla>? grid;
+    public RadzenDataGrid<CertifsemanDTO>? grid;
     int currentPage;
+    int cantotal;
+    bool isLoading = false;
     public bool allowFiltering = false;
-    public string Url = "/api/Certifseman";
-    List<Centrosium> centros = new();
-    List<ClaseTabla> listaMerged = new();
-    List<Socio> socios = new();
-    public Respuesta<List<Certifseman>> oRespuesta = new Respuesta<List<Certifseman>>();
+    List<CentrosiumDTO> centros = new();
+    public Respuesta<List<CertifsemanDTO>> oRespuesta = new Respuesta<List<CertifsemanDTO>>();
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
-        socios = rta.List;
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Centrosium>>>("/api/Centrosium");
-        centros = rt.List;
         await Get();
     }
     async Task Get()
     {
-        var jsonSerializerOptions = new JsonSerializerOptions
-        {
-            Converters = { new PaginaToros.Shared.JsonConversor.DateOnlyJsonConverter() }
-        };
-
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Certifseman>>>("/api/Certifseman");
-        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
-        oRespuesta = respuesta;
-
-        listaMerged = oRespuesta.List.Select(cert => new ClaseTabla
-            {
-                Id = cert.Id,
-                Tipo = cert.TipoCert,
-                FechaVenta = cert.Fecvta,
-                NombreCentro = centros.FirstOrDefault(x => x.Nrocen == cert.Nrocen)?.Nombre,
-                NombreSocio = socios.FirstOrDefault(x => x.Scod == cert.Scod)?.Nombre,
-                Tatuaje = cert.Tatpart,
-                HBA = cert.Hba,
-                Nombre = cert.NomDad,
-                ADN = cert.NrTsan,
-                NroMacho = cert.NrInsd,
-                CantDosi = cert.NrDosi,
-                CantDosiOr = cert.NrDosiOr,
-                Envase = cert.TipEnv,
-                Variedad = cert.Variedad,
-            }).ToList();
-
+        oRespuesta = await _certifsemanServicio.Lista(0, 15);
+        var rt = await _certifsemanServicio.CantidadTotal();
+        cantotal = rt.List;
+        
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -146,15 +114,20 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/Certifseman/{id}");
-        await Get();
-        if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+        var response = await _certifsemanServicio.Eliminar(id);
+        if (response)
         {
-            await grid.GoToPage(currentPage - 1);
-        }
-        else if (grid.Count != 0)
-        {
-            await grid.GoToPage(currentPage);
+            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
+
+            if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage - 1);
+            }
+            else if (grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage);
+            }
+            StateHasChanged();
         }
 
     }
@@ -235,48 +208,23 @@ else
             }
         }
     }
-    // async Task gotoinfo(int id)
-    // {
-    //     currentPage = grid.CurrentPage;
-    //     var parameters = new ModalParameters();
-    //     var options = new ModalOptions()
-    //         {
-    //             HideHeader = true,
-    //             HideCloseButton = true,
-    //             Size = ModalSize.ExtraLarge
-    //         };
-    //     parameters.Add(nameof(InfoEstablecimiento.id), id);
-    //     var formModal = Modal.Show<InfoEstablecimiento>("", parameters, options);
-    //     var result = await formModal.Result;
 
-    //     if (result.Cancelled)
-    //     {
-    //         Console.WriteLine("Modal was cancelled");
-    //         await grid.GoToPage(currentPage);
-    //     }
-    //     else
-    //     {
-    //         await Get();
-    //         await grid.GoToPage(currentPage);
-    //     }
-    // }
-
-    public class ClaseTabla
+    async Task LoadData(LoadDataArgs args)
     {
-        public int Id { get; set; }
-        public string? Tipo { get; set; }
-        public DateTime? FechaVenta { get; set; }
-        public string? NombreCentro { get; set; }
-        public string? NombreSocio { get; set; }
-        public string? Tatuaje { get; set; }
-        public string? HBA { get; set; }
-        public string? Nombre { get; set; }
-        public string? ADN { get; set; }
-        public string? NroMacho { get; set; }
-        public int? CantDosi { get; set; }
-        public string? CantDosiOr { get; set; }
-        public string? Envase { get; set; }
-        public string? Variedad { get; set; }
+        isLoading = true;
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+        }
+        else
+        {
+            oRespuesta = await _certifsemanServicio.Lista(args.Skip.Value, args.Top.Value);
+            var can = await _certifsemanServicio.CantidadTotal();
+            cantotal = can.List;
+        }
+
+        isLoading = false;
     }
 
 }

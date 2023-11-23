@@ -1,6 +1,18 @@
 ﻿@page "/inforeporte/{Id:int}"
 @using Blazored.Typeahead
 @using PaginaToros.Client.Pages.CrudInspecciones
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ISocioServicio _socioServicio
+@inject IResin8Servicio _resin8Servicio
+@inject IResin3Servicio _resin3Servicio
+@inject IResin4Servicio _resin4Servicio
+@inject IResin6Servicio _resin6Servicio
+@inject IInspectServicio _inspectServicio
+@inject IResin1Servicio _resin1Servicio
+@inject IEstableServicio _estableServicio
+@inject IPlantelServicio _plantelServicio
+@inject ISolici1Servicio _solici1Servicio
+@inject IResin2Servicio _resin2Servicio
 <style>
     .bm-title {
         font-size: 25px;
@@ -31,7 +43,7 @@
             <label>Solicitud</label>
             @if (Id != 0 && socioSeleccionado != null)
             {
-                        <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.Nrosol" class="w-100"></RadzenNumeric>
+                <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.Nrosol" class="w-100"></RadzenNumeric>
             }
             else
             {
@@ -483,38 +495,38 @@ else
 
     bool tempReinspeccion = false;
 
-    List<Socio> socios = new();
-    Socio? socioSeleccionado = null;
+    List<SocioDTO> socios = new();
+    SocioDTO? socioSeleccionado = null;
 
-    List<Resin8> rechazos = new();
-    List<Resin3> mtos = new();
-    Resin6 hemyma = new();
+    List<Resin8DTO> rechazos = new();
+    List<Resin3DTO> mtos = new();
+    Resin6DTO hemyma = new();
 
-    Resin4 promediohembra = new();
-    Resin4 promediomacho = new();
+    Resin4DTO promediohembra = new();
+    Resin4DTO promediomacho = new();
 
-    List<Inspect> Inspects = new();
-    Inspect? inspectorSeleccionado = new();
+    List<InspectDTO> Inspects = new();
+    InspectDTO? inspectorSeleccionado = new();
 
-    List<Resin1> resultados = new();
-    List<Estable> establecimientos = new();
+    List<Resin1DTO> resultados = new();
+    List<EstableDTO> establecimientos = new();
 
-    List<Plantel> Planteles = new();
-    Plantel? Plantelseleccionado = new();
+    List<PlantelDTO> Planteles = new();
+    PlantelDTO? Plantelseleccionado = new();
 
-    Estable? establecimientoSeleccionado = null;
-    List<Resin4> promedios = new();
-    List<Solici1> solicitudes = new();
-    Solici1? solicitudSeleccionada = null;
+    EstableDTO? establecimientoSeleccionado = null;
+    List<Resin4DTO> promedios = new();
+    List<Solici1DTO> solicitudes = new();
+    Solici1DTO? solicitudSeleccionada = null;
     bool confirmado = false;
     bool cargando = true;
-    Resin1? oResin1 = new();
+    Resin1DTO? oResin1 = new();
     DateTime fechaTemp = DateTime.Now;
-    Respuesta<Resin1> oRespuesta = new();
-    Resin2 estadoAnterior = new();
-    Resin2 salidasFinal = new();
-    Resin2 entradasFinal = new();
-    Resin2 estadoFinal = new();
+    Respuesta<Resin1DTO> oRespuesta = new();
+    Resin2DTO estadoAnterior = new();
+    Resin2DTO salidasFinal = new();
+    Resin2DTO entradasFinal = new();
+    Resin2DTO estadoFinal = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     Dictionary<string, string> traductor = new Dictionary<string, string>{
@@ -543,26 +555,28 @@ else
     protected override async Task OnInitializedAsync()
     {
         try{
-            var rtaaa = await Http.GetFromJsonAsync<Respuesta<List<Inspect>>>("/api/Inspect");
+
+            var rtaaa = await _inspectServicio.Lista(0, 1000000);
             Inspects = rtaaa.List;
-            var plan = await Http.GetFromJsonAsync<Respuesta<List<Plantel>>>("/api/Plantel");
+            var plan = await _plantelServicio.Lista(0, 1000000);
             Planteles = plan.List;
             if (Id != 0)
             {
-                var res = await Http.GetFromJsonAsync<Respuesta<Resin1>>($"/api/Resin1/{Id}");
-                oResin1 = res.List;
+                var res = await _resin1Servicio.Lista(0,1000000);
+                oResin1 = res.List.Where(x=>x.Id==Id).FirstOrDefault();
 
-                var socio = await Http.GetFromJsonAsync<Respuesta<Socio>>($"/api/Socio/codigo/{oResin1.Scod}");
-                socioSeleccionado = socio.List;
+                var rt = await _socioServicio.Lista(0, 1000000);
+                socioSeleccionado = rt.List.Where(x=>x.Scod==oResin1.Scod).FirstOrDefault();
 
-                var sol = await Http.GetFromJsonAsync<Respuesta<Solici1>>($"/api/Solici1/nrores/{oResin1.Nrores}");
-                solicitudSeleccionada = sol.List;
+                var sol = await _solici1Servicio.Lista(0,1000000);
+                solicitudSeleccionada = sol.List.Where(x=>x.Nrosol==oResin1.Nrores).FirstOrDefault();
 
-                var estable = await Http.GetFromJsonAsync<Respuesta<Estable>>($"/api/Establecimiento/codigo/{solicitudSeleccionada.Codest}");
-                establecimientoSeleccionado = estable.List;
+                var estable = await _estableServicio.Lista(0, 1000000);
+                establecimientoSeleccionado = estable.List.Where(x=>x.Ecod==oResin1.Estcod).FirstOrDefault();
 
                 inspectorSeleccionado = Inspects.Where(x => x.Icod == oResin1.Icod).FirstOrDefault();
                 Plantelseleccionado = Planteles.Where(x =>x.Placod==oResin1.Nropla).FirstOrDefault();
+
                 await updateEstadoHistorico(solicitudSeleccionada.Nrosol);
 
                 await updatePromedios(solicitudSeleccionada.Nrosol);
@@ -576,13 +590,13 @@ else
                 confirmado = true;
             }
             else{
-                var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
-                socios = rta.List.ToList();
-                var rtaa = await Http.GetFromJsonAsync<Respuesta<List<Solici1>>>("/api/Solici1/pendientes");
+                var rta = await _socioServicio.Lista(0, 1000000);
+                socios = rta.List;
+                var rtaa = await _solici1Servicio.Lista(0, 1000000);
                 solicitudes = rtaa.List;
-                var rt = await Http.GetFromJsonAsync<Respuesta<List<Resin1>>>("/api/Resin1");
+                var rt = await _resin1Servicio.Lista(0, 1000000);
                 resultados = rt.List;
-                var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>($"/api/Establecimiento");
+                var respuesta = await _estableServicio.Lista(0, 1000000);
                 establecimientos = respuesta.List;
 
             }
@@ -606,12 +620,12 @@ else
         {
             oResin1.Nropla = socioSeleccionado.Placod;
             oResin1.Freali = fechaTemp;
-            await Http.PostAsJsonAsync<Resin1>("/api/Resin1", oResin1);
+            await _resin1Servicio.Crear(oResin1);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Resin1>("/api/Resin1", oResin1);
+            await _resin1Servicio.Editar(oResin1);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
@@ -623,7 +637,7 @@ else
     }
     async Task crearHistorico(string nrores)
     {
-        var temp = new Resin2();
+        var temp = new Resin2DTO();
         temp.Ea1 = Convert.ToInt32(Plantelseleccionado.Varede);
         temp.Ea2 = Convert.ToInt32(Plantelseleccionado.Vqcsrd);
         temp.Ea3 = Convert.ToInt32(Plantelseleccionado.Vqssrd);
@@ -631,18 +645,19 @@ else
         temp.Ea5 = Convert.ToInt32(Plantelseleccionado.Vqcsrp);
         temp.Ea6 = Convert.ToInt32(Plantelseleccionado.Vqssrp);
         temp.Nrores = nrores;
-        await Http.PostAsJsonAsync<Resin2>("/api/Resin2", temp);
+        await _resin2Servicio.Crear(temp);
     }
 
 
     async Task updatePromedios(string nrores)
     {
-        var rtt = await Http.GetFromJsonAsync<Respuesta<List<Resin4>>>($"/api/Resin4/nrores/{nrores}");
-        if (rtt.List.Count() > 0)
+        var rt = await _resin4Servicio.Lista(0, 1000000);
+        var rtt = rt.List.Where(x => x.Nrores == nrores);
+        if (rtt.Count() > 0)
         {
             try{
-                promediohembra = rtt.List.Where(x => x.Sexo == "H").First();
-                promediomacho = rtt.List.Where(x => x.Sexo == "M").First();
+                promediohembra = rtt.Where(x => x.Sexo == "H").First();
+                promediomacho = rtt.Where(x => x.Sexo == "M").First();
             }
             catch
             {
@@ -652,12 +667,12 @@ else
     }
     async Task updateRechazos(string nrores)
     {
-        var res = await Http.GetFromJsonAsync<Respuesta<List<Resin8>>>($"/api/Resin8/nrores/{nrores}");
+        var res = await _resin8Servicio.Lista(0, 1000000);
         rechazos = res.List;
     }
     async Task updateMovimientos(string nrores, string condicion)
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Resin3>>>($"/api/Resin3/nrores/{nrores}");
+        var respuesta = await _resin3Servicio.Lista(0, 1000000);
         mtos = respuesta.List;
 
         foreach (var mov in mtos)
@@ -694,7 +709,7 @@ else
             Plantelseleccionado.Varepr = estadoFinal.Ea4;
             Plantelseleccionado.Vqcsrp = estadoFinal.Ea5;
             Plantelseleccionado.Vqssrp = estadoFinal.Ea6;
-            await Http.PutAsJsonAsync<Plantel>("/api/Plantel", Plantelseleccionado);
+            await _plantelServicio.Editar(Plantelseleccionado);
         }
 
     }
@@ -702,8 +717,9 @@ else
     {
         try
         {
-            var rta = await Http.GetFromJsonAsync<Respuesta<List<Resin6>>>($"/api/Resin6/nrores/{nrores}");
-            hemyma = rta.List.First();
+            var rt = await _resin6Servicio.Lista(0, 1000000);
+            var rta = rt.List.Where(x=>x.Nrores==nrores);
+            hemyma = rta.FirstOrDefault();
         }
         catch { }
     }
@@ -711,8 +727,9 @@ else
     {
         try
         {
-            var rt = await Http.GetFromJsonAsync<Respuesta<List<Resin2>>>($"/api/Resin2/nrores/{nrores}");
-            estadoAnterior = rt.List.First();
+            var r = await _resin2Servicio.Lista(0, 1000000);
+            var rt = r.List.Where(x=>x.Nrores==nrores);
+            estadoAnterior = rt.First();
         }
         catch (Exception ex)
         {
@@ -893,23 +910,23 @@ else
         }
     }
 
-    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
-    private async Task<IEnumerable<Solici1>> BusquedaSolicitudes(string searchText)
+    private async Task<IEnumerable<Solici1DTO>> BusquedaSolicitudes(string searchText)
     {
         var estableposibles = establecimientos.Where(t => t.Codsoc == socioSeleccionado.Scod);
         return await Task.FromResult(solicitudes.Where(x => x.Nrosol.ToString().Contains(searchText) && estableposibles.Any(t => t.Ecod == x.Codest)).ToList());
     }
 
-    private async Task<IEnumerable<Inspect>> BusquedaInspects(string searchText)
+    private async Task<IEnumerable<InspectDTO>> BusquedaInspects(string searchText)
     {
         return await Task.FromResult(Inspects.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
-    private async Task<IEnumerable<Plantel>> BusquedaPlanteles(string searchText)
+    private async Task<IEnumerable<PlantelDTO>> BusquedaPlanteles(string searchText)
     {
         return await Task.FromResult(Planteles.Where(x => x.Placod.Contains(searchText) && x.Nrocri==socioSeleccionado.Scod).ToList());
     }

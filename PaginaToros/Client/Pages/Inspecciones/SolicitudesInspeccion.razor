@@ -1,7 +1,8 @@
 ﻿@page "/solicitudesinspeccion"
+@using PaginaToros.Client.Servicios.Contrato;
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
-@inject HttpClient Http
+@inject ISolici1Servicio _solici1Servicio
 
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Solicitudes de Inspeccion</h3>
 
@@ -35,38 +36,39 @@
     <br />
     <br />
     <div class="tablacontent" style="position:relative;width:93.5%">
-    <RadzenDataGrid style="position:relative;width:93.5%;left:3.33%" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                Data="@listaMerged" TItem="ClaseTabla" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
+    <RadzenDataGrid style="position:relative;width:93.5%;left:3.33%" Count="cantidad" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                IsLoading="isLoading" Data="@oRespuesta.List" TItem="Solici1DTO" LoadData="LoadData" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
         <Columns>
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="NroSol" Title="Nro Solicitud" Width="21.7%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreSocio" Title="Socio" Width="21.7%"/>
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="FechaSol" Title="Fecha De Solicitud" Width="21.7%">
+                <RadzenDataGridColumn TItem="Solici1DTO" Property="NroSol" Title="Nro Solicitud" Width="21.7%" />
+                <RadzenDataGridColumn TItem="Solici1DTO" Property="Establecimiento.Socio.Nombre" Title="Socio" Width="21.7%"/>
+                <RadzenDataGridColumn TItem="Solici1DTO" Property="Fecsol" Title="Fecha De Solicitud" Width="21.7%">
                     <Template Context="data">
-                    @if(data.FechaSol.HasValue){
-                            @data.FechaSol.Value.ToString("dd/MM/yyyy")
+                        @if (data.Fecsol.HasValue)
+                        {
+                            @data.Fecsol.Value.ToString("dd/MM/yyyy")
                     }
                     else{
                     }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="FechaAu" Title="Fecha De Autorizacion" Width="21.7%">
+                <RadzenDataGridColumn TItem="Solici1DTO" Property="Fecins" Title="Fecha De Autorizacion" Width="21.7%">
                 <Template Context="data">
-                    @if (data.FechaAu.HasValue)
+                    @if (data.Fecins.HasValue)
                     {
-                            @data.FechaAu.Value.ToString("dd/MM/yyyy")
+                            @data.Fecins.Value.ToString("dd/MM/yyyy")
                     }
                     else{
 
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Solici1" Property="" Title="" Filterable="false" Width="3.33%">
+            <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
                 <Template Context="data">
                     <button class="btn" position="absolute" title="Editar Solicitud" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Solici1" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
                 <Template Context="data">
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
@@ -95,48 +97,21 @@ else
 @code {
 
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<ClaseTabla>? grid;
-    List<ClaseTabla> listaMerged = new();
+    public RadzenDataGrid<Solici1DTO>? grid;
     int currentPage;
     bool allowFiltering = false;
-    string Url = "/api/Solici1";
-    Respuesta<List<Solici1>> oRespuesta = new Respuesta<List<Solici1>>();
-    List<Socio> socios = new();
-    List<Estable> establecimientos = new();
-    Dictionary<string,string> traductorEst = new();
+    Respuesta<List<Solici1DTO>> oRespuesta = new Respuesta<List<Solici1DTO>>();
+    int cantidad;
+    bool isLoading = false;
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
-        socios = rta.List;
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>("/api/Establecimiento");
-        establecimientos = rt.List;
-        foreach(var est in establecimientos)
-        {
-            try{
-                traductorEst.Add(est.Ecod,socios.Where(x=>x.Scod==est.Codsoc).FirstOrDefault().Nombre);
-            }
-            catch
-            {
-                traductorEst.Add(est.Ecod, "");
-            }
-        }
-
-
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Solici1>>>(Url);
-        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
-        oRespuesta = respuesta;
-        listaMerged = oRespuesta.List.Select(soli => new ClaseTabla
-            {
-                Id = soli.Id,
-                NroSol = soli.Nrosol,
-                NombreSocio = soli.Codest!=null ? (traductorEst.ContainsKey(soli.Codest) ? traductorEst[soli.Codest]:""):"",
-                FechaSol = soli.Fecsol,
-                FechaAu = soli.Fecins
-            }).ToList();
+        var c = await _solici1Servicio.CantidadTotal();
+        cantidad = c.List;
+        oRespuesta = await _solici1Servicio.Lista(0, 15);
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -148,17 +123,19 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/Solici1/{id}");
-        await Get();
-        if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+        var response = await _solici1Servicio.Eliminar(id);
+        if (response)
         {
-            await grid.GoToPage(currentPage - 1);
+            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
+            if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage - 1);
+            }
+            else if (grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage);
+            }
         }
-        else if (grid.Count != 0)
-        {
-            await grid.GoToPage(currentPage);
-        }
-
     }
 
     public async Task alertaDelete(int id)
@@ -237,6 +214,24 @@ else
             }
         }
     }
+    async Task LoadData(LoadDataArgs args)
+    {
+        isLoading = true;
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            oRespuesta = await _solici1Servicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+        }
+        else
+        {
+            oRespuesta = await _solici1Servicio.Lista(args.Skip.Value, args.Top.Value);
+            var can = await _solici1Servicio.CantidadTotal();
+            cantidad = can.List;
+        }
+
+        isLoading = false;
+    }
+
     //async Task gotoinfo(int id)
     //{
     //    currentPage = grid.CurrentPage;
@@ -262,14 +257,5 @@ else
     //        await grid.GoToPage(currentPage);
     //    }
     //}
-
-    public class ClaseTabla
-    {
-        public int Id { get; set; }
-        public string? NroSol { get; set; }
-        public string? NombreSocio { get; set; }
-        public DateTime? FechaSol { get; set; }
-        public DateTime? FechaAu { get; set; }
-    }
 
 }

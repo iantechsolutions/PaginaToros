@@ -1,7 +1,8 @@
 ﻿@page "/transan"
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
-@inject HttpClient Http
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ITransanServicio _transanServicio
 <style>
 
     .rz-cell-data,
@@ -36,13 +37,13 @@
     <br />
     <br />
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-        <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+        <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@oRespuesta.List" TItem="Transan" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Count="cantidad" Data="@oRespuesta.List" TItem="TransanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
 
-                <RadzenDataGridColumn TItem="Transan" Property="NroCert" Title="Nro Certificado" Width="5.3%" />
-                <RadzenDataGridColumn TItem="Transan" Property="Fecvta" Title="Fecha de Venta" Width="6.6%">
+                <RadzenDataGridColumn TItem="TransanDTO" Property="NroCert" Title="Nro Certificado" Width="5.3%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="Fecvta" Title="Fecha de Venta" Width="6.6%">
                     <Template Context="data">
                         @if (data.Fecvta.HasValue)
                         {
@@ -54,23 +55,23 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Transan" Property="Vnom" Title="Socio Vendedor" Width="6.6%"/>
-                <RadzenDataGridColumn TItem="Transan" Property="Cnom" Title="Socio Comprador" Width="6.6%"/>
-                <RadzenDataGridColumn TItem="Transan" Property="Plant" Title="De Plantel" Width="6.6%" />
-                <RadzenDataGridColumn TItem="Transan" Property="NvoPla" Title="A Plantel" Width="6.6%" />
-                <RadzenDataGridColumn TItem="Transan" Property="CantHem" Title="Cant Hembras" Width="6.6%" />
-                <RadzenDataGridColumn TItem="Transan" Property="CantMach" Title="Cant Machos" Width="6.6%" />
-                <RadzenDataGridColumn TItem="Transan" Property="Tiphac" Title="Tipo de hacienda" Width="6.6%" />
-                <RadzenDataGridColumn TItem="Transan" Property="Hemsta" Title="Estado de las Hembras" Width="6.6%" />
-                <RadzenDataGridColumn TItem="Transan" Property="Tipohem" Title="Tipo de hembras" Width="6.6%" />
-                <RadzenDataGridColumn TItem="Transan" Property="CantChem" Title="Cant C/Hembras" Width="6.6%" />
-                <RadzenDataGridColumn TItem="Transan" Property="CantCmach" Title="Cant C/Machos" Width="6.6%" />
-                <RadzenDataGridColumn TItem="Transan" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="TransanDTO" Property="Vnom" Title="Socio Vendedor" Width="6.6%"/>
+                <RadzenDataGridColumn TItem="TransanDTO" Property="Cnom" Title="Socio Comprador" Width="6.6%"/>
+                <RadzenDataGridColumn TItem="TransanDTO" Property="Plant" Title="De Plantel" Width="6.6%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="NvoPla" Title="A Plantel" Width="6.6%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="CantHem" Title="Cant Hembras" Width="6.6%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="CantMach" Title="Cant Machos" Width="6.6%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="Tiphac" Title="Tipo de hacienda" Width="6.6%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="Hemsta" Title="Estado de las Hembras" Width="6.6%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="Tipohem" Title="Tipo de hembras" Width="6.6%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="CantChem" Title="Cant C/Hembras" Width="6.6%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="CantCmach" Title="Cant C/Machos" Width="6.6%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Transan" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="TransanDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
@@ -98,25 +99,27 @@ else
 }
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Transan>? grid;
+    public RadzenDataGrid<TransanDTO>? grid;
     int currentPage;
+    bool isLoading = false;
+    int cantidad;
     Dictionary<string, string> traductorTipo = new Dictionary<string, string>{
         {"P","Puro Pedigree (SRA)"},
         {"S","S/"},
         {"A","Patagonico"}
     };
     public bool allowFiltering = false;
-    public string Url = "/api/Transan";
-    public Respuesta<List<Transan>> oRespuesta = new Respuesta<List<Transan>>();
+    public Respuesta<List<TransanDTO>> oRespuesta = new Respuesta<List<TransanDTO>>();
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Transan>>>(Url);
-        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
-        oRespuesta = respuesta;
+        var c = await _transanServicio.CantidadTotal();
+        cantidad = c.List;
+        oRespuesta = await _transanServicio.Lista(0, 15);
+        
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -128,15 +131,19 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/Transan/{id}");
-        await Get();
-        if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+        var response = await _transanServicio.Eliminar(id);
+        if (response)
         {
-            await grid.GoToPage(currentPage - 1);
-        }
-        else if (grid.Count != 0)
-        {
-            await grid.GoToPage(currentPage);
+            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
+
+            if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage - 1);
+            }
+            else if (grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage);
+            }
         }
 
     }
@@ -217,6 +224,25 @@ else
             }
         }
     }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        isLoading = true;
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            oRespuesta = await _transanServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+        }
+        else
+        {
+            oRespuesta = await _transanServicio.Lista(args.Skip.Value, args.Top.Value);
+            var can = await _transanServicio.CantidadTotal();
+            cantidad = can.List;
+        }
+
+        isLoading = false;
+    }
+
     // async Task gotoinfo(int id)
     // {
     //     currentPage = grid.CurrentPage;

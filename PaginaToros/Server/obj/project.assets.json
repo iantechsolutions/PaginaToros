@@ -1535,7 +1535,7 @@
           "buildTransitive/netcoreapp3.1/_._": {}
         }
       },
-      "System.Linq.Dynamic.Core/1.2.22": {
+      "System.Linq.Dynamic.Core/1.3.5": {
         "type": "package",
         "compile": {
           "lib/net6.0/System.Linq.Dynamic.Core.dll": {
@@ -3815,13 +3815,14 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "System.Linq.Dynamic.Core/1.2.22": {
-      "sha512": "PB57h0KkIvCF1X/x7iZZKdgiQSo/5geNrConfaw4KEsbyX25MuAEcLOc5RF5GNycSfC7qwaL4L8Mm6b8uMmcAw==",
+    "System.Linq.Dynamic.Core/1.3.5": {
+      "sha512": "G8aRAVHSQ/Jmt6dekX+z4K3L6ecX3CizaIYSQoDUolPRIPBYmBCabT+/pq5fMAFM57aOchFn8PUufuVfLjvEZQ==",
       "type": "package",
-      "path": "system.linq.dynamic.core/1.2.22",
+      "path": "system.linq.dynamic.core/1.3.5",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
+        "PackageReadme.md",
         "lib/net35/System.Linq.Dynamic.Core.dll",
         "lib/net35/System.Linq.Dynamic.Core.pdb",
         "lib/net35/System.Linq.Dynamic.Core.xml",
@@ -3843,6 +3844,9 @@
         "lib/net6.0/System.Linq.Dynamic.Core.dll",
         "lib/net6.0/System.Linq.Dynamic.Core.pdb",
         "lib/net6.0/System.Linq.Dynamic.Core.xml",
+        "lib/net7.0/System.Linq.Dynamic.Core.dll",
+        "lib/net7.0/System.Linq.Dynamic.Core.pdb",
+        "lib/net7.0/System.Linq.Dynamic.Core.xml",
         "lib/netcoreapp2.1/System.Linq.Dynamic.Core.dll",
         "lib/netcoreapp2.1/System.Linq.Dynamic.Core.pdb",
         "lib/netcoreapp2.1/System.Linq.Dynamic.Core.xml",
@@ -3863,7 +3867,7 @@
         "lib/uap10.0.10240/System.Linq.Dynamic.Core.pri",
         "lib/uap10.0.10240/System.Linq.Dynamic.Core.xml",
         "logo.png",
-        "system.linq.dynamic.core.1.2.22.nupkg.sha512",
+        "system.linq.dynamic.core.1.3.5.nupkg.sha512",
         "system.linq.dynamic.core.nuspec"
       ]
     },
@@ -4384,27 +4388,28 @@
       "Microsoft.EntityFrameworkCore.Tools >= 6.0.7",
       "PaginaToros.Client >= 1.0.0",
       "PaginaToros.Shared >= 1.0.0",
-      "Pomelo.EntityFrameworkCore.MySql >= 6.0.2"
+      "Pomelo.EntityFrameworkCore.MySql >= 6.0.2",
+      "System.Linq.Dynamic.Core >= 1.3.5"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\HP\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\lolo1\\.nuget\\packages\\": {},
+    "E:\\LIBRERIAS\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\HP\\source\\repos\\paginatoros\\PaginaToros\\Server\\PaginaToros.Server.csproj",
+      "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Server\\PaginaToros.Server.csproj",
       "projectName": "PaginaToros.Server",
-      "projectPath": "C:\\Users\\HP\\source\\repos\\paginatoros\\PaginaToros\\Server\\PaginaToros.Server.csproj",
-      "packagesPath": "C:\\Users\\HP\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\HP\\source\\repos\\paginatoros\\PaginaToros\\Server\\obj\\",
+      "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Server\\PaginaToros.Server.csproj",
+      "packagesPath": "C:\\Users\\lolo1\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Server\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        "E:\\LIBRERIAS\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\HP\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\lolo1\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -4413,18 +4418,20 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\sdk\\7.0.306\\Sdks\\Microsoft.NET.Sdk.Web\\library-packs": {},
-        "https://api.nuget.org/v3/index.json": {}
+        "C:\\Program Files\\dotnet\\library-packs": {},
+        "C:\\Users\\lolo1\\DEVELOP\\nugets": {},
+        "https://api.nuget.org/v3/index.json": {},
+        "https://pkgs.dev.azure.com/sumato-id/AKIRA.SOLUTION/_packaging/SumatoNugets/nuget/v3/index.json": {}
       },
       "frameworks": {
         "net6.0": {
           "targetAlias": "net6.0",
           "projectReferences": {
-            "C:\\Users\\HP\\source\\repos\\paginatoros\\PaginaToros\\Client\\PaginaToros.Client.csproj": {
-              "projectPath": "C:\\Users\\HP\\source\\repos\\paginatoros\\PaginaToros\\Client\\PaginaToros.Client.csproj"
+            "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\PaginaToros.Client.csproj": {
+              "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Client\\PaginaToros.Client.csproj"
             },
-            "C:\\Users\\HP\\source\\repos\\paginatoros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
-              "projectPath": "C:\\Users\\HP\\source\\repos\\paginatoros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj"
+            "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
+              "projectPath": "C:\\Users\\lolo1\\source\\repos\\Hereford - testing\\PaginaToros\\Shared\\PaginaToros.Shared.csproj"
             }
           }
         }
@@ -4486,6 +4493,10 @@
           "Pomelo.EntityFrameworkCore.MySql": {
             "target": "Package",
             "version": "[6.0.2, )"
+          },
+          "System.Linq.Dynamic.Core": {
+            "target": "Package",
+            "version": "[1.3.5, )"
           }
         },
         "imports": [
@@ -4507,7 +4518,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.306\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
       }
     }
   }

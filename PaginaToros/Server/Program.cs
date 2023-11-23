@@ -59,7 +59,25 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<ICentrosiumRepositorio, CentrosiumRepositorio>();
+builder.Services.AddScoped<ICertifsemanRepositorio, CertifsemanRepositorio>();
+builder.Services.AddScoped<IDesepla1Repositorio, Desepla1Repositorio>();
+builder.Services.AddScoped<IDesepla3Repositorio, Desepla3Repositorio>();
+builder.Services.AddScoped<IEstableRepositorio, EstableRepositorio>();
+builder.Services.AddScoped<IFutcontrolRepositorio, FutcontrolRepositorio>();
+builder.Services.AddScoped<IInspectRepositorio, InspectRepositorio>();
+builder.Services.AddScoped<IPlantelRepositorio, PlantelRepositorio>();
+builder.Services.AddScoped<IResin1Repositorio, Resin1Repositorio>();
+builder.Services.AddScoped<IResin2Repositorio, Resin2Repositorio>();
+builder.Services.AddScoped<IResin3Repositorio, Resin3Repositorio>();
+builder.Services.AddScoped<IResin4Repositorio, Resin4Repositorio>();
+builder.Services.AddScoped<IResin6Repositorio, Resin6Repositorio>();
+builder.Services.AddScoped<IResin8Repositorio, Resin8Repositorio>();
+builder.Services.AddScoped<ISocioRepositorio, SocioRepositorio>();
+builder.Services.AddScoped<ISolici1Repositorio, Solici1Repositorio>();
 builder.Services.AddScoped<ITorosRepositorio, TorosRepositorio>();
+builder.Services.AddScoped<ITransanRepositorio, TransanRepositorio>();
+builder.Services.AddScoped<ITranssbRepositorio, TranssbRepositorio>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

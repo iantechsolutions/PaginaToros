@@ -5,6 +5,8 @@ using PaginaToros.Server.Repositorio.Contrato;
 using AutoMapper;
 using PaginaToros.Server.Repositorio.Implementacion;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq.Dynamic.Core;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -22,7 +24,7 @@ namespace PaginaToros.Server.Controllers
 
         [HttpGet]
         [Route("Lista")]
-        public async Task<IActionResult> Lista(int page,int count)
+        public async Task<IActionResult> Lista(int skip,int take)
         {
 
             Respuesta<List<TorosuniDTO>> _ResponseDTO = new Respuesta<List<TorosuniDTO>>();
@@ -30,7 +32,7 @@ namespace PaginaToros.Server.Controllers
             try
             {
                 List<TorosuniDTO> listaPedido = new List<TorosuniDTO>();
-                var a = await _torosRepositorio.Lista(page,count);
+                var a = await _torosRepositorio.Lista(skip, take);
 
 
                 listaPedido = _mapper.Map<List<TorosuniDTO>>(a);
@@ -48,7 +50,55 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
-        
+        [HttpGet]
+        [Route("Cantidad")]
+        public async Task<IActionResult> CantidadTotal()
+        {
+
+            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+
+            try
+            {
+                var a = await _torosRepositorio.CantidadTotal();
+
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+        [HttpGet]
+        [Route("LimitadosFiltrados")]
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
+        {
+
+            Respuesta<List<TorosuniDTO>> _ResponseDTO = new Respuesta<List<TorosuniDTO>>();
+
+            try
+            {
+                var a = await _torosRepositorio.LimitadosFiltrados(skip,take,expression);
+
+                var listaFiltrada = _mapper.Map<List<TorosuniDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<TorosuniDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<TorosuniDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+
         [HttpDelete]
         [Route("Eliminar/{id:int}")]
         public async Task<IActionResult> Eliminar(int id)

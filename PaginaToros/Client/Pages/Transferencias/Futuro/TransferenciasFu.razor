@@ -1,7 +1,8 @@
 ﻿@page "/transfu"
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
-@inject HttpClient Http
+@using PaginaToros.Client.Servicios.Contrato;
+@inject IFutcontrolServicio _futcontrolServicio
 <style>
 
     .rz-cell-data,
@@ -36,13 +37,13 @@
     <br />
     <br />
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-        <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+        <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@oRespuesta.List" TItem="Futcontrol" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Count="cantidad" Data="@oRespuesta.List" LoadData="LoadData" TItem="FutcontrolDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
 
-                <RadzenDataGridColumn TItem="Futcontrol" Property="NroTrans" Title="Nro Transferencia" Width="6%" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="Fectrans" Title="Fecha de Transferencia" Width="7.34%">
+                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="NroTrans" Title="Nro Transferencia" Width="6%" />
+                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="Fectrans" Title="Fecha de Transferencia" Width="7.34%">
                     <Template Context="data">
                         @if (data.Fectrans.HasValue)
                         {
@@ -54,19 +55,19 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Futcontrol" Property="Vnom" Title="Socio Vendedor" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="Cnom" Title="Socio Comprador" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="Plantel" Title="De Plantel" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="PlantDest" Title="A Plantel" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="CantHem" Title="Cant Hembras" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="CantMach" Title="Cant Machos" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="Hemsta" Title="Estado de las Hembras" Width="7.34%" />
-                <RadzenDataGridColumn TItem="Futcontrol" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="Vnom" Title="Socio Vendedor" Width="7.34%" />
+                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="Cnom" Title="Socio Comprador" Width="7.34%" />
+                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="Plantel" Title="De Plantel" Width="7.34%" />
+                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="PlantDest" Title="A Plantel" Width="7.34%" />
+                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="CantHem" Title="Cant Hembras" Width="7.34%" />
+                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="CantMach" Title="Cant Machos" Width="7.34%" />
+                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="Hemsta" Title="Estado de las Hembras" Width="7.34%" />
+                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Futcontrol" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
@@ -94,20 +95,21 @@ else
 }
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Futcontrol>? grid;
+    public RadzenDataGrid<FutcontrolDTO>? grid;
     int currentPage;
     public bool allowFiltering = false;
-    public string Url = "/api/Futcontrol";
-    public Respuesta<List<Futcontrol>> oRespuesta = new Respuesta<List<Futcontrol>>();
+    bool isLoading = false;
+    int cantidad;
+    public Respuesta<List<FutcontrolDTO>> oRespuesta = new Respuesta<List<FutcontrolDTO>>();
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Futcontrol>>>(Url);
-        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
-        oRespuesta = respuesta;
+        var c = await _futcontrolServicio.CantidadTotal();
+        cantidad = c.List;
+        oRespuesta = await _futcontrolServicio.Lista(0, 15);
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -119,15 +121,19 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/Futcontrol/{id}");
-        await Get();
-        if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+        var response = await _futcontrolServicio.Eliminar(id);
+        if (response)
         {
-            await grid.GoToPage(currentPage - 1);
-        }
-        else if (grid.Count != 0)
-        {
-            await grid.GoToPage(currentPage);
+            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
+
+            if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage - 1);
+            }
+            else if (grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage);
+            }
         }
 
     }
@@ -208,6 +214,25 @@ else
             }
         }
     }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        isLoading = true;
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            oRespuesta = await _futcontrolServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+        }
+        else
+        {
+            oRespuesta = await _futcontrolServicio.Lista(args.Skip.Value, args.Top.Value);
+            var can = await _futcontrolServicio.CantidadTotal();
+            cantidad = can.List;
+        }
+
+        isLoading = false;
+    }
+
     // async Task gotoinfo(int id)
     // {
     //     currentPage = grid.CurrentPage;

@@ -36,6 +36,11 @@ namespace PaginaToros.Shared.Models
         public string? Diaregautog { get; set; }
         [JsonIgnore]
         public List<Torosuni>? Torosunis { get; set; }
-
+        [JsonIgnore]
+        public List<Plantel>? Planteles { get; set; }
+        [JsonIgnore]
+        public List<Estable>? Establecimientos { get; set; }
+        [JsonIgnore]
+        public List<Certifseman>? Certificados { get; set; }
     }
 }

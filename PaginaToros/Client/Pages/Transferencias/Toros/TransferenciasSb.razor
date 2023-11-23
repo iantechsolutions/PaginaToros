@@ -1,7 +1,8 @@
 ﻿@page "/transsb"
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
-@inject HttpClient Http
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ITranssbServicio _transsbServicio
 <style>
 
     .rz-cell-data,
@@ -36,21 +37,21 @@
     <br />
     <br />
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-        <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+        <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@listaMerged" TItem="ClaseTabla" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Count="cantidad" LoadData="LoadData" Data="@oRespuesta.List" TItem="TranssbDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="NroTrans" Title="Nro Certificado" Width="24%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="NroOrden" Title="Nro Orden" Width="24%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="Vnom" Title="Socio Vendedor" Width="24%"/>
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="Cnom" Title="Socio Comprador" Width="24%" />
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreEstablecimiento" Title="Establecimiento" Width="24%"/>
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="TranssbDTO" Property="NroTrans" Title="Nro Certificado" Width="24%" />
+                <RadzenDataGridColumn TItem="TranssbDTO" Property="NroOrden" Title="Nro Orden" Width="24%" />
+                <RadzenDataGridColumn TItem="TranssbDTO" Property="Vnom" Title="Socio Vendedor" Width="24%"/>
+                <RadzenDataGridColumn TItem="TranssbDTO" Property="Cnom" Title="Socio Comprador" Width="24%" />
+                <RadzenDataGridColumn TItem="TranssbDTO" Property="NombreEstablecimiento" Title="Establecimiento" Width="24%"/>
+                <RadzenDataGridColumn TItem="TranssbDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="TranssbDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
@@ -78,8 +79,7 @@ else
 }
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<ClaseTabla>? grid;
-    List<ClaseTabla> listaMerged = new();
+    public RadzenDataGrid<TranssbDTO>? grid;
     int currentPage;
     Dictionary<string, string> traductorTipo = new Dictionary<string, string>{
         {"P","Puro Pedigree (SRA)"},
@@ -87,29 +87,19 @@ else
         {"A","Patagonico"}
     };
     public bool allowFiltering = false;
-    public string Url = "/api/Transsb";
-    public Respuesta<List<Transsb>> oRespuesta = new Respuesta<List<Transsb>>();
+    bool isLoading=false;
+    int cantidad;
+    public Respuesta<List<TranssbDTO>> oRespuesta = new Respuesta<List<TranssbDTO>>();
     List<Estable> establecimientos = new();
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>("/api/Establecimiento");
-        establecimientos = rta.List;
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Transsb>>>(Url);
-        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
-        oRespuesta = respuesta;
-        listaMerged = oRespuesta.List.Select(tran => new ClaseTabla
-            {
-                Id = tran.Id,
-                NroOrden = tran.NroOrden,
-                NroTrans = tran.NroTrans,
-                Vnom = tran.Vnom,
-                Cnom = tran.Cnom,
-                NombreEstablecimiento = establecimientos.Where(x => x.Ecod == tran.Ecod).Count()>0?(establecimientos.Where(x => x.Ecod == tran.Ecod).First().Nombre):""
-            }).ToList();
+        var c = await _transsbServicio.CantidadTotal();
+        cantidad = c.List;
+        oRespuesta= await _transsbServicio.Lista(0,15);
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -121,15 +111,19 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/Transsb/{id}");
-        await Get();
-        if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+        var response = await _transsbServicio.Eliminar(id);
+        if (response)
         {
-            await grid.GoToPage(currentPage - 1);
-        }
-        else if (grid.Count != 0)
-        {
-            await grid.GoToPage(currentPage);
+            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
+
+            if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage - 1);
+            }
+            else if (grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage);
+            }
         }
 
     }
@@ -210,6 +204,26 @@ else
             }
         }
     }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        isLoading = true;
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            oRespuesta = await _transsbServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+        }
+        else
+        {
+            oRespuesta = await _transsbServicio.Lista(args.Skip.Value, args.Top.Value);
+            var can = await _transsbServicio.CantidadTotal();
+            cantidad = can.List;
+        }
+
+        isLoading = false;
+    }
+
+
     // async Task gotoinfo(int id)
     // {
     //     currentPage = grid.CurrentPage;
@@ -236,14 +250,5 @@ else
     //     }
     // }
 
-    public class ClaseTabla
-    {
-        public int Id { get; set; }
-        public string? NroTrans { get; set; }
-        public string? NroOrden { get; set; }
-        public string? Vnom { get; set; }
-        public string? Cnom { get; set; }
-        public string? NombreEstablecimiento { get; set; }
-    }
 
 }

@@ -1,8 +1,9 @@
 ﻿@page "/Planteles"
+
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
-@inject HttpClient Http
-
+@using PaginaToros.Client.Servicios.Contrato;
+@inject IPlantelServicio _plantelServicio
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Planteles</h3>
 
 
@@ -35,14 +36,14 @@
     <button style="outline:none; float: right;margin-right:3%;height:100%;" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
     <br />
     <br />
-    <RadzenDataGrid class="tablacontent" style="position:relative;width:93.5%;left:3.33%" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+    <RadzenDataGrid class="tablacontent" style="position:relative;width:93.5%;left:3.33%" IsLoading="isLoading" LoadData="LoadData" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                     AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                    Density="Density.Compact" Data="@listaMerged" TItem="ClaseTabla" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    Density="Density.Compact" Data="@oRespuesta.List" Count="cantidad" TItem="PlantelDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
-            <RadzenDataGridColumn TItem="ClaseTabla" Property="Placod" Title="Nro Plantel" Width="3.6%" />
-            <RadzenDataGridColumn TItem="ClaseTabla" Property="Activo" Title="Activo?" Width="3.33%">
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Placod" Title="Nro Plantel" Width="3.6%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Activo" Title="Activo?" Width="3.33%">
                 <Template Context="data">
-                    @if (data.Activo)
+                    @if (data.Estado == "S")
                     {
                             <a style="color:green">Si</a>
                     }
@@ -52,16 +53,16 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="ClaseTabla" Property="Anioex" Title="Año de Existencia" Width="4.6%" />
-            <RadzenDataGridColumn TItem="ClaseTabla" Property="Nroins" Title="Nro ultima inspeccion" Width="6.6%" />
-            <RadzenDataGridColumn TItem="ClaseTabla" Property="NombreSocio" Title="Socio" Width="7.34%"/>
-            <RadzenDataGridColumn TItem="ClaseTabla" Property="Varede" Title="Vacas PR" Width="4%" />
-            <RadzenDataGridColumn TItem="ClaseTabla" Property="Vqcsrd" Title="Vaquillonas PR C/S" Width="5%" />
-            <RadzenDataGridColumn TItem="ClaseTabla" Property="Vqssrd" Title="Vaquillonas PR S/S" Width="5%" />
-            <RadzenDataGridColumn TItem="ClaseTabla" Property="Varepr" Title="Vacas VIP" Width="4%" />
-            <RadzenDataGridColumn TItem="ClaseTabla" Property="Vqcsrp" Title="Vaquillonas VIP C/S o preñadas" Width="6.6%" />
-            <RadzenDataGridColumn TItem="ClaseTabla" Property="Vqssrp" Title="Vaquillonas VIP S/S" Width="4.6%" />
-            <RadzenDataGridColumn TItem="ClaseTabla" Property="" Title="" Filterable="false" Width="2.3%">
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Anioex" Title="Año de Existencia" Width="4.6%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Nroins" Title="Nro ultima inspeccion" Width="6.6%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%"/>
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Varede" Title="Vacas PR" Width="4%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaquillonas PR C/S" Width="5%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaquillonas PR S/S" Width="5%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Varepr" Title="Vacas VIP" Width="4%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrp" Title="Vaquillonas VIP C/S o preñadas" Width="6.6%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrp" Title="Vaquillonas VIP S/S" Width="4.6%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="" Title="" Filterable="false" Width="2.3%">
                 <Template Context="data">
                     <button class="btn" position="absolute" title="Editar Plantel" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
@@ -94,39 +95,22 @@ else
 @code {
 
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<ClaseTabla>? grid;
-    List<ClaseTabla> listaMerged = new();
+    public RadzenDataGrid<PlantelDTO>? grid;
     int currentPage;
+    bool isLoading = false;
+    int cantidad;
     public bool allowFiltering = false;
-    public string Url = "/api/Plantel";
     List<Socio> socios = new();
-    public Respuesta<List<Plantel>> oRespuesta = new Respuesta<List<Plantel>>();
+    public Respuesta<List<PlantelDTO>> oRespuesta = new Respuesta<List<PlantelDTO>>();
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
-        socios = rta.List;
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Plantel>>>(Url);
-        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
-        oRespuesta = respuesta;
-        listaMerged = oRespuesta.List.Select(plan => new ClaseTabla
-            {
-                Id = plan.Id,
-                Placod = plan.Placod,
-                Activo = plan.Estado=="S",
-                Anioex = plan.Anioex,
-                Nroins = plan.Nroins,
-                NombreSocio = socios.Where(x => x.Scod == plan.Nrocri).Count()>0?socios.Where(x => x.Scod == plan.Nrocri).First().Nombre:"",
-                Varede = plan.Varede,
-                Vqcsrd = plan.Vqcsrd,
-                Vqssrd = plan.Vqssrd,
-                Varepr = plan.Varepr,
-                Vqcsrp = plan.Vqcsrp,
-                Vqssrp = plan.Vqssrp,
-            }).ToList();
+        var c = await _plantelServicio.CantidadTotal();
+        cantidad = c.List;
+        oRespuesta = await _plantelServicio.Lista(0,20);
 
         StateHasChanged();
     }
@@ -139,7 +123,7 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/Plantel/{id}");
+        await _plantelServicio.Eliminar(id);
         await Get();
         if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
         {
@@ -253,21 +237,22 @@ else
             await grid.GoToPage(currentPage);
         }
     }
-
-
-    public class ClaseTabla
+    async Task LoadData(LoadDataArgs args)
     {
-        public int Id{ get; set; }
-        public string? Placod { get; set; }
-        public bool Activo { get; set; }
-        public string? Anioex { get; set; }
-        public string? Nroins { get; set; }
-        public string? NombreSocio  { get; set; }
-        public double? Varede { get; set; }
-        public double? Vqcsrd { get; set; }
-        public double? Vqssrd { get; set; }
-        public double? Varepr { get; set; }
-        public double? Vqcsrp { get; set; }
-        public double? Vqssrp { get; set; }
+        isLoading = true;
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            oRespuesta = await _plantelServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+        }
+        else
+        {
+            oRespuesta = await _plantelServicio.Lista(args.Skip.Value, args.Top.Value);
+            var can = await _plantelServicio.CantidadTotal();
+            cantidad = can.List;
+        }
+
+        isLoading = false;
     }
+
 }

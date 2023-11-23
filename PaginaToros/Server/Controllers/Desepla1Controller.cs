@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using PaginaToros.Server.Context;
+using AutoMapper;
+using PaginaToros.Server.Repositorio.Contrato;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -10,169 +12,201 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class Desepla1Controller : ControllerBase
     {
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        private readonly IMapper _mapper;
+        private readonly IDesepla1Repositorio _Desepla1Repositorio;
+        public Desepla1Controller(IDesepla1Repositorio Desepla1Repositorio, IMapper mapper)
         {
-            Respuesta<Desepla1> oRespuesta = new Respuesta<Desepla1>();
+            _mapper = mapper;
+            _Desepla1Repositorio = Desepla1Repositorio;
+        }
+        [Route("Lista")]
+        public async Task<IActionResult> Lista(int skip, int take)
+        {
+
+            Respuesta<List<Desepla1DTO>> _ResponseDTO = new Respuesta<List<Desepla1DTO>>();
 
             try
             {
-                using (hereford_prContext db = new())
-                {
+                List<Desepla1DTO> listaPedido = new List<Desepla1DTO>();
+                var a = await _Desepla1Repositorio.Lista(skip, take);
 
-                    var lst = db.Desepla1s
-                .Where(x => x.Id == id)
-                .First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+
+                listaPedido = _mapper.Map<List<Desepla1DTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<Desepla1DTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<Desepla1DTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
+        }
+
+        [HttpGet]
+        [Route("Cantidad")]
+        public async Task<IActionResult> CantidadTotal()
+        {
+
+            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+
+            try
+            {
+                var a = await _Desepla1Repositorio.CantidadTotal();
+
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
         }
         [HttpGet]
-        public IActionResult Get()
+        [Route("LimitadosFiltrados")]
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
         {
-            Respuesta<List<Desepla1>> oRespuesta = new Respuesta<List<Desepla1>>();
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.Desepla1s.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
-        }
-        [HttpPost]
-        public IActionResult Add(Desepla1 model)
-        {
-            Respuesta<List<Desepla1>> oRespuesta = new Respuesta<List<Desepla1>>();
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Desepla1 oDesepla1 = new Desepla1();
-                    oDesepla1.Nrodec = model.Nrodec;
-                    oDesepla1.Nroplan = model.Nroplan;
-                    oDesepla1.Tipse = model.Tipse;
-                    oDesepla1.Semen = model.Semen;
-                    oDesepla1.Cantv = model.Cantv;
-                    oDesepla1.Cantb = model.Cantb;
-                    oDesepla1.Remba = model.Remba;
-                    oDesepla1.Remba = model.Remba;  
-                    oDesepla1.Rempr = model.Rempr;  
-                    oDesepla1.Ctrlu = model.Ctrlu;  
-                    oDesepla1.Ctrlm = model.Ctrlm;  
-                    oDesepla1.CoefAutoSn = model.CoefAutoSn;  
-                    oDesepla1.CoefAutoIa = model.CoefAutoIa;  
-                    oDesepla1.CoefAutoIar = model.CoefAutoIar;  
-                    oDesepla1.IaSincro = model.IaSincro;  
-                    oDesepla1.PastillasSincro = model.PastillasSincro;  
-                    oDesepla1.Fecret = model.Fecret;  
-                    oDesepla1.NrFolio = model.NrFolio;  
-                    oDesepla1.FchUsu = model.FchUsu;  
-                    oDesepla1.CodUsu = model.CodUsu;  
-                    oDesepla1.Reten = model.Reten;  
-                    oDesepla1.Edicion = model.Edicion;  
-                    oDesepla1.Nrocri = model.Nrocri;  
-                    oDesepla1.Desde = model.Desde;  
-                    oDesepla1.Hasta = model.Hasta;  
-                    oDesepla1.Fecdecl = model.Fecdecl;  
-                    oDesepla1.Fchrecepcion = model.Fchrecepcion;  
 
-                    db.Desepla1s.Add(oDesepla1);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+            Respuesta<List<Desepla1DTO>> _ResponseDTO = new Respuesta<List<Desepla1DTO>>();
+
+            try
+            {
+                var a = await _Desepla1Repositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<Desepla1DTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<Desepla1DTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<Desepla1DTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
+        }
+
+        [HttpDelete]
+        [Route("Eliminar/{id:int}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            Respuesta<string> _Respuesta = new Respuesta<string>();
+            try
+            {
+                Desepla1 _Desepla1Eliminar = await _Desepla1Repositorio.Obtener(u => u.Id == id);
+                if (_Desepla1Eliminar != null)
+                {
+
+                    bool respuesta = await _Desepla1Repositorio.Eliminar(_Desepla1Eliminar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
+                    else
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
+        }
+
+        [HttpPost]
+        [Route("Guardar")]
+        public async Task<IActionResult> Guardar([FromBody] Desepla1DTO request)
+        {
+            Respuesta<Desepla1DTO> _Respuesta = new Respuesta<Desepla1DTO>();
+            try
+            {
+                Desepla1 _Desepla1 = _mapper.Map<Desepla1>(request);
+
+                Desepla1 _Desepla1Creado = await _Desepla1Repositorio.Crear(_Desepla1);
+
+                if (_Desepla1Creado.Id != 0)
+                    _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Desepla1DTO>(_Desepla1Creado) };
+                else
+                    _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
         }
 
         [HttpPut]
-        public IActionResult Edit(Desepla1 model)
+        [Route("Editar")]
+        public async Task<IActionResult> Editar([FromBody] Desepla1DTO request)
         {
-            Respuesta<List<Desepla1>> oRespuesta = new Respuesta<List<Desepla1>>();
+            Respuesta<Desepla1DTO> _Respuesta = new Respuesta<Desepla1DTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Desepla1 oDesepla1 = db.Desepla1s.Find(model.Id);
-                    oDesepla1.Nrodec = model.Nrodec;
-                    oDesepla1.Nroplan = model.Nroplan;
-                    oDesepla1.Tipse = model.Tipse;
-                    oDesepla1.Semen = model.Semen;
-                    oDesepla1.Cantv = model.Cantv;
-                    oDesepla1.Cantb = model.Cantb;
-                    oDesepla1.Remba = model.Remba;
-                    oDesepla1.Remba = model.Remba;
-                    oDesepla1.Rempr = model.Rempr;
-                    oDesepla1.Ctrlu = model.Ctrlu;
-                    oDesepla1.Ctrlm = model.Ctrlm;
-                    oDesepla1.CoefAutoSn = model.CoefAutoSn;
-                    oDesepla1.CoefAutoIa = model.CoefAutoIa;
-                    oDesepla1.CoefAutoIar = model.CoefAutoIar;
-                    oDesepla1.IaSincro = model.IaSincro;
-                    oDesepla1.PastillasSincro = model.PastillasSincro;
-                    oDesepla1.Fecret = model.Fecret;
-                    oDesepla1.NrFolio = model.NrFolio;
-                    oDesepla1.FchUsu = model.FchUsu;
-                    oDesepla1.CodUsu = model.CodUsu;
-                    oDesepla1.Reten = model.Reten;
-                    oDesepla1.Edicion = model.Edicion;
-                    oDesepla1.Nrocri = model.Nrocri;
-                    oDesepla1.Desde = model.Desde;
-                    oDesepla1.Hasta = model.Hasta;
-                    oDesepla1.Fecdecl = model.Fecdecl;
-                    oDesepla1.Fchrecepcion = model.Fchrecepcion;
-                    db.Entry(oDesepla1).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                Desepla1 _Desepla1 = _mapper.Map<Desepla1>(request);
+                Desepla1 _Desepla1ParaEditar = await _Desepla1Repositorio.Obtener(u => u.Id == _Desepla1.Id);
 
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int Id)
-        {
-            Respuesta<List<Desepla1>> oRespuesta = new Respuesta<List<Desepla1>>();
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
+                if (_Desepla1ParaEditar != null)
                 {
-                    Desepla1 oDesepla1 = db.Desepla1s.Find(Id);
-                    db.Remove(oDesepla1);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach(Toro oElement in dbToros)
-                    //    {
-                    //        db.Remove(oElement);
-                    //    }
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
+                    _Desepla1ParaEditar.Nrodec = _Desepla1.Nrodec;
+                    _Desepla1ParaEditar.Nroplan = _Desepla1.Nroplan;
+                    _Desepla1ParaEditar.Tipse = _Desepla1.Tipse;
+                    _Desepla1ParaEditar.Semen = _Desepla1.Semen;
+                    _Desepla1ParaEditar.Cantv = _Desepla1.Cantv;
+                    _Desepla1ParaEditar.Cantb = _Desepla1.Cantb;
+                    _Desepla1ParaEditar.Remba = _Desepla1.Remba;
+                    _Desepla1ParaEditar.Remba = _Desepla1.Remba;
+                    _Desepla1ParaEditar.Rempr = _Desepla1.Rempr;
+                    _Desepla1ParaEditar.Ctrlu = _Desepla1.Ctrlu;
+                    _Desepla1ParaEditar.Ctrlm = _Desepla1.Ctrlm;
+                    _Desepla1ParaEditar.CoefAutoSn = _Desepla1.CoefAutoSn;
+                    _Desepla1ParaEditar.CoefAutoIa = _Desepla1.CoefAutoIa;
+                    _Desepla1ParaEditar.CoefAutoIar = _Desepla1.CoefAutoIar;
+                    _Desepla1ParaEditar.IaSincro = _Desepla1.IaSincro;
+                    _Desepla1ParaEditar.PastillasSincro = _Desepla1.PastillasSincro;
+                    _Desepla1ParaEditar.Fecret = _Desepla1.Fecret;
+                    _Desepla1ParaEditar.NrFolio = _Desepla1.NrFolio;
+                    _Desepla1ParaEditar.FchUsu = _Desepla1.FchUsu;
+                    _Desepla1ParaEditar.CodUsu = _Desepla1.CodUsu;
+                    _Desepla1ParaEditar.Reten = _Desepla1.Reten;
+                    _Desepla1ParaEditar.Edicion = _Desepla1.Edicion;
+                    _Desepla1ParaEditar.Nrocri = _Desepla1.Nrocri;
+                    _Desepla1ParaEditar.Desde = _Desepla1.Desde;
+                    _Desepla1ParaEditar.Hasta = _Desepla1.Hasta;
+                    _Desepla1ParaEditar.Fecdecl = _Desepla1.Fecdecl;
+                    _Desepla1ParaEditar.Fchrecepcion = _Desepla1.Fchrecepcion;
+
+                    bool respuesta = await _Desepla1Repositorio.Editar(_Desepla1ParaEditar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Desepla1DTO>(_Desepla1ParaEditar) };
+                    else
+                        _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
                 }
+                else
+                {
+                    _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
         }
     }
 }

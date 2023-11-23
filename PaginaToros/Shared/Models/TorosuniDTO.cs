@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PaginaToros.Shared.Models
 {
@@ -15,7 +16,7 @@ namespace PaginaToros.Shared.Models
         public string? Tatpart { get; set; }
         public string? NomDad { get; set; }
         //public string? NrInsc { get; set; }
-        //public string? NrTsan { get; set; }
+        public string? NrTsan { get; set; }
         //public string? NrInsd { get; set; }
         //public DateTime? Fecha { get; set; }
         public string? Hba { get; set; }
@@ -34,9 +35,10 @@ namespace PaginaToros.Shared.Models
         //public int? IdTipo { get; set; }
         //public DateTime? FchUsu { get; set; }
         //public int? CodUsu { get; set; }
-        //public string Fecing { get; set; } = null!;
+        public string Fecing { get; set; } = null!;
         public int Id { get; set; }
         public string? Fechasba { get; set; }
+        [JsonIgnore]
         public Socio Socio { get; set; }
 
         //public string? Pnac { get; set; }

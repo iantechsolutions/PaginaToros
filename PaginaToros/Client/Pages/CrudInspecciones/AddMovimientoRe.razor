@@ -1,4 +1,6 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject IResin3Servicio _resin3Servicio
 <style>
     .bm-title{
         font-size:25px;
@@ -74,8 +76,7 @@
     </div>
 </div>
 @code {
-    Resin3 oResin3 = new();
-    Respuesta<Resin3> oRespuesta = new();
+    Resin3DTO oResin3 = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public string numeroRes { get; set; }
@@ -99,13 +100,13 @@
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Resin3>>($"/api/Resin3/{Id}");
-                oResin3 = oRespuesta.List;
+                var can = await _resin3Servicio.CantidadTotal();
+                var rt = await _resin3Servicio.Lista(0, can.List);
+                oResin3 = rt.List.Where(x => x.Id == Id).FirstOrDefault() ;
 
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
             }
         }
     }
@@ -116,12 +117,12 @@
         oResin3.Ctomov = traductorMotivos[motivo];
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<Resin3>("/api/Resin3", oResin3);
+            await _resin3Servicio.Crear(oResin3);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Resin3>("/api/Resin3", oResin3);
+            await _resin3Servicio.Editar(oResin3);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

@@ -1,4 +1,8 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ISolici1Servicio _solici1Servicio
+@inject IEstableServicio _estableServicio
+@inject ISocioServicio _socioServicio
 
 <div class="card" >
     <div class="card-body">
@@ -91,30 +95,29 @@
     </div>
 </div>
 @code {
-    Solici1 oSolici1 = new();
-    List<Socio> socios = new();
-    List<Estable> establecimientos = new();
-    Respuesta<Solici1> oRespuesta = new();
+    Solici1DTO oSolici1 = new();
+    List<SocioDTO> socios = new();
+    List<EstableDTO> establecimientos = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     DateTime FechaTemp = DateTime.Now.Date;
     bool activoReInspeccion = false;
     bool activoControl = false;
-    Socio? socioSeleccionado = null;
-    Estable establecimientoSeleccionado = new();
+    SocioDTO? socioSeleccionado = null;
+    EstableDTO establecimientoSeleccionado = new();
 
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
-        socios = rta.List.ToList();
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>($"/api/Establecimiento");
+        var rta = await _socioServicio.Lista(0,1000000);
+        socios = rta.List;
+        var respuesta = await _estableServicio.Lista(0, 1000000);
         establecimientos = respuesta.List;
         if (Id != 0)
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Solici1>>($"/api/Solici1/{Id}");
-                oSolici1 = oRespuesta.List;
+                var rt = await _solici1Servicio.Lista(0,1000000);
+                oSolici1 = rt.List.Where(x => x.Id == Id).FirstOrDefault();
                 establecimientoSeleccionado = establecimientos.Where(x => x.Ecod == oSolici1.Codest).FirstOrDefault();
                 socioSeleccionado = socios.Where(x => x.Scod == establecimientoSeleccionado.Codsoc).FirstOrDefault();
                 if (oSolici1.Reinsp=="S")
@@ -141,7 +144,6 @@
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
             }
         }
     }
@@ -168,12 +170,12 @@
 
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<Solici1>("/api/Solici1", oSolici1);
+            await _solici1Servicio.Crear(oSolici1);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Solici1>("/api/Solici1", oSolici1);
+            await _solici1Servicio.Editar(oSolici1);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
@@ -184,12 +186,12 @@
     }
     
 
-    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
-    private async Task<IEnumerable<Estable>> BusquedaEstablecimientos(string searchText)
+    private async Task<IEnumerable<EstableDTO>> BusquedaEstablecimientos(string searchText)
     {
         return await Task.FromResult(establecimientos.Where(x => x.Codsoc==socioSeleccionado.Scod && x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }

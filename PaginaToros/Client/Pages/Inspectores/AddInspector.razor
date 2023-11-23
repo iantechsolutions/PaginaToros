@@ -1,4 +1,6 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject IInspectServicio _inspectServicio
 <style>
     .bm-title {
         font-size: 25px;
@@ -68,8 +70,8 @@
     </div>
 </div>
 @code {
-    Inspect oInspector = new();
-    Respuesta<Inspect> oRespuesta = new();
+    InspectDTO oInspector = new();
+    Respuesta<InspectDTO> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     DateTime FechaTemp = DateTime.Now.Date;
@@ -177,8 +179,8 @@
 
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Inspect>>($"/api/Inspect/{Id}");
-                oInspector = oRespuesta.List;
+                var rt = await _inspectServicio.Lista(0, 1000000);
+                oInspector = rt.List.Where(x=>x.Id==Id).FirstOrDefault();
                 provinciaTemp = traductorProvinciaInverso[oInspector.Codpro];
             }
             catch (Exception ex)
@@ -192,12 +194,12 @@
         oInspector.Codpro = traductorProvincia[provinciaTemp];
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<Inspect>("/api/Inspect", oInspector);
+            await _inspectServicio.Crear(oInspector);;
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Inspect>("/api/Inspect", oInspector);
+            await _inspectServicio.Editar(oInspector);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

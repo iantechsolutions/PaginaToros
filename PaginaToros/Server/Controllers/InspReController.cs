@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using PaginaToros.Server.Context;
+using AutoMapper;
+using PaginaToros.Server.Repositorio.Contrato;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -10,155 +12,189 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class Resin1Controller : ControllerBase
     {
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        private readonly IMapper _mapper;
+        private readonly IResin1Repositorio _Resin1Repositorio;
+        public Resin1Controller(IResin1Repositorio Resin1Repositorio, IMapper mapper)
         {
-            Respuesta<Resin1> oRespuesta = new Respuesta<Resin1>();
+            _mapper = mapper;
+            _Resin1Repositorio = Resin1Repositorio;
+        }
+        [Route("Lista")]
+        public async Task<IActionResult> Lista(int skip, int take)
+        {
+
+            Respuesta<List<Resin1DTO>> _ResponseDTO = new Respuesta<List<Resin1DTO>>();
 
             try
             {
-                using (hereford_prContext db = new())
-                {
+                List<Resin1DTO> listaPedido = new List<Resin1DTO>();
+                var a = await _Resin1Repositorio.Lista(skip, take);
 
-                    var lst = db.Resin1s
-                .Where(x => x.Id == id)
-                .First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+
+                listaPedido = _mapper.Map<List<Resin1DTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<Resin1DTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<Resin1DTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpGet]
-        public IActionResult Get()
+        [Route("Cantidad")]
+        public async Task<IActionResult> CantidadTotal()
         {
-            Respuesta<List<Resin1>> oRespuesta = new Respuesta<List<Resin1>>();
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.Resin1s.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
-        }
-        [HttpPost]
-        public IActionResult Add(Resin1 model)
-        {
-            Respuesta<List<Resin1>> oRespuesta = new Respuesta<List<Resin1>>();
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Resin1 oResin1 = new Resin1();
-                    oResin1.Nrores = model.Nrores;
-                    oResin1.Nropla = model.Nropla;
-                    oResin1.Observ = model.Observ;
-                    oResin1.Ppajust = model.Ppajust;
-                    oResin1.Epromedio = model.Epromedio;
-                    oResin1.Emax = model.Emax;
-                    oResin1.Emin = model.Emin;
-                    oResin1.Tortot = model.Tortot;
-                    oResin1.Torsb = model.Torsb;
-                    oResin1.CodUsu = model.CodUsu;
-                    oResin1.Editar = model.Editar;
-                    oResin1.Icod = model.Icod;
-                    oResin1.Scod = model.Scod;
-                    oResin1.Estcod = model.Estcod;
-                    oResin1.Freali = model.Freali;
 
-                    db.Resin1s.Add(oResin1);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+
+            try
+            {
+                var a = await _Resin1Repositorio.CantidadTotal();
+
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
+        }
+        [HttpGet]
+        [Route("LimitadosFiltrados")]
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
+        {
+
+            Respuesta<List<Resin1DTO>> _ResponseDTO = new Respuesta<List<Resin1DTO>>();
+
+            try
+            {
+                var a = await _Resin1Repositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<Resin1DTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<Resin1DTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<Resin1DTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+
+        [HttpDelete]
+        [Route("Eliminar/{id:int}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            Respuesta<string> _Respuesta = new Respuesta<string>();
+            try
+            {
+                Resin1 _Resin1Eliminar = await _Resin1Repositorio.Obtener(u => u.Id == id);
+                if (_Resin1Eliminar != null)
+                {
+
+                    bool respuesta = await _Resin1Repositorio.Eliminar(_Resin1Eliminar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
+                    else
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
+        }
+
+        [HttpPost]
+        [Route("Guardar")]
+        public async Task<IActionResult> Guardar([FromBody] Resin1DTO request)
+        {
+            Respuesta<Resin1DTO> _Respuesta = new Respuesta<Resin1DTO>();
+            try
+            {
+                Resin1 _Resin1 = _mapper.Map<Resin1>(request);
+
+                Resin1 _Resin1Creado = await _Resin1Repositorio.Crear(_Resin1);
+
+                if (_Resin1Creado.Id != 0)
+                    _Respuesta = new Respuesta<Resin1DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Resin1DTO>(_Resin1Creado) };
+                else
+                    _Respuesta = new Respuesta<Resin1DTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<Resin1DTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
         }
 
         [HttpPut]
-        public IActionResult Edit(Resin1 model)
+        [Route("Editar")]
+        public async Task<IActionResult> Editar([FromBody] Resin1DTO request)
         {
-            Respuesta<List<Resin1>> oRespuesta = new Respuesta<List<Resin1>>();
+            Respuesta<Resin1DTO> _Respuesta = new Respuesta<Resin1DTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
+                Resin1 _Resin1 = _mapper.Map<Resin1>(request);
+                Resin1 _Resin1ParaEditar = await _Resin1Repositorio.Obtener(u => u.Id == _Resin1.Id);
+
+                if (_Resin1ParaEditar != null)
                 {
-                    Resin1 oResin1 = db.Resin1s.Find(model.Id);
-                    oResin1.Nrores = model.Nrores;
-                    oResin1.Nropla = model.Nropla;
-                    oResin1.Observ = model.Observ;
-                    oResin1.Ppajust = model.Ppajust;
-                    oResin1.Epromedio = model.Epromedio;
-                    oResin1.Emax = model.Emax;
-                    oResin1.Emin = model.Emin;
-                    oResin1.Tortot = model.Tortot;
-                    oResin1.Torsb = model.Torsb;
-                    oResin1.FchUsu = model.FchUsu;
-                    oResin1.CodUsu = model.CodUsu;
-                    oResin1.Editar = model.Editar;
-                    oResin1.Icod = model.Icod;
-                    oResin1.Scod = model.Scod;
-                    oResin1.Estcod = model.Estcod;
-                    oResin1.Freali = model.Freali;
+                    _Resin1ParaEditar.Nrores = _Resin1.Nrores;
+                    _Resin1ParaEditar.Nropla = _Resin1.Nropla;
+                    _Resin1ParaEditar.Observ = _Resin1.Observ;
+                    _Resin1ParaEditar.Ppajust = _Resin1.Ppajust;
+                    _Resin1ParaEditar.Epromedio = _Resin1.Epromedio;
+                    _Resin1ParaEditar.Emax = _Resin1.Emax;
+                    _Resin1ParaEditar.Emin = _Resin1.Emin;
+                    _Resin1ParaEditar.Tortot = _Resin1.Tortot;
+                    _Resin1ParaEditar.Torsb = _Resin1.Torsb;
+                    _Resin1ParaEditar.CodUsu = _Resin1.CodUsu;
+                    _Resin1ParaEditar.Editar = _Resin1.Editar;
+                    _Resin1ParaEditar.Icod = _Resin1.Icod;
+                    _Resin1ParaEditar.Scod = _Resin1.Scod;
+                    _Resin1ParaEditar.Estcod = _Resin1.Estcod;
+                    _Resin1ParaEditar.Freali = _Resin1.Freali;
 
-                    //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
-                    //foreach (var row in TorosPorId)
-                    //{
-                    //    row.NombreEst = model.Nombre;
-                    //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    //}
-                    db.Entry(oResin1).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    bool respuesta = await _Resin1Repositorio.Editar(_Resin1ParaEditar);
 
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
+                    if (respuesta)
+                        _Respuesta = new Respuesta<Resin1DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Resin1DTO>(_Resin1ParaEditar) };
+                    else
+                        _Respuesta = new Respuesta<Resin1DTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
                 }
+                else
+                {
+                    _Respuesta = new Respuesta<Resin1DTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<Resin1DTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int Id)
-        {
-            Respuesta<List<Resin1>> oRespuesta = new Respuesta<List<Resin1>>();
-            //IQueryable<Toro> TorosPorId;
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Resin1 oResin1 = db.Resin1s.Find(Id);
-                    db.Remove(oResin1);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach(Toro oElement in dbToros)
-                    //    {
-                    //        db.Remove(oElement);
-                    //    }
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
         }
     }
 }

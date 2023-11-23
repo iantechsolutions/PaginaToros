@@ -1,7 +1,8 @@
 ﻿@page "/socios"
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
-@inject HttpClient Http
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ISocioServicio _socioServicio
 
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Socios</h3>
 
@@ -35,13 +36,13 @@
     <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
     <br />
     <br />
-    <RadzenDataGrid class="tablacontent" style="position:relative;width:93.5%;left:3.33%" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+    <RadzenDataGrid class="tablacontent" IsLoading="isLoading" LoadData="LoadData" style="position:relative;width:93.5%;left:3.33%" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                 AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                Density="Density.Compact" Data="@oRespuesta.List" TItem="Socio" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    Density="Density.Compact" Count="cantidad" Data="@oRespuesta.List" TItem="SocioDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
-            <RadzenDataGridColumn TItem="Socio" Property="Id" Title="Nro Socio" Width="3.6%" />
-            <RadzenDataGridColumn TItem="Socio" Property="Placod" Title="Plantel" Width="4%" />
-            <RadzenDataGridColumn TItem="Socio" Property="Criador" Title="Activo?" Width="3.33%">
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Id" Title="Nro Socio" Width="3.6%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Placod" Title="Plantel" Width="4%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Criador" Title="Activo?" Width="3.33%">
                 <Template Context="data">
                     @if (data.Criador=="S")
                     {
@@ -53,11 +54,11 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Socio" Property="Nombre" Title="Nombre" Width="9.3%" />
-            <RadzenDataGridColumn TItem="Socio" Property="Direcc1" Title="Domicilio" Width="5.6%" />
-            <RadzenDataGridColumn TItem="Socio" Property="Locali1" Title="Localidad" Width="4.6%" />
-            <RadzenDataGridColumn TItem="Socio" Property="Codpos1" Title="Cod. Postal" Width="5.3%" />
-            <RadzenDataGridColumn TItem="Socio" Property="" Title="Provincia" Width="5%">
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Nombre" Title="Nombre" Width="9.3%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Direcc1" Title="Domicilio" Width="5.6%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Locali1" Title="Localidad" Width="4.6%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Codpos1" Title="Cod. Postal" Width="5.3%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="" Title="Provincia" Width="5%">
                 <Template Context="data">
                     @if (traductorProvincia.ContainsKey(data.Codpro1))
                     {
@@ -68,9 +69,9 @@
                     }
                 </Template>    
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Socio" Property="Telefo1" Title="Telefono" Width="5%" />
-            <RadzenDataGridColumn TItem="Socio" Property="Mail" Title="Mail" Width="6.6%" />
-            <RadzenDataGridColumn TItem="Socio" Property="FechaExistencia" Title="Fecha de Creacion" Width="6.6%">
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Telefo1" Title="Telefono" Width="5%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Mail" Title="Mail" Width="6.6%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="FechaExistencia" Title="Fecha de Creacion" Width="6.6%">
                 <Template Context="data">
                     @if(data.Fecing.HasValue){
                         @data.Fecing.Value.ToString("dd/MM/yyyy")
@@ -82,17 +83,17 @@
             </RadzenDataGridColumn>
 
 
-            <RadzenDataGridColumn TItem="Socio" Property="" Title="" Filterable="false" Width="3%">
+            <RadzenDataGridColumn TItem="SocioDTO" Property="" Title="" Filterable="false" Width="3%">
                 <Template Context="data">
                     <button class="btn" position="absolute" title="Editar Socio" @onclick="() => add(data.Id,data.Scod)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Socio" Property="" Title="" Filterable="false" Width="3%">
+            <RadzenDataGridColumn TItem="SocioDTO" Property="" Title="" Filterable="false" Width="3%">
                 <Template Context="data">
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id,data.Scod)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Socio" Property="" Title="" Filterable="false" Width="3%">
+            <RadzenDataGridColumn TItem="SocioDTO" Property="" Title="" Filterable="false" Width="3%">
                 <Template Context="data">
                     <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id,data.Scod)"><FeatherInfo Size="16" Color="blue" /></button>
                 </Template>
@@ -116,10 +117,11 @@ else
 
 
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Socio>? grid;
+    public RadzenDataGrid<SocioDTO>? grid;
     int currentPage;
+    bool isLoading = false;
+    int cantidad;
     public bool allowFiltering = false;
-    public string Url = "/api/socio";
     Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
     {
         {"01", "Chaco"},
@@ -149,16 +151,16 @@ else
         {"",""}
     };
 
-    public Respuesta<List<Socio>> oRespuesta = new Respuesta<List<Socio>>();
+    public Respuesta<List<SocioDTO>> oRespuesta = new Respuesta<List<SocioDTO>>();
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>(Url);
-        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
-        oRespuesta = respuesta;
+        var c = await _socioServicio.CantidadTotal();
+        cantidad = c.List;
+        oRespuesta = await _socioServicio.Lista(0, 15);
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -170,15 +172,19 @@ else
     async Task delete(int id, string cod)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/Socio/{id}/{cod}");
-        await Get();
-        if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+        var response = await _socioServicio.Eliminar(id);
+        if (response)
         {
-            await grid.GoToPage(currentPage - 1);
-        }
-        else if (grid.Count != 0)
-        {
-            await grid.GoToPage(currentPage);
+            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
+
+            if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage - 1);
+            }
+            else if (grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage);
+            }
         }
 
     }
@@ -288,5 +294,24 @@ else
             await grid.GoToPage(currentPage);
         }
     }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        isLoading = true;
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            oRespuesta = await _socioServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+        }
+        else
+        {
+            oRespuesta = await _socioServicio.Lista(args.Skip.Value, args.Top.Value);
+            var can = await _socioServicio.CantidadTotal();
+            cantidad = can.List;
+        }
+
+        isLoading = false;
+    }
+
 
 }

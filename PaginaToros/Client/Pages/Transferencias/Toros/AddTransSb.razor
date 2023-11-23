@@ -1,4 +1,8 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ISocioServicio _sociosServicio
+@inject ITranssbServicio _transsbServicio
+@inject IEstableServicio _estableServicio
 <style>
     .bm-title {
         font-size: 25px;
@@ -70,28 +74,27 @@
     </div>
 </div>
 @code {
-    Transsb oTranssb = new();
-    Respuesta<Transsb> oRespuesta = new();
-    Socio? socioComprador = null;
-    Socio? socioVendedor = null;
-    List<Socio> socios = new();
-    List<Estable> establecimientos = new();
-    Estable establecimientoSeleccionado = new();
+    TranssbDTO oTranssb = new();
+    SocioDTO? socioComprador = null;
+    SocioDTO? socioVendedor = null;
+    List<SocioDTO> socios = new();
+    List<EstableDTO> establecimientos = new();
+    EstableDTO establecimientoSeleccionado = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
-        socios = rta.List.ToList();
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>($"/api/Establecimiento");
-        establecimientos = rt.List.ToList();
+        var rta = await _sociosServicio.Lista(0, 1000000);
+        socios = rta.List;
+        var rt = await _estableServicio.Lista(0, 1000000);
+        establecimientos = rt.List;
         if (Id != 0)
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Transsb>>($"/api/Transsb/{Id}");
-                oTranssb = oRespuesta.List;
+                var r = await _transsbServicio.Lista(0,1000000);
+                oTranssb = r.List.Where(x => x.Id == Id).FirstOrDefault() ;
                 try{
                     socioComprador = socios.Where(x => x.Scod == oTranssb.Scom).First();
                     socioVendedor = socios.Where(x => x.Scod == oTranssb.Sven).First();
@@ -104,7 +107,6 @@
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
             }
         }
     }
@@ -117,12 +119,12 @@
         oTranssb.Ecod = establecimientoSeleccionado.Ecod;
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<Transsb>("/api/Transsb", oTranssb);
+            await _transsbServicio.Crear(oTranssb);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Transsb>("/api/Transsb", oTranssb);
+            await _transsbServicio.Editar(oTranssb);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
@@ -132,13 +134,13 @@
 
     }
 
-    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 
-    private async Task<IEnumerable<Estable>> BusquedaEstablecimientos(string searchText)
+    private async Task<IEnumerable<EstableDTO>> BusquedaEstablecimientos(string searchText)
     {
         var result = establecimientos.Where(x => x.Codsoc==socioComprador.Scod && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);

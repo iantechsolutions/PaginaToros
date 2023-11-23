@@ -494,6 +494,19 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("VARIEDAD");
             });
 
+            modelBuilder.Entity<Certifseman>()
+               .HasOne(t => t.Socio)
+               .WithMany(s => s.Certificados)
+               .HasForeignKey(t => t.Nrocri)
+               .HasPrincipalKey(s => s.Scod);
+
+            modelBuilder.Entity<Certifseman>()
+               .HasOne(t => t.Centro)
+               .WithMany(s => s.Certificados)
+               .HasForeignKey(t => t.Nrocen)
+               .HasPrincipalKey(s => s.Nrocen);
+
+
             modelBuilder.Entity<DeseUsada>(entity =>
             {
                 entity.ToTable("DESE_USADAS");
@@ -840,6 +853,12 @@ namespace PaginaToros.Server.Context
                     .HasMaxLength(30)
                     .HasColumnName("TEL");
             });
+
+            modelBuilder.Entity<Estable>()
+               .HasOne(p => p.Socio)
+               .WithMany(s => s.Establecimientos)
+               .HasForeignKey(t => t.Codsoc)
+               .HasPrincipalKey(s => s.Scod);
 
             modelBuilder.Entity<Futcontrol>(entity =>
             {
@@ -1210,6 +1229,12 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("VQSSRP")
                     .HasDefaultValueSql("'0'");
             });
+
+            modelBuilder.Entity<Plantel>()
+               .HasOne(p => p.Socio)
+               .WithMany(s => s.Planteles)
+               .HasForeignKey(t => t.Nrocri)
+               .HasPrincipalKey(s => s.Scod);
 
             modelBuilder.Entity<Provin>(entity =>
             {
@@ -1998,6 +2023,12 @@ namespace PaginaToros.Server.Context
                     .HasMaxLength(20)
                     .HasColumnName("TYNCTE");
             });
+
+            modelBuilder.Entity<Solici1>()
+               .HasOne(s => s.Establecimiento)
+               .WithMany(e => e.Solicitudes)
+               .HasForeignKey(t => t.Codest)
+               .HasPrincipalKey(s => s.Ecod);
 
             modelBuilder.Entity<Solici4>(entity =>
             {

@@ -1,4 +1,6 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ISocioServicio _socioServicio
 <style>
     .bm-title{
         font-size:25px;
@@ -89,14 +91,12 @@
     </div>
 </div>
 @code {
-    Socio oSocio = new();
-    Respuesta<Socio> oRespuesta = new();
+    SocioDTO oSocio = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public string cod { get; set; }
     DateTime FechaTemp = DateTime.Now.Date;
     public string tempProvincia = "";
-    //string CodZona = "  ";
     bool activo = true;
     List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal","Catamarca","Chaco","Chubut","Cordoba","Corrientes","Entre Rios","Formosa",
     "Jujuy","La pampa","La rioja","Mendoza","Misiones","Neuquen","Rio negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Santiago Del Estero",
@@ -135,8 +135,8 @@
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Socio>>($"/api/Socio/{Id}");
-                oSocio = oRespuesta.List;
+                var c = await _socioServicio.Lista(0,1000000);
+                oSocio = c.List.Where(x=>x.Id==Id).FirstOrDefault();
 
                 if (oSocio.Criador == "S")
                 {
@@ -155,7 +155,6 @@
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
             }
         }
     }
@@ -174,12 +173,12 @@
         }
         if (Id == 0)
         {
-            await Http.PostAsJsonAsync<Socio>("/api/Socio", oSocio);
+            await _socioServicio.Crear(oSocio);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Socio>("/api/Socio", oSocio);
+            await _socio.Editar(oSocio);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

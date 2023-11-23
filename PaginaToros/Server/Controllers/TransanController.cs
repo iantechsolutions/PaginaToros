@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Server.Context;
+using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
 namespace PaginaToros.Server.Controllers
@@ -9,167 +11,196 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class TransanController : ControllerBase
     {
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        private readonly IMapper _mapper;
+        private readonly ITransanRepositorio _TransanRepositorio;
+        public TransanController(ITransanRepositorio TransanRepositorio, IMapper mapper)
         {
-            Respuesta<Transan> oRespuesta = new Respuesta<Transan>();
+            _mapper = mapper;
+            _TransanRepositorio = TransanRepositorio;
+        }
+        [Route("Lista")]
+        public async Task<IActionResult> Lista(int skip, int take)
+        {
+
+            Respuesta<List<TransanDTO>> _ResponseDTO = new Respuesta<List<TransanDTO>>();
 
             try
             {
-                using (hereford_prContext db = new())
-                {
+                List<TransanDTO> listaPedido = new List<TransanDTO>();
+                var a = await _TransanRepositorio.Lista(skip, take);
 
-                    var lst = db.Transans
-                .Where(x => x.Id == id)
-                .First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+
+                listaPedido = _mapper.Map<List<TransanDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<TransanDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<TransanDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpGet]
-        public IActionResult Get()
+        [Route("Cantidad")]
+        public async Task<IActionResult> CantidadTotal()
         {
-            Respuesta<List<Transan>> oRespuesta = new Respuesta<List<Transan>>();
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.Transans.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
-        }
-        [HttpPost]
-        public IActionResult Add(Transan model)
-        {
-            Respuesta<List<Transan>> oRespuesta = new Respuesta<List<Transan>>();
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Transan oTransan = new Transan();
-                    oTransan.NroCert = model.NroCert;
-                    oTransan.Fecvta = model.Fecvta;
-                    oTransan.Sven = model.Sven;
-                    oTransan.CategSv = model.CategSv;
-                    oTransan.Vnom = model.Vnom;
-                    oTransan.Scom = model.Scom;
-                    oTransan.CategSc = model.CategSc;
-                    oTransan.Cnom = model.Cnom;
-                    oTransan.Plant = model.Plant;
-                    oTransan.NvoPla = model.NvoPla;
-                    oTransan.CantHem = model.CantHem;
-                    oTransan.CantMach = model.CantMach;
-                    oTransan.Tiphac = model.Tiphac;
-                    oTransan.Hemsta = model.Hemsta;
-                    oTransan.Tipani = model.Tipani;
-                    oTransan.Incorp = model.Incorp;
-                    oTransan.Tipohem = model.Tipohem;
-                    oTransan.CantChem = model.CantChem;
-                    oTransan.CantCmach = model.CantCmach;
-                    oTransan.FchUsu = model.FchUsu;
-                    oTransan.CodUsu = model.CodUsu;
 
-                    db.Transans.Add(oTransan);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+
+            try
+            {
+                var a = await _TransanRepositorio.CantidadTotal();
+
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
+        }
+        [HttpGet]
+        [Route("LimitadosFiltrados")]
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
+        {
+
+            Respuesta<List<TransanDTO>> _ResponseDTO = new Respuesta<List<TransanDTO>>();
+
+            try
+            {
+                var a = await _TransanRepositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<TransanDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<TransanDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<TransanDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+
+        [HttpDelete]
+        [Route("Eliminar/{id:int}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            Respuesta<string> _Respuesta = new Respuesta<string>();
+            try
+            {
+                Transan _TransanEliminar = await _TransanRepositorio.Obtener(u => u.Id == id);
+                if (_TransanEliminar != null)
+                {
+
+                    bool respuesta = await _TransanRepositorio.Eliminar(_TransanEliminar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
+                    else
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
+        }
+
+        [HttpPost]
+        [Route("Guardar")]
+        public async Task<IActionResult> Guardar([FromBody] TransanDTO request)
+        {
+            Respuesta<TransanDTO> _Respuesta = new Respuesta<TransanDTO>();
+            try
+            {
+                Transan _Transan = _mapper.Map<Transan>(request);
+
+                Transan _TransanCreado = await _TransanRepositorio.Crear(_Transan);
+
+                if (_TransanCreado.Id != 0)
+                    _Respuesta = new Respuesta<TransanDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TransanDTO>(_TransanCreado) };
+                else
+                    _Respuesta = new Respuesta<TransanDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<TransanDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
         }
 
         [HttpPut]
-        public IActionResult Edit(Transan model)
+        [Route("Editar")]
+        public async Task<IActionResult> Editar([FromBody] TransanDTO request)
         {
-            Respuesta<List<Transan>> oRespuesta = new Respuesta<List<Transan>>();
+            Respuesta<TransanDTO> _Respuesta = new Respuesta<TransanDTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
+                Transan _Transan = _mapper.Map<Transan>(request);
+                Transan _TransanParaEditar = await _TransanRepositorio.Obtener(u => u.Id == _Transan.Id);
+
+                if (_TransanParaEditar != null)
                 {
-                    Transan oTransan = db.Transans.Find(model.Id);
-                    oTransan.NroCert = model.NroCert;
-                    oTransan.Fecvta = model.Fecvta;
-                    oTransan.Sven = model.Sven;
-                    oTransan.CategSv = model.CategSv;
-                    oTransan.Vnom = model.Vnom;
-                    oTransan.Scom = model.Scom;
-                    oTransan.CategSc = model.CategSc;
-                    oTransan.Cnom = model.Cnom;
-                    oTransan.Plant = model.Plant;
-                    oTransan.NvoPla = model.NvoPla;
-                    oTransan.CantHem = model.CantHem;
-                    oTransan.CantMach = model.CantMach;
-                    oTransan.Tiphac = model.Tiphac;
-                    oTransan.Hemsta = model.Hemsta;
-                    oTransan.Tipani = model.Tipani;
-                    oTransan.Incorp = model.Incorp;
-                    oTransan.Tipohem = model.Tipohem;
-                    oTransan.CantChem = model.CantChem;
-                    oTransan.CantCmach = model.CantCmach;
-                    oTransan.FchUsu = model.FchUsu;
-                    oTransan.CodUsu = model.CodUsu;
 
+                    _TransanParaEditar.NroCert = _Transan.NroCert;
+                    _TransanParaEditar.Fecvta = _Transan.Fecvta;
+                    _TransanParaEditar.Sven = _Transan.Sven;
+                    _TransanParaEditar.CategSv = _Transan.CategSv;
+                    _TransanParaEditar.Vnom = _Transan.Vnom;
+                    _TransanParaEditar.Scom = _Transan.Scom;
+                    _TransanParaEditar.CategSc = _Transan.CategSc;
+                    _TransanParaEditar.Cnom = _Transan.Cnom;
+                    _TransanParaEditar.Plant = _Transan.Plant;
+                    _TransanParaEditar.NvoPla = _Transan.NvoPla;
+                    _TransanParaEditar.CantHem = _Transan.CantHem;
+                    _TransanParaEditar.CantMach = _Transan.CantMach;
+                    _TransanParaEditar.Tiphac = _Transan.Tiphac;
+                    _TransanParaEditar.Hemsta = _Transan.Hemsta;
+                    _TransanParaEditar.Tipani = _Transan.Tipani;
+                    _TransanParaEditar.Incorp = _Transan.Incorp;
+                    _TransanParaEditar.Tipohem = _Transan.Tipohem;
+                    _TransanParaEditar.CantChem = _Transan.CantChem;
+                    _TransanParaEditar.CantCmach = _Transan.CantCmach;
+                    _TransanParaEditar.FchUsu = _Transan.FchUsu;
+                    _TransanParaEditar.CodUsu = _Transan.CodUsu;
 
-                    //TorosPorId = db.Toros.Where(row => row.IdEst == model.Id);
-                    //foreach (var row in TorosPorId)
-                    //{
-                    //    row.NombreEst = model.Nombre;
-                    //    db.Entry(row).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    //}
-                    db.Entry(oTransan).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    bool respuesta = await _TransanRepositorio.Editar(_TransanParaEditar);
 
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
+                    if (respuesta)
+                        _Respuesta = new Respuesta<TransanDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TransanDTO>(_TransanParaEditar) };
+                    else
+                        _Respuesta = new Respuesta<TransanDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
                 }
+                else
+                {
+                    _Respuesta = new Respuesta<TransanDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<TransanDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int Id)
-        {
-            Respuesta<List<Transan>> oRespuesta = new Respuesta<List<Transan>>();
-            //IQueryable<Toro> TorosPorId;
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Transan oTransan = db.Transans.Find(Id);
-                    db.Remove(oTransan);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach(Toro oElement in dbToros)
-                    //    {
-                    //        db.Remove(oElement);
-                    //    }
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
         }
     }
 }

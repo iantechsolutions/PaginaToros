@@ -1,7 +1,8 @@
 @page "/declaraciones"
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
-@inject HttpClient Http
+@using PaginaToros.Client.Servicios.Contrato;
+@inject IDesepla1Servicio _desepla1Servicio
 <style>
 
     .rz-cell-data,
@@ -36,19 +37,19 @@
     <br />
     <br />
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-        <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+        <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="@isLoading" LoadData="LoadData" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@oRespuesta.List" TItem="Desepla1" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Count="@cantidad" Data="@oRespuesta.List" TItem="Desepla1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="Desepla1" Property="Nrodec" Title="Nro de declaracion" Width="6.6%" />
-                <RadzenDataGridColumn TItem="Desepla1" Property="NrFolio" Title="Nro de folio" Width="3.33%" />
-                <RadzenDataGridColumn TItem="Desepla1" Property="Nroplan" Title="Nro de plantel" Width="3.33%" />
-                <RadzenDataGridColumn TItem="Desepla1" Property="" Title="Socio" Width="7.34%">
+                <RadzenDataGridColumn TItem="Desepla1DTO" Property="Nrodec" Title="Nro de declaracion" Width="6.6%" />
+                <RadzenDataGridColumn TItem="Desepla1DTO" Property="NrFolio" Title="Nro de folio" Width="3.33%" />
+                <RadzenDataGridColumn TItem="Desepla1DTO" Property="Nroplan" Title="Nro de plantel" Width="3.33%" />
+                <RadzenDataGridColumn TItem="Desepla1DTO" Property="" Title="Socio" Width="7.34%">
                     <Template Context="data">
                         @(socios.Where(x => x.Scod == data.Nrocri).FirstOrDefault().Nombre)
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Desepla1" Property="Desde" Title="Desde" Width="4.6%">
+                <RadzenDataGridColumn TItem="Desepla1DTO" Property="Desde" Title="Desde" Width="4.6%">
                     <Template Context="data">
                         @if(data.Desde.HasValue){
                             <a>@data.Desde.Value.ToString("dd/MM/yyyy")</a>
@@ -58,7 +59,7 @@
                         }
                     </Template>     
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Desepla1" Property="Hasta" Title="Hasta" Width="4.6%">
+                <RadzenDataGridColumn TItem="Desepla1DTO" Property="Hasta" Title="Hasta" Width="4.6%">
                     <Template Context="data">
                         @if (data.Hasta.HasValue)
                         {
@@ -70,7 +71,7 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Desepla1" Property="Fchrecepcion" Title="Fecha de recepcion" Width="4.6%">
+                <RadzenDataGridColumn TItem="Desepla1DTO" Property="Fchrecepcion" Title="Fecha de recepcion" Width="4.6%">
                     <Template Context="data">
                         @if (data.Fchrecepcion.HasValue)
                         {
@@ -82,19 +83,19 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Desepla1" Property="Tipse" Title="Tipo de servicio" Width="5%" />
+                <RadzenDataGridColumn TItem="Desepla1DTO" Property="Tipse" Title="Tipo de servicio" Width="5%" />
 
-                <RadzenDataGridColumn TItem="Desepla1" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="Desepla1DTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Declaracion" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Desepla1" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="Desepla1DTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-@*                 <RadzenDataGridColumn TItem="Desepla1" Property="" Title="" Filterable="false" Width="30px">
+@*                 <RadzenDataGridColumn TItem="Desepla1DTO" Property="" Title="" Filterable="false" Width="30px">
                     <Template Context="data">
                         <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
                     </Template>
@@ -118,24 +119,22 @@ else
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<Desepla1>? grid;
-    List<Socio> socios = new();
-
+    public RadzenDataGrid<Desepla1DTO>? grid;
+    List<SocioDTO> socios = new();
+    int cantidad;
     int currentPage;
+    bool isLoading = false;
     public bool allowFiltering = false;
-    public string Url = "/api/desepla1";
-    public Respuesta<List<Desepla1>> oRespuesta = new Respuesta<List<Desepla1>>();
+    public Respuesta<List<Desepla1DTO>> oRespuesta = new Respuesta<List<Desepla1DTO>>();
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>("/api/Socio");
-        socios = rta.List;
         await Get();
     }
     async Task Get()
     {
-        var respuesta = await Http.GetFromJsonAsync<Respuesta<List<Desepla1>>>(Url);
-        respuesta.List = respuesta.List.OrderByDescending(x => x.Id).ToList();
-        oRespuesta = respuesta;
+        var c = await _desepla1Servicio.CantidadTotal();
+        cantidad = c.List;
+        oRespuesta = await _desepla1Servicio.Lista(0, 15);
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -147,17 +146,21 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
-        await Http.DeleteAsync($"/api/desepla1/{id}");
-        await Get();
-        if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+        var response = await _desepla1Servicio.Eliminar(id);
+        if (response)
         {
-            await grid.GoToPage(currentPage - 1);
-        }
-        else if (grid.Count != 0)
-        {
-            await grid.GoToPage(currentPage);
-        }
+            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
 
+            if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage - 1);
+            }
+            else if (grid.Count != 0)
+            {
+                await grid.GoToPage(currentPage);
+            }
+            StateHasChanged();
+        }
     }
 
     public async Task alertaDelete(int id)
@@ -235,6 +238,23 @@ else
                 await grid.GoToPage(currentPage);
             }
         }
+    }
+    async Task LoadData(LoadDataArgs args)
+    {
+        isLoading = true;
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            oRespuesta = await _desepla1Servicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+        }
+        else
+        {
+            oRespuesta = await _desepla1Servicio.Lista(args.Skip.Value, args.Top.Value);
+            var can = await _desepla1Servicio.CantidadTotal();
+            cantidad = can.List;
+        }
+
+        isLoading = false;
     }
     // async Task gotoinfo(int id)
     // {

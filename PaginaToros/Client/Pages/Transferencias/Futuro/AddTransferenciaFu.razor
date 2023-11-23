@@ -1,4 +1,9 @@
 ﻿@using Blazored.Typeahead
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ISocioServicio _sociosServicio
+@inject IFutcontrolServicio _futcontrolServicio
+@inject IPlantelServicio _plantelServicio
+
 <style>
     .bm-title {
         font-size: 25px;
@@ -97,36 +102,34 @@
     </div>
 </div>
 @code {
-    Futcontrol oFutcontrol = new();
-    Respuesta<Futcontrol> oRespuesta = new();
-    Socio socioComprador = new();
-    Socio socioVendedor = new();
-    List<Socio> socios = new();
-    List<Plantel> planteles = new();
-    Plantel? plantelOrigen = null;
-    Plantel? plantelDestino = null;
+    FutcontrolDTO oFutcontrol = new();
+    SocioDTO socioComprador = new();
+    SocioDTO socioVendedor = new();
+    List<SocioDTO> socios = new();
+    List<PlantelDTO> planteles = new();
+    PlantelDTO? plantelOrigen = null;
+    PlantelDTO? plantelDestino = null;
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     List<string> estadosHembra = new List<string> {"CC" ,"CCP", "SS","PR" };
 
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/socio");
-        socios = rta.List.ToList();
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Plantel>>>($"/api/Plantel");
-        planteles = rt.List.ToList();
+        var rta = await _sociosServicio.Lista(0, 1000000);
+        socios = rta.List;
+        var rt = await _plantelServicio.Lista(0, 1000000);
+        planteles = rt.List;
         if (Id != 0)
         {
             try
             {
-                oRespuesta = await Http.GetFromJsonAsync<Respuesta<Futcontrol>>($"/api/Futcontrol/{Id}");
-                oFutcontrol = oRespuesta.List;
+                var r = await _futcontrolServicio.Lista(0, 1000000);
+                oFutcontrol = r.List.Where(x=>x.Id==Id).FirstOrDefault();
                 socioComprador = socios.Where(x => x.Scod == oFutcontrol.Scom).First();
                 socioVendedor = socios.Where(x => x.Scod == oFutcontrol.Sven).First();
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
             }
         }
     }
@@ -145,14 +148,14 @@
             oFutcontrol.PlantDest = plantelDestino.Placod;
         }
         catch{}
-    if (Id == 0)
+        if (Id == 0)
         {
-            await Http.PostAsJsonAsync<Futcontrol>("/api/Futcontrol", oFutcontrol);
+            await _futcontrolServicio.Crear(oFutcontrol);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await Http.PutAsJsonAsync<Futcontrol>("/api/Futcontrol", oFutcontrol);
+            await _futcontrolServicio.Editar(oFutcontrol);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
@@ -162,17 +165,17 @@
 
     }
 
-    private async Task<IEnumerable<Socio>> BusquedaSocios(string searchText)
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
-    private async Task<IEnumerable<Plantel>> BusquedaPlantelesComprador(string searchText)
+    private async Task<IEnumerable<PlantelDTO>> BusquedaPlantelesComprador(string searchText)
     {
         var result = planteles.Where(x => x.Nrocri == socioComprador.Scod && x.Placod.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
-    private async Task<IEnumerable<Plantel>> BusquedaPlantelesVendedor(string searchText)
+    private async Task<IEnumerable<PlantelDTO>> BusquedaPlantelesVendedor(string searchText)
     {
         var result = planteles.Where(x => x.Nrocri==socioVendedor.Scod  && x.Placod.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);

@@ -4,6 +4,8 @@ using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using PaginaToros.Client.Pages.Inspectores;
 using PaginaToros.Server.Context;
+using AutoMapper;
+using PaginaToros.Server.Repositorio.Contrato;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -11,132 +13,182 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class InspectController : ControllerBase
     {
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        private readonly IMapper _mapper;
+        private readonly IInspectRepositorio _InspectRepositorio;
+        public InspectController(IInspectRepositorio InspectRepositorio, IMapper mapper)
         {
-            Respuesta<Inspect> oRespuesta = new Respuesta<Inspect>();
+            _mapper = mapper;
+            _InspectRepositorio = InspectRepositorio;
+        }
+        [Route("Lista")]
+        public async Task<IActionResult> Lista(int skip, int take)
+        {
+
+            Respuesta<List<InspectDTO>> _ResponseDTO = new Respuesta<List<InspectDTO>>();
 
             try
             {
-                using (hereford_prContext db = new())
-                {
+                List<InspectDTO> listaPedido = new List<InspectDTO>();
+                var a = await _InspectRepositorio.Lista(skip, take);
 
-                    var lst = db.Inspects
-                        .Where(x => x.Id == id)
-                        .First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+
+                listaPedido = _mapper.Map<List<InspectDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<InspectDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<InspectDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
 
         [HttpGet]
-        public IActionResult Get()
+        [Route("Cantidad")]
+        public async Task<IActionResult> CantidadTotal()
         {
-            Respuesta<List<Inspect>> oRespuesta = new Respuesta<List<Inspect>>();
+
+            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.Inspects.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+                var a = await _InspectRepositorio.CantidadTotal();
+
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
         }
-        [HttpPost]
-        public IActionResult Add(Inspect model)
+        [HttpGet]
+        [Route("LimitadosFiltrados")]
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
         {
-            Respuesta<List<Inspect>> oRespuesta = new Respuesta<List<Inspect>>();
+
+            Respuesta<List<InspectDTO>> _ResponseDTO = new Respuesta<List<InspectDTO>>();
+
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Inspect oInspector = new Inspect();
-                    oInspector.Icod = model.Icod;
-                    oInspector.Nombre = model.Nombre;
-                    oInspector.Direcc = model.Direcc;
-                    oInspector.Locali = model.Locali;
-                    oInspector.Codpos = model.Codpos;
-                    oInspector.Codpro = model.Codpro;
-                    oInspector.Telefo = model.Telefo;
-                    oInspector.Mail = model.Mail;
-                    db.Inspects.Add(oInspector);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+                var a = await _InspectRepositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<InspectDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<InspectDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _ResponseDTO = new Respuesta<List<InspectDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
-            return Ok(oRespuesta);
+        }
+
+        [HttpDelete]
+        [Route("Eliminar/{id:int}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            Respuesta<string> _Respuesta = new Respuesta<string>();
+            try
+            {
+                Inspect _InspectEliminar = await _InspectRepositorio.Obtener(u => u.Id == id);
+                if (_InspectEliminar != null)
+                {
+
+                    bool respuesta = await _InspectRepositorio.Eliminar(_InspectEliminar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
+                    else
+                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
+        }
+
+        [HttpPost]
+        [Route("Guardar")]
+        public async Task<IActionResult> Guardar([FromBody] InspectDTO request)
+        {
+            Respuesta<InspectDTO> _Respuesta = new Respuesta<InspectDTO>();
+            try
+            {
+                Inspect _Inspect = _mapper.Map<Inspect>(request);
+
+                Inspect _InspectCreado = await _InspectRepositorio.Crear(_Inspect);
+
+                if (_InspectCreado.Id != 0)
+                    _Respuesta = new Respuesta<InspectDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<InspectDTO>(_InspectCreado) };
+                else
+                    _Respuesta = new Respuesta<InspectDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<InspectDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
         }
 
         [HttpPut]
-        public IActionResult Edit(Inspect model)
+        [Route("Editar")]
+        public async Task<IActionResult> Editar([FromBody] InspectDTO request)
         {
-            Respuesta<List<Inspect>> oRespuesta = new Respuesta<List<Inspect>>();
+            Respuesta<InspectDTO> _Respuesta = new Respuesta<InspectDTO>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    Inspect oInspector = db.Inspects.Find(model.Id);
-                    oInspector.Icod = model.Icod;
-                    oInspector.Nombre = model.Nombre;
-                    oInspector.Direcc = model.Direcc;
-                    oInspector.Locali = model.Locali;
-                    oInspector.Codpos = model.Codpos;
-                    oInspector.Codpro = model.Codpro;
-                    oInspector.Telefo = model.Telefo;
-                    oInspector.Mail = model.Mail;
-                    db.Entry(oInspector).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                Inspect _Inspect = _mapper.Map<Inspect>(request);
+                Inspect _InspectParaEditar = await _InspectRepositorio.Obtener(u => u.Id == _Inspect.Id);
 
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int Id)
-        {
-            Respuesta<List<Inspect>> oRespuesta = new Respuesta<List<Inspect>>();
-            //IQueryable<Toro> TorosPorId;
-            try
-            {
-                using (hereford_prContext db = new hereford_prContext())
+                if (_InspectParaEditar != null)
                 {
-                    Inspect oInspector = db.Inspects.Find(Id);
-                    db.Remove(oInspector);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach(Toro oElement in dbToros)
-                    //    {
-                    //        db.Remove(oElement);
-                    //    }
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
+                    _InspectParaEditar.Icod = _Inspect.Icod;
+                    _InspectParaEditar.Nombre = _Inspect.Nombre;
+                    _InspectParaEditar.Direcc = _Inspect.Direcc;
+                    _InspectParaEditar.Locali = _Inspect.Locali;
+                    _InspectParaEditar.Codpos = _Inspect.Codpos;
+                    _InspectParaEditar.Codpro = _Inspect.Codpro;
+                    _InspectParaEditar.Telefo = _Inspect.Telefo;
+                    _InspectParaEditar.Mail = _Inspect.Mail;
+
+                    bool respuesta = await _InspectRepositorio.Editar(_InspectParaEditar);
+
+                    if (respuesta)
+                        _Respuesta = new Respuesta<InspectDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<InspectDTO>(_InspectParaEditar) };
+                    else
+                        _Respuesta = new Respuesta<InspectDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
                 }
+                else
+                {
+                    _Respuesta = new Respuesta<InspectDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                _Respuesta = new Respuesta<InspectDTO>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
-            return Ok(oRespuesta);
         }
     }
 }
