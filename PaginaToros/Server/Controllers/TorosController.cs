@@ -34,7 +34,7 @@ namespace PaginaToros.Server.Controllers
                 List<TorosuniDTO> listaPedido = new List<TorosuniDTO>();
                 var a = await _torosRepositorio.Lista(skip, take);
 
-
+                
                 listaPedido = _mapper.Map<List<TorosuniDTO>>(a);
 
                 _ResponseDTO = new Respuesta<List<TorosuniDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };

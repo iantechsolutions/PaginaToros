@@ -1435,6 +1435,12 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("TORTOT");
             });
 
+            modelBuilder.Entity<Resin1>()
+             .HasOne(t => t.Socio)
+             .WithMany(s => s.Resultados)
+             .HasForeignKey(t => t.Scod)
+             .HasPrincipalKey(s => s.Scod);
+
             modelBuilder.Entity<Resin2>(entity =>
             {
                 entity.ToTable("RESIN2");
@@ -2030,6 +2036,11 @@ namespace PaginaToros.Server.Context
                .HasForeignKey(t => t.Codest)
                .HasPrincipalKey(s => s.Ecod);
 
+            //modelBuilder.Entity<Solici1>()
+            // .HasOne(p => p.)
+            // .WithMany(s => s.Establecimientos)
+            // .HasForeignKey(t => t.Codsoc)
+            // .HasPrincipalKey(s => s.Scod);
             modelBuilder.Entity<Solici4>(entity =>
             {
                 entity.ToTable("SOLICI4");

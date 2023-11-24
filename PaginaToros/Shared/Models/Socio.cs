@@ -42,5 +42,7 @@ namespace PaginaToros.Shared.Models
         public List<Estable>? Establecimientos { get; set; }
         [JsonIgnore]
         public List<Certifseman>? Certificados { get; set; }
+        [JsonIgnore]
+        public List<Resin1>? Resultados { get; set; }
     }
 }

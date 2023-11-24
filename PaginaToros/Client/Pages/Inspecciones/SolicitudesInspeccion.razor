@@ -35,12 +35,13 @@
     <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
     <br />
     <br />
-    <div class="tablacontent" style="position:relative;width:93.5%">
-    <RadzenDataGrid style="position:relative;width:93.5%;left:3.33%" Count="cantidad" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-                AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                IsLoading="isLoading" Data="@oRespuesta.List" TItem="Solici1DTO" LoadData="LoadData" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
+    <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+          <RadzenDataGrid AllowFiltering="allowFiltering" LoadData="LoadData" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                        Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                        Count="cantidad" Data="@oRespuesta.List" TItem="Solici1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+   
         <Columns>
-                <RadzenDataGridColumn TItem="Solici1DTO" Property="NroSol" Title="Nro Solicitud" Width="21.7%" />
+                <RadzenDataGridColumn TItem="Solici1DTO" Property="Nrosol" Title="Nro Solicitud" Width="21.7%" />
                 <RadzenDataGridColumn TItem="Solici1DTO" Property="Establecimiento.Socio.Nombre" Title="Socio" Width="21.7%"/>
                 <RadzenDataGridColumn TItem="Solici1DTO" Property="Fecsol" Title="Fecha De Solicitud" Width="21.7%">
                     <Template Context="data">
@@ -63,13 +64,13 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
-                <Template Context="data">
+                <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                    <Template Context="data">
                     <button class="btn" position="absolute" title="Editar Solicitud" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
             </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
-                <Template Context="data">
+                <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                    <Template Context="data">
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
             </RadzenDataGridColumn>

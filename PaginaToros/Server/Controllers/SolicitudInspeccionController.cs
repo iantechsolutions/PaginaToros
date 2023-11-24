@@ -35,7 +35,7 @@ namespace PaginaToros.Server.Controllers
             {
                 List<Solici1DTO> listaPedido = new List<Solici1DTO>();
                 var a = await _solicitudRepositorio.Lista(skip, take);
-
+                
 
                 listaPedido = _mapper.Map<List<Solici1DTO>>(a);
 

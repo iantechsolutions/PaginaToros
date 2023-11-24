@@ -1,0 +1,193 @@
+@import '_content/Blazored.Modal/Blazored.Modal.bundle.scp.css';
+
+/* /Pages/Auth/Login.razor.rz.scp.css */
+@@import url(https://fonts.googleapis.com/css?family=Roboto:300);
+
+.login-page[b-qp3kik0ul9] {
+    width: 360px;
+    padding: 8% 0 0;
+    margin: auto;
+}
+
+.login-page[b-qp3kik0ul9] {
+    /* Estilos para el contenido de la página de inicio de sesión */
+    margin-top: 6%;
+    margin-left: 5%;
+}
+
+.form[b-qp3kik0ul9] {
+    position: relative;
+    z-index: 1;
+    background: #FFFFFF;
+    max-width: 360px;
+    margin: 0 auto 6.6%;
+    padding: 3%;
+    text-align: center;
+    box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+}
+
+    .form input[b-qp3kik0ul9] {
+        font-family: "Roboto", sans-serif;
+        outline: 0;
+        background: #f2f2f2;
+        width: 100%;
+        border: 0;
+        margin: 0 0 15px;
+        padding: 15px;
+        box-sizing: border-box;
+        font-size: 14px;
+    }
+
+    .form button[b-qp3kik0ul9] {
+        font-family: "Roboto", sans-serif;
+        text-transform: uppercase;
+        outline: 0;
+        background: #4CAF50;
+        width: 100%;
+        border: 0;
+        padding: 15px;
+        color: #FFFFFF;
+        font-size: 14px;
+        -webkit-transition: all 0.3 ease;
+        transition: all 0.3 ease;
+        cursor: pointer;
+    }
+
+        .form button:hover[b-qp3kik0ul9], .form button:active[b-qp3kik0ul9], .form button:focus[b-qp3kik0ul9] {
+            background: #43A047;
+        }
+
+    .form .message[b-qp3kik0ul9] {
+        margin: 15px 0 0;
+        color: #b3b3b3;
+        font-size: 12px;
+    }
+
+        .form .message a[b-qp3kik0ul9] {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+    .form .register-form[b-qp3kik0ul9] {
+        display: none;
+    }
+
+.container[b-qp3kik0ul9] {
+    position: relative;
+    z-index: 1;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+    .container[b-qp3kik0ul9]:before, .container[b-qp3kik0ul9]:after {
+        content: "";
+        display: block;
+        clear: both;
+    }
+
+    .container .info[b-qp3kik0ul9] {
+        margin: 3.33% auto;
+        text-align: center;
+    }
+
+        .container .info h1[b-qp3kik0ul9] {
+            margin: 0 0 15px;
+            padding: 0;
+            font-size: 36px;
+            font-weight: 300;
+            color: #1a1a1a;
+        }
+
+        .container .info span[b-qp3kik0ul9] {
+            color: #4d4d4d;
+            font-size: 12px;
+        }
+
+            .container .info span a[b-qp3kik0ul9] {
+                color: #000000;
+                text-decoration: none;
+            }
+
+            .container .info span .fa[b-qp3kik0ul9] {
+                color: #EF3B3A;
+            }
+
+.img[b-qp3kik0ul9] {
+    padding-bottom:4vh;
+    
+    width:25vh;
+}
+
+body[b-qp3kik0ul9] {
+    background: #76b852; /* fallback for old browsers */
+    background: rgb(141,194,111);
+    background: linear-gradient(90deg, rgba(141,194,111,1) 0%, rgba(118,184,82,1) 50%);
+    font-family: "Roboto", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+/* /Shared/NavMenu.razor.rz.scp.css */
+
+
+
+.navbar-custom .navbar-brand[b-ywnzqievez],
+.navbar-custom .navbar-text[b-ywnzqievez],
+.navbar-custom .nav-link[b-ywnzqievez],
+.navbar-custom .nav-item[b-ywnzqievez],
+.navbar-custom .navbar-nav[b-ywnzqievez] {
+    color: #13622b;
+}
+    /*    .navbar-custom .nav-item {
+    padding-left: 5px;
+    padding-right: 5px;
+    border: 2px solid #73AD21;
+}*/
+
+
+.dropbtn[b-ywnzqievez] {
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.nav-item[b-ywnzqievez] {
+    background-color: transparent;
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.nav-item-content[b-ywnzqievez] {
+    background-color: transparent;
+    display: none;
+    position: absolute;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+
+
+/* Links inside the dropdown */
+.dropdown-content a[b-ywnzqievez] {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+
+
+/* Show the dropdown menu on hover */
+.nav-item:hover .nav-item-content[b-ywnzqievez] {
+    display: block;
+}
+.nav-item:hover .nav-item-content[b-ywnzqievez] {
+    display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */

@@ -4,8 +4,8 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 -->
 <Project>
   <PropertyGroup>
-    <_PublishTargetUrl>C:\Users\HP\Source\Repos\PaginaToros\PaginaToros\Server\bin\Release\net6.0\publish\</_PublishTargetUrl>
-    <History>True|2023-10-24T05:04:59.3243720Z;</History>
+    <_PublishTargetUrl>C:\Users\HP\source\repos\paginatoros\PaginaToros\Server\bin\Release\net6.0\publish\</_PublishTargetUrl>
+    <History>True|2023-11-24T13:54:14.1830051Z;True|2023-11-24T10:38:18.7810395-03:00;True|2023-11-24T09:31:16.2872546-03:00;True|2023-10-24T02:04:59.3243720-03:00;</History>
     <LastFailureDetails />
   </PropertyGroup>
 </Project>
