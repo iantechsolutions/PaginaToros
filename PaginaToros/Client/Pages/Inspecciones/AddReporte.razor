@@ -1,4 +1,5 @@
-﻿@using Blazored.Typeahead
+﻿@page "/inforeporte/{Id:int}"
+@using Blazored.Typeahead
 @using PaginaToros.Client.Pages.CrudInspecciones
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ISocioServicio _socioServicio
@@ -554,23 +555,28 @@ else
     protected override async Task OnInitializedAsync()
     {
         try{
-
-            var rtaaa = await _inspectServicio.Lista(0, 1000000);
+            var cant = await _inspectServicio.CantidadTotal();
+            var rtaaa = await _inspectServicio.Lista(0, cant.List);
             Inspects = rtaaa.List;
-            var plan = await _plantelServicio.Lista(0, 1000000);
+            cant = await _plantelServicio.CantidadTotal();
+            var plan = await _plantelServicio.Lista(0, cant.List);
             Planteles = plan.List;
             if (Id != 0)
             {
-                var res = await _resin1Servicio.Lista(0,1000000);
+                string filtro = $"Id = {Id}";
+                var res = await _resin1Servicio.LimitadosFiltrados(0,1,filtro);
                 oResin1 = res.List.Where(x=>x.Id==Id).FirstOrDefault();
 
-                var rt = await _socioServicio.Lista(0, 1000000);
+                filtro = $"(Scod == null ? \"\" : Scod).ToLower().Contains(\"{oResin1.Scod}\".ToLower())";
+                var rt = await _socioServicio.LimitadosFiltrados(0,1,filtro);
                 socioSeleccionado = rt.List.Where(x=>x.Scod==oResin1.Scod).FirstOrDefault();
 
-                var sol = await _solici1Servicio.Lista(0,1000000);
+                filtro = $"(Nrosol == null ? \"\" : Nrosol).ToLower().Contains(\"{oResin1.Nrores}\".ToLower())";
+                var sol = await _solici1Servicio.LimitadosFiltrados(0, 1, filtro);
                 solicitudSeleccionada = sol.List.Where(x=>x.Nrosol==oResin1.Nrores).FirstOrDefault();
 
-                var estable = await _estableServicio.Lista(0, 1000000);
+                filtro = $"(Ecod == null ? \"\" : Ecod).ToLower().Contains(\"{oResin1.Estcod}\".ToLower())";
+                var estable = await _estableServicio.LimitadosFiltrados(0, 1, filtro);
                 establecimientoSeleccionado = estable.List.Where(x=>x.Ecod==oResin1.Estcod).FirstOrDefault();
 
                 inspectorSeleccionado = Inspects.Where(x => x.Icod == oResin1.Icod).FirstOrDefault();
@@ -589,13 +595,20 @@ else
                 confirmado = true;
             }
             else{
-                var rta = await _socioServicio.Lista(0, 1000000);
+                cant = await _socioServicio.CantidadTotal();
+                var rta = await _socioServicio.Lista(0, cant.List);
                 socios = rta.List;
-                var rtaa = await _solici1Servicio.Lista(0, 1000000);
+
+                cant = await _solici1Servicio.CantidadTotal();
+                var rtaa = await _solici1Servicio.Lista(0, cant.List);
                 solicitudes = rtaa.List;
-                var rt = await _resin1Servicio.Lista(0, 1000000);
+
+                cant = await _resin1Servicio.CantidadTotal();
+                var rt = await _resin1Servicio.Lista(0, cant.List);
                 resultados = rt.List;
-                var respuesta = await _estableServicio.Lista(0, 1000000);
+
+                cant = await _estableServicio.CantidadTotal();
+                var respuesta = await _estableServicio.Lista(0, cant.List);
                 establecimientos = respuesta.List;
 
             }
@@ -650,13 +663,13 @@ else
 
     async Task updatePromedios(string nrores)
     {
-        var rt = await _resin4Servicio.Lista(0, 1000000);
-        var rtt = rt.List.Where(x => x.Nrores == nrores);
-        if (rtt.Count() > 0)
+        string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+        var rtt = await _resin4Servicio.LimitadosFiltrados(0,2,filtro);
+        if (rtt.List.Count() > 0)
         {
             try{
-                promediohembra = rtt.Where(x => x.Sexo == "H").First();
-                promediomacho = rtt.Where(x => x.Sexo == "M").First();
+                promediohembra = rtt.List.Where(x => x.Sexo == "H").First();
+                promediomacho = rtt.List.Where(x => x.Sexo == "M").First();
             }
             catch
             {
@@ -666,12 +679,14 @@ else
     }
     async Task updateRechazos(string nrores)
     {
-        var res = await _resin8Servicio.Lista(0, 1000000);
+        string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+        var res = await _resin8Servicio.LimitadosFiltrados(0, 100,filtro);
         rechazos = res.List;
     }
     async Task updateMovimientos(string nrores, string condicion)
     {
-        var respuesta = await _resin3Servicio.Lista(0, 1000000);
+        string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+        var respuesta = await _resin3Servicio.LimitadosFiltrados(0, 100,filtro);
         mtos = respuesta.List;
 
         foreach (var mov in mtos)
@@ -716,9 +731,13 @@ else
     {
         try
         {
-            var rt = await _resin6Servicio.Lista(0, 1000000);
-            var rta = rt.List.Where(x=>x.Nrores==nrores);
-            hemyma = rta.FirstOrDefault();
+            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+            var rta = await _resin6Servicio.LimitadosFiltrados(0, 1, filtro);
+            hemyma = rta.List.FirstOrDefault();
+            if(hemyma is null)
+            {
+                hemyma = new();
+            }
         }
         catch { }
     }
@@ -726,9 +745,9 @@ else
     {
         try
         {
-            var r = await _resin2Servicio.Lista(0, 1000000);
-            var rt = r.List.Where(x=>x.Nrores==nrores);
-            estadoAnterior = rt.First();
+            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+            var rt = await _resin2Servicio.LimitadosFiltrados(0, 1,filtro);
+            estadoAnterior = rt.List.FirstOrDefault();
         }
         catch (Exception ex)
         {

@@ -4,6 +4,7 @@ using PaginaToros.Client.Pages.Establecimientos;
 using PaginaToros.Client.Pages.Socios;
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
+using PaginaToros.Server.Repositorio.Implementacion;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Request;
 using PaginaToros.Shared.Models.Response;
@@ -124,7 +125,6 @@ namespace PaginaToros.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
-
         [HttpPost]
         [Route("Guardar")]
         public async Task<IActionResult> Guardar([FromBody] EstableDTO request)
@@ -133,7 +133,8 @@ namespace PaginaToros.Server.Controllers
             try
             {
                 Estable _Estable = _mapper.Map<Estable>(request);
-                Estable _EstableViejo = await _EstableRepositorio.Obtener(u => u.Id == (_Estable.Id-1));
+                var EstL = await _EstableRepositorio.Lista(0, 1);
+                Estable _EstableViejo = EstL.FirstOrDefault();
                 _Estable.Ecod = (Int32.Parse(_EstableViejo.Ecod) + 1).ToString("D6");
 
                 Estable _EstableCreado = await _EstableRepositorio.Crear(_Estable);

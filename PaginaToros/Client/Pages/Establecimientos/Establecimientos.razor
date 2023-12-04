@@ -56,14 +56,18 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="EstableDTO" Property="Nombre" Title="Nombre" Width="6.6%" />
                 <RadzenDataGridColumn TItem="EstableDTO" Property="Encargado" Title="Encargado" Width="4.6%" />
-                <RadzenDataGridColumn TItem="EstableDTO" Property="Domicilio" Title="Domicilio" Width="4.6%" />
-                <RadzenDataGridColumn TItem="EstableDTO" Property="Telefono" Title="Telefono" Width="5%" />
-                <RadzenDataGridColumn TItem="EstableDTO" Property="Localidad" Title="Localidad" Width="5%" />
-                <RadzenDataGridColumn TItem="EstableDTO" Property="CodPostal" Title="Codigo Postal" Width="5.6%" />
-                <RadzenDataGridColumn TItem="EstableDTO" Property="provincia" Title="Provincia" Width="5%"/>
-                <RadzenDataGridColumn TItem="EstableDTO" Property="Informacion" Title="Informacion" Width="5.3%" />
-                <RadzenDataGridColumn TItem="EstableDTO" Property="CodZona" Title="Cod. zona" Width="4.6%" />
-                <RadzenDataGridColumn TItem="EstableDTO" Property="AnioCreacion" Title="Año Creacion" Width="5.6%" />
+                <RadzenDataGridColumn TItem="EstableDTO" Property="Direcc" Title="Domicilio" Width="4.6%" />
+                <RadzenDataGridColumn TItem="EstableDTO" Property="Tel" Title="Telefono" Width="5%" />
+                <RadzenDataGridColumn TItem="EstableDTO" Property="Locali" Title="Localidad" Width="5%" />
+                <RadzenDataGridColumn TItem="EstableDTO" Property="Codpos" Title="Codigo Postal" Width="5.6%" />
+                <RadzenDataGridColumn TItem="EstableDTO" Property="" Title="Provincia" Width="5%">
+                    <Template Context="data">
+                        @traductorProvincia[data.Codpro]
+                    </Template>    
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="EstableDTO" Property="Plano" Title="Informacion" Width="5.3%" />
+                <RadzenDataGridColumn TItem="EstableDTO" Property="Codzon" Title="Cod. zona" Width="4.6%" />
+                <RadzenDataGridColumn TItem="EstableDTO" Property="Fechacreacion" Title="Año Creacion" Width="5.6%" />
                 <RadzenDataGridColumn TItem="EstableDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Establecimiento" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
@@ -130,7 +134,8 @@ else
         {"22", "San Juan"},
         {"23", "Santiago Del Estero"},
         {"24", "Tucuman"},
-        {"",""}
+        {"",""},
+        {"0",""}
     };
     public Respuesta<List<EstableDTO>> oRespuesta = new Respuesta<List<EstableDTO>>();
     protected override async Task OnInitializedAsync()
@@ -153,10 +158,9 @@ else
     {
         currentPage = grid.CurrentPage;
         var response = await _estableServicio.Eliminar(id);
+        await grid.Reload();
         if (response)
         {
-            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
-
             if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
             {
                 await grid.GoToPage(currentPage - 1);
@@ -175,7 +179,7 @@ else
         SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
             {
                 Title = "¿Está seguro?",
-                Text = "Se eliminará este establecimiento y sus toros",
+                Text = "Se eliminará este establecimiento",
                 Icon = SweetAlertIcon.Warning,
                 ShowCancelButton = true,
                 ConfirmButtonText = "Eliminar",

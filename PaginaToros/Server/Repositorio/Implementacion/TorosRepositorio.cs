@@ -46,24 +46,18 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
-        public async Task<(List<Torosuni>,int)> LimitadosFiltrados(int skip, int take,string filtro = null)
+        public async Task<List<Torosuni>> LimitadosFiltrados(int skip, int take, string filtro = null)
         {
-            var p = Expression.Parameter(typeof(Torosuni));
-            var exp = DynamicExpressionParser.ParseLambda<Torosuni, bool>(ParsingConfig.Default, false, filtro);
             try
             {
-                Console.WriteLine(filtro);
-                var filtrado = _dbContext.Torosunis.OrderByDescending(t => t.Id)
+                return await _dbContext.Torosunis
                                  .Include(t => t.Socio)
-                                 .Where(exp);
-
-                var cant = filtrado.Count();
-
-                var lista = await filtrado.Skip(skip)
+                                 .Where(filtro)
+                                 .Skip(skip)
                                  .Take(take)
+                                 .OrderByDescending(t => t.Id)
                                  .ToListAsync();
-                return (lista, cant);
-                                 
+
             }
             catch
             {

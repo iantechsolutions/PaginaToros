@@ -137,8 +137,9 @@ namespace PaginaToros.Server.Controllers
             try
             {
                 Solici1 _Solicitud = _mapper.Map<Solici1>(request);
-                Solici1 _SolicitudVieja = await _solicitudRepositorio.Obtener(u => u.Id == (_Solicitud.Id - 1));
-                _Solicitud.Nrosol = (Int32.Parse(_SolicitudVieja.Nrosol) + 1).ToString("");
+                var SolL = await _solicitudRepositorio.Lista(0, 1);
+                Solici1 _SolicitudVieja = SolL.FirstOrDefault();
+                _Solicitud.Nrosol = (Int32.Parse(_SolicitudVieja.Nrosol) + 1).ToString("D6");
                 Solici1 _SolicitudCreado = await _solicitudRepositorio.Crear(_Solicitud);
 
                 if (_SolicitudCreado.Id != 0)

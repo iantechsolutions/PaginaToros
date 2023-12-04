@@ -133,8 +133,9 @@ namespace PaginaToros.Server.Controllers
             try
             {
                 Socio _Socio = _mapper.Map<Socio>(request);
-                Socio _SocioViejo = await _SocioRepositorio.Obtener(u => u.Id == (_Socio.Id - 1));
-                _Socio.Scod = (Int32.Parse(_SocioViejo.Scod) + 1).ToString("D5");
+                var SocL = await _SocioRepositorio.Lista(0, 1);
+                Socio _SocioViejo = SocL.FirstOrDefault();
+                _Socio.Scod = (Int32.Parse(_SocioViejo.Scod) + 1).ToString("D4");
                 Socio _SocioCreado = await _SocioRepositorio.Crear(_Socio);
 
                 if (_SocioCreado.Id != 0)

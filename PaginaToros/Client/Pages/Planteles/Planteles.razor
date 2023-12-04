@@ -1,4 +1,4 @@
-﻿@page "/Planteles"
+﻿    @page "/Planteles"
 
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
@@ -67,7 +67,7 @@
                     <button class="btn" position="absolute" title="Editar Plantel" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Plantel" Property="" Title="" Filterable="false" Width="2.3%">
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="" Title="" Filterable="false" Width="2.3%">
                 <Template Context="data">
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
@@ -124,7 +124,7 @@ else
     {
         currentPage = grid.CurrentPage;
         await _plantelServicio.Eliminar(id);
-        await Get();
+        await grid.Reload();
         if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
         {
             await grid.GoToPage(currentPage - 1);

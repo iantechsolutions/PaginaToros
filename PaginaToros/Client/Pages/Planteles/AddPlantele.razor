@@ -11,7 +11,7 @@
                 <div class="col-sm">
                     <label>Numero de Plantel</label>
                     <InputText class="form-control" @bind-Value="@oPlantel.Placod"
-                               placeholder="Nombre"></InputText>
+                               placeholder="Numero"></InputText>
                     <ValidationMessage For="(()=> oPlantel.Placod)" style="color:red;" />
                 </div>
                 <div class="col-sm">
@@ -117,7 +117,7 @@
         if (Id != 0)
         {
             try
-            {
+            {   
                 var rt = await _plantelServicio.Lista(0, 1000000);
                 oPlantel = rt.List.Where(x=>x.Id==Id).FirstOrDefault();
                 if (oPlantel.Estado=="S")

@@ -115,6 +115,7 @@ else
     {
         currentPage = grid.CurrentPage;
         var response = await _certifsemanServicio.Eliminar(id);
+        await grid.Reload();
         if (response)
         {
             oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());

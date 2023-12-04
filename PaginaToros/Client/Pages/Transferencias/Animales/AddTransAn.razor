@@ -185,16 +185,19 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var rta = await _sociosServicio.Lista(0, 1000000);
+        var can = await _sociosServicio.CantidadTotal();
+        var rta = await _sociosServicio.Lista(0, can.List);
         socios = rta.List;
-        var rt = await _plantelServicio.Lista(0, 1000000);
+        can = await _plantelServicio.CantidadTotal();
+        var rt = await _plantelServicio.Lista(0, can.List);
         Planteles = rt.List;
         if (Id != 0)
         {
             try
             {
-                var r = await _transanServicio.Lista(0,1000000);
-                oTransan = r.List.Where(x=>x.Id==Id).FirstOrDefault();
+                string filtro = $"Id = {Id}";
+                var r = await _transanServicio.LimitadosFiltrados(0,1,filtro);
+                oTransan = r.List.FirstOrDefault();
                 socioComprador = socios.Where(x => x.Scod == oTransan.Scom).First();
                 socioVendedor = socios.Where(x => x.Scod == oTransan.Sven).First();
                 plantelOrigen = Planteles.Where(x => x.Placod == oTransan.Plant).First();

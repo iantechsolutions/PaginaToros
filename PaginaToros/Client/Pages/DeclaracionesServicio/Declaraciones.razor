@@ -1,5 +1,5 @@
-@*@page "/declaraciones"*@
-
+@* @page "/declaraciones"
+ *@
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
@@ -148,6 +148,7 @@ else
     {
         currentPage = grid.CurrentPage;
         var response = await _desepla1Servicio.Eliminar(id);
+        await grid.Reload();
         if (response)
         {
             oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());

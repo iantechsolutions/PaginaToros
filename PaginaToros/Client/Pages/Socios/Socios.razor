@@ -40,7 +40,7 @@
                 AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                     Density="Density.Compact" Count="cantidad" Data="@oRespuesta.List" TItem="SocioDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
-            <RadzenDataGridColumn TItem="SocioDTO" Property="Id" Title="Nro Socio" Width="3.6%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Scod" Title="Nro Socio" Width="3.6%" />
             <RadzenDataGridColumn TItem="SocioDTO" Property="Placod" Title="Plantel" Width="4%" />
             <RadzenDataGridColumn TItem="SocioDTO" Property="Criador" Title="Activo?" Width="3.33%">
                 <Template Context="data">
@@ -173,10 +173,9 @@ else
     {
         currentPage = grid.CurrentPage;
         var response = await _socioServicio.Eliminar(id);
+        await grid.Reload();
         if (response)
         {
-            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
-
             if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
             {
                 await grid.GoToPage(currentPage - 1);

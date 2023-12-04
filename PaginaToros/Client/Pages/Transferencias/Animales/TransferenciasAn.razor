@@ -39,7 +39,7 @@
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
         <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Count="cantidad" Data="@oRespuesta.List" TItem="TransanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        Count="cantidad" Data="@oRespuesta.List" LoadData="LoadData" TItem="TransanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
 
                 <RadzenDataGridColumn TItem="TransanDTO" Property="NroCert" Title="Nro Certificado" Width="5.3%" />
@@ -119,7 +119,7 @@ else
         var c = await _transanServicio.CantidadTotal();
         cantidad = c.List;
         oRespuesta = await _transanServicio.Lista(0, 15);
-        
+
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -132,6 +132,7 @@ else
     {
         currentPage = grid.CurrentPage;
         var response = await _transanServicio.Eliminar(id);
+        await grid.Reload();
         if (response)
         {
             oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());

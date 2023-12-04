@@ -57,6 +57,7 @@
                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="Fechasba" Title="Fecha S/" Width="4%" />
                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="4%" />
                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4%" />
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Criador" Title="Criador" Width="4%" />
                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="Socio.Nombre" Title="Propietario" Width="7.34%">
                     <Template Context="data">
                         <a>
@@ -76,9 +77,15 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
+                        <button class="btn" title="Editar" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                    <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
                 </RadzenDataGridColumn>
+                
                 @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
             <Template Context="data">
             <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
@@ -138,6 +145,7 @@ else
     {
         currentPage = grid.CurrentPage;
         var response = await _torosServicio.Eliminar(id);
+        await grid.Reload();
         if (response){
             oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
         

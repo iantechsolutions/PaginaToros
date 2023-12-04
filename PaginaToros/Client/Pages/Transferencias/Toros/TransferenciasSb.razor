@@ -1,4 +1,4 @@
-﻿@*@page "/transsb"*@
+﻿@page "/transsb"
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
@@ -44,8 +44,8 @@
                 <RadzenDataGridColumn TItem="TranssbDTO" Property="NroTrans" Title="Nro Certificado" Width="24%" />
                 <RadzenDataGridColumn TItem="TranssbDTO" Property="NroOrden" Title="Nro Orden" Width="24%" />
                 <RadzenDataGridColumn TItem="TranssbDTO" Property="Vnom" Title="Socio Vendedor" Width="24%"/>
-                <RadzenDataGridColumn TItem="TranssbDTO" Property="Cnom" Title="Socio Comprador" Width="24%" />
-                <RadzenDataGridColumn TItem="TranssbDTO" Property="NombreEstablecimiento" Title="Establecimiento" Width="24%"/>
+                <RadzenDataGridColumn TItem="TranssbDTO" Property="Cnom" Title="Socio Comprador" Width="23%" />
+                <RadzenDataGridColumn TItem="TranssbDTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="23%" />
                 <RadzenDataGridColumn TItem="TranssbDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
@@ -99,7 +99,7 @@ else
     {
         var c = await _transsbServicio.CantidadTotal();
         cantidad = c.List;
-        oRespuesta= await _transsbServicio.Lista(0,15);
+        oRespuesta = await _transsbServicio.Lista(0,15);
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -112,6 +112,7 @@ else
     {
         currentPage = grid.CurrentPage;
         var response = await _transsbServicio.Eliminar(id);
+        await grid.Reload();
         if (response)
         {
             oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());

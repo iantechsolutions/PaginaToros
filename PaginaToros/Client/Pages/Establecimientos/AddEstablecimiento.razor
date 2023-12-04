@@ -16,13 +16,13 @@
                 <div class="col-sm">
                     <label>Socio</label>
                     <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre"  EnableDropDown="true" @bind-Value="socioSeleccionado">
-                                <SelectedTemplate Context="eleccion">
-                                    @eleccion.Nombre
-                                </SelectedTemplate>
-                                <ResultTemplate Context="eleccion">
-                                    @eleccion.Nombre
-                                </ResultTemplate>
-                            </BlazoredTypeahead>
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.Nombre
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.Nombre
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Nombre del establecimiento</label>
@@ -116,7 +116,7 @@
     string CodZona = "  ";
     bool activo = true;
     List<SocioDTO> socios = new();
-    Socio? socioSeleccionado = null;
+    SocioDTO? socioSeleccionado = null;
     string provinciaTemp = "";
     List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal","Catamarca","Chaco","Chubut","Cordoba","Corrientes","Entre Rios","Formosa","Jujuy","La pampa","La rioja","Mendoza","Misiones","Neuquen","Rio negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Santiago Del Estero","Tierra del fuego","Tucuman" };
     List<string> zonas = new List<string>
@@ -222,9 +222,9 @@
 
             try
             {
-                var ca = await _estableServicio.CantidadTotal();
-                var rt = await _estableServicio.Lista(0,ca.List);
-                oEstablecimiento = rt.List.Where(x=>x.Id==Id).FirstOrDefault();
+                string filtro = $"Id = {Id}";
+                var rt = await _estableServicio.LimitadosFiltrados(0, 1, filtro);
+                oEstablecimiento = rt.List.FirstOrDefault();
                 if (oEstablecimiento.Activo == "S")
                 {
                     activo = true;
@@ -233,7 +233,7 @@
                 {
                     activo = false;
                 }
-                socioSeleccionado = oEstablecimiento.Socio;
+                socioSeleccionado = socios.Where(x => x.Scod == oEstablecimiento.Codsoc).FirstOrDefault();
                 CodZona = oEstablecimiento.Codzon;
                 provinciaTemp = traductorProvinciaInverso[oEstablecimiento.Codpro];
             }

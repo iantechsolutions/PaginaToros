@@ -38,7 +38,6 @@ namespace PaginaToros.Shared.Models
         public string Fecing { get; set; } = null!;
         public int Id { get; set; }
         public string? Fechasba { get; set; }
-        [JsonIgnore]
         public Socio? Socio { get; set; }
 
         //public string? Pnac { get; set; }

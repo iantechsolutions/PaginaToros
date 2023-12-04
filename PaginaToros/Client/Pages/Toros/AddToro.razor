@@ -73,6 +73,11 @@
             <br />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
+                    <label class="col-sm">Tip / DNA</label>
+                    <InputText @bind-Value=@oTorosuni.NrTsan class="form-control" placeholder="" />
+                    <ValidationMessage For="(()=> oTorosuni.NrTsan)" style="color:red;" />
+                </div>
+                <div class="col-sm">
                     <label class="col-sm">Fecha de nacimiento</label>
                     <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTorosuni.Nacido" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 </div>
@@ -130,15 +135,17 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var rta = await _sociosServicio.Lista(0,1000000);
+        var can = await _sociosServicio.CantidadTotal();
+        var rta = await _sociosServicio.Lista(0,can.List);
         socios = rta.List;
 
         if (Id != 0)
         {
             try
             {
-                var rt = await _torosServicio.Lista(0,1000000);
-                oTorosuni = rt.List.Where(x => x.Id == Id).FirstOrDefault();
+                string filtro = $"Id = {Id}";
+                var rt = await _torosServicio.LimitadosFiltrados(0,1,filtro);
+                oTorosuni = rt.List.FirstOrDefault();
                 socioSeleccionado = socios.Where(x => x.Scod == oTorosuni.Criador).First();
                 estadoTemp = traductorCarga[oTorosuni.CodEstado];
                 tipoTemp = traductorCarga[oTorosuni.TipToro];

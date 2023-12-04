@@ -159,10 +159,10 @@
         {
             try
             {
-                var c = await _certifsemanServicio.CantidadTotal();
-                var rtt = await _certifsemanServicio.Lista(0, c.List);
+                string filtro = $"Id = {Id}";
+                var rtt = await _certifsemanServicio.LimitadosFiltrados(0, 1, filtro);
 
-                oCertifseman = rtt.List.Where(x=>x.Id==Id).FirstOrDefault();
+                oCertifseman = rtt.List.FirstOrDefault();
                 centroSeleccionado = centros.Where(x => x.Nrocen == oCertifseman.Nrocen).FirstOrDefault();
                 socioSeleccionado = socios.Where(x => x.Scod == oCertifseman.Nrocri).FirstOrDefault();
 

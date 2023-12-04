@@ -64,12 +64,12 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                     <button class="btn" position="absolute" title="Editar Solicitud" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
             </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
@@ -125,6 +125,7 @@ else
     {
         currentPage = grid.CurrentPage;
         var response = await _solici1Servicio.Eliminar(id);
+        await grid.Reload();
         if (response)
         {
             oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());

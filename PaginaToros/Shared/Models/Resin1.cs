@@ -22,6 +22,6 @@ namespace PaginaToros.Shared.Models
         public string Icod { get; set; } = null!;
         public string Scod { get; set; } = null!;
         public string? Estcod { get; set; }
-        public Socio Socio { get; set; }
+        public Socio? Socio { get; set; }
     }
 }

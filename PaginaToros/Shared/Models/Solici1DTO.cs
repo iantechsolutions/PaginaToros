@@ -30,6 +30,6 @@ namespace PaginaToros.Shared.Models
         public int? CodUsu { get; set; }
         public int Id { get; set; }
 
-        public Estable Establecimiento { get; set; }
+        public Estable? Establecimiento { get; set; }
     }
 }

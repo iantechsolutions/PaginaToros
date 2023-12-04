@@ -35,8 +35,8 @@
     <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
     <br />
     <br />
-    <div class="tablacontent" style="position:relative;width:93.5%">
-        <RadzenDataGrid style="position:relative;width:93.5%;left:3.33%" IsLoading="isLoading" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+    <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+        <RadzenDataGrid IsLoading="isLoading" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
             Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
             Count="cantotal" LoadData="LoadData" Data="@oRespuesta.List" TItem="Resin1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
             <Columns>
@@ -116,6 +116,7 @@ else
     {
         currentPage = grid.CurrentPage;
         var response = await _resin1Servicio.Eliminar(id);
+        await grid.Reload();
         if(response){
             oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
             if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)

@@ -2697,6 +2697,13 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("VNOM");
             });
 
+            modelBuilder.Entity<Transsb>()
+               .HasOne(p => p.Establecimiento)
+               .WithMany(s => s.TransS)
+               .HasForeignKey(t => t.Ecod)
+               .HasPrincipalKey(s => s.Ecod);
+
+
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasCharSet("utf8")

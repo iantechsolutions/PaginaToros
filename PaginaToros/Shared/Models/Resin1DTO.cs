@@ -19,9 +19,9 @@ namespace PaginaToros.Shared.Models
         public int? CodUsu { get; set; }
         public int Id { get; set; }
         public int Editar { get; set; }
-        public string Icod { get; set; } = null!;
-        public string Scod { get; set; } = null!;
+        public string? Icod { get; set; } = null!;
+        public string? Scod { get; set; } = null!;
         public string? Estcod { get; set; }
-        public Socio Socio { get; set; }
+        public Socio? Socio { get; set; }
     }
 }

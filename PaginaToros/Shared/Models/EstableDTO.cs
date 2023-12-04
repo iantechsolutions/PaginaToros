@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PaginaToros.Shared.Models
 {
@@ -23,6 +24,11 @@ namespace PaginaToros.Shared.Models
         public string? Fechacreacion { get; set; }
         public string? Encargado { get; set; }
         public string? Tel { get; set; }
-        public Socio Socio { get; set; }
+        public Socio? Socio { get; set; }
+        [JsonIgnore]
+        public List<Solici1>? Solicitudes { get; set; }
+
+        [JsonIgnore]
+        public List<Transsb> TransS { get; set; }
     }
 }

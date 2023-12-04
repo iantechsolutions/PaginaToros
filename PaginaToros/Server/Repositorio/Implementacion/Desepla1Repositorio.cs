@@ -20,15 +20,16 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
             try
             {
-
+                var a = _dbContext.Desepla1s.Include(x => x.Plantel);
+                var b = a.Include(s => s.Socio);
+                var c = b.OrderByDescending(t => t.Id);
+                var d = c.Skip(skip);
+                var e = d.Take(take);
+                var f = await e.ToListAsync();
                 // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Desepla1s
-                                                 .OrderByDescending(t => t.Id)
-                                                 .Skip(skip)
-                                                 .Take(take)
-                                                 .ToListAsync();
+                return f;
             }
-            catch
+            catch(Exception ex)
             {
                 throw;
             }
@@ -50,7 +51,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                return await _dbContext.Desepla1s
+                return await _dbContext.Desepla1s.Include(x => x.Socio).Include(a => a.Plantel)
                                  .Where(filtro)
                                  .Skip(skip)
                                  .Take(take)

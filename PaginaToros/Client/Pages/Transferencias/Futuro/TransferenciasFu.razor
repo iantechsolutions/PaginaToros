@@ -121,6 +121,7 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
+        await grid.Reload();
         var response = await _futcontrolServicio.Eliminar(id);
         if (response)
         {
