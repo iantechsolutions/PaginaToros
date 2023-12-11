@@ -48,6 +48,11 @@ namespace PaginaToros.Server.Utilidades
             CreateMap<PlantelDTO, Plantel>();
             #endregion Plantel
 
+            #region Provincia
+            CreateMap<Provin, ProvinDTO>();
+            CreateMap<ProvinDTO, Provin>();
+            #endregion Provincia
+
             #region Resin1
             CreateMap<Resin1, Resin1DTO>();
             CreateMap<Resin1DTO, Resin1>();

@@ -51,12 +51,17 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                return await _dbContext.Desepla1s.Include(x => x.Socio).Include(a => a.Plantel)
+                var a = await _dbContext.Desepla1s.Include(x => x.Socio).Include(a => a.Plantel)
                                  .Where(filtro)
-                                 .Skip(skip)
-                                 .Take(take)
-                                 .OrderByDescending(t => t.Id)
-                                 .ToListAsync();
+                                 .Skip(skip).ToListAsync();
+                if (take == 0)
+                {
+                    return a.OrderByDescending(t => t.Id).ToList();
+                }
+                else
+                {
+                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                }
             }
             catch
             {

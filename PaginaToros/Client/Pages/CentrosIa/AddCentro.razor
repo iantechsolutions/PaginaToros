@@ -7,6 +7,7 @@
         font-weight: bold;
     }
 </style>
+@if(oRespuesta.List!=null){
 <div class="card">
     <div class="card-body">
         <EditForm Model="@oCentrosiumDTO" OnValidSubmit="Guardar">
@@ -35,7 +36,18 @@
             <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
         </EditForm>
     </div>
-</div>
+    </div>
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
 @code {
     CentrosiumDTO oCentrosiumDTO = new();
     Respuesta<List<CentrosiumDTO>> oRespuesta = new();

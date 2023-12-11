@@ -8,6 +8,7 @@
         font-weight: bold;
     }
 </style>
+@if(socios.Count>0){
 <div class="card" >
     <div class="card-body">
         <EditForm Model="@oEstablecimiento" OnValidSubmit="Guardar">
@@ -107,6 +108,17 @@
         </EditForm>
     </div>
 </div>
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
 @code {
     EstableDTO oEstablecimiento = new();
     Respuesta<EstableDTO> oRespuesta = new();

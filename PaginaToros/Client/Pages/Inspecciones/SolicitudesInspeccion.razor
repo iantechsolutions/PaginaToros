@@ -74,11 +74,11 @@
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                 </Template>
             </RadzenDataGridColumn>
-            @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
-        <Template Context="data">
-        <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
-        </Template>
-        </RadzenDataGridColumn>*@
+            <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="30px">
+                <Template Context="data">
+                        <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Size="16" Color="blue" /></button>
+                </Template>
+            </RadzenDataGridColumn>
         </Columns>
 
     </RadzenDataGrid>
@@ -234,30 +234,29 @@ else
         isLoading = false;
     }
 
-    //async Task gotoinfo(int id)
-    //{
-    //    currentPage = grid.CurrentPage;
-    //    var parameters = new ModalParameters();
-    //    var options = new ModalOptions()
-    //        {
-    //            HideHeader = true,
-    //            HideCloseButton = true,
-    //            Size = ModalSize.ExtraLarge
-    //        };
-    //    parameters.Add(nameof(InfoEstablecimiento.Id), id);
-    //    var formModal = Modal.Show<InfoEstablecimiento>("", parameters, options);
-    //    var result = await formModal.Result;
+    async Task gotoinfo(int id)
+    {
+       currentPage = grid.CurrentPage;
+       var parameters = new ModalParameters();
+       var options = new ModalOptions()
+           {
+               HideHeader = true,
+               HideCloseButton = true,
+               Size = ModalSize.ExtraLarge
+           };
+       parameters.Add(nameof(InfoSolicitud.id), id);
+        var formModal = Modal.Show<InfoSolicitud>("", parameters, options);
+       var result = await formModal.Result;
 
-    //    if (result.Cancelled)
-    //    {
-    //        Console.WriteLine("Modal was cancelled");
-    //        await grid.GoToPage(currentPage);
-    //    }
-    //    else
-    //    {
-    //        await Get();
-    //        await grid.GoToPage(currentPage);
-    //    }
-    //}
+       if (result.Cancelled)
+       {
+           Console.WriteLine("Modal was cancelled");
+           await grid.GoToPage(currentPage);
+       }
+       else
+       {
+           await grid.GoToPage(currentPage);
+       }
+    }
 
 }

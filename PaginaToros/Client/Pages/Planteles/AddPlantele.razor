@@ -97,6 +97,16 @@
         </EditForm>
     </div>
 </div>
+else
+{
+<br />
+<center>
+    <div class="mb-2">
+        <br />
+        <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+    </div>
+</center>
+}
 @code {
     List<SocioDTO> socios = new();
     SocioDTO? socioSeleccionado = null;

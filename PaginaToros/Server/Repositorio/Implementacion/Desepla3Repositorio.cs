@@ -50,12 +50,18 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                return await _dbContext.Desepla3s
+                var a = await _dbContext.Desepla3s
                                  .Where(filtro)
                                  .Skip(skip)
-                                 .Take(take)
-                                 .OrderByDescending(t => t.Id)
                                  .ToListAsync();
+                if (take == 0)
+                {
+                    return a.OrderByDescending(t => t.Id).ToList();
+                }
+                else
+                {
+                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                }
             }
             catch
             {

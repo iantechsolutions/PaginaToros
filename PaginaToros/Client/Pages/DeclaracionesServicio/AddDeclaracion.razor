@@ -22,6 +22,7 @@
 }
 
 </style>
+@if(certificados.Count>0){
 <div class="card">
     <div class="card-body">
         <EditForm Model="@oDeclaracion" OnValidSubmit="Guardar">
@@ -160,7 +161,7 @@
                             <Columns>
                                 <RadzenDataGridColumn TItem="Torosuni" Property="" Title="Estado" Width="3.6%">
                                     <Template Context="data">
-                                        @if (data.CodEstado == "1")
+@*                                         @if (data.CodEstado == "1")
                                         {
                                             <a style="color:darkgreen">Activo</a>
                                         }
@@ -179,7 +180,7 @@
                                         else if (data.CodEstado == "5")
                                         {
                                             <a style="color:red">Vendido</a>
-                                        }
+                                        } *@
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Torosuni" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
@@ -391,6 +392,17 @@
         </EditForm>
     </div>
 </div>
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
 
 @code {
     Desepla1DTO oDeclaracion = new();
@@ -404,8 +416,8 @@
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     public string nrodec = "";
-    Socio? socioSeleccionado = null;
-    Plantel? Plantelseleccionado = null;
+    SocioDTO? socioSeleccionado = null;
+    PlantelDTO? Plantelseleccionado = null;
     List<string> tipos = new List<string> { "Natural", "Natural a Corral", "Inseminacion c/celo", "Inseminacion c/celo y rep", "Inseminacion c/p y rep", "IATF c/rep" };
     DateTime FechaTemp = DateTime.Now;
     List<TorosuniDTO> toros = new();
@@ -415,8 +427,9 @@
     string tipoTemp = "";
     protected override async Task OnInitializedAsync()
     {
-        var c = await _socioServicio.CantidadTotal();
-        var r = await _socioServicio.Lista(0,c.List);
+        var c = _socioServicio.CantidadTotal();
+        var cv = await c;
+        var r = await _socioServicio.Lista(0,cv.List);
         socios = r.List;
 
         var ca = await _plantelServicio.CantidadTotal();
@@ -458,6 +471,12 @@
             oDeclaracion.Tipse = "NA";
         }
     }
+
+    async Task Get()
+    {
+        
+    }
+
     async Task Guardar()
     {
         oDeclaracion.Nrocri = socioSeleccionado.Scod;

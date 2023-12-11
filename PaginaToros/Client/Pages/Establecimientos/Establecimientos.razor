@@ -60,11 +60,7 @@
                 <RadzenDataGridColumn TItem="EstableDTO" Property="Tel" Title="Telefono" Width="5%" />
                 <RadzenDataGridColumn TItem="EstableDTO" Property="Locali" Title="Localidad" Width="5%" />
                 <RadzenDataGridColumn TItem="EstableDTO" Property="Codpos" Title="Codigo Postal" Width="5.6%" />
-                <RadzenDataGridColumn TItem="EstableDTO" Property="" Title="Provincia" Width="5%">
-                    <Template Context="data">
-                        @traductorProvincia[data.Codpro]
-                    </Template>    
-                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="EstableDTO" Property="Provincia.Nombre" Title="Provincia" Width="5%"/>
                 <RadzenDataGridColumn TItem="EstableDTO" Property="Plano" Title="Informacion" Width="5.3%" />
                 <RadzenDataGridColumn TItem="EstableDTO" Property="Codzon" Title="Cod. zona" Width="4.6%" />
                 <RadzenDataGridColumn TItem="EstableDTO" Property="Fechacreacion" Title="Año Creacion" Width="5.6%" />
@@ -108,35 +104,7 @@ else
     int cantidad;
     bool isLoading = false;
     public bool allowFiltering = false;
-    Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
-    {
-        {"01", "Chaco"},
-        {"02", "Corrientes"},
-        {"03", "Entre Rios"},
-        {"04", "Santa Fe"},
-        {"05", "Cordoba"},
-        {"06", "La pampa"},
-        {"07", "San Luis"},
-        {"08", "Santa Cruz"},
-        {"09", "Tierra del fuego"},
-        {"10", "Chubut"},
-        {"11", "Neuquen"},
-        {"12", "Rio negro"},
-        {"13", "Buenos Aires"},
-        {"14", "Capital Federal"},
-        {"15", "Catamarca"},
-        {"16", "Formosa"},
-        {"17", "Jujuy"},
-        {"18", "La rioja"},
-        {"19", "Mendoza"},
-        {"20", "Misiones"},
-        {"21", "Salta"},
-        {"22", "San Juan"},
-        {"23", "Santiago Del Estero"},
-        {"24", "Tucuman"},
-        {"",""},
-        {"0",""}
-    };
+    
     public Respuesta<List<EstableDTO>> oRespuesta = new Respuesta<List<EstableDTO>>();
     protected override async Task OnInitializedAsync()
     {

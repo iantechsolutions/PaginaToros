@@ -58,17 +58,7 @@
             <RadzenDataGridColumn TItem="SocioDTO" Property="Direcc1" Title="Domicilio" Width="5.6%" />
             <RadzenDataGridColumn TItem="SocioDTO" Property="Locali1" Title="Localidad" Width="4.6%" />
             <RadzenDataGridColumn TItem="SocioDTO" Property="Codpos1" Title="Cod. Postal" Width="5.3%" />
-            <RadzenDataGridColumn TItem="SocioDTO" Property="" Title="Provincia" Width="5%">
-                <Template Context="data">
-                    @if (traductorProvincia.ContainsKey(data.Codpro1))
-                    {
-                        <a>@(traductorProvincia[data.Codpro1])</a>
-                    }
-                    else{
-                        <a>Otras</a>
-                    }
-                </Template>    
-            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Provincia.Nombre" Title="Provincia" Width="5%" />
             <RadzenDataGridColumn TItem="SocioDTO" Property="Telefo1" Title="Telefono" Width="5%" />
             <RadzenDataGridColumn TItem="SocioDTO" Property="Mail" Title="Mail" Width="6.6%" />
             <RadzenDataGridColumn TItem="SocioDTO" Property="FechaExistencia" Title="Fecha de Creacion" Width="6.6%">
@@ -122,34 +112,6 @@ else
     bool isLoading = false;
     int cantidad;
     public bool allowFiltering = false;
-    Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
-    {
-        {"01", "Chaco"},
-        {"02", "Corrientes"},
-        {"03", "Entre Rios"},
-        {"04", "Santa Fe"},
-        {"05", "Cordoba"},
-        {"06", "La pampa"},
-        {"07", "San Luis"},
-        {"08", "Santa Cruz"},
-        {"09", "Tierra del fuego"},
-        {"10", "Chubut"},
-        {"11", "Neuquen"},
-        {"12", "Rio negro"},
-        {"13", "Buenos Aires"},
-        {"14", "Capital Federal"},
-        {"15", "Catamarca"},
-        {"16", "Formosa"},
-        {"17", "Jujuy"},
-        {"18", "La rioja"},
-        {"19", "Mendoza"},
-        {"20", "Misiones"},
-        {"21", "Salta"},
-        {"22", "San Juan"},
-        {"23", "Santiago Del Estero"},
-        {"24", "Tucuman"},
-        {"",""}
-    };
 
     public Respuesta<List<SocioDTO>> oRespuesta = new Respuesta<List<SocioDTO>>();
     protected override async Task OnInitializedAsync()

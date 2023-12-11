@@ -10,6 +10,7 @@
         font-weight: bold;
     }
 </style>
+@if(planteles.Count>0){
 <div class="card">
     <div class="card-body">
         <EditForm Model="@oFutcontrol" OnValidSubmit="Guardar">
@@ -101,6 +102,17 @@
         </EditForm>
     </div>
 </div>
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
 @code {
     FutcontrolDTO oFutcontrol = new();
     SocioDTO socioComprador = new();

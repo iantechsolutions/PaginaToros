@@ -50,18 +50,22 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                return await _dbContext.Resin8s
-                                 .Where(filtro)
-                                 .Skip(skip)
-                                 .Take(take)
-                                 .OrderByDescending(t => t.Id)
-                                 .ToListAsync();
+                var a = await _dbContext.Resin8s.Where(filtro).Skip(skip).ToListAsync();
+                if (take == 0)
+                {
+                    return a.OrderByDescending(t => t.Id).ToList();
+                }
+                else
+                {
+                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                }
             }
             catch
             {
                 throw;
             }
         }
+        
 
         public async Task<bool> Eliminar(Resin8 entidad)
         {

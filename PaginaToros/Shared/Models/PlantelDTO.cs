@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace PaginaToros.Shared.Models
@@ -29,5 +30,7 @@ namespace PaginaToros.Shared.Models
         public string? Fecing { get; set; } = null!;
         public int Id { get; set; }
         public Socio? Socio { get; set; }
+        [JsonIgnore]
+        public List<Desepla1>? Declaraciones { get; set; }
     }
 }

@@ -1,5 +1,5 @@
-@* @page "/declaraciones"
- *@
+@page "/declaraciones"
+
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
@@ -45,11 +45,7 @@
                 <RadzenDataGridColumn TItem="Desepla1DTO" Property="Nrodec" Title="Nro de declaracion" Width="6.6%" />
                 <RadzenDataGridColumn TItem="Desepla1DTO" Property="NrFolio" Title="Nro de folio" Width="3.33%" />
                 <RadzenDataGridColumn TItem="Desepla1DTO" Property="Nroplan" Title="Nro de plantel" Width="3.33%" />
-                <RadzenDataGridColumn TItem="Desepla1DTO" Property="" Title="Socio" Width="7.34%">
-                    <Template Context="data">
-                        @(socios.Where(x => x.Scod == data.Nrocri).FirstOrDefault().Nombre)
-                    </Template>
-                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Desepla1DTO" Property="Socio.Nombre" Title="Socio" Width="7.34%"/>
                 <RadzenDataGridColumn TItem="Desepla1DTO" Property="Desde" Title="Desde" Width="4.6%">
                     <Template Context="data">
                         @if(data.Desde.HasValue){

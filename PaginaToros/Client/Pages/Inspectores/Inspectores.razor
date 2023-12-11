@@ -46,18 +46,7 @@
                 <RadzenDataGridColumn TItem="InspectDTO" Property="Direcc" Title="Direccion" Width="6.6%" />
                 <RadzenDataGridColumn TItem="InspectDTO" Property="Locali" Title="Localidad" Width="4.6%" />
                 <RadzenDataGridColumn TItem="InspectDTO" Property="Codpos" Title="Codigo Postal" Width="4.6%" />
-                <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="Provincia" Width="5%">
-                    <Template Context="data">
-                        @if (traductorProvincia.ContainsKey(data.Codpro))
-                        {
-                            <a>@(traductorProvincia[data.Codpro])</a>
-                        }
-                        else
-                        {
-                            <a>Otras</a>
-                        }
-                    </Template>
-                </RadzenDataGridColumn>                  
+                <RadzenDataGridColumn TItem="InspectDTO" Property="Provincia.Nombre" Title="Provincia" Width="5%" />
                 <RadzenDataGridColumn TItem="InspectDTO" Property="Telefo" Title="Telefono" Width="5%" />
                 <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
@@ -98,63 +87,6 @@ else
     int currentPage;
     int cantidad;
     bool isLoading;
-    Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
-    {
-        {"01", "Chaco"},
-        {"02", "Corrientes"},
-        {"03", "Entre Rios"},
-        {"04", "Santa Fe"},
-        {"05", "Cordoba"},
-        {"06", "La pampa"},
-        {"07", "San Luis"},
-        {"08", "Santa Cruz"},
-        {"09", "Tierra del fuego"},
-        {"10", "Chubut"},
-        {"11", "Neuquen"},
-        {"12", "Rio negro"},
-        {"13", "Buenos Aires"},
-        {"14", "Capital Federal"},
-        {"15", "Catamarca"},
-        {"16", "Formosa"},
-        {"17", "Jujuy"},
-        {"18", "La rioja"},
-        {"19", "Mendoza"},
-        {"20", "Misiones"},
-        {"21", "Salta"},
-        {"22", "San Juan"},
-        {"23", "Santiago Del Estero"},
-        {"24", "Tucuman"},
-        {"",""}
-    };
-    Dictionary<string, string> traductorProvinciaInverso = new Dictionary<string, string>
-    {
-        {"01", "Chaco"},
-        {"02", "Corrientes"},
-        {"03", "Entre Rios"},
-        {"04", "Santa Fe"},
-        {"05", "Cordoba"},
-        {"06", "La pampa"},
-        {"07", "San Luis"},
-        {"08", "Santa Cruz"},
-        {"09", "Tierra del fuego"},
-        {"10", "Chubut"},
-        {"11", "Neuquen"},
-        {"12", "Rio negro"},
-        {"13", "Buenos Aires"},
-        {"14", "Capital Federal"},
-        {"15", "Catamarca"},
-        {"16", "Formosa"},
-        {"17", "Jujuy"},
-        {"18", "La rioja"},
-        {"19", "Mendoza"},
-        {"20", "Misiones"},
-        {"21", "Salta"},
-        {"22", "San Juan"},
-        {"23", "Santiago Del Estero"},
-        {"24", "Tucuman"},
-        {"",""}
-    };
-
     public bool allowFiltering = false;
     public Respuesta<List<InspectDTO>> oRespuesta = new Respuesta<List<InspectDTO>>();
     protected override async Task OnInitializedAsync()

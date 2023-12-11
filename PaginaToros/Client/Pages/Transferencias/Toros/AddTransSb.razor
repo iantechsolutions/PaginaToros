@@ -9,6 +9,7 @@
         font-weight: bold;
     }
 </style>
+@if(establecimientos.Count>0){
 <div class="card">
     <div class="card-body">
         <EditForm Model="@oTranssb" OnValidSubmit="Guardar">
@@ -73,6 +74,17 @@
         </EditForm>
     </div>
 </div>
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
 @code {
     TranssbDTO oTranssb = new();
     SocioDTO? socioComprador = null;

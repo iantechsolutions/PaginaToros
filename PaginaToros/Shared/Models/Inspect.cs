@@ -16,5 +16,6 @@ namespace PaginaToros.Shared.Models
         public int? CodUsu { get; set; }
         public int Id { get; set; }
         public string? Mail { get; set; }
+        public Provin? Provincia { get; set; }
     }
 }

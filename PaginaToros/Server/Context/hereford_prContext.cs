@@ -651,6 +651,19 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("TIPSE");
             });
 
+            modelBuilder.Entity<Desepla1>()
+               .HasOne(p => p.Socio)
+               .WithMany(s => s.Declaraciones)
+               .HasForeignKey(t => t.Nrocri)
+               .HasPrincipalKey(s => s.Scod);
+
+            modelBuilder.Entity<Desepla1>()
+               .HasOne(p => p.Plantel)
+               .WithMany(s => s.Declaraciones)
+               .HasForeignKey(t => t.Nroplan)
+               .HasPrincipalKey(s => s.Placod);
+
+
             modelBuilder.Entity<Desepla2>(entity =>
             {
                 entity.ToTable("DESEPLA2");
@@ -860,6 +873,20 @@ namespace PaginaToros.Server.Context
                .HasForeignKey(t => t.Codsoc)
                .HasPrincipalKey(s => s.Scod);
 
+            modelBuilder.Entity<Estable>()
+               .HasOne(p => p.Provincia)
+               .WithMany(s => s.Establecimientos)
+               .HasForeignKey(t => t.Codpro)
+               .HasPrincipalKey(s => s.Pcod);
+
+
+            modelBuilder.Entity<Estable>()
+               .HasOne(p => p.Socio)
+               .WithMany(s => s.Establecimientos)
+               .HasForeignKey(t => t.Codsoc)
+               .HasPrincipalKey(s => s.Scod);
+
+
             modelBuilder.Entity<Futcontrol>(entity =>
             {
                 entity.ToTable("FUT_CONTROL");
@@ -989,6 +1016,12 @@ namespace PaginaToros.Server.Context
                     .HasMaxLength(50)
                     .HasColumnName("TELEFO");
             });
+
+            modelBuilder.Entity<Inspect>()
+               .HasOne(p => p.Provincia)
+               .WithMany(s => s.Inspectores)
+               .HasForeignKey(t => t.Codpro)
+               .HasPrincipalKey(s => s.Pcod);
 
             modelBuilder.Entity<Opcdecserv>(entity =>
             {
@@ -1930,6 +1963,12 @@ namespace PaginaToros.Server.Context
                     .HasColumnType("datetime")
                     .HasColumnName("VTOSUS");
             });
+
+            modelBuilder.Entity<Socio>()
+               .HasOne(p => p.Provincia)
+               .WithMany(s => s.Socios)
+               .HasForeignKey(t => t.Codpro1)
+               .HasPrincipalKey(s => s.Pcod);
 
             modelBuilder.Entity<Solici1>(entity =>
             {

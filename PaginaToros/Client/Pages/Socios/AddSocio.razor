@@ -164,7 +164,8 @@
         {
             try
             {
-                var c = await _socioServicio.Lista(0,1000000);
+                var can = await _socioServicio.CantidadTotal();
+                var c = await _socioServicio.Lista(0,can.List);
                 oSocio = c.List.Where(x=>x.Id==Id).FirstOrDefault();
 
                 if (oSocio.Criador == "S")

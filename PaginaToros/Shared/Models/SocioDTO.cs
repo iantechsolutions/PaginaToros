@@ -34,6 +34,7 @@ namespace PaginaToros.Shared.Models
         public string? Placod { get; set; }
         public string? Mailreg { get; set; }
         public string? Diaregautog { get; set; }
+        public Provin? Provincia { get; set; }
         [JsonIgnore]
         public List<Torosuni>? Torosunis { get; set; }
         [JsonIgnore]
@@ -42,5 +43,7 @@ namespace PaginaToros.Shared.Models
         public List<Estable>? Establecimientos { get; set; }
         [JsonIgnore]
         public List<Certifseman>? Certificados { get; set; }
+        [JsonIgnore]
+        public List<Desepla1>? Declaraciones { get; set; }
     }
 }

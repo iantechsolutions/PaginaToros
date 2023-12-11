@@ -1,44 +1,191 @@
-﻿<h3>Solicitud id nro° @id</h3>
+﻿@using PaginaToros.Client.Servicios.Contrato;
+@inject ISolici1Servicio _solici1Servicio
+@inject IEstableServicio _estableServicio
+@inject ISocioServicio _socioServicio
+@inject IJSRuntime _js
+<style>
+    @@page {
+    margin: 0;
+    }
+    @@media-print{
+        .row{
+        break-inside:avoid}
+    }
+</style>
+<h3>Solicitud id nro° @id</h3>
 
 <RadzenCard Class="m-3">
     <div class="row">
-        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Establecimiento</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body1"><b>@establecimientos.Where(x=>x.Ecod==oSolicitud.Codest)</b></RadzenText>
-        <div class="col-md-6 col-xl-6">
+        <div class="col-6">
+            <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Establecimiento</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Establecimiento.Nombre</b></RadzenText>
+        </div>
+        <div class="col-5">
+            <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Nro Socio</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Establecimiento.Socio.Scod</b></RadzenText>
+        </div>
+        <div class="col-1">
+            <button class="btn no-print" style="float:right" title="Imprimir" @onclick="() => Print()"><FeatherPrinter Color="Black" Size="24" /></button>
+        </div>
+        <div class="col-6">
+            <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Plantel</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>-</b></RadzenText>
+        </div>
+        <div class="col-6">
+            <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Nombre Socio</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Establecimiento.Socio.Nombre</b></RadzenText>
+        </div>
+        <div class="col-6">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Control de Produccion?</RadzenText>
             <RadzenText TextStyle="TextStyle.Body1"><b>@(oSolicitud.Produc=="S" ? "SI" : "NO")</b></RadzenText>
         </div>
-        <div class="col-md-6 col-xl-6">
+        <div class="col-6">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">ReInspeccion?</RadzenText>
             <RadzenText TextStyle="TextStyle.Body1"><b>@(oSolicitud.Reinsp=="S" ? "SI" : "NO")</b></RadzenText>
         </div>
         <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion solicitada el</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecsol</b></RadzenText><RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion solicitada el ?</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecsol</b></RadzenText>
         <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion autorizada el</RadzenText>
         <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecins</b></RadzenText>
         <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Plantel</RadzenText>
         <RadzenText TextStyle="TextStyle.Body1"><b>-</b></RadzenText>
     </div>
+    <br/>
+    <div class="row">
+        INFO DECLARACIONES
+    </div>
+    <br/>
+    @if (declaracion)
+    {
+        <table class="table table-bordered text-center" id="tabla2" bottom="middle" width="334" bgcolor="#FFFFFF" align="center">
+            <tbody>
+                <tr style="background-color:#FFFFFF">
+                    <td colspan="4" height="21"></td>
+                </tr>
+                <tr style="background-color:#FFFFFF">
+                    <td width="85">&nbsp;</td>
+                    <td colspan="3">&nbsp;</td>
+                </tr>
+                <tr style="background-color:#CCCCCC">
+                    <td width="85" style="background-color:#FFFFFF">&nbsp;</td>
+                    <td width="75"><strong style="font-size:12px">Toros PR</strong></td>
+                    <td width="62"><strong style="font-size:12px">Vq PR</strong></td>
+                    <td width="92"><strong style="font-size:12px">Hembras VIP</strong></td>
+                </tr>
+                <tr>
+                    <td style="font-size:12px"><strong>Disponibles</strong></td>
+                    <td>(Dec)</td>
+                    <td>(Dec)</td>
+                    <td>(Dec)</td>
+                </tr>
+                <tr>
+                    <td style="font-size:12px;background-color:#999999" ><strong>Pedidos</strong></td>
+                    <td style="background-color:#999999">@oSolicitud.Cantor</td>
+                    <td style="background-color:#999999">@oSolicitud.Cantvq</td>
+                    <td style="background-color:#999999">@oSolicitud.Canvac</td>
+                </tr>
+                <tr>
+                    <td style="font-size:12px"><strong>Autorizados</strong></td>
+                    <td>????res capaz </td>
+                    <td>????res capaz</td>
+                    <td>????res capaz</td>
+                </tr>
+                <tr>
+                    <td style="font-size:12px" bgcolor="#999999"><strong>Remanentes</strong></td>
+                    <td bgcolor="#999999"><p>resta</p></td>
+                    <td bgcolor="#999999"><p>resta</p></td>
+                    <td bgcolor="#999999"><p>resta</p></td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="font-size:12px" bgcolor="#FFFFFF">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <table class="table table-bordered text-center" bottom="middle" width="334" bgcolor="#FFFFFF" align="center">
+            <tbody>
+                <tr style="background-color:#CCCCCC">
+                    <td width="85" style="background-color:#FFFFFF"></td>
+                    <td width="75"><strong style="font-size:12px">Toros PR</strong></td>
+                    <td width="62"><strong style="font-size:12px">Vq PR</strong></td>
+                    <td width="92"><strong style="font-size:12px">Hembras VIP</strong></td>
+                </tr>
+                <tr style="background-color:#999999">
+                    <td style="font-size:12px;background-color:#999999"><strong>Pedidos</strong></td>
+                    <td >@oSolicitud.Cantor</td>
+                    <td >@oSolicitud.Cantvq</td>
+                    <td >@oSolicitud.Canvac</td>
+                </tr>
+                <tr>
+                    <td style="font-size:12px"><strong>Autorizados</strong></td>
+                    <td></td>
+                    <td></td>
+                    <td>0</td>
+                </tr>
+            </tbody>
+        </table>
+    }
+    <br/>
+    <br/>
+    <table class="table table-bordered text-center" bottom="middle" style="font-size:18px" align="center">
+        <tbody>
+            <tr>
+                <th style="background-color:#82D682;font-size:12px" width="150">Nombre Establecimiento</th>
+                <th style="background-color:#82D682;font-size:12px" width="100">Domicilio</th>
+                <th style="background-color:#82D682;font-size:12px" width="150">Localidad</th>
+                <th style="background-color:#82D682;font-size:12px"width="100">Cod Postal</th>
+                <th style="background-color:#82D682;font-size:12px" width="100">Provincia</th>
+            </tr>
+            <tr>
+                <td style="font-size:12px">@oSolicitud.Establecimiento.Nombre</td>
+                <td style="font-size:12px">@oSolicitud.Establecimiento.Direcc</td>
+                <td style ="font-size:12px">@oSolicitud.Establecimiento.Locali</td>
+                <td style="font-size:12px">@oSolicitud.Establecimiento.Codpos</td>
+                <td style="font-size:12px">@oSolicitud.Establecimiento.Provincia.Nombre</td>
+            </tr>
+            <tr>
+                <th style="background-color:#82D682;font-size:12px" colspan="5" width="300"><p align="center">Plano</p></th>
+            </tr>
+            <tr>
+                <td colspan="5" style="font-size:12">@oSolicitud.Establecimiento.Plano</td>
+            </tr>
+        </tbody>
+    </table>
+    <br/>
+    <br/>
+    <table class="table table-bordered text-center" bottom="middle" align="center">
+        <tbody>
+            <tr>
+                <th style ="background-color:#82D682">Nro Zona</th>
+                <th style="background-color:#82D682">Inspector</th>
+            </tr>
 
+            <tr>
+                <td>@oSolicitud.Establecimiento.Codzon</td>
+                <td>
+                    se levanta de resultado
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </RadzenCard>
 
 @code {
-    Solici1 oSolicitud = new();
-    Respuesta<Solici1> oRta = new();
+    bool declaracion = false;
+    Solici1DTO oSolicitud = new();
+    Respuesta<Solici1DTO> oRta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int id { get; set; }
-    List<Estable> establecimientos = new();
-    List<Socio> socios = new();
     protected override async Task OnInitializedAsync()
     {
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>($"/api/Estable");
-        establecimientos = rta.List;
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/Socio");
-        socios = rt.List;
         if (id != 0)
         {
-            oRta = await Http.GetFromJsonAsync<Respuesta<Solici1>>($"/api/Solici1/{id}");
-            oSolicitud = oRta.List;
+            string filtro = $"Id = {id}";
+            var list = await _solici1Servicio.LimitadosFiltrados(0, 1, filtro);
+            oSolicitud = list.List.FirstOrDefault();
         }
     }
     async Task cancel()
@@ -46,6 +193,7 @@
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
 
     }
-
+    private async Task Print()
+        => await _js.InvokeVoidAsync("window.print");
 }
 

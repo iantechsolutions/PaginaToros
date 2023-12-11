@@ -25,6 +25,8 @@ namespace PaginaToros.Shared.Models
         public string? Encargado { get; set; }
         public string? Tel { get; set; }
         public Socio? Socio { get; set; }
+
+        public Provin? Provincia { get; set; }
         [JsonIgnore]
         public List<Solici1>? Solicitudes { get; set; }
         [JsonIgnore]
