@@ -1,7 +1,8 @@
 ﻿@using PaginaToros.Client.Servicios.Contrato;
 @inject ISolici1Servicio _solici1Servicio
-@inject IEstableServicio _estableServicio
-@inject ISocioServicio _socioServicio
+@inject IDesepla1Servicio _desepla1Servicio
+@inject IResin1Servicio _resin1Servicio
+@inject IInspectServicio _inspectServicio
 @inject IJSRuntime _js
 <style>
     @@page {
@@ -51,9 +52,9 @@
         <RadzenText TextStyle="TextStyle.Body1"><b>-</b></RadzenText>
     </div>
     <br/>
-    <div class="row">
+@*     <div class="row">
         INFO DECLARACIONES
-    </div>
+    </div> *@
     <br/>
     @if (declaracion)
     {
@@ -166,7 +167,7 @@
             <tr>
                 <td>@oSolicitud.Establecimiento.Codzon</td>
                 <td>
-                    se levanta de resultado
+                    @Inspector.Nombre
                 </td>
             </tr>
         </tbody>
@@ -176,16 +177,35 @@
 @code {
     bool declaracion = false;
     Solici1DTO oSolicitud = new();
-    Respuesta<Solici1DTO> oRta = new();
+    Resin1DTO Resultado = new();
+    List<Desepla1DTO> Declaraciones = new();
+    List<InspectDTO> Inspectores = new();
+    InspectDTO Inspector = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int id { get; set; }
     protected override async Task OnInitializedAsync()
     {
+        var rta = await _desepla1Servicio.LimitadosFiltrados(0, 0);
+        Declaraciones = rta.List;
+        var r = await _inspectServicio.LimitadosFiltrados(0, 0);
+        Inspectores = r.List;
         if (id != 0)
         {
             string filtro = $"Id = {id}";
             var list = await _solici1Servicio.LimitadosFiltrados(0, 1, filtro);
             oSolicitud = list.List.FirstOrDefault();
+            filtro = $"(Icod == null ? \"\" : Icod).ToLower().Contains(\"{oSolicitud.Nrosol}\".ToLower())";
+            var rt = await _resin1Servicio.LimitadosFiltrados(0, 1, filtro);
+
+            if (rt.List.Count > 0)
+            {
+                Inspector = Inspectores.Where(x=>x.Icod==rt.List.FirstOrDefault().Icod).FirstOrDefault();
+            }
+            if (Inspector is null)
+            {
+                Inspector = new();
+                Inspector.Nombre = "Coso";
+            }
         }
     }
     async Task cancel()
