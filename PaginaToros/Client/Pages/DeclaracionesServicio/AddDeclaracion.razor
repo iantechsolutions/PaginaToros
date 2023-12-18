@@ -31,7 +31,7 @@
                 <div class="col-sm"/>
                 <div class="col-sm">
                     <label>Socio</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado">
+                        <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioSeleccionado" ValueChanged="UpdateValores" ValueExpression="@(() => socioSeleccionado)">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>
@@ -56,7 +56,7 @@
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Plantel</label>
-                    <BlazoredTypeahead @bind-Value="@Plantelseleccionado" SearchMethod="BusquedaPlanteles" placeholder="Plantel - Año" EnableDropDown="true" >
+                    <BlazoredTypeahead @bind-Value="@Plantelseleccionado" SearchMethod="BusquedaPlanteles" placeholder="Plantel - Año" EnableDropDown="true"  >
                         <SelectedTemplate Context="eleccion">
                             @(@eleccion.Placod + " - " + @eleccion.Anioex)
                             </SelectedTemplate>
@@ -429,20 +429,17 @@ else
     {
         var r = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = r.List;
-        var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
-        Planteles = rt.List;
-        var rta = await _torosServicio.LimitadosFiltradosNoInclude(0, 0);
-        toros = rta.List;
-        var rtaa = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0);
-        certificados = rtaa.List;
         if (Id != 0)
         {
             try
             {
-                var rtaD = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 0);
-                oDeclaracion = rtaD.List.Where(x => x.Id == Id).FirstOrDefault();
+                string filtro = $"Id = {Id}";
+                var rtaD = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 0,filtro);
+                oDeclaracion = rtaD.List.FirstOrDefault();
                 socioSeleccionado = socios.Where(x=>x.Scod==oDeclaracion.Nrocri).FirstOrDefault();
-                Plantelseleccionado = Planteles.Where(x=>x.Placod==oDeclaracion.Nroplan).FirstOrDefault();
+                filtro = $"(Placod == null ? \"\" : Placod).ToLower().Contains(\"{oDeclaracion.Nroplan}\".ToLower())";
+                var rta = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
+                Plantelseleccionado = Planteles.FirstOrDefault();
 
             }
             catch (Exception ex)
@@ -460,11 +457,6 @@ else
             oDeclaracion.Hasta = DateTime.Now;
             oDeclaracion.Tipse = "NA";
         }
-    }
-
-    async Task Get()
-    {
-        
     }
 
     async Task Guardar()
@@ -595,6 +587,21 @@ else
         torosSeleccionados = new List<Desepla3Data>();
         certificadosSeleccionados = new List<Desepla3Data>();
     }
+
+    protected async Task UpdateValores(SocioDTO socio)
+    {
+        socioSeleccionado = socio;
+        string filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socio.Scod}\".ToLower())";
+        var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0,filtro);
+        Planteles = rt.List;
+        filtro = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{socio.Scod}\".ToLower())";
+        var rta = await _torosServicio.LimitadosFiltradosNoInclude(0, 0,filtro);
+        toros = rta.List;
+        filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socio.Scod}\".ToLower())";
+        var rtaa = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0,filtro);
+        certificados = rtaa.List;
+    }
+
     public class Desepla3Data
     {
         public Desepla3DTO original {get;set;}
