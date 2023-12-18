@@ -50,10 +50,15 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                var a = await _dbContext.Estables
-                                 .Include(t => t.Socio)
-                                 .Where(filtro)
-                                 .Skip(skip).ToListAsync();
+                List<Estable> a;
+                if (filtro is not null)
+                {
+                    a = await _dbContext.Estables.Include(t => t.Socio).Where(filtro).Skip(skip).ToListAsync();
+                }
+                else
+                {
+                    a = await _dbContext.Estables.Include(t=>t.Socio).Skip(skip).ToListAsync();
+                }
                 if (take == 0)
                 {
                     return a.OrderByDescending(t => t.Id).ToList();
@@ -62,6 +67,34 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 {
                     return a.Take(take).OrderByDescending(t => t.Id).ToList();
                 }                                 
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<List<Estable>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null)
+        {
+            try
+            {
+                List<Estable> a;
+                if (filtro is not null)
+                {
+                    a = await _dbContext.Estables.Where(filtro).Skip(skip).ToListAsync();
+                }
+                else
+                {
+                    a = await _dbContext.Estables.Skip(skip).ToListAsync();
+                }
+                if (take == 0)
+                {
+                    return a.OrderByDescending(t => t.Id).ToList();
+                }
+                else
+                {
+                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                }
             }
             catch
             {

@@ -226,8 +226,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var c = await _socioServicio.CantidadTotal();
-        var rta = await _socioServicio.Lista(0, c.List);
+        var rta = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
         if (Id != 0)
         {
@@ -235,7 +234,7 @@ else
             try
             {
                 string filtro = $"Id = {Id}";
-                var rt = await _estableServicio.LimitadosFiltrados(0, 1, filtro);
+                var rt = await _estableServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
                 oEstablecimiento = rt.List.FirstOrDefault();
                 if (oEstablecimiento.Activo == "S")
                 {

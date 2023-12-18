@@ -100,9 +100,9 @@
         {
             try
             {
-                var can = await _resin3Servicio.CantidadTotal();
-                var rt = await _resin3Servicio.Lista(0, can.List);
-                oResin3 = rt.List.Where(x => x.Id == Id).FirstOrDefault() ;
+                string filtro = $"Id = {Id}";
+                var rt = await _resin3Servicio.LimitadosFiltrados(0, 0,filtro);
+                oResin3 = rt.List.FirstOrDefault() ;
 
             }
             catch (Exception ex)

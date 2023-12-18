@@ -555,16 +555,14 @@ else
     protected override async Task OnInitializedAsync()
     {
         try{
-            var cant = await _inspectServicio.CantidadTotal();
-            var rtaaa = await _inspectServicio.Lista(0, cant.List);
+            var rtaaa = await _inspectServicio.LimitadosFiltrados(0, 0);
             Inspects = rtaaa.List;
-            cant = await _plantelServicio.CantidadTotal();
-            var plan = await _plantelServicio.Lista(0, cant.List);
+            var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
             Planteles = plan.List;
             if (Id != 0)
             {
                 string filtro = $"Id = {Id}";
-                var res = await _resin1Servicio.LimitadosFiltrados(0,1,filtro);
+                var res = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
                 oResin1 = res.List.Where(x=>x.Id==Id).FirstOrDefault();
 
                 filtro = $"(Scod == null ? \"\" : Scod).ToLower().Contains(\"{oResin1.Scod}\".ToLower())";
@@ -572,11 +570,11 @@ else
                 socioSeleccionado = rt.List.Where(x=>x.Scod==oResin1.Scod).FirstOrDefault();
 
                 filtro = $"(Nrosol == null ? \"\" : Nrosol).ToLower().Contains(\"{oResin1.Nrores}\".ToLower())";
-                var sol = await _solici1Servicio.LimitadosFiltrados(0, 1, filtro);
+                var sol = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
                 solicitudSeleccionada = sol.List.Where(x=>x.Nrosol==oResin1.Nrores).FirstOrDefault();
 
                 filtro = $"(Ecod == null ? \"\" : Ecod).ToLower().Contains(\"{oResin1.Estcod}\".ToLower())";
-                var estable = await _estableServicio.LimitadosFiltrados(0, 1, filtro);
+                var estable = await _estableServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
                 establecimientoSeleccionado = estable.List.Where(x=>x.Ecod==oResin1.Estcod).FirstOrDefault();
 
                 inspectorSeleccionado = Inspects.Where(x => x.Icod == oResin1.Icod).FirstOrDefault();
@@ -595,20 +593,16 @@ else
                 confirmado = true;
             }
             else{
-                cant = await _socioServicio.CantidadTotal();
-                var rta = await _socioServicio.Lista(0, cant.List);
+                var rta = await _socioServicio.LimitadosFiltrados(0, 0);
                 socios = rta.List;
 
-                cant = await _solici1Servicio.CantidadTotal();
-                var rtaa = await _solici1Servicio.Lista(0, cant.List);
+                var rtaa = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 0);
                 solicitudes = rtaa.List;
 
-                cant = await _resin1Servicio.CantidadTotal();
-                var rt = await _resin1Servicio.Lista(0, cant.List);
+                var rt = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
                 resultados = rt.List;
 
-                cant = await _estableServicio.CantidadTotal();
-                var respuesta = await _estableServicio.Lista(0, cant.List);
+                var respuesta = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
                 establecimientos = respuesta.List;
 
             }

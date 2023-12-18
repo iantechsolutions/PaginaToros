@@ -50,7 +50,42 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                var a = await _dbContext.Transsbs.Include(t=>t.Establecimiento).Where(filtro).Skip(skip).ToListAsync();
+                List<Transsb>a;
+                if(filtro is not null) { 
+                    a = await _dbContext.Transsbs.Include(t=>t.Establecimiento).Where(filtro).Skip(skip).ToListAsync();
+                }
+                else
+                {
+                    a =await _dbContext.Transsbs.Include(t=>t.Establecimiento).Skip(skip).ToListAsync();
+                }
+                if (take == 0)
+                {
+                    return a.OrderByDescending(t => t.Id).ToList();
+                }
+                else
+                {
+                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<List<Transsb>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null)
+        {
+            try
+            {
+                List<Transsb> a;
+                if (filtro is not null)
+                {
+                    a = await _dbContext.Transsbs.Where(filtro).Skip(skip).ToListAsync();
+                }
+                else
+                {
+                    a = await _dbContext.Transsbs.Skip(skip).ToListAsync();
+                }
                 if (take == 0)
                 {
                     return a.OrderByDescending(t => t.Id).ToList();

@@ -147,8 +147,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var can = await _sociosServicio.CantidadTotal();
-        var rta = await _sociosServicio.Lista(0,can.List);
+        var rta = await _sociosServicio.LimitadosFiltrados(0,0);
         socios = rta.List;
 
         if (Id != 0)
@@ -156,7 +155,7 @@ else
             try
             {
                 string filtro = $"Id = {Id}";
-                var rt = await _torosServicio.LimitadosFiltrados(0,1,filtro);
+                var rt = await _torosServicio.LimitadosFiltradosNoInclude(0,1,filtro);
                 oTorosuni = rt.List.FirstOrDefault();
                 socioSeleccionado = socios.Where(x => x.Scod == oTorosuni.Criador).First();
                 estadoTemp = traductorCarga[oTorosuni.CodEstado];

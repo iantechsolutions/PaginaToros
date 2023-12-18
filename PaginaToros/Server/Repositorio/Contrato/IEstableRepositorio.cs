@@ -10,6 +10,7 @@ namespace PaginaToros.Server.Repositorio.Contrato
         Task<List<Estable>> Lista(int page, int count);
         Task<Estable> Obtener(Expression<Func<Estable, bool>> filtro = null);
         Task<List<Estable>> LimitadosFiltrados(int skip, int take, string filtro = null);
+        Task<List<Estable>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null);
         Task<bool> Eliminar(Estable entidad);
         Task<Estable> Crear(Estable entidad);
         Task<bool> Editar(Estable entidad);

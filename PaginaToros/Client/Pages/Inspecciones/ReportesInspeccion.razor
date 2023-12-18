@@ -234,8 +234,6 @@ else
         else
         {
             oRespuesta = await _resin1Servicio.Lista(args.Skip.Value, args.Top.Value);
-            var can = await _resin1Servicio.CantidadTotal();
-            cantotal = can.List;
         }
 
         isLoading = false;

@@ -51,12 +51,42 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                var a = await _dbContext.Certifsemen
-                    .Include(t => t.Socio)
-                    .Include(t => t.Centro)
-                    .Where(filtro)
-                    .Skip(skip)
-                    .ToListAsync();
+                List<Certifseman> a; 
+                if(filtro is not null) {
+                    a = await _dbContext.Certifsemen.Include(t => t.Socio).Include(t => t.Centro).Where(filtro).Skip(skip).ToListAsync();
+                }
+                else
+                {
+                    a = await _dbContext.Certifsemen.Include(t => t.Socio).Include(t => t.Centro).Skip(skip).ToListAsync();
+                }
+                if (take == 0)
+                {
+                    return a.OrderByDescending(t => t.Id).ToList();
+                }
+                else
+                {
+                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<List<Certifseman>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null)
+        {
+            try
+            {
+                List<Certifseman> a;
+                if (filtro is not null)
+                {
+                    a = await _dbContext.Certifsemen.Where(filtro).Skip(skip).ToListAsync();
+                }
+                else
+                {
+                    a = await _dbContext.Certifsemen.Skip(skip).ToListAsync();
+                }
                 if (take == 0)
                 {
                     return a.OrderByDescending(t => t.Id).ToList();

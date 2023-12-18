@@ -71,7 +71,7 @@ namespace PaginaToros.Server.Controllers
         }
         [HttpGet]
         [Route("LimitadosFiltrados")]
-        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string? expression = null)
         {
 
             Respuesta<List<Desepla1DTO>> _ResponseDTO = new Respuesta<List<Desepla1DTO>>();
@@ -79,6 +79,31 @@ namespace PaginaToros.Server.Controllers
             try
             {
                 var a = await _Desepla1Repositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<Desepla1DTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<Desepla1DTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<Desepla1DTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+        [HttpGet]
+        [Route("LimitadosFiltradosNoInclude")]
+        public async Task<IActionResult> LimitadosFiltradosNoInclude(int skip, int take, string? expression = null)
+        {
+
+            Respuesta<List<Desepla1DTO>> _ResponseDTO = new Respuesta<List<Desepla1DTO>>();
+
+            try
+            {
+                var a = await _Desepla1Repositorio.LimitadosFiltradosNoInclude(skip, take, expression);
 
                 var listaFiltrada = _mapper.Map<List<Desepla1DTO>>(a);
 

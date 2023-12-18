@@ -1,4 +1,7 @@
-﻿@inject HttpClient Http
+﻿@using PaginaToros.Client.Servicios.Contrato;
+@using Blazored.Typeahead
+@inject HttpClient Http
+@inject ISocioServicio _socioServicio
 <EditForm Context="myContext" Model="@User" OnValidSubmit="@EventCallback">
     <div style="overflow-y: auto; max-height: 63.33%;">
         <DataAnnotationsValidator />
@@ -23,6 +26,18 @@
                 <div class="form-group mb-3">
                     <label>Télefono:</label>
                     <InputText required class="form-control" @bind-Value="User.Phone" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label>Socio</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.Nombre
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.Nombre
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
                 </div>
             </div>
 
@@ -68,7 +83,7 @@
             </div>
             <a class="btn btn-info" href="Users">
                 <span class="oi oi-arrow-left" aria-hidden="true"></span> Volver
-            </a> |
+            </a> 
             <button class="btn btn-primary" type="submit">
                 <span class="oi oi-check" aria-hidden="true"></span> Guardar
             </button>
@@ -80,6 +95,8 @@
     [Parameter] public User User { get; set; }
     [Parameter] public EventCallback EventCallback { get; set; }
     Respuesta<List<AspNetRole>> oRespuestaRoles = new Respuesta<List<AspNetRole>>();
+    List<SocioDTO> socios = new();
+    SocioDTO socioSeleccionado = null;
     string Url = "/api/AspNetRole";
     protected override async Task OnInitializedAsync()
     {
@@ -88,7 +105,15 @@
 
         oRespuestaRoles = await Http.GetFromJsonAsync<Respuesta<List<AspNetRole>>>(Url);
 
-
+        var rta = await _socioServicio.LimitadosFiltrados(0,0);
+        socios = rta.List;
 
     }
+
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
+    {
+        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+
 }

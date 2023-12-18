@@ -27,6 +27,10 @@ namespace PaginaToros.Client.Servicios.Implementacion
         {
             var result = await _http.GetFromJsonAsync<Respuesta<List<TranssbDTO>>>($"api/Transsb/LimitadosFiltrados?skip={skip}&take={take}&expression={filter}");
             return result;
+        }public async Task<Respuesta<List<TranssbDTO>>> LimitadosFiltradosNoInclude(int skip, int take, string filter)
+        {
+            var result = await _http.GetFromJsonAsync<Respuesta<List<TranssbDTO>>>($"api/Transsb/LimitadosFiltradosNoInclude?skip={skip}&take={take}&expression={filter}");
+            return result;
         }
 
         public async Task<bool> Eliminar(int id)

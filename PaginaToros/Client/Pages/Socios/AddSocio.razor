@@ -164,9 +164,9 @@
         {
             try
             {
-                var can = await _socioServicio.CantidadTotal();
-                var c = await _socioServicio.Lista(0,can.List);
-                oSocio = c.List.Where(x=>x.Id==Id).FirstOrDefault();
+                string filtro = $"Id = {Id}";
+                var c = await _socioServicio.LimitadosFiltrados(0,1,filtro);
+                oSocio = c.List.FirstOrDefault();
 
                 if (oSocio.Criador == "S")
                 {

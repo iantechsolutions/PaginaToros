@@ -70,7 +70,7 @@ namespace PaginaPlantels.Server.Cont{
         }
         [HttpGet]
         [Route("LimitadosFiltrados")]
-        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string? expression = null)
         {
 
             Respuesta<List<PlantelDTO>> _ResponseDTO = new Respuesta<List<PlantelDTO>>();
@@ -78,6 +78,31 @@ namespace PaginaPlantels.Server.Cont{
             try
             {
                 var a = await _plantelRepositorio.LimitadosFiltrados(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<PlantelDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+        [HttpGet]
+        [Route("LimitadosFiltradosNoInclude")]
+        public async Task<IActionResult> LimitadosFiltradosNoInclude(int skip, int take, string? expression = null)
+        {
+
+            Respuesta<List<PlantelDTO>> _ResponseDTO = new Respuesta<List<PlantelDTO>>();
+
+            try
+            {
+                var a = await _plantelRepositorio.LimitadosFiltradosNoInclude(skip, take, expression);
 
                 var listaFiltrada = _mapper.Map<List<PlantelDTO>>(a);
 

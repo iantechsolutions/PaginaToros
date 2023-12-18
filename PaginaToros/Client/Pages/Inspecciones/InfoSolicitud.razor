@@ -53,7 +53,48 @@
     </div>
     <br/>
 @*     <div class="row">
-        INFO DECLARACIONES
+        <table class="tableStyleClass" bottom="middle" border="1" align="center">
+            <tbody>
+                <tr>
+                    <th width="58">Nro Declaracion</th>
+                    <th width="58">Nro Plantel</th>
+                    <th width="100">Tipo Servicio</th>
+                    <th width="100">DESDE</th>
+                    <th width="100">HASTA</th>
+                    <th width="48">Vtres PR</th>
+                    <th width="48">Vtres VIP (Base)</th>
+                    <th width="48">Toros PR</th>
+                    <th width="48">Vq PR</th>
+                </tr>
+                @foreach(var decla in Declaraciones.Where(x=>oSolicitud.Fecsol>x.Desde && oSolicitud.Fecsol < x.Hasta))
+                {
+                    <tr>
+                        <td>@decla.Nrodec</td>
+                        <td>@decla.Nroplan</td>
+                        <td>@decla.Tipse</td>
+                        @if(decla.Desde.HasValue){
+                            <td>@decla.Desde.Value.ToString("dd/MM/yyyy")</td>
+                        }
+                        else
+                        {
+                            <td/>
+                        }
+                        @if (decla.Hasta.HasValue)
+                        {
+                            <td>@decla.Hasta.Value.ToString("dd/MM/yyyy")</td>
+                        }
+                        else
+                        {
+                            <td />
+                        }
+                        <td>@decla.Cantv</td>
+                        <td>@decla.Cantb</td>
+                        <td></td>
+                        <td>12</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div> *@
     <br/>
     @if (declaracion)
@@ -192,10 +233,10 @@
         if (id != 0)
         {
             string filtro = $"Id = {id}";
-            var list = await _solici1Servicio.LimitadosFiltrados(0, 1, filtro);
+            var list = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
             oSolicitud = list.List.FirstOrDefault();
-            filtro = $"(Icod == null ? \"\" : Icod).ToLower().Contains(\"{oSolicitud.Nrosol}\".ToLower())";
-            var rt = await _resin1Servicio.LimitadosFiltrados(0, 1, filtro);
+            filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{oSolicitud.Nrosol}\".ToLower())";
+            var rt = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
 
             if (rt.List.Count > 0)
             {

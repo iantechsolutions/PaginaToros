@@ -160,11 +160,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var can = await _socioServicio.CantidadTotal();
-        var rta = await _socioServicio.Lista(0, can.List);
+        var rta = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
-        var cant = await _centrosiumServicio.CantidadTotal();
-        var rt = await _centrosiumServicio.Lista(0, cant.List);
+        var rt = await _centrosiumServicio.LimitadosFiltrados(0, 0);
         centros = rt.List;
 
         if (Id != 0)
@@ -172,7 +170,7 @@ else
             try
             {
                 string filtro = $"Id = {Id}";
-                var rtt = await _certifsemanServicio.LimitadosFiltrados(0, 1, filtro);
+                var rtt = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
 
                 oCertifseman = rtt.List.FirstOrDefault();
                 centroSeleccionado = centros.Where(x => x.Nrocen == oCertifseman.Nrocen).FirstOrDefault();

@@ -10,6 +10,7 @@ namespace PaginaToros.Server.Repositorio.Contrato
         Task<List<Desepla1>> Lista(int page, int count);
         Task<Desepla1> Obtener(Expression<Func<Desepla1, bool>> filtro = null);
         Task<List<Desepla1>> LimitadosFiltrados(int skip, int take, string filtro = null);
+        Task<List<Desepla1>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null);
         Task<bool> Eliminar(Desepla1 entidad);
         Task<Desepla1> Crear(Desepla1 entidad);
         Task<bool> Editar(Desepla1 entidad);

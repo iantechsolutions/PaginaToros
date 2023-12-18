@@ -47,9 +47,9 @@
         {
             try
             {
-                var can = await _resin8Servicio.CantidadTotal();
-                var rt = await _resin8Servicio.Lista(0,can.List);
-                oResin8 = rt.List.Where(x=>x.Id==Id).FirstOrDefault();
+                string filtro = $"Id = {Id}";
+                var rt = await _resin8Servicio.LimitadosFiltrados(0,0,filtro);
+                oResin8 = rt.List.FirstOrDefault();
 
             }
             catch (Exception ex)

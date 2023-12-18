@@ -237,8 +237,6 @@ else
         else
         {
             oRespuesta = await _transanServicio.Lista(args.Skip.Value, args.Top.Value);
-            var can = await _transanServicio.CantidadTotal();
-            cantidad = can.List;
         }
 
         isLoading = false;

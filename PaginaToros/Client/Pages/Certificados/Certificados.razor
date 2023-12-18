@@ -221,8 +221,6 @@ else
         else
         {
             oRespuesta = await _certifsemanServicio.Lista(args.Skip.Value, args.Top.Value);
-            var can = await _certifsemanServicio.CantidadTotal();
-            cantotal = can.List;
         }
 
         isLoading = false;

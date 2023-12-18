@@ -86,6 +86,20 @@ else
     public Respuesta<List<CentrosiumDTO>> oRespuesta = new Respuesta<List<CentrosiumDTO>>();
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider
+            .GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userName = user.Identity.Name;
+        foreach (var claim in user.Claims)
+        {
+            if (claim.Type == "UsuarioId")
+            {
+                var usuarioId = claim.Value;
+                Console.WriteLine(usuarioId);
+            }
+
+        }
+
         await Get();
     }
     async Task Get()
@@ -211,8 +225,6 @@ else
         else
         {
             oRespuesta = await _centrosiumServicio.Lista(args.Skip.Value, args.Top.Value);
-            var can = await _centrosiumServicio.CantidadTotal();
-            cantotal = can.List;
         }
 
         isLoading = false;

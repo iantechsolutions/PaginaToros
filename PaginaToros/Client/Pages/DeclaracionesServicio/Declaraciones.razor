@@ -248,8 +248,6 @@ else
         else
         {
             oRespuesta = await _desepla1Servicio.Lista(args.Skip.Value, args.Top.Value);
-            var can = await _desepla1Servicio.CantidadTotal();
-            cantidad = can.List;
         }
 
         isLoading = false;

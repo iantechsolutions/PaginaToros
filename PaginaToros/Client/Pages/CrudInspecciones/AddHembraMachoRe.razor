@@ -137,10 +137,10 @@
         {
             try
             {
-                var can = await _resin6Servicio.CantidadTotal();
-                var rt = await _resin6Servicio.Lista(0, can.List);
+                string filtro = $"Id = {Id}";
+                var rt = await _resin6Servicio.LimitadosFiltrados(0, 0,filtro);
 
-                oResin6 = rt.List.Where(x=>x.Id==Id).FirstOrDefault();
+                oResin6 = rt.List.FirstOrDefault();
 
             }
             catch (Exception ex)

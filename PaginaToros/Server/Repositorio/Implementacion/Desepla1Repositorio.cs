@@ -47,20 +47,27 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
-        public async Task<List<Desepla1>> LimitadosFiltrados(int skip, int take, string filtro = null)
+        public async Task<List<Desepla1>> LimitadosFiltrados(int skip, int take, string? filtro = null)
         {
             try
-            {
-                var a = await _dbContext.Desepla1s.Include(x => x.Socio).Include(a => a.Plantel)
-                                 .Where(filtro)
-                                 .Skip(skip).ToListAsync();
-                if (take == 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                DbSet<Desepla1> a;
+                List<Desepla1> b;
+                if(filtro is not null)
+                {
+                    b = await _dbContext.Desepla1s.Include(x => x.Socio).Include(a => a.Plantel).Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
                 {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                    b = await _dbContext.Desepla1s.Include(x => x.Socio).Include(a => a.Plantel).Skip(skip).ToListAsync();
+                }
+                if (take == 0)
+                {
+                    return b.OrderByDescending(t => t.Id).ToList();
+                }
+                else
+                {
+                    return b.Take(take).OrderByDescending(t => t.Id).ToList();
                 }
             }
             catch
@@ -69,6 +76,35 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             }
         }
 
+        public async Task<List<Desepla1>> LimitadosFiltradosNoInclude(int skip, int take, string? filtro = null)
+        {
+            try
+            {
+                DbSet<Desepla1> a;
+                List<Desepla1> b;
+                if (filtro is not null)
+                {
+                    b = await _dbContext.Desepla1s.Where(filtro).Skip(skip).ToListAsync();
+                }
+                else
+                {
+                    b = await _dbContext.Desepla1s.Skip(skip).ToListAsync();
+                }
+                if (take == 0)
+                {
+                    return b.OrderByDescending(t => t.Id).ToList();
+                }
+                else
+                {
+                    return b.Take(take).OrderByDescending(t => t.Id).ToList();
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+        
         public async Task<bool> Eliminar(Desepla1 entidad)
         {
             try

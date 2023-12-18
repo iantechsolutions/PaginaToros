@@ -51,9 +51,42 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                var a = await _dbContext.Solici1s.Include(t=>t.Establecimiento).ThenInclude(e=>e.Socio)
-                                                 .Include(t => t.Establecimiento).ThenInclude(e => e.Provincia)
-                                                 .Where(filtro).Skip(skip).ToListAsync();
+                List<Solici1> a;
+                if (filtro is not null) { 
+                    a = await _dbContext.Solici1s.Include(t=>t.Establecimiento).ThenInclude(e=>e.Socio).Include(t => t.Establecimiento).ThenInclude(e => e.Provincia).Where(filtro).Skip(skip).ToListAsync();
+                }
+                else
+                {
+                    a = await _dbContext.Solici1s.Include(t => t.Establecimiento).ThenInclude(e => e.Socio).Include(t => t.Establecimiento).ThenInclude(e => e.Provincia).Skip(skip).ToListAsync();
+                }
+                if (take == 0)
+                {
+                    return a.OrderByDescending(t => t.Id).ToList();
+                }
+                else
+                {
+                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<List<Solici1>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null)
+        {
+            try
+            {
+                List<Solici1> a;
+                if (filtro is not null)
+                {
+                    a = await _dbContext.Solici1s.Where(filtro).Skip(skip).ToListAsync();
+                }
+                else
+                {
+                    a = await _dbContext.Solici1s.Skip(skip).ToListAsync();
+                }
                 if (take == 0)
                 {
                     return a.OrderByDescending(t => t.Id).ToList();

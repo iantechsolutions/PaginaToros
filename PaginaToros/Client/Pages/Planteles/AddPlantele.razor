@@ -122,14 +122,16 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var rta = await _socioServicio.Lista(0,1000000);
+        var rta = await _socioServicio.LimitadosFiltrados(0,0);
         socios = rta.List.ToList();
         if (Id != 0)
         {
             try
-            {   
-                var rt = await _plantelServicio.Lista(0, 1000000);
-                oPlantel = rt.List.Where(x=>x.Id==Id).FirstOrDefault();
+            {
+                string filtro = $"Id = {Id}";
+
+                var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 1);
+                oPlantel = rt.List.FirstOrDefault();
                 if (oPlantel.Estado=="S")
                 {
                     activo = true;

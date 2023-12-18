@@ -22,7 +22,7 @@
 }
 
 </style>
-@if(certificados.Count>0){
+@if(socios.Count>0){
 <div class="card">
     <div class="card-body">
         <EditForm Model="@oDeclaracion" OnValidSubmit="Guardar">
@@ -427,31 +427,22 @@ else
     string tipoTemp = "";
     protected override async Task OnInitializedAsync()
     {
-        var c = _socioServicio.CantidadTotal();
-        var cv = await c;
-        var r = await _socioServicio.Lista(0,cv.List);
+        var r = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = r.List;
-
-        var ca = await _plantelServicio.CantidadTotal();
-        var rt = await _plantelServicio.Lista(0,ca.List);
+        var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
         Planteles = rt.List;
-
-        var can = await _torosServicio.CantidadTotal();
-        var rta = await _torosServicio.Lista(0,can.List);
+        var rta = await _torosServicio.LimitadosFiltradosNoInclude(0, 0);
         toros = rta.List;
-
-        var cant = await _certifsemanServicio.CantidadTotal();
-        var rtaa = await _certifsemanServicio.Lista(0, cant.List);
+        var rtaa = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0);
         certificados = rtaa.List;
         if (Id != 0)
         {
             try
             {
-                var canD = await _desepla1Servicio.CantidadTotal();
-                var rtaD = await _desepla1Servicio.Lista(0, canD.List);
+                var rtaD = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 0);
                 oDeclaracion = rtaD.List.Where(x => x.Id == Id).FirstOrDefault();
-                socioSeleccionado = oDeclaracion.Socio;
-                Plantelseleccionado = oDeclaracion.Plantel;
+                socioSeleccionado = socios.Where(x=>x.Scod==oDeclaracion.Nrocri).FirstOrDefault();
+                Plantelseleccionado = Planteles.Where(x=>x.Placod==oDeclaracion.Nroplan).FirstOrDefault();
 
             }
             catch (Exception ex)
@@ -460,8 +451,7 @@ else
         }
         else
         {
-            var ctaD = await _desepla1Servicio.CantidadTotal();
-            var resp = await _desepla1Servicio.Lista(0, c.List);
+            var resp = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 0);
             var nroDecAnterior = resp.List.OrderByDescending(x => x.Id).First().Nrodec;
             nrodec = Int32.Parse(nroDecAnterior)+1.ToString();
             oDeclaracion.Fecdecl = DateTime.Now;

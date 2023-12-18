@@ -227,8 +227,6 @@ else
         else
         {
             oRespuesta = await _futcontrolServicio.Lista(args.Skip.Value, args.Top.Value);
-            var can = await _futcontrolServicio.CantidadTotal();
-            cantidad = can.List;
         }
 
         isLoading = false;

@@ -179,8 +179,9 @@
 
             try
             {
-                var rt = await _inspectServicio.Lista(0, 1000000);
-                oInspector = rt.List.Where(x=>x.Id==Id).FirstOrDefault();
+                string filtro = $"Id = {Id}";
+                var rt = await _inspectServicio.LimitadosFiltrados(0, 1,filtro);
+                oInspector = rt.List.FirstOrDefault();
                 provinciaTemp = traductorProvinciaInverso[oInspector.Codpro];
             }
             catch (Exception ex)

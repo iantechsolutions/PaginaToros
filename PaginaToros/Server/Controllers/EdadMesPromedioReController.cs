@@ -71,7 +71,7 @@ namespace PaginaToros.Server.Controllers
         }
         [HttpGet]
         [Route("LimitadosFiltrados")]
-        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string expression)
+        public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string? expression = null)
         {
 
             Respuesta<List<Resin4DTO>> _ResponseDTO = new Respuesta<List<Resin4DTO>>();

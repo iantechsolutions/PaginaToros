@@ -50,7 +50,14 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                var a = await _dbContext.Resin8s.Where(filtro).Skip(skip).ToListAsync();
+                List<Resin8> a;
+                if (filtro is not null) { 
+                a = await _dbContext.Resin8s.Where(filtro).Skip(skip).ToListAsync();
+                }
+                else
+                {
+                    a = await _dbContext.Resin8s.Skip(skip).ToListAsync();  
+                }
                 if (take == 0)
                 {
                     return a.OrderByDescending(t => t.Id).ToList();

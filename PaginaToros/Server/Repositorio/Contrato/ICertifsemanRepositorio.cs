@@ -10,6 +10,7 @@ namespace PaginaToros.Server.Repositorio.Contrato
         Task<List<Certifseman>> Lista(int page, int count);
         Task<Certifseman> Obtener(Expression<Func<Certifseman, bool>> filtro = null);
         Task<List<Certifseman>> LimitadosFiltrados(int skip, int take, string filtro = null);
+        Task<List<Certifseman>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null);
         Task<bool> Eliminar(Certifseman entidad);
         Task<Certifseman> Crear(Certifseman entidad);
         Task<bool> Editar(Certifseman entidad);

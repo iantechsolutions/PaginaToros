@@ -95,9 +95,9 @@
         {
             try
             {
-                var can = await _resin4Servicio.CantidadTotal();
-                var rt = await _resin4Servicio.Lista(0, can.List);
-                oResin4 = rt.List.Where(x => x.Id == Id).FirstOrDefault();
+                string filtro = $"Id = {Id}";
+                var rt = await _resin4Servicio.LimitadosFiltrados(0, 1,filtro);
+                oResin4 = rt.List.FirstOrDefault();
 
             }
             catch (Exception ex)

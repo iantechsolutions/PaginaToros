@@ -110,7 +110,7 @@ else
     {
         var c = await _plantelServicio.CantidadTotal();
         cantidad = c.List;
-        oRespuesta = await _plantelServicio.Lista(0,20);
+        oRespuesta = await _plantelServicio.Lista(0,15);
 
         StateHasChanged();
     }
@@ -248,8 +248,6 @@ else
         else
         {
             oRespuesta = await _plantelServicio.Lista(args.Skip.Value, args.Top.Value);
-            var can = await _plantelServicio.CantidadTotal();
-            cantidad = can.List;
         }
 
         isLoading = false;

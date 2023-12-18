@@ -95,9 +95,10 @@ else
     }
     async Task Get()
     {
-        oRespuesta = await _inspectServicio.Lista(0, 1000000);
+        
         var ca = await _inspectServicio.CantidadTotal();
         cantidad = ca.List;
+        oRespuesta = await _inspectServicio.Lista(0, cantidad);
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -247,8 +248,7 @@ else
         else
         {
             oRespuesta = await _inspectServicio.Lista(args.Skip.Value, args.Top.Value);
-            var can = await _inspectServicio.CantidadTotal();
-            cantidad = can.List;
+
         }
 
         isLoading = false;

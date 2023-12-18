@@ -267,8 +267,6 @@ else
         else
         {
             oRespuesta = await _socioServicio.Lista(args.Skip.Value, args.Top.Value);
-            var can = await _socioServicio.CantidadTotal();
-            cantidad = can.List;
         }
 
         isLoading = false;

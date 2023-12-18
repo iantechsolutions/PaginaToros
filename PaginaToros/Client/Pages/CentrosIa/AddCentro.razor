@@ -60,9 +60,9 @@ else
         {
             try
             {
-                var rt = await _centrosiumServicio.CantidadTotal();
-                oRespuesta = await _centrosiumServicio.Lista(0, rt.List);
-                oCentrosiumDTO = oRespuesta.List.Where(x=>x.Id==Id).FirstOrDefault();
+                string filtro = $"Id = {Id}";
+                oRespuesta = await _centrosiumServicio.LimitadosFiltrados(0, 1,filtro);
+                oCentrosiumDTO = oRespuesta.List.FirstOrDefault();
             }
             catch (Exception ex)
             {

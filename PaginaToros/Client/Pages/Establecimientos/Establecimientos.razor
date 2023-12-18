@@ -114,7 +114,7 @@ else
     {
         var cant = await _estableServicio.CantidadTotal();
         cantidad = cant.List;
-        oRespuesta = await _estableServicio.Lista(0, 45);
+        oRespuesta = await _estableServicio.Lista(0, 15);
     }
     public void CambiarModoFiltro()
     {
@@ -254,8 +254,6 @@ else
         else
         {
             oRespuesta = await _estableServicio.Lista(args.Skip.Value, args.Top.Value);
-            var can = await _estableServicio.CantidadTotal();
-            cantidad = can.List;
         }
 
         isLoading = false;

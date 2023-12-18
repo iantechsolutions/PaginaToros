@@ -23,9 +23,14 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var result = await _http.GetFromJsonAsync<Respuesta<int>>($"api/Desepla1/cantidad");
             return result;
         }
-        public async Task<Respuesta<List<Desepla1DTO>>> LimitadosFiltrados(int skip, int take, string filter)
+        public async Task<Respuesta<List<Desepla1DTO>>> LimitadosFiltrados(int skip, int take, string? filter = null)
         {
             var result = await _http.GetFromJsonAsync<Respuesta<List<Desepla1DTO>>>($"api/Desepla1/LimitadosFiltrados?skip={skip}&take={take}&expression={filter}");
+            return result;
+        }
+        public async Task<Respuesta<List<Desepla1DTO>>> LimitadosFiltradosNoInclude(int skip, int take, string? filter = null)
+        {
+            var result = await _http.GetFromJsonAsync<Respuesta<List<Desepla1DTO>>>($"api/Desepla1/LimitadosFiltradosNoInclude?skip={skip}&take={take}&expression={filter}");
             return result;
         }
 
