@@ -91,19 +91,24 @@
         {"Por Inspeccion","PI"},
         {"Epidemias","EP"},
         {"Rechazos","RE"},
-        {"Otros","OT"}
+        {"Otros","OT"},
+        {"E","Entrada"},
+        {"S","Salida"}
     };
+    Dictionary<string, string> traductorInverso;
 
     protected override async Task OnInitializedAsync()
     {
+        traductorInverso = traductorMotivos.ToDictionary(pair => pair.Value, pair => pair.Key);
         if (Id != 0)
         {
             try
             {
                 string filtro = $"Id = {Id}";
                 var rt = await _resin3Servicio.LimitadosFiltrados(0, 0,filtro);
-                oResin3 = rt.List.FirstOrDefault() ;
-
+                oResin3 = rt.List.FirstOrDefault();
+                movimiento = traductorMotivos[oResin3.Tipmov];
+                motivo = traductorInverso[oResin3.Ctomov];
             }
             catch (Exception ex)
             {

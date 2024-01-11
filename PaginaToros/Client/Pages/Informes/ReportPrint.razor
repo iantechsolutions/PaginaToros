@@ -73,7 +73,7 @@
                         <p class="s2">Tipo de Toro</p>
                     </td>
                 </tr>
-                @foreach(var toro in toros)
+                @foreach(var toro in toros.Where(x=>x.CodEstado=="1"))
                 {
                     <tr>
                         <td>

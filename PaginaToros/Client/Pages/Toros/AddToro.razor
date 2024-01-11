@@ -41,6 +41,7 @@
                 <div class="col-sm">
                     <label class="col-sm">Desde que fecha es S/</label>
                     <RadzenDatePicker TValue="DateTime?" @bind-Value="@dateTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <button type="button" title="Eliminar" @onclick="() => dateTemp=null"><FeatherXCircle Size="16" Color="red" /></button>
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Circunferencia escrotal</label>
@@ -160,8 +161,19 @@ else
                 var rt = await _torosServicio.LimitadosFiltradosNoInclude(0,1,filtro);
                 oTorosuni = rt.List.FirstOrDefault();
                 socioSeleccionado = socios.Where(x => x.Scod == oTorosuni.Criador).First();
-                estadoTemp = traductorCarga[oTorosuni.CodEstado];
-                tipoTemp = traductorCarga[oTorosuni.TipToro];
+                if (traductorCarga.ContainsKey(oTorosuni.CodEstado))
+                {
+                    estadoTemp = traductorCarga[oTorosuni.CodEstado];
+                }
+                if (traductorCarga.ContainsKey(oTorosuni.TipToro)){
+                    tipoTemp = traductorCarga[oTorosuni.TipToro];
+                }
+
+                string format = "dd/MM/yyyy";
+                if (DateTime.TryParseExact(oTorosuni.Fechasba, format, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+                {
+                    dateTemp = parsedDate;
+                }
             }
             catch (Exception ex)
             {
@@ -176,6 +188,10 @@ else
             oTorosuni.TipToro = traductor[tipoTemp];
             if(dateTemp.HasValue){
                 oTorosuni.Fechasba = dateTemp.Value.ToString("dd/MM/yyyy");
+            }
+            else
+            {
+                oTorosuni.Fechasba = null;
             }
         }
         catch

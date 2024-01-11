@@ -75,8 +75,11 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="Solici1DTO" Property="Cantor" Title="Toros PR"/>
                     <RadzenDataGridColumn TItem="Solici1DTO" Property="Cantvq" Title="VQ PR" />
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="Canvac" Title="Hembras VIP" />
-                        
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Hembras VIP" >
+                        <Template Context="data">
+                            @(data.Canvac+data.Canvaq)
+                        </Template>
+                    </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
             }
@@ -310,7 +313,7 @@
                                                 <td>@(hemyma.HppM+hemyma.HppAs)</td>
                                                 <td style="background-color: #666666;">-</td>
                                                 <td style="background-color: #666666;">@(hemyma.Hpp - hemyma.HppM - hemyma.HppAs)</td>
-                                                <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("otrospr"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                <td><button class="btn" title="Ver info @hemyma.Id" @onclick='() => (agregarHembraMacho("otrospr"))'><FeatherInfo Size="16" Color="blue" /></button></td>
                                             </tr>
                                             <!-- Vacas VIP -->
                                             <tr >

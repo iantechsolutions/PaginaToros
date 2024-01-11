@@ -151,6 +151,7 @@
     async Task Guardar()
     {
         oResin6.Nrores = numeroRes;
+        oResin6.Resin1 = null;
         if (Id == 0)
         {
             await _resin6Servicio.Crear(oResin6);
