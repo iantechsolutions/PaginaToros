@@ -21,9 +21,9 @@
                     <ValidationMessage For="(()=> oCertifseman.TipoCert)" style="color:red;" />
                 </div>
                 <div class="col-sm">
-                    <label>Fecha de Venta</label><br />
-                    <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaVenta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                
+                    <label class="col-sm">Nro de certificado</label>
+                    <InputText @bind-Value="@oCertifseman.NroCert" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> oCertifseman.NroCert)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Centro</label>
@@ -36,6 +36,10 @@
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
+                    <div class="col-sm">
+                        <label>Fecha de Venta</label><br />
+                        <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaVenta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    </div>
             </div>
             <br />
             <div class="row" style="width=100%;">

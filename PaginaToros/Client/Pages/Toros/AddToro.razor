@@ -114,13 +114,14 @@ else
     TorosuniDTO oTorosuni = new();
     List<string> estados = new List<string> { "Activo", "Inexistente", "Muerto","Vendido" };
     List<string> variedades = new List<string> { "H", "PH" };
-    List<string> tiposToro = new List<string> { "S/", "Puro Pedigree (SRA)","Patagonico" };
+    List<string> tiposToro = new List<string> { "S/", "Puro Pedigree (SRA)","Patagonico" ,"Ganador de prueba" };
 
     Dictionary<string, string> traductor = new Dictionary<string, string>{
         {"Activo","1"},
         {"Inexistente","3"},
         {"Muerto","4"},
         {"Vendido","5"},
+        {"Ganador de prueba","GP"},
         {"S/","S"},
         {"Puro Pedigree (SRA)","P"},
         {"Patagonico","A"}
@@ -130,6 +131,7 @@ else
         {"3","Inexistente"},
         {"4","Muerto"},
         {"5","Vendido"},
+        {"GP","Ganador de prueba"},
         {"S","S/"},
         {"P","Puro Pedigree (SRA)"},
         {"A","Patagonico"}
@@ -137,7 +139,7 @@ else
 
     string estadoTemp = "";
     string tipoTemp = "";
-    DateTime? dateTemp = DateTime.Now;
+    DateTime? dateTemp = null;
     SocioDTO? socioSeleccionado = null;
     List<SocioDTO> socios = new();
     string tipoToro = "";
@@ -172,7 +174,9 @@ else
         oTorosuni.CodEstado = traductor[estadoTemp];
         try{
             oTorosuni.TipToro = traductor[tipoTemp];
-            oTorosuni.Fechasba = dateTemp.Value.ToString("dd/MM/yyyy");
+            if(dateTemp.HasValue){
+                oTorosuni.Fechasba = dateTemp.Value.ToString("dd/MM/yyyy");
+            }
         }
         catch
         {

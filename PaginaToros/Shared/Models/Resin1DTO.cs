@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PaginaToros.Shared.Models
 {
@@ -23,5 +24,8 @@ namespace PaginaToros.Shared.Models
         public string? Scod { get; set; } = null!;
         public string? Estcod { get; set; }
         public Socio? Socio { get; set; }
+        public Estable? Establecimiento { get; set; }
+        [JsonIgnore]
+        public List<Resin6>? Resin6s { get; set; }
     }
 }

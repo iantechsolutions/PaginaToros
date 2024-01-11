@@ -30,5 +30,6 @@ namespace PaginaToros.Shared.Models
         public double? Mspsb { get; set; } = 0;
         public string? Nrores { get; set; }
         public int Id { get; set; }
+        public Resin1? Resin1 { get; set; }
     }
 }

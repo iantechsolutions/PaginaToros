@@ -1,4 +1,8 @@
 is_global = true
+build_property.EnableAotAnalyzer = 
+build_property.EnableSingleFileAnalyzer = 
+build_property.EnableTrimAnalyzer = false
+build_property.IncludeAllContentForSelfExtract = 
 build_property.TargetFramework = net6.0
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = 
@@ -10,6 +14,8 @@ build_property._SupportedPlatformList = browser
 build_property.RootNamespace = PaginaToros.Client
 build_property.RootNamespace = PaginaToros.Client
 build_property.ProjectDir = C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 6.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
@@ -251,6 +257,10 @@ build_metadata.AdditionalFiles.CssScope =
 [C:/Users/lolo1/source/repos/PaginaToros/PaginaToros/Client/Pages/Auth/Login.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aFxMb2dpbi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-qp3kik0ul9
+
+[C:/Users/lolo1/source/repos/PaginaToros/PaginaToros/Client/Pages/Informes/ReportPrint.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5mb3JtZXNcUmVwb3J0UHJpbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-tbzienq9go
 
 [C:/Users/lolo1/source/repos/PaginaToros/PaginaToros/Client/Shared/NavMenu.razor]
 build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE5hdk1lbnUucmF6b3I=

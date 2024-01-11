@@ -1378,7 +1378,7 @@
       "projectName": "PaginaToros.Shared",
       "projectPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
       "packagesPath": "C:\\Users\\lolo1\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\lolo1\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\obj\\",
+      "outputPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "E:\\LIBRERIAS\\NuGetPackages"
@@ -1435,7 +1435,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100\\RuntimeIdentifierGraph.json"
       }
     }
   }

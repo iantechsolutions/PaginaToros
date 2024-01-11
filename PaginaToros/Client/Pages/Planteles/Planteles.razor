@@ -64,7 +64,7 @@
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrp" Title="Vaquillonas VIP S/S" Width="4.6%" />
             <RadzenDataGridColumn TItem="PlantelDTO" Property="" Title="" Filterable="false" Width="2.3%">
                 <Template Context="data">
-                    <button class="btn" position="absolute" title="Editar Plantel" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                    <button class="btn" position="absolute" title="Editar Plantel @data.Id" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="PlantelDTO" Property="" Title="" Filterable="false" Width="2.3%">

@@ -31,5 +31,7 @@ namespace PaginaToros.Shared.Models
         public List<Solici1>? Solicitudes { get; set; }
         [JsonIgnore]
         public List<Transsb> TransS { get; set; }
+        [JsonIgnore]
+        public List<Resin1> Resins { get; set; }
     }
 }

@@ -13,6 +13,7 @@
         break-inside:avoid}
     }
 </style>
+@if(Inspector is not null){
 <h3>Solicitud id nro° @id</h3>
 
 <RadzenCard Class="m-3">
@@ -48,8 +49,6 @@
         <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecsol</b></RadzenText>
         <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion autorizada el</RadzenText>
         <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecins</b></RadzenText>
-        <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Plantel</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body1"><b>-</b></RadzenText>
     </div>
     <br/>
 @*     <div class="row">
@@ -213,40 +212,56 @@
             </tr>
         </tbody>
     </table>
-</RadzenCard>
-
+    </RadzenCard>
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
 @code {
     bool declaracion = false;
     Solici1DTO oSolicitud = new();
     Resin1DTO Resultado = new();
     List<Desepla1DTO> Declaraciones = new();
     List<InspectDTO> Inspectores = new();
-    InspectDTO Inspector = new();
+    InspectDTO? Inspector = null;
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int id { get; set; }
     protected override async Task OnInitializedAsync()
     {
-        var rta = await _desepla1Servicio.LimitadosFiltrados(0, 0);
-        Declaraciones = rta.List;
-        var r = await _inspectServicio.LimitadosFiltrados(0, 0);
-        Inspectores = r.List;
-        if (id != 0)
-        {
-            string filtro = $"Id = {id}";
-            var list = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-            oSolicitud = list.List.FirstOrDefault();
-            filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{oSolicitud.Nrosol}\".ToLower())";
-            var rt = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
+        try{
+            var rta = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 0);
+            Declaraciones = rta.List;
+            var r = await _inspectServicio.LimitadosFiltrados(0, 0);
+            Inspectores = r.List;
+            if (id != 0)
+            {
+                string filtro = $"Id = {id}";
+                var list = await _solici1Servicio.LimitadosFiltrados(0, 1, filtro);
+                oSolicitud = list.List.FirstOrDefault();
+                filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{oSolicitud.Nrosol}\".ToLower())";
+                var rt = await _resin1Servicio.LimitadosFiltrados(0, 1, filtro);
 
-            if (rt.List.Count > 0)
-            {
-                Inspector = Inspectores.Where(x=>x.Icod==rt.List.FirstOrDefault().Icod).FirstOrDefault();
+                if (rt.List.Count > 0)
+                {
+                    Inspector = Inspectores.Where(x=>x.Icod==rt.List.FirstOrDefault().Icod).FirstOrDefault();
+                }
+                if (Inspector is null)
+                {
+                    Inspector = new();
+                    Inspector.Nombre = "Coso";
+                }
             }
-            if (Inspector is null)
-            {
-                Inspector = new();
-                Inspector.Nombre = "Coso";
-            }
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
         }
     }
     async Task cancel()

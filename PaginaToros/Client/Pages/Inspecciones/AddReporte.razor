@@ -20,14 +20,14 @@
     }
 
 </style>
+
 @if(!cargando){
 <div>
-    
     <div class="row" style="width=100%;">
         <div class="col-md-1" />
         <div class="col-md-3">
             <label>Socio</label>
-            <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado" Disabled="solicitudSeleccionada!=null">
+                <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado" Disabled="Id!=0">
                 <SelectedTemplate Context="eleccion">
                     @eleccion.Nombre
                 </SelectedTemplate>
@@ -36,31 +36,54 @@
                 </ResultTemplate>
             </BlazoredTypeahead>
         </div>
-        <div class="col-md-3"/>
-        @if (@socioSeleccionado != null)
+        <div class="col-md-3" />
+        <div class="col-md-2" />
+    </div>
+        @if (socioSeleccionado != null)
         {
-        <div class="col-md-3">
-            <label>Solicitud</label>
+        <div class="row">
+            <label>Solicitudes</label>
             @if (Id != 0 && socioSeleccionado != null)
             {
-                <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.Nrosol" class="w-100"></RadzenNumeric>
+                    <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Nrosol" class="w-100"></RadzenNumeric>
             }
             else
             {
-            <BlazoredTypeahead SearchMethod="BusquedaSolicitudes" placeholder="Busque solicitud por numero" EnableDropDown="true" @bind-Value="solicitudSeleccionada" Disabled="confirmado">
-                <SelectedTemplate Context="eleccion">
-                    @eleccion.Nrosol
-                </SelectedTemplate>
-                <ResultTemplate Context="eleccion">
-                    @eleccion.Nrosol
-                </ResultTemplate>
-            </BlazoredTypeahead>
+            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@solicitudes.Where(x=>establecimientos.Where(t => t.Codsoc == socioSeleccionado.Scod).Any(t => t.Ecod == x.Codest) && !resultados.Any(r=>r.Nrores==x.Nrosol)).ToList()" TItem="Solici1DTO"
+                                    LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" SelectionMode="DataGridSelectionMode.Single" @bind-Value="@solicitudSeleccionada">
+                <Columns>
+                            <RadzenDataGridColumn TItem="Solici1DTO" Property="Nrosol" Title="Nro Sol" />
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Socio">
+                        <Template Context="data">
+                            @socioSeleccionado.Nombre
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Fecha de solicitud">
+                        <Template Context="data">
+                            @if (data.Fecsol.HasValue)
+                            {
+                                <a>@data.Fecsol.Value.ToString("dd/MM/yyyy")</a>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Fecha de Autorizacion">
+                        <Template Context="data">
+                            @if(data.Fecins.HasValue){
+                                <a>@data.Fecins.Value.ToString("dd/MM/yyyy")</a>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="Cantor" Title="Toros PR"/>
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="Cantvq" Title="VQ PR" />
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="Canvac" Title="Hembras VIP" />
+                        
+                </Columns>
+            </RadzenDataGrid>
             }
         </div>
-        <div class="col-md-2" />
         }
-    </div>
-    @if(solicitudSeleccionada!=null){
+        @if (solicitudSeleccionada!=null && solicitudSeleccionada.FirstOrDefault() != null && socioSeleccionado!=null)
+        {
         <br />
         <div class="row" style="width=100%;">
             <div class="col-sm-1" />
@@ -94,7 +117,7 @@
             <div class="col-sm">
                 <label class="col-sm">Establecimiento</label>
                 <br />
-                    <RadzenTextBox @bind-Value="@solicitudSeleccionada.Codest" Disabled="true" placeholder="Establecimiento"></RadzenTextBox>
+                    <RadzenTextBox @bind-Value="@solicitudSeleccionada.FirstOrDefault().Codest" Disabled="true" placeholder="Establecimiento"></RadzenTextBox>
             </div>
             <div class="col-sm">
                 <label class="col-sm">Localidad</label>
@@ -104,13 +127,13 @@
                     <RadzenTextBox @bind-Value="@establecimientoSeleccionado.Locali" Disabled="true" placeholder="Localidad"></RadzenTextBox>
                 }
                 else{
-                    <RadzenTextBox @bind-Value="@establecimientos.Where(x=>x.Ecod==solicitudSeleccionada.Codest).First().Locali" Disabled="true" placeholder="Localidad"></RadzenTextBox>
+                        <RadzenTextBox @bind-Value="@establecimientos.Where(x=>x.Ecod==solicitudSeleccionada.FirstOrDefault().Codest).First().Locali" Disabled="true" placeholder="Localidad"></RadzenTextBox>
                 }
                 
             </div>
-            <div class="col-sm">
+                <div class="col-sm">
                     <label>Plantel</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaPlanteles" style="max-width:26.7%" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
+                    <BlazoredTypeahead SearchMethod="BusquedaPlanteles"  placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Placod
                         </SelectedTemplate>
@@ -126,13 +149,13 @@
             <div class="col-sm-1" />
             <div class="col-sm">
                 <label class="col-sm">Fecha De Solicitud</label>
-                <RadzenDatePicker TValue="DateTime?" @bind-Value="@solicitudSeleccionada.Fecsol" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Fecsol" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
             </div>
             <div class="col-sm">
                 <label class="col-sm">Fecha De Inspeccion</label>
                 @if (@Id != 0)
                 {
-                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oResin1.Freali" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oResin1.Freali" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 }
                 else
                 {
@@ -153,7 +176,7 @@
             <RadzenTabs Class="w-100 mx-auto" RenderMode="TabRenderMode.Server">
                 <Tabs>
                     <RadzenTabsItem Text="Movimientos">
-                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>agregarMov()">Agregar Movimiento</button>
+                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>agregarMov(0)">Agregar Movimiento</button>
                         <br/>
                         <br />
                         <div class="container">
@@ -167,6 +190,7 @@
                                                 <th rowspan="2" style="background-color: #666666;">MOTIVO</th>
                                                 <th colspan="3" style="background-color: #999999;">PURO REGISTRADO</th>
                                                 <th colspan="3" style="background-color: #999999;">VIP</th>
+                                                <th/>
                                             </tr>
                                             <tr style="background-color: #FFFFFF;">
                                                 <th style="background-color: #FFFFFF;">VACAS</th>
@@ -175,6 +199,7 @@
                                                 <th style="background-color: #FFFFFF;">VACAS</th>
                                                 <th style="background-color: #FFFFFF;">VAQUILL c/Servicio o preñadas</th>
                                                 <th style="background-color: #FFFFFF;">VAQUILL s/Servicio</th>
+                                                <th/>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -188,6 +213,7 @@
                                                 <td>@estadoAnterior.Ea4</td>
                                                 <td>@estadoAnterior.Ea5</td>
                                                 <td>@estadoAnterior.Ea6</td>
+                                                <td/>
                                             </tr>
                                             @foreach (var mov in mtos)
                                             {
@@ -201,6 +227,7 @@
                                                     <td>@mov.Rpvac</td>
                                                     <td>@mov.Rpvaqcs</td>
                                                     <td>@mov.Rpvaqss</td>
+                                                        <td><button class="btn" title="Editar info" @onclick='() => (agregarMov(mov.Id))'><FeatherEdit Size="16" Color="green" /></button><button class="btn" title="Borrar" @onclick='() => (alertaDeleteMovimiento(mov.Id))'><FeatherDelete Size="16" Color="red" /></button></td>
                                                 </tr>
                                             }
                                             <tr style="background-color: #FFFF66;">
@@ -213,6 +240,7 @@
                                                 <td>@entradasFinal.Ea4</td>
                                                 <td>@entradasFinal.Ea5</td>
                                                 <td>@entradasFinal.Ea6</td>
+                                                <td />
                                             </tr>
                                             <tr style="background-color: #FFCC99;">
                                                 <td style="background-color: #999999;"><strong>Total Salidas</strong></td>
@@ -224,7 +252,7 @@
                                                 <td>@salidasFinal.Ea4</td>
                                                 <td>@salidasFinal.Ea5</td>
                                                 <td>@salidasFinal.Ea6</td>
-                                                
+                                                <td/>
                                             </tr>
                                             <tr style="background-color: #FF9966;">
                                                 <td style="background-color: #999999;"><strong>EXISTENCIA ACTUAL</strong></td>
@@ -236,7 +264,7 @@
                                                 <td>@estadoFinal.Ea4</td>
                                                 <td>@estadoFinal.Ea5</td>
                                                 <td>@estadoFinal.Ea6</td>
-                                                
+                                                <td />
                                             </tr>
                                         </tbody>
                                     </table>
@@ -517,7 +545,7 @@ else
     EstableDTO? establecimientoSeleccionado = null;
     List<Resin4DTO> promedios = new();
     List<Solici1DTO> solicitudes = new();
-    Solici1DTO? solicitudSeleccionada = null;
+    IList<Solici1DTO?> solicitudSeleccionada = null;
     bool confirmado = false;
     bool cargando = true;
     Resin1DTO? oResin1 = new();
@@ -571,7 +599,7 @@ else
 
                 filtro = $"(Nrosol == null ? \"\" : Nrosol).ToLower().Contains(\"{oResin1.Nrores}\".ToLower())";
                 var sol = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-                solicitudSeleccionada = sol.List.Where(x=>x.Nrosol==oResin1.Nrores).FirstOrDefault();
+                solicitudSeleccionada = sol.List.Where(x=>x.Nrosol==oResin1.Nrores).ToList();
 
                 filtro = $"(Ecod == null ? \"\" : Ecod).ToLower().Contains(\"{oResin1.Estcod}\".ToLower())";
                 var estable = await _estableServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
@@ -580,15 +608,15 @@ else
                 inspectorSeleccionado = Inspects.Where(x => x.Icod == oResin1.Icod).FirstOrDefault();
                 Plantelseleccionado = Planteles.Where(x =>x.Placod==oResin1.Nropla).FirstOrDefault();
 
-                await updateEstadoHistorico(solicitudSeleccionada.Nrosol);
+                await updateEstadoHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
 
-                await updatePromedios(solicitudSeleccionada.Nrosol);
+                await updatePromedios(solicitudSeleccionada.FirstOrDefault().Nrosol);
 
-                await updateRechazos(solicitudSeleccionada.Nrosol);
+                await updateRechazos(solicitudSeleccionada.FirstOrDefault().Nrosol);
 
-                await updateMovimientos(solicitudSeleccionada.Nrosol, "no");
+                await updateMovimientos(solicitudSeleccionada.FirstOrDefault().Nrosol, "no");
 
-                await updateHembrasMachos(solicitudSeleccionada.Nrosol);
+                await updateHembrasMachos(solicitudSeleccionada.FirstOrDefault().Nrosol);
 
                 confirmado = true;
             }
@@ -618,10 +646,10 @@ else
     async Task guardarReporte()
     {
         oResin1.Id = Id;
-        oResin1.Nrores = solicitudSeleccionada.Nrosol;
+        oResin1.Nrores = solicitudSeleccionada.FirstOrDefault().Nrosol;
         oResin1.Icod = inspectorSeleccionado.Icod;
         oResin1.Scod = socioSeleccionado.Scod;
-        oResin1.Estcod = solicitudSeleccionada.Codest;
+        oResin1.Estcod = solicitudSeleccionada.FirstOrDefault().Codest;
         if (Id == 0)
         {
             oResin1.Nropla = socioSeleccionado.Placod;
@@ -674,13 +702,13 @@ else
     async Task updateRechazos(string nrores)
     {
         string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
-        var res = await _resin8Servicio.LimitadosFiltrados(0, 100,filtro);
+        var res = await _resin8Servicio.LimitadosFiltrados(0, 0,filtro);
         rechazos = res.List;
     }
     async Task updateMovimientos(string nrores, string condicion)
     {
         string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
-        var respuesta = await _resin3Servicio.LimitadosFiltrados(0, 100,filtro);
+        var respuesta = await _resin3Servicio.LimitadosFiltrados(0, 0,filtro);
         mtos = respuesta.List;
 
         foreach (var mov in mtos)
@@ -719,7 +747,7 @@ else
             Plantelseleccionado.Vqssrp = estadoFinal.Ea6;
             await _plantelServicio.Editar(Plantelseleccionado);
         }
-
+        StateHasChanged();
     }
     async Task updateHembrasMachos(string nrores)
     {
@@ -753,7 +781,7 @@ else
     {
 
         confirmado = true;
-        string nrores = solicitudSeleccionada.Nrosol;
+        string nrores = solicitudSeleccionada.FirstOrDefault().Nrosol;
 
         guardarReporte();
 
@@ -773,19 +801,20 @@ else
 
     async Task confirmarNuevo()
     {
-
-        crearHistorico(solicitudSeleccionada.Nrosol);
+        Console.WriteLine(1);
+        crearHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
+        Console.WriteLine(2);
         confirmar();
     }
 
 
-    async Task agregarMov()
+    async Task agregarMov(int id)
     {
         try
         {
             var parameters = new ModalParameters();
-            parameters.Add(nameof(AddMovimientoRe.Id), 0);
-            parameters.Add(nameof(AddMovimientoRe.numeroRes), solicitudSeleccionada.Nrosol);
+            parameters.Add(nameof(AddMovimientoRe.Id), id);
+            parameters.Add(nameof(AddMovimientoRe.numeroRes), solicitudSeleccionada.FirstOrDefault().Nrosol);
             var options = new ModalOptions()
                 {
                     Size = ModalSize.ExtraLarge
@@ -798,7 +827,7 @@ else
             }
             else
             {
-                await updateMovimientos(solicitudSeleccionada.Nrosol, "si");
+                await updateMovimientos(solicitudSeleccionada.FirstOrDefault().Nrosol, "si");
             }
         }
         catch(Exception ex)
@@ -806,6 +835,8 @@ else
             Console.WriteLine(ex.Message);
         }
     }
+
+   
 
 
     async Task agregarHembraMacho(string parametro)
@@ -815,7 +846,7 @@ else
             var parameters = new ModalParameters();
             parameters.Add(nameof(AddHembraMachoRe.Id), hemyma.Id);
             parameters.Add(nameof(AddHembraMachoRe.botonclick), parametro);
-            parameters.Add(nameof(AddMovimientoRe.numeroRes), solicitudSeleccionada.Nrosol);
+            parameters.Add(nameof(AddMovimientoRe.numeroRes), solicitudSeleccionada.FirstOrDefault().Nrosol);
             var options = new ModalOptions()
                 {
                     Size = ModalSize.ExtraLarge
@@ -828,7 +859,7 @@ else
             }
             else
             {
-                await updateHembrasMachos(solicitudSeleccionada.Nrosol);
+                await updateHembrasMachos(solicitudSeleccionada.FirstOrDefault().Nrosol);
             }
         }
         catch (Exception ex)
@@ -843,7 +874,7 @@ else
         {
             var parameters = new ModalParameters();
             parameters.Add(nameof(AddEdadMesPromedioRe.Id), id);
-            parameters.Add(nameof(AddEdadMesPromedioRe.nrores), solicitudSeleccionada.Nrosol);
+            parameters.Add(nameof(AddEdadMesPromedioRe.nrores), solicitudSeleccionada.FirstOrDefault().Nrosol);
             parameters.Add(nameof(AddEdadMesPromedioRe.sexo), sexo);
             var options = new ModalOptions()
                 {
@@ -857,7 +888,7 @@ else
             }
             else
             {
-                await updatePromedios(solicitudSeleccionada.Nrosol);
+                await updatePromedios(solicitudSeleccionada.FirstOrDefault().Nrosol);
             }
         }
         catch (Exception ex)
@@ -871,7 +902,7 @@ else
         {
             var parameters = new ModalParameters();
             parameters.Add(nameof(AddRechazoRe.Id), id);
-            parameters.Add(nameof(AddRechazoRe.nrores), solicitudSeleccionada.Nrosol);
+            parameters.Add(nameof(AddRechazoRe.nrores), solicitudSeleccionada.FirstOrDefault().Nrosol);
             var options = new ModalOptions()
                 {
                     Size = ModalSize.ExtraLarge
@@ -884,7 +915,7 @@ else
             }
             else
             {
-                await updateRechazos(solicitudSeleccionada.Nrosol);
+                await updateRechazos(solicitudSeleccionada.FirstOrDefault().Nrosol);
             }
         }
         catch (Exception ex)
@@ -893,10 +924,38 @@ else
         }
     }
 
+    public async Task alertaDeleteMovimiento(int id)
+    {
+        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "¿Está seguro?",
+                Text = "Se eliminará el movimiento",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Eliminar",
+                CancelButtonText = "Cancelar"
+            });
+
+        if (!string.IsNullOrEmpty(result.Value))
+        {
+            deleteMovimiento(id);
+        }
+        else if (result.Dismiss == DismissReason.Cancel)
+        {
+
+        }
+    }
+
+    async Task deleteMovimiento(int id)
+    {
+        await _resin3Servicio.Eliminar(id);
+        await updateMovimientos(solicitudSeleccionada.FirstOrDefault().Nrosol, "si");
+    }
+
     async Task deleteRechazo(int id)
     {
         await Http.DeleteAsync($"/api/Resin8/{id}");
-        await updateRechazos(solicitudSeleccionada.Nrosol);
+        await updateRechazos(solicitudSeleccionada.FirstOrDefault().Nrosol);
     }
 
     public async Task alertaDeleteRechazo(int id)
@@ -927,11 +986,6 @@ else
         return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
-    private async Task<IEnumerable<Solici1DTO>> BusquedaSolicitudes(string searchText)
-    {
-        var estableposibles = establecimientos.Where(t => t.Codsoc == socioSeleccionado.Scod);
-        return await Task.FromResult(solicitudes.Where(x => x.Nrosol.ToString().Contains(searchText) && estableposibles.Any(t => t.Ecod == x.Codest)).ToList());
-    }
 
     private async Task<IEnumerable<InspectDTO>> BusquedaInspects(string searchText)
     {

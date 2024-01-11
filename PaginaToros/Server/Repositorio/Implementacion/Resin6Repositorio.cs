@@ -22,7 +22,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
 
                 // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Resin6s
+                return await _dbContext.Resin6s.Include(x => x.Resin1).ThenInclude(x=>x.Establecimiento)
                                                  .OrderByDescending(t => t.Id)
                                                  .Skip(skip)
                                                  .Take(take)
@@ -53,11 +53,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 List<Resin6> a;
                 if(filtro is not null)
                 {
-                    a = await _dbContext.Resin6s.Where(filtro).Skip(skip).ToListAsync();
+                    a = await _dbContext.Resin6s.Include(x => x.Resin1).ThenInclude(x => x.Establecimiento).Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
                 {
-                    a = await _dbContext.Resin6s.Skip(skip).ToListAsync();
+                    a = await _dbContext.Resin6s.Include(x => x.Resin1).ThenInclude(x => x.Establecimiento).Skip(skip).ToListAsync();
                 }
                 if (take == 0)
                 {

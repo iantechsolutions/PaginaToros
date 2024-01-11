@@ -10,3 +10,4 @@ C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\Pagi
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\refint\PaginaToros.Shared.dll
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\PaginaToros.Shared.pdb
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\ref\PaginaToros.Shared.dll
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\PaginaToros.Shared.sourcelink.json

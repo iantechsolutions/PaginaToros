@@ -126,6 +126,87 @@ body[b-qp3kik0ul9] {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+/* /Pages/Informes/ReportPrint.razor.rz.scp.css */
+*[b-tbzienq9go] {
+    margin: 0;
+    padding: 0;
+    text-indent: 0;
+}
+
+p[b-tbzienq9go] {
+    color: black;
+    font-family: Arial, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: none;
+    font-size: 10pt;
+    margin: 5pt;
+}
+
+.s1[b-tbzienq9go] {
+    color: black;
+    font-family: Arial, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: none;
+    font-size: 18pt;
+}
+
+.s2[b-tbzienq9go] {
+    color: black;
+    font-family: Arial, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: none;
+    font-size: 8pt;
+}
+
+table[b-tbzienq9go],
+tbody[b-tbzienq9go] {
+    vertical-align: top;
+    overflow: visible;
+}
+
+td[b-tbzienq9go] {
+    width: 120pt;
+    border-top-style: solid;
+    border-top-width: 1pt;
+    border-left-style: solid;
+    border-left-width: 1pt;
+    border-bottom-style: solid;
+    border-bottom-width: 1pt;
+    border-right-style: solid;
+    border-right-width: 1pt;
+}
+
+.s2[b-tbzienq9go] {
+    padding-top: 3pt;
+    padding-left: 5pt;
+    text-indent: 0pt;
+    text-align: left;
+}
+@media-print {
+
+    .no-print[b-tbzienq9go] {
+        display: none;
+    }
+
+/*    .table {
+        page-break-inside: auto; 
+    }
+
+    .todo{
+        page-break-inside: avoid !important;
+    }*/
+
+    /*.page {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        margin: 0px;
+        -webkit-print-color-adjust: exact;
+    }*/
+}
 /* /Shared/NavMenu.razor.rz.scp.css */
 
 

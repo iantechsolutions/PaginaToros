@@ -3,6 +3,7 @@
 @inject ISocioServicio _sociosServicio
 @inject ITranssbServicio _transsbServicio
 @inject IEstableServicio _estableServicio
+@inject ITorosServicio _torosServicio
 <style>
     .bm-title {
         font-size: 25px;
@@ -66,9 +67,21 @@
                     </BlazoredTypeahead>
                 </div>
             </div>
-            
             <br />
-
+                <div class="row" style="width=100%;">
+                    <div class="col-sm">
+                        <label class="col-sm">Toro Seleccionado</label>
+                        <BlazoredTypeahead SearchMethod="BusquedaToros" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="toroSeleccionado" Disabled="socioVendedor==null">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.NomDad
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.NomDad
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                    </div>
+                </div>
+                <br />
             <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
             <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
         </EditForm>
@@ -91,7 +104,9 @@ else
     SocioDTO? socioVendedor = null;
     List<SocioDTO> socios = new();
     List<EstableDTO> establecimientos = new();
+    List<TorosuniDTO> toros = new();
     EstableDTO establecimientoSeleccionado = new();
+    TorosuniDTO toroSeleccionado = null;
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
 
@@ -101,6 +116,8 @@ else
         socios = rta.List;
         var rt = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
         establecimientos = rt.List;
+        var rtt = await _torosServicio.LimitadosFiltradosNoInclude(0, 0);
+        toros = rtt.List;
         if (Id != 0)
         {
             try
@@ -130,6 +147,8 @@ else
         oTranssb.Sven = socioVendedor.Scod;
         oTranssb.Scom = socioComprador.Scod;
         oTranssb.Ecod = establecimientoSeleccionado.Ecod;
+        toroSeleccionado.Criador= socioVendedor.Scod;
+        await _torosServicio.Editar(toroSeleccionado);
         if (Id == 0)
         {
             await _transsbServicio.Crear(oTranssb);
@@ -158,4 +177,10 @@ else
         var result = establecimientos.Where(x => x.Codsoc==socioComprador.Scod && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
+    private async Task<IEnumerable<TorosuniDTO>> BusquedaToros(string searchText)
+    {
+        var result = toros.Where(x => x.Criador==socioVendedor.Scod && x.NomDad.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+
 }

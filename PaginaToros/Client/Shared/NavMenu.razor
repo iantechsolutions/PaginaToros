@@ -1,9 +1,9 @@
 ﻿
 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
     <Authorized>
-        <nav class="navbar navbar-expand-md bg-blue-300 mb-4">
+        <nav class="navbar navbar-expand-md bg-green-600 mb-4">
             <div class="container-fluid">
-                <a href="" class="pr-5"<img src="images/logo.png" class="pb-3 font-bold text-xl h-26 w-40 pt-3" style="padding-right:10px"alt="Logo"></a>
+                <a href="" class="pr-5"<img src="images/logo.png" class="pb-3 font-bold text-xl h-26 w-40 pt-3" style="padding-right:10px;width:100px;height:auto"alt="Logo"></a>
                 <button class="navbar-toggler @NavButtonCssClass" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
                         aria-controls="navbarCollapse" aria-label="Toggle navigation" @onclick="ToggleNavMenu">
                     @*<span class="navbar-toggler-icon"></span>*@
@@ -11,21 +11,21 @@
                 </button>
                 <div class="collapse navbar-collapse @NavBarCssClass" id="navbarCollapse" @onclick="ToggleNavMenu">
                     <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                        <li class="text-green-800 hover:text-green-800 hover:bg-blue-400 rounded-2xl">
-                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All" style="color:#13622b">
+                        <li class="hover:bg-green-500 rounded-2xl">
+                            <NavLink class="nav-link text-black" href="" Match="NavLinkMatch.All" style="color:#133c62">
                                 Inicio
                             </NavLink>
                         </li>
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Socios</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Socios</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="socios">
+                                <NavLink class="dropdown nav-link text-black bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="socios">
                                     &nbspListado
                                 </NavLink>
                             </div>
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="establecimientos">
+                                <NavLink class="dropdown nav-link text-black bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="establecimientos">
                                     &nbspEstablecimientos
                                 </NavLink>
                             </div>
@@ -35,29 +35,29 @@
                         </li>
                         </li>
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 hover:bg-blue-400 rounded-2xl">Planteles</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
-                            <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="Planteles">
+                            <span class="nav-link group text-black group-hover:bg-green-500 hover:bg-blue-400 rounded-2xl">Planteles</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
+                            <NavLink class="dropdown nav-link text-black bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="Planteles">
                                 &nbspListado
                             </NavLink>
                         </li>
                         </li>
 
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Inspecciones</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class=" nav-link group text-black group-hover:bg-green-500 rounded-2xl">Inspecciones</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="Inspectores">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="Inspectores">
                                     &nbspInspectores
                                 </NavLink>
                             </div>
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="solicitudesinspeccion">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="solicitudesinspeccion">
                                     &nbspSolicitudes
                                 </NavLink>
                             </div>
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="reportes">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="reportes">
                                     &nbspResultados
                                 </NavLink>
                             </div>
@@ -67,10 +67,10 @@
                         </li>
                         </li>
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Toros Padre</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Toros Padres</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="toros">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="toros">
                                     &nbspListado
                                 </NavLink>
                             </div>
@@ -80,10 +80,10 @@
                         </li>
                         </li>
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Centros de IA</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Centros de IA</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="centros">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="centros">
                                     &nbspListado
                                 </NavLink>
                             </div>
@@ -93,10 +93,10 @@
                         </li>
                         </li>
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Certificados de semen</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Certificados de semen</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="certificados">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="certificados">
                                     &nbspListado
                                 </NavLink>
                             </div>
@@ -106,20 +106,20 @@
                         </li>
                         </li>
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Transferencias</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Transferencias</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="transan">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="transan">
                                     &nbspAnimales
                                 </NavLink>
                             </div>
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="transsb">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="transsb">
                                     &nbspToros S/
                                 </NavLink>
                             </div>
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="transfu">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="transfu">
                                     &nbspFuturo Control
                                 </NavLink>
                             </div>
@@ -130,10 +130,10 @@
                         </li>
                         </li>
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Declaraciones de servicio</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Declaraciones de servicio</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="declaraciones">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="declaraciones">
                                     &nbspListado
                                 </NavLink>
                             </div>
@@ -143,10 +143,10 @@
                         </li>
                         </li>
                         @* <li class="nav-item group ">
-                        <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Reportes</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                        <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Reportes</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                         <div>
-                        <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="informes">
+                        <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="informes">
                         &nbspCrear Reporte
                         </NavLink>
                         </div>
@@ -157,20 +157,20 @@
                         </li> *@
 
                         <li class="nav-item group" style="left:10.6%">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl"><FeatherUser Color="#166534"></FeatherUser></span>
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl"><FeatherUser Color="Black"></FeatherUser></span>
                         <li class="nav-item-content rounded-xl" style="background-color:#93C5FD;right:0px">
                             <div style="position:relative">
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="usuarios">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="usuarios">
                                     &nbspVer usuarios
                                 </NavLink>
                             </div>
                             <div style="position:relative">
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="registrousuario">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="registrousuario">
                                     &nbspCrear usuario
                                 </NavLink>
                             </div>
                             <div style="position:relative">
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="logout">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="logout">
                                     &nbspCerrar sesion
                                 </NavLink>
                             </div>
@@ -195,17 +195,17 @@
                 </button>
                 <div class="collapse navbar-collapse @NavBarCssClass" id="navbarCollapse" @onclick="ToggleNavMenu">
                     <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                        <li class="text-green-800 hover:text-green-800 hover:bg-blue-400 rounded-2xl">
-                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All" style="color:#13622b">
+                        <li class=" hover:bg-blue-400 rounded-2xl">
+                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All" style="color:#133c62">
                                 Inicio
                             </NavLink>
                         </li>
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Socios</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Socios</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
 
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="establecimientos">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62"  href="establecimientos">
                                     &nbspEstablecimientos
                                 </NavLink>
                             </div>
@@ -215,25 +215,25 @@
                         </li>
                         </li>
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 hover:bg-blue-400 rounded-2xl">Planteles</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
-                            <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="Planteles">
+                            <span class="nav-link group text-black group-hover:bg-green-500 hover:bg-blue-400 rounded-2xl">Planteles</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
+                            <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="Planteles">
                                 &nbspListado
                             </NavLink>
                         </li>
                         </li>
 
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Inspecciones</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Inspecciones</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
 
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="solicitudesinspeccion">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="solicitudesinspeccion">
                                     &nbspSolicitudes
                                 </NavLink>
                             </div>
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="reportes">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="reportes">
                                     &nbspResultados
                                 </NavLink>
                             </div>
@@ -243,10 +243,10 @@
                         </li>
                         </li>
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Toros Padre</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Toros Padre</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="toros">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="toros">
                                     &nbspListado
                                 </NavLink>
                             </div>
@@ -257,10 +257,10 @@
                         </li>
 
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Certificados de semen</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Certificados de semen</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="certificados">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="certificados">
                                     &nbspListado
                                 </NavLink>
                             </div>
@@ -270,20 +270,20 @@
                         </li>
                         </li>
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Transferencias</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Transferencias</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="transan">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="transan">
                                     &nbspAnimales
                                 </NavLink>
                             </div>
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="transsb">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="transsb">
                                     &nbspToros S/
                                 </NavLink>
                             </div>
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="transfu">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="transfu">
                                     &nbspFuturo Control
                                 </NavLink>
                             </div>
@@ -294,10 +294,10 @@
                         </li>
                         </li>
                         <li class="nav-item group ">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl">Declaraciones de servicio</span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Declaraciones de servicio</span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="declaraciones">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="declaraciones">
                                     &nbspListado
                                 </NavLink>
                             </div>
@@ -307,10 +307,10 @@
                         </li>
                         </li>                      
                         <li class="nav-item group" style="left:10.6%">
-                            <span class="text-green-800 nav-link hover:text-green-800 group group-hover:bg-blue-400 rounded-2xl"><FeatherUser Color="#166534"></FeatherUser></span>
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl"><FeatherUser Color="Black"></FeatherUser></span>
                         <li class="nav-item-content rounded-xl" style="background-color:#93C5FD;right:0px">
                             <div style="position:relative">
-                                <NavLink class="dropdown nav-link text-green-800 hover:text-green-800 bg-blue-300 hover:bg-blue-400 rounded-md" href="logout">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="logout">
                                     &nbspCerrar sesion
                                 </NavLink>
                             </div>

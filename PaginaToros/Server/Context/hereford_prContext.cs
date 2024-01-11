@@ -1474,6 +1474,12 @@ namespace PaginaToros.Server.Context
              .HasForeignKey(t => t.Scod)
              .HasPrincipalKey(s => s.Scod);
 
+            modelBuilder.Entity<Resin1>()
+             .HasOne(t => t.Establecimiento)
+             .WithMany(s => s.Resins)
+             .HasForeignKey(t => t.Estcod)
+             .HasPrincipalKey(s => s.Ecod);
+
             modelBuilder.Entity<Resin2>(entity =>
             {
                 entity.ToTable("RESIN2");
@@ -1675,6 +1681,13 @@ namespace PaginaToros.Server.Context
                     .HasMaxLength(6)
                     .HasColumnName("NRORES");
             });
+
+            modelBuilder.Entity<Resin6>()
+             .HasOne(t => t.Resin1)
+             .WithMany(s => s.Resin6s)
+             .HasForeignKey(t => t.Nrores)
+             .HasPrincipalKey(s => s.Nrores);
+
 
             modelBuilder.Entity<Resin8>(entity =>
             {

@@ -1,199 +1,202 @@
-@page "/reportegeneral/{fecha1}/{fecha2}"
-@if (terminado==true){
-    <RadzenText TextStyle="Radzen.Blazor.TextStyle.H5">
+@page "/reportegeneral"
+@using PaginaToros.Client.Servicios.Contrato;
+@using Blazored.Typeahead;
+@inject IResin1Servicio _resin1Servicio;
+@inject IResin6Servicio _resin6Servicio;
+@inject IInspectServicio _inspectServicio;
+
+<div class="row">
+    <div class="col-sm">
+        <label>Seleccionar Forma de agrupacion</label>
+        <br />
+        <RadzenDropDown @bind-Value=@seleccion Data=@opciones Style="width: 100%; max-width: 400px;" />
+    </div>
+    <div class="col-sm">
+        <label>Seleccionar Fecha Inicial</label>
+        <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaInicial ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+    </div>
+    <div class="col-sm">
+        <label>Seleccionar Fecha Final</label>
+        <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaFinal ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-1"/>
+    <div class="col-sm">
+        <label>Selecciona Inspectores a cubrir</label>
+        <BlazoredTypeahead SearchMethod="BuscarInspector" @ref="selectIns"
+        @bind-Values="inspectoresSeleccionados"
+                            EnableDropDown="true"
+                            Disabled="!terminado"
+                            placeholder="Busque por Nombre">
+            <SelectedTemplate Context="data">
+                @data.Nombre
+            </SelectedTemplate>
+            <ResultTemplate Context="data">
+                @data.Nombre
+            </ResultTemplate>
+        </BlazoredTypeahead>
+    </div>
+    <div class="col-sm-2"/>
+    <div class="col-sm">
+        <label>Selecciona Provincias a cubrir</label>
+        <BlazoredTypeahead SearchMethod="BuscarProvincia" @ref="selectProv"
+        @bind-Values="provinciasSeleccionadas" 
+                           EnableDropDown="true"
+                           placeholder="Busque por Nombre">
+            <SelectedTemplate Context="data">
+                @traductorProvinciaInverso[data]
+            </SelectedTemplate>
+            <ResultTemplate Context="data">
+                @traductorProvinciaInverso[data]
+            </ResultTemplate>
+        </BlazoredTypeahead>
+    </div>
+    <div class="col-sm-1" />
+</div>
+<br/>
+<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;width:100%" @onclick="()=>ConfirmarDatos()">Generar Reporte</button>
+
+@if (terminado && confirmado)
+{
+    <RadzenText TextStyle="Radzen.Blazor.TextStyle.H4">
         Reporte del @FechaInicial.ToString("dd/MM/yyyy") al @FechaFinal.ToString("dd/MM/yyyy")
     </RadzenText>
-    <div class="row">
-        <div class="col-md">
-        <RadzenChart ColorScheme="Radzen.Blazor.ColorScheme.Pastel">
-                <RadzenPieSeries Data="@Hembras" Title="Cantidad" CategoryProperty="Tipo" ValueProperty="Cantidad">
-                    <RadzenSeriesDataLabels Visible="true" />
-                </RadzenPieSeries>
-        </RadzenChart>
-        </div>
-        <div class="col-md">
-        <RadzenChart ColorScheme="Radzen.Blazor.ColorScheme.Pastel">
-                <RadzenPieSeries Data="@Machos" Title="Cantidad" CategoryProperty="Tipo" ValueProperty="Cantidad">
-                    <RadzenSeriesDataLabels Visible="true" />
-                </RadzenPieSeries>
-        </RadzenChart>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md" style="width: 30.7%">
-            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
-            Machadas: @Machadas.Cantidad
-            </RadzenText>
-            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
-            Astadas: @Astadas.Cantidad
-            </RadzenText>
-            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" Style="width: 24.5%">
-            Rechazadas: @Rechazadas.Cantidad
-            </RadzenText>
-            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" Style="width: 24.5%">
-            Vip: @Vip.Cantidad
-            </RadzenText>
-            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" >
-            Presentadas: @(Vip.Cantidad+Rechazadas.Cantidad+Astadas.Cantidad+Machadas.Cantidad)
-            </RadzenText>
-        </div>
-        <div class="col-md">
-            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2">
-            Machados:  @Machados.Cantidad
-            </RadzenText>
-            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" >
-            Astados: @Astados.Cantidad
-            </RadzenText>
-            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" Style="width: 24.5%" >
-            Rechazados: @Rechazados.Cantidad
-            </RadzenText>
-            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" Style="width: 24.5%" >
-            En Control: @Control.Cantidad
-            </RadzenText>
-            <RadzenText TextStyle="Radzen.Blazor.TextStyle.Body2" >
-            Presentados: @(Rechazados.Cantidad+Machados.Cantidad+Astados.Cantidad)
-            </RadzenText>
-        </div>
-    </div>
     <br/>
-    <RadzenDataGrid AllowColumnResize="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="20"
-                    Density="Density.Compact" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                    Data="@Inspects" TItem="Inspect" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-        <Columns>
-            <RadzenDataGridColumn TItem="Inspect" Property="Nombre" Title="Nombre" Width="3.6%" />
-            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Presentadas" Filterable="false" Width="6.6%">
-                <Template Context="data">
-                    @(ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.Hdp) + ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.Hpp));
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Marcadas" Filterable="false" Width="6.6%">
-                <Template Context="data">
-                    @(ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.HdpM) + ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.HppM));
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Astadas" Filterable="false" Width="6.6%">
-                <Template Context="data">
-                    @(ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.HdpAs) + ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.data.HppAs));
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Inspect" Property="" Title="Rechazadas" Filterable="false" Width="6.6%">
-                <Template Context="data">
-                    @(ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.rechazadasDP) + ValoresInspects.Where(x => x.ICod == data.Icod).Sum(t => t.rechazadasPP));
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-
-    </RadzenDataGrid>
+    <div class="row">
+        @foreach (var provincia in provinciasSeleccionadas)
+        {
+            <RadzenText TextStyle="TextStyle.H5">@traductorProvinciaInverso[provincia]</RadzenText>
+            <br/>
+            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@inspectoresSeleccionados.Where(i => listaDatos[provincia].Where(x => x.Resin1.Icod == i.Icod).Sum(t => t.Hdp) + listaDatos[provincia].Where(x => x.Resin1.Icod == i.Icod).Sum(t => t.Hpp) != 0)" TItem="InspectDTO" SelectionMode="DataGridSelectionMode.Single"
+                            LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                <Columns>
+                    <RadzenDataGridColumn TItem="InspectDTO" Property="Nombre" Title="Nombre del Inspector" />
+                    <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="Presentadas">
+                        <Template Context="data">
+                            @(listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.Hdp) + listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.Hpp))
+                        </Template>    
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="Marcadas" Filterable="false">
+                        <Template Context="data">
+                            @(listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.HdpM) + listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.HppM))
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="Astadas" Filterable="false">
+                        <Template Context="data">
+                            @(listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.HdpAs) + listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.HppAs))
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+            <br/>
+            <br/>
+        }
+    </div>
 }
-else
+else if(confirmado)
 {
     <br />
     <center>
         <div class="mb-2">
             <br />
-            <RadzenProgressBar style="position:relative;right:6.6%;width:1300px;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenProgressBar style="position:relative;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </center>
 }
+
+
+
 @code {
     bool showDataLabels = false;
-    class Datos
-    {
-        public string Tipo { get; set; }
-        public double? Cantidad { get; set; }
-    }
-    class Combinado
-    {
-        public double? rechazadasPP {get;set;}
-        public double? rechazadasDP {get;set;}
-        public string? ICod { get; set; }
-        public Resin6? data { get; set; }
-    }
-
-    [Parameter] 
-    public string fecha1 { get; set; }
-    [Parameter] 
-    public string fecha2 { get; set; }
-    [Parameter] public DateTime FechaInicial { get; set; } = DateTime.Now.AddDays(-700);
-    [Parameter] public DateTime FechaFinal { get; set; } = DateTime.Now;
-    Datos[] Hembras = new Datos[] {};
-    Datos[] Machos = new Datos[] {};
+    bool confirmado = false;
+    public BlazoredTypeahead<string,string> selectProv;
+    public BlazoredTypeahead<InspectDTO, InspectDTO> selectIns;
+    public DateTime FechaInicial { get; set; } = DateTime.Now.AddDays(-700);
+    public DateTime FechaFinal { get; set; } = DateTime.Now;
     bool terminado = false;
-    Datos Astadas = new Datos { Tipo = "Astadas", Cantidad = 0 };
-    Datos Machadas = new Datos { Tipo = "Machadas", Cantidad = 0 };
-    Datos Rechazadas = new Datos { Tipo = "Rechazadas", Cantidad = 0 };
-    Datos Vip = new Datos { Tipo = "VIP", Cantidad = 0 };
-    Datos Astados = new Datos { Tipo = "Astados", Cantidad = 0 };
-    Datos Machados = new Datos { Tipo = "Machados", Cantidad = 0 };
-    Datos Rechazados = new Datos { Tipo = "Rechazados", Cantidad = 0 };
-    Datos Control = new Datos { Tipo = "Control S/", Cantidad = 0 };
-    List<Resin1> reportes = new();
-    List<Resin6> hemyma = new ();
-    List<Inspect> Inspects = new();
-    List<Datos> Data = new();
-    List<Combinado> ValoresInspects = new();
+    string seleccion = "";
+    List<string> opciones = new List<string> { "Inspectores", "Provincias" };
+    List<Resin1DTO> reportes = new();
+    List<Resin6DTO> datos = new ();
+    Dictionary<string,List<Resin6DTO>> listaDatos = new();
+    List<Resin6DTO> datosActuales = new();
+    List<InspectDTO> Inspects = null;
+    List<string> provincias = new List<string> { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23","24" };
+    IList<string> provinciasSeleccionadas;
+    IList<InspectDTO> inspectoresSeleccionados;
+    Dictionary<string, string> traductorProvinciaInverso = new Dictionary<string, string>
+    {
+        {"01", "Chaco"},
+        {"02", "Corrientes"},
+        {"03", "Entre Rios"},
+        {"04", "Santa Fe"},
+        {"05", "Cordoba"},
+        {"06", "La pampa"},
+        {"07", "San Luis"},
+        {"08", "Santa Cruz"},
+        {"09", "Tierra del fuego"},
+        {"10", "Chubut"},
+        {"11", "Neuquen"},
+        {"12", "Rio negro"},
+        {"13", "Buenos Aires"},
+        {"14", "Capital Federal"},
+        {"15", "Catamarca"},
+        {"16", "Formosa"},
+        {"17", "Jujuy"},
+        {"18", "La rioja"},
+        {"19", "Mendoza"},
+        {"20", "Misiones"},
+        {"21", "Salta"},
+        {"22", "San Juan"},
+        {"23", "Santiago Del Estero"},
+        {"24", "Tucuman"},
+        {"",""}
+    };
+
+
     protected override async Task OnInitializedAsync()
     {
-        try
+        try{
+            var rt = await _resin6Servicio.LimitadosFiltrados(0, 0);
+            if (rt != null && rt.List != null)
+            {
+                datos = rt.List.Where(x => x.Resin1 != null && x.Resin1.Freali <= FechaFinal && x.Resin1.Freali >= FechaInicial).ToList();
+            }
+            var rtaa = await _inspectServicio.LimitadosFiltrados(0, 0);
+            Inspects = rtaa.List;
+            terminado = true;
+            }
+        catch(Exception ex)
         {
-            FechaInicial = DateTime.Parse(fecha1);
-            FechaFinal = DateTime.Parse(fecha2);
-
-        }catch{}
-        var rta = await Http.GetFromJsonAsync<Respuesta<List<Resin1>>>($"/api/Resin1");
-        reportes = rta.List.Where(x => x.Freali <= FechaFinal && x.Freali >= FechaInicial).ToList();
-        var rt = await Http.GetFromJsonAsync<Respuesta<List<Resin6>>>($"/api/Resin6");
-        hemyma = rt.List.Where(x => reportes.Any(i => i.Nrores == x.Nrores)).ToList();
-        var rtaa = await Http.GetFromJsonAsync<Respuesta<List<Inspect>>>($"/api/Inspect");
-        Inspects = rtaa.List.ToList();
-
-        foreach(var rep in reportes)
-        {
-            Resin6? item = hemyma.FirstOrDefault(x => x.Nrores == rep.Nrores);
-            var rechazadasDp = item.Hdp - item.HdpM - item.HdpAs;
-            var rechazadasPp = item.Hpp - item.HppM - item.HppAs;
-            ValoresInspects.Add(
-            new Combinado
-                {
-                    rechazadasDP = rechazadasDp,
-                    rechazadasPP = rechazadasPp,
-                    ICod = rep.Icod,
-                    data = item
-                }
-            );
-            Machadas.Cantidad += item.HdpM;
-            Machadas.Cantidad += item.HppM;
-            Astadas.Cantidad += item.HdpAs;
-            Astadas.Cantidad += item.HppAs;
-            Rechazadas.Cantidad += item.Hdp - item.HdpM - item.HdpAs;
-            Rechazadas.Cantidad += item.Hpp - item.HppM - item.HppAs;
-            Vip.Cantidad += item.Hgqb;
-            Vip.Cantidad += item.Hgvb;
-            Machados.Cantidad += item.McpM;
-            Machados.Cantidad += item.MspM;
-            Astados.Cantidad += item.McpAs;
-            Astados.Cantidad += item.MspAs;
-            Rechazados.Cantidad += item.Mcp - item.McpM - item.McpAs;
-            Rechazados.Cantidad += item.Msp - item.MspM - item.MspAs;
-            Control.Cantidad += item.Mspsb;
+            Console.WriteLine(ex.Message);
         }
-        Hembras = new Datos[]
-        {
-        Astadas,
-        Machadas,
-        Rechazadas,
-        Vip
-        };
-        Machos = new Datos[]
-        {
-        Astados,
-        Machados,
-        Rechazados,
-        Control
-        };
-        terminado = true;
     }
-    
 
-    
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender)
+        {
+            selectProv.Values.Concat(provincias);
+            selectIns.Values.Concat(Inspects);
+        }
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task<IEnumerable<InspectDTO>> BuscarInspector(string searchText)
+    {
+        return await Task.FromResult(Inspects.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+    }
+    private async Task<IEnumerable<string>> BuscarProvincia(string searchText)
+    {
+        return await Task.FromResult(provincias.Where(x => traductorProvinciaInverso[x].Contains(searchText.ToLower())).ToList());
+    }
+    public void ConfirmarDatos()
+    {
+        foreach (var provincia in provinciasSeleccionadas)
+        {
+            listaDatos.Add(provincia,datos.Where(x => x.Resin1.Establecimiento.Codpro == provincia).ToList());
+        }
+        confirmado = true;
+    }
 }

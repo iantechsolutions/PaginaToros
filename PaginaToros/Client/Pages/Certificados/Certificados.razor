@@ -2,7 +2,9 @@
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
+@using Blazored.Typeahead;
 @inject ICertifsemanServicio _certifsemanServicio
+@inject ISocioServicio _sociosServicio
 <style>
 
     .rz-cell-data,
@@ -43,7 +45,7 @@
             <Columns>
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipoCert" Title="Tipo cert." Width="6%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Centro.Nombre" Title="Nombre del centro" Width="7.34%" />
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%"/>
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="5.3%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="5.3%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre" Width="8.6%" />
@@ -91,7 +93,9 @@ else
     int cantotal;
     bool isLoading = false;
     public bool allowFiltering = false;
+    SocioDTO socioSeleccionado = null;
     List<CentrosiumDTO> centros = new();
+    List<SocioDTO> socios = new();
     public Respuesta<List<CertifsemanDTO>> oRespuesta = new Respuesta<List<CertifsemanDTO>>();
     protected override async Task OnInitializedAsync()
     {
@@ -102,7 +106,8 @@ else
         oRespuesta = await _certifsemanServicio.Lista(0, 15);
         var rt = await _certifsemanServicio.CantidadTotal();
         cantotal = rt.List;
-        
+        var rta = await _sociosServicio.LimitadosFiltrados(0,0);
+        socios = rta.List;
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -225,5 +230,9 @@ else
 
         isLoading = false;
     }
-
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
+    {
+        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
 }
