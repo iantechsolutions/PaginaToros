@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "IxeEzuZAUudqx/1k6Nr8LDQCY6c49KEjFAFN1KBWfOOzJjtCPwOmtInyoq8nz8ozdpmQRaAYlJlmabXnu1xTJQ==",
+  "dgSpecHash": "exCHyUgiG+PzZeqZiJd0hsDp04ywlcA7WserjBo9aDjDg9OPfw0Rey7lp/1AHD/G4/c9URlM7vJa0+9xAn4/Mg==",
   "success": true,
   "projectFilePath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Server\\PaginaToros.Server.csproj",
   "expectedPackageFiles": [
@@ -106,7 +106,11 @@
     "C:\\Users\\lolo1\\.nuget\\packages\\system.text.encoding.codepages\\4.7.0\\system.text.encoding.codepages.4.7.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\system.text.encodings.web\\6.0.0\\system.text.encodings.web.6.0.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\system.text.json\\6.0.0\\system.text.json.6.0.0.nupkg.sha512",
-    "C:\\Users\\lolo1\\.nuget\\packages\\system.windows.extensions\\4.7.0\\system.windows.extensions.4.7.0.nupkg.sha512"
+    "C:\\Users\\lolo1\\.nuget\\packages\\system.windows.extensions\\4.7.0\\system.windows.extensions.4.7.0.nupkg.sha512",
+    "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.26\\microsoft.windowsdesktop.app.ref.6.0.26.nupkg.sha512",
+    "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.26\\microsoft.netcore.app.ref.6.0.26.nupkg.sha512",
+    "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.26\\microsoft.aspnetcore.app.ref.6.0.26.nupkg.sha512",
+    "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\6.0.26\\microsoft.netcore.app.host.win-x64.6.0.26.nupkg.sha512"
   ],
   "logs": []
 }

@@ -174,6 +174,10 @@ else
                 {
                     dateTemp = parsedDate;
                 }
+                else
+                {
+                    dateTemp = null;
+                }
             }
             catch (Exception ex)
             {
@@ -183,9 +187,15 @@ else
     async Task Guardar()
     {
         oTorosuni.Criador = socioSeleccionado.Scod;
-        oTorosuni.CodEstado = traductor[estadoTemp];
-        try{
+        if (traductor.ContainsKey(estadoTemp))
+        {
+            oTorosuni.CodEstado = traductor[estadoTemp];
+        }
+        if (traductor.ContainsKey(tipoTemp))
+        {
             oTorosuni.TipToro = traductor[tipoTemp];
+        }
+        try{
             if(dateTemp.HasValue){
                 oTorosuni.Fechasba = dateTemp.Value.ToString("dd/MM/yyyy");
             }

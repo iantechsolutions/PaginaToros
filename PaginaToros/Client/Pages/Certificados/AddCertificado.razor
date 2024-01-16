@@ -38,7 +38,8 @@
                 </div>
                     <div class="col-sm">
                         <label>Fecha de Venta</label><br />
-                        <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaVenta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oCertifseman.Fecvta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        <button type="button" title="Eliminar" @onclick="() => oCertifseman.Fecvta=null"><FeatherXCircle Size="16" Color="red" /></button>
                     </div>
             </div>
             <br />
@@ -163,7 +164,6 @@ else
     CentrosiumDTO? centroSeleccionado = null;
     List<CentrosiumDTO> centros = new();
     string tipoToro = "";
-    DateTime fechaVenta = DateTime.Now;
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
 
@@ -196,7 +196,6 @@ else
     {
         oCertifseman.Nrocri = socioSeleccionado.Scod;
         oCertifseman.Nrocen = centroSeleccionado.Nrocen;
-        oCertifseman.Fecvta = fechaVenta;
         if (Id == 0)
         {
             oCertifseman.NrDosi = Int32.Parse(oCertifseman.NrDosiOr);
