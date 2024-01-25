@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Z59qMclzxJuMaAy/5aGHEYZUQlvNt0FJK8iTnBuuL6MMyTcyxfg3xGFZWwG6JDXo7HJ29Jb1HbLXtMfgz+5tkQ==",
+  "dgSpecHash": "4geBAC84pgoSE7RVI1Z/VxDjQCov4Rz5uW42RslFdW3aHfMAbpPhoMCRl6V+IwvP27oQhxi+NF3Lsv0sG+Siqw==",
   "success": true,
   "projectFilePath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
   "expectedPackageFiles": [
@@ -39,10 +39,7 @@
     "C:\\Users\\lolo1\\.nuget\\packages\\system.security.cryptography.xml\\4.5.0\\system.security.cryptography.xml.4.5.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\system.security.permissions\\4.5.0\\system.security.permissions.4.5.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\system.security.principal.windows\\4.5.0\\system.security.principal.windows.4.5.0.nupkg.sha512",
-    "C:\\Users\\lolo1\\.nuget\\packages\\system.text.encodings.web\\4.5.0\\system.text.encodings.web.4.5.0.nupkg.sha512",
-    "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.26\\microsoft.windowsdesktop.app.ref.6.0.26.nupkg.sha512",
-    "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.26\\microsoft.netcore.app.ref.6.0.26.nupkg.sha512",
-    "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.26\\microsoft.aspnetcore.app.ref.6.0.26.nupkg.sha512"
+    "C:\\Users\\lolo1\\.nuget\\packages\\system.text.encodings.web\\4.5.0\\system.text.encodings.web.4.5.0.nupkg.sha512"
   ],
   "logs": []
 }

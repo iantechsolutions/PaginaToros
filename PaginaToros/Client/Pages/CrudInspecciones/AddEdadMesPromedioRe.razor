@@ -114,18 +114,18 @@
         if (Id == 0)
         {
             oResin4.Nrores = nrores;
-            _resin4Servicio.Crear(oResin4);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            var res = await _resin4Servicio.Crear(oResin4);
+            await ModalInstance.CloseAsync(ModalResult.Ok(res));
         }
         else
         {
-            _resin4Servicio.Editar(oResin4);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            var res = await _resin4Servicio.Editar(oResin4);
+            await ModalInstance.CloseAsync(ModalResult.Ok(res));
         }
     }
     async Task cancel()
     {
-        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+        await ModalInstance.CloseAsync(ModalResult.Cancel($"Form was cancelled"));
 
     }
 }

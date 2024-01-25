@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "JH7sAiWSBsmwrccQ8aIpSZ5TKG7K1OLodkzvWVmouAuwYc5hWqK94nz9mVvi13FLfHiL2ncE8KE3u4ZMk3CP0Q==",
+  "dgSpecHash": "Z11n0SZpXlmr3+ZBSdtdJjAEB1kUgnsAoooBk0C24IISuZEqMNjv4JJNLiBEqa1nx6E7QxJ5M0GhatR7cilVhw==",
   "success": true,
   "projectFilePath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj",
   "expectedPackageFiles": [
@@ -55,7 +55,7 @@
     "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.net.http.headers\\2.2.0\\microsoft.net.http.headers.2.2.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.net.illink.analyzers\\7.0.100-1.23211.1\\microsoft.net.illink.analyzers.7.0.100-1.23211.1.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.net.illink.tasks\\7.0.100-1.23211.1\\microsoft.net.illink.tasks.7.0.100-1.23211.1.nupkg.sha512",
-    "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.net.sdk.webassembly.pack\\8.0.0\\microsoft.net.sdk.webassembly.pack.8.0.0.nupkg.sha512",
+    "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.net.sdk.webassembly.pack\\8.0.1\\microsoft.net.sdk.webassembly.pack.8.0.1.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.netcore.platforms\\2.0.0\\microsoft.netcore.platforms.2.0.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\microsoft.win32.registry\\4.5.0\\microsoft.win32.registry.4.5.0.nupkg.sha512",
     "C:\\Users\\lolo1\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",

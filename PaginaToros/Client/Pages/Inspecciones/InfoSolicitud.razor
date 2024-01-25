@@ -254,8 +254,13 @@ else
                 }
                 if (Inspector is null)
                 {
-                    Inspector = new();
-                    Inspector.Nombre = "Coso";
+                    try{
+                        Inspector = Inspectores.Where(x => x.Codpro == rt.List.FirstOrDefault().Establecimiento.Codpro).FirstOrDefault();
+                    }
+                    catch
+                    {
+                        Inspector = new();
+                    }
                 }
             }
         }
