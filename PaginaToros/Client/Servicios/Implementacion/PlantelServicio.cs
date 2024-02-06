@@ -61,5 +61,10 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var result = await _http.GetFromJsonAsync<Respuesta<PlantelDTO>>($"api/plantel/filtrar?categoriaItem={descripcion}");
             return result!;
         }
+        public async Task<Respuesta<List<PlantelDTO>>> ObtenerPorAnios(int anio1, int anio2)
+        {
+            var result = await _http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>($"api/plantel/ObtenerPorAnios?anio1={anio1}&anio2={anio2}");
+            return result!;
+        }
     }
 }

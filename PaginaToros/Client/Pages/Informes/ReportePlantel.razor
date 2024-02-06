@@ -1,0 +1,266 @@
+﻿@page "/reporteplantel"
+@using PaginaToros.Client.Servicios.Contrato;
+@inject IJSRuntime js
+@inject IPlantelServicio _plantelServicio
+<center><RadzenText TextStyle="TextStyle.H4">Informe de planteles</RadzenText></center>
+<EditForm OnValidSubmit="Generate" Model="anioini">
+<DataAnnotationsValidator />
+<div class="row">
+    <div class="col">
+        <label> Escriba el año inicial</label>
+        <br/>
+        <InputNumber @bind-Value="@anioini" class="form-control" placeholder=""></InputNumber>
+    </div>
+    <div class="col">
+        <label> Escriba el año final </label>
+            <br />
+            <InputNumber @bind-Value="@aniofin" class="form-control" placeholder=""></InputNumber>
+    </div>
+    <div class="col">
+        <label> Seleccione el estado de los planteles</label>
+        <br />
+        <RadzenDropDown @bind-Value=@seleccion Data=@opciones Style="width: 100%; max-width: 400px;" />
+    </div>
+</div>
+</EditForm>
+<br/>
+@if(terminado){
+    <div class="row">
+        <div class="col-sm-3" />
+        <div class="col-sm-5" />
+        <div class="col-sm-3" />
+        <div class="col-sm-1">
+            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="no-print px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => Print()"><FeatherPrinter Color="Black"></FeatherPrinter></button>
+        </div>
+    </div>
+    foreach (int i in anios)
+    {
+        <RadzenText TextStyle="Radzen.Blazor.TextStyle.H4">
+            Año @i
+        </RadzenText>
+        <table style="border-collapse:collapse;position:relative;left:3%;width:95%" cellspacing="0">
+            <tr>
+                <td>
+                    <p class="s2">Plantel</p>
+                </td>
+                <td>
+                    <p class="s2">Vacas</p>
+                </td>
+                <td>
+                    <p class="s2">Vaquill. c/servicio</p>
+                </td>
+                <td>
+                    <p class="s2">Vaquill. s/servicio</p>
+                </td>
+                <td>
+                    <p class="s2">Vacas</p>
+                </td>
+                <td>
+                    <p class="s2">Vaquillonas c/servicio</p>
+                </td>
+                <td>
+                    <p class="s2">Vaquillonas s/servicio</p>
+                </td>
+                <td>
+                    <p class="s2">Socio</p>
+                </td>
+                <td>
+                    <p class="s2">Estado</p>
+                </td>
+            </tr>
+            @foreach (var plan in planteles.Where(x => !string.IsNullOrEmpty(x.Anioex) && Int32.Parse(x.Anioex) == i))
+            {
+                <tr>
+                    <td>
+                        <p class="s2">@plan.Placod</p>
+                    </td>
+                    <td>
+                        <p class="s2">@plan.Varede</p>
+                    </td>
+                    <td>
+                        <p class="s2">@plan.Vqcsrd</p>
+                    </td>
+                    <td>
+                        <p class="s2">@plan.Vqssrd</p>
+                    </td>
+                    <td>
+                        <p class="s2">@plan.Varepr</p>
+                    </td>
+                    <td>
+                        <p class="s2">@plan.Vqcsrp</p>
+                    </td>
+                    <td>
+                        <p class="s2">@plan.Vqssrp</p>
+                    </td>
+                    <td>
+                        <p class="s2">@plan.Socio.Nombre</p>
+                    </td>
+                    <td>
+                        @if (!(string.IsNullOrEmpty(plan.Estado)) && plan.Estado == "S")
+                        {
+                            <p class="s2" style="color:green">Activo</p>
+                        }
+                        else
+                        {
+                            <p class="s2" style="color:red">Inactivo</p>
+                        }
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td colspan="9">
+                    <p class="2"> TOTAL del año @i</p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                </td>
+                <td>
+                    <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex) && Int32.Parse(x.Anioex) == i).Sum(x => x.Varede)</p>
+                </td>
+                <td>
+                    <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex) && Int32.Parse(x.Anioex) == i).Sum(x => x.Vqcsrd)</p>
+                </td>
+                <td>
+                    <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex) && Int32.Parse(x.Anioex) == i).Sum(x => x.Vqssrd)</p>
+                </td>
+                <td>
+                    <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex) && Int32.Parse(x.Anioex) == i).Sum(x => x.Varepr)</p>
+                </td>
+                <td>
+                    <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex) && Int32.Parse(x.Anioex) == i).Sum(x => x.Vqcsrp)</p>
+                </td>
+                <td>
+                    <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex) && Int32.Parse(x.Anioex) == i).Sum(x => x.Vqssrp)</p>
+                </td>
+                <td>
+                </td>
+                <td>
+                </td>
+            </tr>
+        </table>
+    }
+
+    <br />
+    <br />
+    <table style="border-collapse:collapse;position:relative;left:3%;width:95%" cellspacing="0">
+        <tr>
+            <td colspan="9">
+                <p class="2"> TOTAL GENERAL</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p class="s2">Plantel</p>
+            </td>
+            <td>
+                <p class="s2">Vacas</p>
+            </td>
+            <td>
+                <p class="s2">Vaquill. c/servicio</p>
+            </td>
+            <td>
+                <p class="s2">Vaquill. s/servicio</p>
+            </td>
+            <td>
+                <p class="s2">Vacas</p>
+            </td>
+            <td>
+                <p class="s2">Vaquillonas c/servicio</p>
+            </td>
+            <td>
+                <p class="s2">Vaquillonas s/servicio</p>
+            </td>
+            <td>
+                <p class="s2">Socio</p>
+            </td>
+            <td>
+                <p class="s2">Estado</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+            </td>
+            <td>
+                <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Varede)</p>
+            </td>
+            <td>
+                <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqcsrd)</p>
+            </td>
+            <td>
+                <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqssrd)</p>
+            </td>
+            <td>
+                <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Varepr)</p>
+            </td>
+            <td>
+                <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqcsrp)</p>
+            </td>
+            <td>
+                <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqssrp)</p>
+            </td>
+            <td>
+            </td>
+            <td>
+            </td>
+        </tr>
+    </table>
+}
+else
+{
+
+    <br />
+    <div class="row">
+        <div class="col-sm-3" />
+        <div class="col" style="width:10%;position:relative;left:2%">
+            <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;width:80%" @onclick="()=>Generate()">Generar</button>
+        </div>
+        <div class="col-sm-3" />
+        <div class="col-sm-1">
+            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="no-print px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => Print()"><FeatherPrinter Color="Black"></FeatherPrinter></button>
+        </div>
+    </div>
+
+}
+@code {
+    public int anioini = 2000;
+    public int aniofin = 2000;
+    public List<PlantelDTO> planteles = new List<PlantelDTO>();
+    List<string> opciones = new List<string> { "Activos", "Inactivos", "Todos" };
+    List<int> anios = new List<int>();
+    string seleccion = "";
+    bool terminado = false;
+
+    private async Task Generate()
+    {
+        try
+        {
+            for (int i = anioini; i <= aniofin; i++)
+            {
+                anios.Add(i);
+            }
+            var rtaa = await _plantelServicio.ObtenerPorAnios(anioini,aniofin);
+            switch (seleccion)
+            {
+                case "Activos":
+                    planteles = rtaa.List.Where(x=>x.Estado=="S").ToList();
+                    break;
+                case "Inactivos":
+                    planteles = rtaa.List.Where(x=>x.Estado=="N").ToList();
+                    break;
+                case "Todos":
+                    planteles = rtaa.List;
+                    break;
+            }
+            terminado = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+    private async Task Print()
+    => await js.InvokeVoidAsync("window.print");
+
+}

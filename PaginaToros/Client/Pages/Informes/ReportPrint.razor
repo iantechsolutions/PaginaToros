@@ -36,149 +36,170 @@
         <button style="outline:none; float: right;margin-right:3%;height:100%;" class="no-print px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => Print()"><FeatherPrinter Color="Black"></FeatherPrinter></button>
     </div>
 </div>
-@if(socioSeleccionado!=null && terminado){
+@if(socioSeleccionado!=null && terminado && opcion == 1){
     <div style="justify-content: center; align-items: center;">
         <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
         <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
-        
-            @if (opcion == 1)
+                <table style="border-collapse:collapse;position:relative;left:3%;width:95%" cellspacing="0">
+            <tr>
+                <td>
+                    <p class="s2">HBA</p>
+                </td>
+                <td>
+                    <p class="s2">Tatuaje</p>
+                </td>
+                <td>
+                    <p class="s2">Var</p>
+                </td>
+                <td>
+                    <p class="s2">Nacido</p>
+                </td>
+                <td>
+                    <p class="s2">Nombre Toro</p>
+                </td>
+                <td>
+                    <p class="s2">Es Padre Desde</p>
+                </td>
+                <td>
+                    <p class="s2">Estado</p>
+                </td>
+                <td>
+                    <p class="s2">-Actual?-</p>
+                </td>
+                <td>
+                    <p class="s2">Tipo de Toro</p>
+                </td>
+            </tr>
+            @foreach(var toro in toros.Where(x=>x.CodEstado=="1"))
             {
-                <table style="border-collapse:collapse;position:relative;left:3%" cellspacing="0">
                 <tr>
                     <td>
-                        <p class="s2">HBA</p>
+                        <p>@toro.Hba</p>
                     </td>
                     <td>
-                        <p class="s2">Tatuaje</p>
+                        <p>@toro.Tatpart</p>
                     </td>
                     <td>
-                        <p class="s2">Var</p>
+                        <p>@toro.Variedad</p>
                     </td>
                     <td>
-                        <p class="s2">Nacido</p>
+                        @if(toro.Nacido.HasValue){
+                            <p>@toro.Nacido.Value.ToString("dd/MM/yyyy")</p>
+                        }
+                        else{
+                            <p></p>
+                        }
                     </td>
                     <td>
-                        <p class="s2">Nombre Toro</p>
+                        <p>@toro.NomDad</p>
                     </td>
                     <td>
-                        <p class="s2">Es Padre Desde</p>
+                        <p></p>
                     </td>
                     <td>
-                        <p class="s2">Estado</p>
+                        <p>@traductor[toro.CodEstado]</p>
                     </td>
                     <td>
-                        <p class="s2">-Actual?-</p>
+                        <p></p>
                     </td>
                     <td>
-                        <p class="s2">Tipo de Toro</p>
+                        <p>@traductor[toro.TipToro]</p>
                     </td>
                 </tr>
-                @foreach(var toro in toros.Where(x=>x.CodEstado=="1"))
-                {
-                    <tr>
-                        <td>
-                            <p>@toro.Hba</p>
-                        </td>
-                        <td>
-                            <p>@toro.Tatpart</p>
-                        </td>
-                        <td>
-                            <p>@toro.Variedad</p>
-                        </td>
-                        <td>
-                            @if(toro.Nacido.HasValue){
-                                <p>@toro.Nacido.Value.ToString("dd/MM/yyyy")</p>
-                            }
-                            else{
-                                <p></p>
-                            }
-                        </td>
-                        <td>
-                            <p>@toro.NomDad</p>
-                        </td>
-                        <td>
-                            <p></p>
-                        </td>
-                        <td>
-                            <p>@traductor[toro.CodEstado]</p>
-                        </td>
-                        <td>
-                            <p></p>
-                        </td>
-                        <td>
-                            <p>@traductor[toro.TipToro]</p>
-                        </td>
-                    </tr>
 
-                }
-                </table>
             }
-            @if (opcion == 0)
-            {<table style="border-collapse:collapse;position:relative;left:10%" cellspacing="0">
+            </table>  
+    </div>
+}
+else if (opcion == 0 && socioSeleccionado != null && terminado)
+{
+    <div style="justify-content: center; align-items: center;">
+        <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
+            <table style="border-collapse:collapse;position:relative;left:3%;width:95%" cellspacing="0">
                 <tr>
                     <td>
-                        <p class="s2">Nro Certificado</p>
+                        <p class="s2">Tipo cert.</p>
                     </td>
                     <td>
-                        <p class="s2">Tipo de Certif</p>
+                        <p class="s2">Nro cert.</p>
+                    </td>
+                    <td>
+                        <p class="s2">Nombre Centro</p>
                     </td>
                     <td>
                         <p class="s2">Fecha de venta</p>
                     </td>
                     <td>
-                        <p class="s2">HBA</p>
+                        <p class="s2">Socio</p>
                     </td>
                     <td>
                         <p class="s2">Tatuaje</p>
                     </td>
                     <td>
-                        <p class="s2">Nro de Dosis Orig</p>
+                        <p class="s2">HBA</p>
                     </td>
                     <td>
-                        <p class="s2">Nro de Dosis Remanen</p>
+                        <p class="s2">Nombre</p>
                     </td>
                     <td>
-                        <p class="s2">Real</p>
+                        <p class="s2">Cant Dosis</p>
                     </td>
+                    <td>
+                        <p class="s2">Cant Dosis Reman</p>
+                    </td>
+                    <td>
+                        <p class="s2">Variedad</p>
+                    </td>
+
                 </tr>
-                @foreach(var certificado in certificados)
+                @foreach (var cer in certificados)
                 {
                     <tr>
                         <td>
-                            <p>@certificado.NroCert</p>
+                            <p>@cer.TipoCert</p>
                         </td>
                         <td>
-                            <p>@certificado.TipoCert</p>
+                            <p>@cer.NroCert</p>
                         </td>
                         <td>
-                            @if (certificado.Fecvta.HasValue)
+                            <p>@cer.Centro.Nombre</p>
+                        </td>
+                        <td>
+                            @if (cer.Fecvta.HasValue)
                             {
-                                <p>@certificado.Fecvta.Value.ToString("dd/MM/yyyy")</p>
+                                <p>@cer.Fecvta.Value.ToString("dd/MM/yyyy")</p>
                             }
-                            else{
+                            else
+                            {
                                 <p></p>
                             }
                         </td>
                         <td>
-                            <p>@certificado.Hba</p>
+                            <p>@cer.Socio.Nombre</p>
                         </td>
                         <td>
-                            <p>@certificado.Tatpart</p>
+                            <p>@cer.Tatpart</p>
                         </td>
                         <td>
-                            <p>@certificado.NrDosiOr</p>
+                            <p>@cer.Hba</p>
                         </td>
                         <td>
-                            <p>@certificado.NrDosi</p>
+                            <p>@cer.NomDad</p>
                         </td>
                         <td>
-                            <p></p>
+                            <p>@cer.NrDosi</p>
+                        </td>
+                        <td>
+                            <p>@cer.NrDosiOr</p>
+                        </td>
+                        <td>
+                            <p>@cer.Variedad</p>
                         </td>
                     </tr>
+
                 }
-                </table>
-            }
-        
+            </table>
     </div>
 }
 else if (seleccion && !terminado)
@@ -222,21 +243,27 @@ else if (seleccion && !terminado)
     }
     private async Task Generate()
     {
-        var coso = socioSeleccionado;
-        seleccion = true;
-        if (opcion == 1)
-        {
-            string filtro = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
-            var rtaa = await _torosServicio.LimitadosFiltradosNoInclude(0, 0,filtro);
-            toros = rtaa.List.Where(x=>x.CodEstado!="4").ToList();
+        try{
+            var coso = socioSeleccionado;
+            seleccion = true;
+            if (opcion == 1)
+            {
+                string filtro = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
+                var rtaa = await _torosServicio.LimitadosFiltradosNoInclude(0, 0,filtro);
+                toros = rtaa.List.Where(x=>x.CodEstado!="4").ToList();
+            }
+            else if (opcion == 0)
+            {
+                string filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
+                var rtaa = await _certifsemanServicio.LimitadosFiltrados(0, 0,filtro);
+                certificados = rtaa.List;
+            }
+            terminado = true;
         }
-        else if (opcion == 0)
+        catch(Exception ex)
         {
-            string filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
-            var rtaa = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0,filtro);
-            certificados = rtaa.List;
+            Console.WriteLine(ex.Message);
         }
-        terminado = true;
     }
     private async Task Print()
         => await js.InvokeVoidAsync("window.print");

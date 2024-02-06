@@ -951,3 +951,4 @@ C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\comp
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\mehzwwgi3j.gz
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\t3nydanbr9.gz
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\kk1mygefb5.gz
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\scopedcss\Pages\Informes\ReportePlantel.razor.rz.scp.css

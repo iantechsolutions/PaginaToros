@@ -56,5 +56,11 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var result = await _http.GetFromJsonAsync<Respuesta<Resin6DTO>>($"api/Resin6/filtrar?categoriaItem={descripcion}");
             return result!;
         }
+
+        public async Task<Respuesta<List<Resin6DTO>>> ObtenerFechas(long fecha1, long fecha2)
+        {
+            var result = await _http.GetFromJsonAsync<Respuesta<List<Resin6DTO>>>($"api/Resin6/ObtenerFechas?fecha1={fecha1}&fecha2={fecha2}");
+            return result!;
+        }
     }
 }

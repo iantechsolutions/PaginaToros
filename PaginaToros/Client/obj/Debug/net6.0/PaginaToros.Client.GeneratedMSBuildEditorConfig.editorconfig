@@ -258,6 +258,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aFxMb2dpbi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-qp3kik0ul9
 
+[C:/Users/lolo1/source/repos/PaginaToros/PaginaToros/Client/Pages/Informes/ReportePlantel.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5mb3JtZXNcUmVwb3J0ZVBsYW50ZWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-dnbenaiutx
+
 [C:/Users/lolo1/source/repos/PaginaToros/PaginaToros/Client/Pages/Informes/ReportPrint.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5mb3JtZXNcUmVwb3J0UHJpbnQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-tbzienq9go

@@ -16,5 +16,7 @@ namespace PaginaToros.Server.Repositorio.Contrato
         Task<bool> Editar(Plantel entidad);
         Task<IQueryable<Plantel>> Consultar(Expression<Func<Plantel, bool>> filtro = null);
         Task<int> CantidadTotal();
+        Task<List<Plantel>> ObtenerPorAnios(int anio1, int anio2);
+
     }
 }

@@ -55,9 +55,9 @@
     <div class="col-sm-1" />
 </div>
 <br/>
-<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;width:100%" @onclick="()=>ConfirmarDatos()">Generar Reporte</button>
+<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;width:100%" @onclick="()=>ConfirmarDatos()" disabled="@confirmado">Generar Reporte</button>
 
-@if (terminado && confirmado)
+@if (terminado && confirmado && seleccion == "Inspectores")
 {
     <RadzenText TextStyle="Radzen.Blazor.TextStyle.H4">
         Reporte del @FechaInicial.ToString("dd/MM/yyyy") al @FechaFinal.ToString("dd/MM/yyyy")
@@ -93,6 +93,49 @@
             <br/>
         }
     </div>
+    <br/>
+}
+else if (confirmado && terminado && seleccion == "Provincias")
+{
+    <RadzenText TextStyle="Radzen.Blazor.TextStyle.H4">
+        Reporte del @FechaInicial.ToString("dd/MM/yyyy") al @FechaFinal.ToString("dd/MM/yyyy")
+    </RadzenText>
+    <br/>
+    <div class="row">
+        @foreach (var ins in inspectoresSeleccionados)
+        {
+            <RadzenText TextStyle="TextStyle.H5">@ins.Nombre</RadzenText>
+            <br/>
+            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@provinciasSeleccionadas.Where(i => listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == i).Sum(t => t.Hdp) + listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == i).Sum(t => t.Hpp) != 0)" 
+                TItem="string" SelectionMode="DataGridSelectionMode.Single" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                <Columns>
+                    <RadzenDataGridColumn TItem="string" Property="" Title="Provincia">
+                        <Template Context="data">
+                            @traductorProvinciaInverso[data]
+                        </Template>    
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="string" Property="" Title="Presentadas">
+                        <Template Context="data">
+                            @(listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.Hdp) + listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.Hpp))
+                        </Template>    
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="string" Property="" Title="Marcadas" Filterable="false">
+                        <Template Context="data">
+                            @(listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.HdpM) + listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.HppM))
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="string" Property="" Title="Astadas" Filterable="false">
+                        <Template Context="data">
+                            @(listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.HdpAs) + listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.HppAs))
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+            <br/>
+            <br/>
+        }
+    </div>
+    <br/>
 }
 else if(confirmado)
 {
@@ -158,30 +201,31 @@ else if(confirmado)
     protected override async Task OnInitializedAsync()
     {
         try{
-            var rt = await _resin6Servicio.LimitadosFiltrados(0, 0);
-            if (rt != null && rt.List != null)
-            {
-                datos = rt.List.Where(x => x.Resin1 != null && x.Resin1.Freali <= FechaFinal && x.Resin1.Freali >= FechaInicial).ToList();
-            }
+            var rt = await _resin6Servicio.ObtenerFechas(FechaInicial.Ticks,FechaFinal.Ticks);
+            datos = rt.List;
             var rtaa = await _inspectServicio.LimitadosFiltrados(0, 0);
             Inspects = rtaa.List;
             terminado = true;
-            }
+            provinciasSeleccionadas = provincias;
+            inspectoresSeleccionados = Inspects;
+
+            Console.WriteLine(7);
+        }
         catch(Exception ex)
         {
             Console.WriteLine(ex.Message);
         }
     }
 
-    protected override Task OnAfterRenderAsync(bool firstRender)
-    {
-        if(firstRender)
-        {
-            selectProv.Values.Concat(provincias);
-            selectIns.Values.Concat(Inspects);
-        }
-        return base.OnAfterRenderAsync(firstRender);
-    }
+    // protected override Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     // if(firstRender)
+    //     // {
+    //     //     selectProv.Values.Concat(provincias);
+    //     //     selectIns.Values.Concat(Inspects);
+    //     // }
+    //     // return base.OnAfterRenderAsync(firstRender);
+    // }
 
     private async Task<IEnumerable<InspectDTO>> BuscarInspector(string searchText)
     {
@@ -193,10 +237,27 @@ else if(confirmado)
     }
     public void ConfirmarDatos()
     {
-        foreach (var provincia in provinciasSeleccionadas)
-        {
-            listaDatos.Add(provincia,datos.Where(x => x.Resin1.Establecimiento.Codpro == provincia).ToList());
+        try{
+            if(seleccion == "Inspectores"){
+                foreach (var provincia in provinciasSeleccionadas)
+                {
+                    var data = datos.Where(x => x.Resin1.Establecimiento.Codpro == provincia).ToList();
+                    listaDatos.Add(provincia,data);
+                }
+            }
+            else{
+                foreach (var ins in inspectoresSeleccionados)
+                {
+                    var data = datos.Where(x => x.Resin1.Icod == ins.Icod).ToList();
+                    listaDatos.Add(ins.Icod, data);
+                }
+            }
+            confirmado = true;
+            var coso = listaDatos;
         }
-        confirmado = true;
+        catch(Exception ex )
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 }

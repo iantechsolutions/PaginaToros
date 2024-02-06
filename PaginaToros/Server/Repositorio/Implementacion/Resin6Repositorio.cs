@@ -135,5 +135,19 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
+        public async Task<List<Resin6>> ObtenerFechas(long fecha1, long fecha2)
+        {
+            try
+            {
+                var fechaini = new DateTime(fecha1);
+                var fechafin = new DateTime(fecha2);
+                return await _dbContext.Resin6s.Include(x => x.Resin1).ThenInclude(x=>x.Establecimiento).Where(x => x.Resin1.Freali >= fechaini && x.Resin1.Freali <= fechafin).ToListAsync();
+            }
+            catch
+            {
+                throw;
+            }   
+        }
     }
 }

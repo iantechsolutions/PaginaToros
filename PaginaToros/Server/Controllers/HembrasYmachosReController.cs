@@ -93,6 +93,29 @@ namespace PaginaToros.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
+        [HttpGet]
+        [Route("ObtenerFechas")]
+        public async Task<IActionResult> ObtenerFechas(long fecha1, long fecha2)
+        {
+
+            Respuesta<List<Resin6DTO>> _ResponseDTO = new Respuesta<List<Resin6DTO>>();
+
+            try
+            {
+                var a = await _Resin6Repositorio.ObtenerFechas(fecha1, fecha2);
+
+                var listaFiltrada = _mapper.Map<List<Resin6DTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<Resin6DTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<Resin6DTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
 
         [HttpDelete]
         [Route("Eliminar/{id:int}")]

@@ -15,5 +15,6 @@ namespace PaginaToros.Server.Repositorio.Contrato
         Task<bool> Editar(Resin6 entidad);
         Task<IQueryable<Resin6>> Consultar(Expression<Func<Resin6, bool>> filtro = null);
         Task<int> CantidadTotal();
+        Task<List<Resin6>> ObtenerFechas(long fecha1, long fecha2);
     }
 }

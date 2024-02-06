@@ -119,6 +119,30 @@ namespace PaginaPlantels.Server.Cont{
             }
         }
 
+        [HttpGet]
+        [Route("ObtenerPorAnios")]
+        public async Task<IActionResult> ObtenerPorAnios(int anio1, int anio2)
+        {
+
+            Respuesta<List<PlantelDTO>> _ResponseDTO = new Respuesta<List<PlantelDTO>>();
+
+            try
+            {
+                var a = await _plantelRepositorio.ObtenerPorAnios(anio1, anio2);
+
+                var listaFiltrada = _mapper.Map<List<PlantelDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+
         [HttpDelete]
         [Route("Eliminar/{id:int}")]
         public async Task<IActionResult> Eliminar(int id)
