@@ -123,7 +123,7 @@
                     <td style="font-size:12px;background-color:#999999" ><strong>Pedidos</strong></td>
                     <td style="background-color:#999999">@oSolicitud.Cantor</td>
                     <td style="background-color:#999999">@oSolicitud.Cantvq</td>
-                    <td style="background-color:#999999">@oSolicitud.Canvac</td>
+                        <td style="background-color:#999999">@(oSolicitud.Canvac + oSolicitud.Canvaq)</td>
                 </tr>
                 <tr>
                     <td style="font-size:12px"><strong>Autorizados</strong></td>
@@ -254,13 +254,7 @@ else
                 }
                 if (Inspector is null)
                 {
-                    try{
-                        Inspector = Inspectores.Where(x => x.Codpro == rt.List.FirstOrDefault().Establecimiento.Codpro).FirstOrDefault();
-                    }
-                    catch
-                    {
-                        Inspector = new();
-                    }
+                    Inspector = new();
                 }
             }
         }

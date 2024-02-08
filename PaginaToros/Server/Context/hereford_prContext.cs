@@ -2779,12 +2779,14 @@ namespace PaginaToros.Server.Context
 
                 entity.Property(e => e.Rol).HasColumnType("text");
 
-                entity.Property(e => e.Sid)
-                    .HasColumnType("int(11)")
-                    .HasColumnName("SId");
-
                 entity.Property(e => e.Status).HasMaxLength(15);
             });
+
+            modelBuilder.Entity<User>()
+               .HasOne(p => p.Socio)
+               .WithMany(s => s.Users)
+               .HasForeignKey(t => t.SocioId)
+               .HasPrincipalKey(s => s.Id);
 
             modelBuilder.Entity<Usuario>(entity =>
             {

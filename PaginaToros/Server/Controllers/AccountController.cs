@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using PaginaToros.Server.Context;
 using PaginaToros.Shared.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -22,16 +23,19 @@ namespace PaginaToros.Server.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IConfiguration _configuration;
+        private readonly hereford_prContext _hfdb;
 
         public AccountController(ApplicationDbContext db,
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            hereford_prContext hfdb)
         {
             this.db = db;
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
+            _hfdb = hfdb;
         }
 
         //Metodos
@@ -214,10 +218,15 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpGet("GetUsers/{search}/{status}/{actualPage}")]
-        public ActionResult GetUsers(string search, string status, int actualPage)
+        public async Task<ActionResult> GetUsers(string search, string status, int actualPage)
         {
             try
             {
+                var temp = await _hfdb.User.Include(x => x.Socio).ToListAsync();
+
+
+                return Ok(JsonSerializer.Serialize(temp));
+
                 if (search == "TODO")
                     search = "";
                 if (status == "TODO")
@@ -241,7 +250,8 @@ namespace PaginaToros.Server.Controllers
                     AllRegisters = allRegisters,
                     ActualPage = actualPage
                 };
-                return Ok(JsonSerializer.Serialize(response));
+
+                
 
             }
             catch (Exception e)
@@ -271,6 +281,30 @@ namespace PaginaToros.Server.Controllers
                 return BadRequest(e.Message);
             }
         }
+
+        [HttpGet]
+        public async Task<ActionResult> Get()
+        {
+            try
+            {
+                var entities = await _hfdb.User.Include(x=>x.Socio).ToListAsync();
+
+                ResponseForList response = new ResponseForList()
+                {
+                    EntitiesPricipal = JsonSerializer.Serialize(entities),
+                };
+                return Ok(JsonSerializer.Serialize(response));
+
+            }
+            catch (Exception e)
+            {
+
+                return BadRequest(e.Message);
+            }
+
+
+        }
+
 
         [HttpPost("Login")]
         [AllowAnonymous]

@@ -45,5 +45,7 @@ namespace PaginaToros.Shared.Models
         public List<Certifseman>? Certificados { get; set; }
         [JsonIgnore]
         public List<Desepla1>? Declaraciones { get; set; }
+        [JsonIgnore]
+        public List<User>? Users { get; set; }
     }
 }
