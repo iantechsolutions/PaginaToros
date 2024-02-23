@@ -8,6 +8,4 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows,browser
 build_property.RootNamespace = PaginaToros.Shared
-build_property.ProjectDir = C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\
-build_property.EnableComHosting = 
-build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.ProjectDir = C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Shared\

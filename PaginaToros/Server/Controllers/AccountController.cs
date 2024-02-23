@@ -221,12 +221,7 @@ namespace PaginaToros.Server.Controllers
         public async Task<ActionResult> GetUsers(string search, string status, int actualPage)
         {
             try
-            {
-                var temp = await _hfdb.User.Include(x => x.Socio).ToListAsync();
-
-
-                return Ok(JsonSerializer.Serialize(temp));
-
+            {               
                 if (search == "TODO")
                     search = "";
                 if (status == "TODO")
@@ -252,6 +247,7 @@ namespace PaginaToros.Server.Controllers
                 };
 
                 
+                return Ok(JsonSerializer.Serialize(response));
 
             }
             catch (Exception e)
