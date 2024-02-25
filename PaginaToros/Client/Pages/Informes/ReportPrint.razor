@@ -69,10 +69,25 @@
 
 </div>
 @if(socioSeleccionado!=null && terminado && opcion == 1){
-        <div class="cuerpo">
-        <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
-            <table style="border-collapse:collapse;position:relative;left:3%;width:100%!important; font-size: 8px!important;" cellspacing="0">
+
+
+
+    <table class="cuerpo" style="border-collapse:collapse;position:relative;left:3%;width:100%!important; font-size: 8px!important;" cellspacing="0">
+                 
+
+        <div>
+
+            <tr class="row" style="width: 100%; margin-top: 10px;">
+                <th class="col-sm-7" rowspan="4" style="width: 50%;">
+                    <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
+                </th>
+                <th class="col-sm-7" rowspan="6" style="width: 50%;">
+                    <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
+                </th>
+            </tr>
+       </div>
+
+       <div>
             <tr>
                 <td>
                     <p class="s2">HBA</p>
@@ -140,8 +155,9 @@
                 </tr>
 
             }
-            </table>  
-    </div>
+        </div>
+    </table>  
+  
 }
 else if (opcion == 0 && socioSeleccionado != null && terminado)
 {
@@ -150,7 +166,7 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
        
           <div>
 
-          <tr class="row" style="width: 100%;">
+        <tr class="row" style="width: 100%; margin-top: 10px;">
             <th class="col-sm-7" rowspan="4" style="width: 50%;">
                             <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
             </th>
