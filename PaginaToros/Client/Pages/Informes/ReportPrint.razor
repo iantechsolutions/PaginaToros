@@ -6,18 +6,48 @@
 @inject ICertifsemanServicio _certifsemanServicio
 @inject IJSRuntime js
 @using Blazored.Typeahead;
-<div class="todo">
-<br/>
+
+<style>
+    @@media print {
+        .no-print{
+            display: none !important;
+        }
+        footer{
+            display: none!important;
+        }
+        header{
+            display: none !important;
+        }
+
+        
+        .cuerpo {
+        display: block!important;
+       
+        }
+}
+    .cuerpo {
+        margin-top: 10px !important;
+        width: 90% !important;
+    }
+        .container {
+        width: 95%!important;
+        justify-content: center;
+        align-items: center;
+        }
+</style>
+
+
+<div class="no-print">
 
 @if (opcion == 1)
 {
-    <center><RadzenText TextStyle="TextStyle.H4">Toros del Criador</RadzenText></center>
+    <center ><RadzenText TextStyle="TextStyle.H4">Toros del Criador</RadzenText></center>
 }
 @if (opcion == 0)
 {
-    <center><RadzenText TextStyle="TextStyle.H4">Certificados del Criador</RadzenText></center>
+        <center><RadzenText TextStyle="TextStyle.H4">Certificados del Criador</RadzenText></center>
 }
-<div class="row no-print">
+<div class="row">
     <div class="col-sm-3"/> 
     <div class="col-sm-6">
     <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Seleccione el socio" EnableDropDown="true" @bind-Value="socioSeleccionado">
@@ -33,14 +63,16 @@
         <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;width:80%" @onclick="()=>Generate()">Buscar</button>
     </div>
     <div class="col-sm-1">
-        <button style="outline:none; float: right;margin-right:3%;height:100%;" class="no-print px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => Print()"><FeatherPrinter Color="Black"></FeatherPrinter></button>
+        <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => Print()"><FeatherPrinter Color="Black"></FeatherPrinter></button>
     </div>
 </div>
+
+</div>
 @if(socioSeleccionado!=null && terminado && opcion == 1){
-    <div style="justify-content: center; align-items: center;">
+        <div class="cuerpo">
         <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
         <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
-                <table style="border-collapse:collapse;position:relative;left:3%;width:95%" cellspacing="0">
+            <table style="border-collapse:collapse;position:relative;left:3%;width:100%!important; font-size: 8px!important;" cellspacing="0">
             <tr>
                 <td>
                     <p class="s2">HBA</p>
@@ -74,36 +106,36 @@
             {
                 <tr>
                     <td>
-                        <p>@toro.Hba</p>
+                        <p class="s2">@toro.Hba</p>
                     </td>
                     <td>
-                        <p>@toro.Tatpart</p>
+                        <p class="s2">@toro.Tatpart</p>
                     </td>
                     <td>
-                        <p>@toro.Variedad</p>
+                        <p class="s2">@toro.Variedad</p>
                     </td>
                     <td>
                         @if(toro.Nacido.HasValue){
-                            <p>@toro.Nacido.Value.ToString("dd/MM/yyyy")</p>
+                            <p class="s2">@toro.Nacido.Value.ToString("dd/MM/yyyy")</p>
                         }
                         else{
-                            <p></p>
+                            <p class="s2"></p>
                         }
                     </td>
                     <td>
-                        <p>@toro.NomDad</p>
+                        <p class="s2">@toro.NomDad</p>
                     </td>
                     <td>
-                        <p></p>
+                        <p class="s2"></p>
                     </td>
                     <td>
-                        <p>@traductor[toro.CodEstado]</p>
+                        <p class="s2">@traductor[toro.CodEstado]</p>
                     </td>
                     <td>
-                        <p></p>
+                        <p class="s2"></p>
                     </td>
                     <td>
-                        <p>@traductor[toro.TipToro]</p>
+                        <p class="s2">@traductor[toro.TipToro]</p>
                     </td>
                 </tr>
 
@@ -113,11 +145,24 @@
 }
 else if (opcion == 0 && socioSeleccionado != null && terminado)
 {
-    <div style="justify-content: center; align-items: center;">
-        <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
-            <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
-            <table style="border-collapse:collapse;position:relative;left:3%;width:95%" cellspacing="0">
-                <tr>
+      
+      <table class="cuerpo" style="width:95%!important; margin-right: 5%!important; margin-top: 0%!important;" cellspacing="0">
+       
+          <div>
+
+          <tr class="row" style="width: 100%;">
+            <th class="col-sm-7" rowspan="4" style="width: 50%;">
+                            <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
+            </th>
+            <th class="col-sm-7" rowspan="6" style="width: 50%;">
+                             <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
+            </th>        
+          </tr>
+          </div>
+          <div>
+
+        
+            <tr>
                     <td>
                         <p class="s2">Tipo cert.</p>
                     </td>
@@ -155,15 +200,15 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                 </tr>
                 @foreach (var cer in certificados)
                 {
-                    <tr>
+                <tr style="font-size: 5px!important;">
                         <td>
-                            <p>@cer.TipoCert</p>
+                        <p class ="s2">@cer.TipoCert</p>
                         </td>
                         <td>
-                            <p>@cer.NroCert</p>
+                        <p class="s2">@cer.NroCert</p>
                         </td>
                         <td>
-                            <p>@cer.Centro.Nombre</p>
+                        <p class="s2">@cer.Centro.Nombre</p>
                         </td>
                         <td>
                             @if (cer.Fecvta.HasValue)
@@ -176,31 +221,32 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                             }
                         </td>
                         <td>
-                            <p>@cer.Socio.Nombre</p>
+                        <p class="s2">@cer.Socio.Nombre</p>
                         </td>
                         <td>
-                            <p>@cer.Tatpart</p>
+                        <p class="s2">@cer.Tatpart</p>
                         </td>
                         <td>
-                            <p>@cer.Hba</p>
+                        <p class="s2">@cer.Hba</p>
                         </td>
                         <td>
-                            <p>@cer.NomDad</p>
+                        <p class="s2">@cer.NomDad</p>
                         </td>
                         <td>
-                            <p>@cer.NrDosi</p>
+                        <p class="s2">@cer.NrDosi</p>
                         </td>
                         <td>
-                            <p>@cer.NrDosiOr</p>
+                        <p class="s2">@cer.NrDosiOr</p>
                         </td>
                         <td>
-                            <p>@cer.Variedad</p>
+                        <p class="s2">@cer.Variedad</p>
                         </td>
                     </tr>
 
                 }
+             </div>
             </table>
-    </div>
+
 }
 else if (seleccion && !terminado)
 {
@@ -212,7 +258,7 @@ else if (seleccion && !terminado)
         </div>
     </center>
 }
-</div>
+
 @code {
     [Parameter] public int opcion { get; set; }
     SocioDTO socioSeleccionado = null;
