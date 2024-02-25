@@ -93,7 +93,7 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Tipo de toro</label>
-                    <RadzenDropDown @bind-Value=@tipoToro Data=@tiposToro Style="width: 100%; max-width: 400px;" />
+                        <RadzenDropDown @bind-Value=@oCertifseman.Apodo Data=@tiposToro Style="width: 100%; max-width: 400px;" />
                     <ValidationMessage For="(()=> tipoToro)" style="color:red;" />
                 </div>
                 @if (tipoToro == "S/")
@@ -191,14 +191,27 @@ else
             }
         }
         oCertifseman.TipEnv = "PAJUELAS";
+
+
     }
     async Task Guardar()
     {
         oCertifseman.Nrocri = socioSeleccionado.Scod;
         oCertifseman.Nrocen = centroSeleccionado.Nrocen;
+        oCertifseman.Apodo = tipoToro;
+
         if (Id == 0)
         {
-            oCertifseman.NrDosi = Int32.Parse(oCertifseman.NrDosiOr);
+            try{
+                oCertifseman.NrDosi = Int32.Parse(oCertifseman.NrDosiOr);
+
+            }
+            catch
+            {
+                oCertifseman.NrDosi = 0;
+
+            }
+
             await _certifsemanServicio.Crear(oCertifseman);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
