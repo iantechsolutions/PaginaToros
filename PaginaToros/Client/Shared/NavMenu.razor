@@ -191,9 +191,9 @@
 </AuthorizeView>
 <AuthorizeView Roles="Socio">
     <Authorized>
-        <nav class="navbar navbar-expand-md bg-blue-300 mb-4">
+        <nav class="navbar navbar-expand-md bg-green-600 mb-4">
             <div class="container-fluid">
-                <a href="" class="pr-5"<img src="images/logo.png" class="pb-3 font-bold text-xl h-26 w-40 pt-3" style="padding-right:10px"alt="Logo"></a>
+                <a href="" class="pr-5"<img src="images/logo.png" class="pb-3 font-bold text-xl h-26 w-40 pt-3" style="padding-right:10px;;width:100px;height:auto"alt="Logo"></a>
                 <button class="navbar-toggler @NavButtonCssClass" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
                         aria-controls="navbarCollapse" aria-label="Toggle navigation" @onclick="ToggleNavMenu">
                     @*<span class="navbar-toggler-icon"></span>*@
@@ -201,8 +201,8 @@
                 </button>
                 <div class="collapse navbar-collapse @NavBarCssClass" id="navbarCollapse" @onclick="ToggleNavMenu">
                     <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                        <li class=" hover:bg-blue-400 rounded-2xl">
-                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All" style="color:#133c62">
+                        <li class=" hover:bg-green-500 rounded-2xl">
+                            <NavLink class="nav-link text-black" href="" Match="NavLinkMatch.All" style="color:#133c62">
                                 Inicio
                             </NavLink>
                         </li>
@@ -233,11 +233,11 @@
                             <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Inspecciones</span>
                         <li class="nav-item-content rounded-xl" style="background-color:#10B981">
 
-                            <div>
+@*                             <div>
                                 <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="solicitudesinspeccion">
                                     &nbspSolicitudes
                                 </NavLink>
-                            </div>
+                            </div> *@
                             <div>
                                 <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="reportes">
                                     &nbspResultados
@@ -266,7 +266,7 @@
                             <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Certificados de semen</span>
                         <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="certificados">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="certificados">
                                     &nbspListado
                                 </NavLink>
                             </div>
@@ -279,17 +279,17 @@
                             <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Transferencias</span>
                         <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
-                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="transan">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="transan">
                                     &nbspAnimales
                                 </NavLink>
                             </div>
                             <div>
-                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="transsb">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="transsb">
                                     &nbspToros S/
                                 </NavLink>
                             </div>
                             <div>
-                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="transfu">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="transfu">
                                     &nbspFuturo Control
                                 </NavLink>
                             </div>
@@ -316,7 +316,7 @@
                             <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl"><FeatherUser Color="Black"></FeatherUser></span>
                         <li class="nav-item-content rounded-xl" style="background-color:#93C5FD;right:0px">
                             <div style="position:relative">
-                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="logout">
+                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="logout">
                                     &nbspCerrar sesion
                                 </NavLink>
                             </div>

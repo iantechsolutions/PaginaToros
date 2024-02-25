@@ -3,6 +3,8 @@
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ITranssbServicio _transsbServicio
+@inject ISocioServicio _socioServicio
+
 <style>
 
     .rz-cell-data,
@@ -23,6 +25,10 @@
         border-top: solid #E0E0E0 1px;
     }
 </style>
+<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+    <Authorized>
+
+
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias S/</h3>
 
 
@@ -77,6 +83,66 @@ else
         </div>
     </center>
 }
+</Authorized>
+</AuthorizeView>
+
+
+<AuthorizeView Roles="Socio">
+    <Authorized>
+
+
+        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias S/</h3>
+
+        @if (oRespuesta.List != null)
+        {
+
+            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <br />
+            <br />
+            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+                <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                                Count="cantidad" Data="@oRespuesta.List" TItem="TranssbDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="TranssbDTO" Property="NroTrans" Title="Nro Certificado" Width="24%" />
+                        <RadzenDataGridColumn TItem="TranssbDTO" Property="NroOrden" Title="Nro Orden" Width="24%" />
+                        <RadzenDataGridColumn TItem="TranssbDTO" Property="Vnom" Title="Socio Vendedor" Width="24%" />
+                        <RadzenDataGridColumn TItem="TranssbDTO" Property="Cnom" Title="Socio Comprador" Width="23%" />
+                        <RadzenDataGridColumn TItem="TranssbDTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="23%" />
+                        <RadzenDataGridColumn TItem="TranssbDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                            <Template Context="data">
+                                <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="TranssbDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                            <Template Context="data">
+                                <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
+                    <Template Context="data">
+                    <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
+                    </Template>
+                    </RadzenDataGridColumn>*@
+                    </Columns>
+
+                </RadzenDataGrid>
+            </div>
+            <br />
+        }
+        else
+        {
+            <br />
+            <center>
+                <div class="mb-2">
+                    <br />
+                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                </div>
+            </center>
+        }
+    </Authorized>
+</AuthorizeView>
+
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
     public RadzenDataGrid<TranssbDTO>? grid;
@@ -98,11 +164,29 @@ else
     }
     async Task Get()
     {
-        var c = await _transsbServicio.CantidadTotal();
-        cantidad = c.List;
-        oRespuesta = await _transsbServicio.Lista(0,15);
-        StateHasChanged();
+        var esSocio = await UserHasRole("Socio");
+
+        if (!esSocio){
+            var c = await _transsbServicio.CantidadTotal();
+            cantidad = c.List;
+            oRespuesta = await _transsbServicio.Lista(0,15);
+            StateHasChanged();
+        }
+        else
+        {
+            string filtro = $"Id = {615}";
+            var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
+            oRespuesta = await _transsbServicio.GetBySocioCod(socio.List.First().Scod);
+            cantidad = oRespuesta.List.Count();
+        }
     }
+
+    private async Task<bool> UserHasRole(string role)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authenticationState.User.IsInRole(role);
+    }
+
     public void CambiarModoFiltro()
     {
         allowFiltering = !allowFiltering;

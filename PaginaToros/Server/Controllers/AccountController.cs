@@ -222,10 +222,7 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                var temp = await _hfdb.User.Include(x => x.Socio).ToListAsync();
 
-
-                return Ok(JsonSerializer.Serialize(temp));
 
                 if (search == "TODO")
                     search = "";
@@ -251,7 +248,8 @@ namespace PaginaToros.Server.Controllers
                     ActualPage = actualPage
                 };
 
-                
+                return Ok(JsonSerializer.Serialize(response));
+
 
             }
             catch (Exception e)

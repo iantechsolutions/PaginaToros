@@ -24,6 +24,8 @@
         border-top: solid #E0E0E0 1px;
     }
 </style>
+<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+    <Authorized>
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Declaraciones de servicio</h3>
 
 
@@ -113,7 +115,85 @@ else
         </div>
     </center>
 }
+</Authorized>
+</AuthorizeView>
 
+<AuthorizeView Roles="Socio">
+    <Authorized>
+        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Declaraciones de servicio</h3>
+
+
+
+        @if (oRespuesta.List != null)
+        {
+
+            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <br />
+            <br />
+            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+                <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="@isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                                Count="@cantidad" Data="@oRespuesta.List" TItem="Desepla1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Nrodec" Title="Nro de declaracion" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="NrFolio" Title="Nro de folio" Width="3.33%" />
+                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Nroplan" Title="Nro de plantel" Width="3.33%" />
+                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" />
+                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Desde" Title="Desde" Width="4.6%">
+                            <Template Context="data">
+                                @if (data.Desde.HasValue)
+                                {
+                                    <a>@data.Desde.Value.ToString("dd/MM/yyyy")</a>
+                                }
+                                else
+                                {
+
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Hasta" Title="Hasta" Width="4.6%">
+                            <Template Context="data">
+                                @if (data.Hasta.HasValue)
+                                {
+                                    <a>@data.Hasta.Value.ToString("dd/MM/yyyy")</a>
+                                }
+                                else
+                                {
+
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Fchrecepcion" Title="Fecha de recepcion" Width="4.6%">
+                            <Template Context="data">
+                                @if (data.Fchrecepcion.HasValue)
+                                {
+                                    <a>@data.Fchrecepcion.Value.ToString("dd/MM/yyyy")</a>
+                                }
+                                else
+                                {
+
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Tipse" Title="Tipo de servicio" Width="5%" />
+                    </Columns>
+
+                </RadzenDataGrid>
+            </div>
+            <br />
+        }
+        else
+        {
+            <br />
+            <center>
+                <div class="mb-2">
+                    <br />
+                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                </div>
+            </center>
+        }
+    </Authorized>
+</AuthorizeView>
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
     public RadzenDataGrid<Desepla1DTO>? grid;
@@ -129,11 +209,27 @@ else
     }
     async Task Get()
     {
-        var c = await _desepla1Servicio.CantidadTotal();
-        cantidad = c.List;
-        oRespuesta = await _desepla1Servicio.Lista(0, 15);
-        StateHasChanged();
+        var esSocio = await UserHasRole("Socio");
+
+        if (!esSocio){
+            var c = await _desepla1Servicio.CantidadTotal();
+            cantidad = c.List;
+            oRespuesta = await _desepla1Servicio.Lista(0, 15);
+            StateHasChanged();
+        }
+        else{
+            //CAMBIAR ID
+            oRespuesta = await _desepla1Servicio.GetBySocioId(615);
+        }
+
     }
+
+    private async Task<bool> UserHasRole(string role)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authenticationState.User.IsInRole(role);
+    }
+
     public void CambiarModoFiltro()
     {
         allowFiltering = !allowFiltering;

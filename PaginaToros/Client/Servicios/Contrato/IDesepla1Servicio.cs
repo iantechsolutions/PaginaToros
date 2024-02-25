@@ -9,6 +9,7 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<Respuesta<int>> CantidadTotal();
         Task<Respuesta<List<Desepla1DTO>>> LimitadosFiltrados(int skip, int take, string filtro = null);
         Task<Respuesta<List<Desepla1DTO>>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null);
+        Task<Respuesta<List<Desepla1DTO>>> GetBySocioId(int socioId);
         Task<bool> Eliminar(int id);
         Task<Respuesta<Desepla1DTO>> Crear(Desepla1DTO entidad);
         Task<bool> Editar(Desepla1DTO entidad);

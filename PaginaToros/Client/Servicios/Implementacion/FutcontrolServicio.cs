@@ -29,6 +29,13 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return result;
         }
 
+        public async Task<Respuesta<List<FutcontrolDTO>>> GetBySocioCod(string socioCod)
+        { 
+            string filter = $"Sven = \"{socioCod}\" || Scom = \"{socioCod}\"";
+            var result = await _http.GetFromJsonAsync<Respuesta<List<FutcontrolDTO>>>($"api/Futcontrol/LimitadosFiltrados?skip=0&take=0&expression={filter}");
+            return result;
+        }
+
         public async Task<bool> Eliminar(int id)
         {
             var result = await _http.DeleteAsync($"api/Futcontrol/Eliminar/{id}");

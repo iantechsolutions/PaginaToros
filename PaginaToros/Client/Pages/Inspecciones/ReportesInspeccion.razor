@@ -4,10 +4,6 @@
 @using PaginaToros.Client.Servicios.Contrato;
 @inject IResin1Servicio _resin1Servicio
 
-<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Reportes de Inspeccion</h3>
-
-
-<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0)">Agregar Nuevo Reporte</button>
 <style>
 
     .rz-cell-data,
@@ -28,6 +24,14 @@
         border-top: solid #E0E0E0 1px;
     }
 </style>
+
+
+
+<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+    <Authorized>
+<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Reportes de Inspeccion</h3>
+
+<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0)">Agregar Nuevo Reporte</button>
 
 @if (oRespuesta.List != null)
 {
@@ -83,6 +87,58 @@ else
     </center>
 }
 
+</Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Socio">
+    <Authorized>
+        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Reportes de Inspeccion</h3>
+
+        @if (oRespuesta.List != null)
+        {
+
+            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <br />
+            <br />
+            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+                <RadzenDataGrid IsLoading="isLoading" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                                Count="cantotal" Data="@oRespuesta.List" TItem="Resin1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="Resin1DTO" Property="Nrores" Title="Nro Resultado" Width="21.7%" />
+                        <RadzenDataGridColumn TItem="Resin1DTO" Property="Nropla" Title="Plantel" Width="21.7%" />
+                        <RadzenDataGridColumn TItem="Resin1DTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="21.7%" />
+
+                        <RadzenDataGridColumn TItem="Resin1DTO" Property="Freali" Title="Fecha De Inspeccion" Width="21.7%">
+                            <Template Context="data">
+                                @if (data.Freali.HasValue)
+                                {
+                                    @data.Freali.Value.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+
+                </RadzenDataGrid>
+            </div>
+        }
+        else
+        {
+            <br />
+            <center>
+                <div class="mb-2">
+                    <br />
+                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                </div>
+            </center>
+        }
+
+    </Authorized>
+</AuthorizeView>
 
 
 @code {
@@ -101,11 +157,29 @@ else
     }
     async Task Get()
     {
-        oRespuesta = await _resin1Servicio.Lista(0, 15);
-        var cantidad = await _resin1Servicio.CantidadTotal();
-        cantotal = cantidad.List;
-        StateHasChanged();
+        var esSocio = await UserHasRole("Socio");
+
+        if (!esSocio){
+            oRespuesta = await _resin1Servicio.Lista(0, 15);
+            var cantidad = await _resin1Servicio.CantidadTotal();
+            cantotal = cantidad.List;
+            StateHasChanged();
+        }
+        else
+        {
+            //CAMBIAR ID
+            oRespuesta = await _resin1Servicio.GetBySocioId(615);
+            cantotal = oRespuesta.List.Count();
+        }
     }
+
+
+    private async Task<bool> UserHasRole(string role)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authenticationState.User.IsInRole(role);
+    }
+
     public void CambiarModoFiltro()
     {
         allowFiltering = !allowFiltering;

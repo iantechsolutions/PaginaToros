@@ -8,6 +8,7 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<Respuesta<List<FutcontrolDTO>>> Lista(int page, int count);
         Task<Respuesta<int>> CantidadTotal();
         Task<Respuesta<List<FutcontrolDTO>>> LimitadosFiltrados(int skip, int take, string filtro = null);
+        Task<Respuesta<List<FutcontrolDTO>>> GetBySocioCod(string socioCod);
         Task<bool> Eliminar(int id);
         Task<Respuesta<FutcontrolDTO>> Crear(FutcontrolDTO entidad);
         Task<bool> Editar(FutcontrolDTO entidad);

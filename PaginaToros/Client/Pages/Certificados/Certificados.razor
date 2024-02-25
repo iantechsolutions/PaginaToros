@@ -4,7 +4,8 @@
 @using PaginaToros.Client.Servicios.Contrato;
 @using Blazored.Typeahead;
 @inject ICertifsemanServicio _certifsemanServicio
-@inject ISocioServicio _sociosServicio
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 <style>
 
     .rz-cell-data,
@@ -25,6 +26,8 @@
         border-top: solid #E0E0E0 1px;
     }
 </style>
+<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+    <Authorized>
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Certificados de semen</h3>
 
 
@@ -86,6 +89,54 @@ else
         </div>
     </center>
 }
+</Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Socio">
+    <Authorized>
+        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Certificados de semen</h3>
+
+        @if (oRespuesta.List != null)
+        {
+            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <br />
+            <br />
+            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+                <RadzenDataGrid AllowFiltering="allowFiltering" LoadData="LoadData" IsLoading=@isLoading AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                                Data="@oRespuesta.List" Count="cantotal" TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipoCert" Title="Tipo cert." Width="6%" />
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Centro.Nombre" Title="Nombre del centro" Width="7.34%" />
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="5.3%" />
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="5.3%" />
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre" Width="8.6%" />
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrTsan" Title="Tip/ADN" Width="5.3%" />
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrInsd" Title="Nro Macho Dador" Width="7.34%" />
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosiOr" Title="Cant. de dosis" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosi" Title="Cant. dosis restantes" Width="7.34%" />
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipEnv" Title="Tipo de Envase" Width="7.34%" />
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Variedad" Title="Variedad" Width="5.3%" />
+                    </Columns>
+
+                </RadzenDataGrid>
+            </div>
+            <br />
+        }
+        else
+        {
+            <br />
+            <center>
+                <div class="mb-2">
+                    <br />
+                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                </div>
+            </center>
+        }
+    </Authorized>
+</AuthorizeView>
+
+
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
     public RadzenDataGrid<CertifsemanDTO>? grid;
@@ -93,9 +144,7 @@ else
     int cantotal;
     bool isLoading = false;
     public bool allowFiltering = false;
-    SocioDTO socioSeleccionado = null;
     List<CentrosiumDTO> centros = new();
-    List<SocioDTO> socios = new();
     public Respuesta<List<CertifsemanDTO>> oRespuesta = new Respuesta<List<CertifsemanDTO>>();
     protected override async Task OnInitializedAsync()
     {
@@ -103,13 +152,29 @@ else
     }
     async Task Get()
     {
-        oRespuesta = await _certifsemanServicio.Lista(0, 15);
-        var rt = await _certifsemanServicio.CantidadTotal();
-        cantotal = rt.List;
-        var rta = await _sociosServicio.LimitadosFiltrados(0,0);
-        socios = rta.List;
-        StateHasChanged();
+        var esSocio = await UserHasRole("Socio");
+
+        if (!esSocio){
+            oRespuesta = await _certifsemanServicio.Lista(0, 15);
+            var rt = await _certifsemanServicio.CantidadTotal();
+            cantotal = rt.List;
+            StateHasChanged();
+        }
+        else
+        {
+            //CAMBIAR ID
+            oRespuesta = await _certifsemanServicio.GetBySocioId(615);
+            cantotal = oRespuesta.List.Count();
+        }
+
     }
+
+    private async Task<bool> UserHasRole(string role)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authenticationState.User.IsInRole(role);
+    }
+
     public void CambiarModoFiltro()
     {
         allowFiltering = !allowFiltering;
@@ -229,11 +294,6 @@ else
         }
 
         isLoading = false;
-    }
-    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
-    {
-        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-        return await Task.FromResult(result);
     }
     public async Task PaginaReporte()
     {

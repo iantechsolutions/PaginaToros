@@ -3,6 +3,8 @@
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
 @inject IFutcontrolServicio _futcontrolServicio
+@inject ISocioServicio _socioServicio
+
 <style>
 
     .rz-cell-data,
@@ -23,6 +25,8 @@
         border-top: solid #E0E0E0 1px;
     }
 </style>
+<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+    <Authorized>
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias A Futuro Control</h3>
 
 
@@ -93,6 +97,67 @@ else
         </div>
     </center>
 }
+</Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Socio">
+    <Authorized>
+        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias A Futuro Control</h3>
+
+
+        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick='()=>add(0)'>Agregar Transferencia</button>
+
+
+
+        @if (oRespuesta.List != null)
+        {
+
+            <br />
+            <br />
+            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+                <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                                Count="cantidad" Data="@oRespuesta.List" TItem="FutcontrolDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    <Columns>
+
+                        <RadzenDataGridColumn TItem="FutcontrolDTO" Property="NroTrans" Title="Nro Transferencia" Width="6%" />
+                        <RadzenDataGridColumn TItem="FutcontrolDTO" Property="Fectrans" Title="Fecha de Transferencia" Width="7.34%">
+                            <Template Context="data">
+                                @if (data.Fectrans.HasValue)
+                                {
+                                    <a>@data.Fectrans.Value.ToString("dd/MM/yyyy")</a>
+                                }
+                                else
+                                {
+
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="FutcontrolDTO" Property="Vnom" Title="Socio Vendedor" Width="7.34%" />
+                        <RadzenDataGridColumn TItem="FutcontrolDTO" Property="Cnom" Title="Socio Comprador" Width="7.34%" />
+                        <RadzenDataGridColumn TItem="FutcontrolDTO" Property="Plantel" Title="De Plantel" Width="7.34%" />
+                        <RadzenDataGridColumn TItem="FutcontrolDTO" Property="PlantDest" Title="A Plantel" Width="7.34%" />
+                        <RadzenDataGridColumn TItem="FutcontrolDTO" Property="CantHem" Title="Cant Hembras" Width="7.34%" />
+                        <RadzenDataGridColumn TItem="FutcontrolDTO" Property="CantMach" Title="Cant Machos" Width="7.34%" />
+                        <RadzenDataGridColumn TItem="FutcontrolDTO" Property="Hemsta" Title="Estado de las Hembras" Width="7.34%" />
+                    </Columns>
+
+                </RadzenDataGrid>
+            </div>
+            <br />
+        }
+        else
+        {
+            <br />
+            <center>
+                <div class="mb-2">
+                    <br />
+                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                </div>
+            </center>
+        }
+    </Authorized>
+</AuthorizeView>
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
     public RadzenDataGrid<FutcontrolDTO>? grid;
@@ -107,11 +172,30 @@ else
     }
     async Task Get()
     {
+        var esSocio = await UserHasRole("Socio");
+        if (!esSocio)
+        {
         var c = await _futcontrolServicio.CantidadTotal();
         cantidad = c.List;
         oRespuesta = await _futcontrolServicio.Lista(0, 15);
         StateHasChanged();
+        }
+        else
+        {
+            string filtro = $"Id = {615}";
+            var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
+            oRespuesta = await _futcontrolServicio.GetBySocioCod(socio.List.First().Scod);
+            cantidad = oRespuesta.List.Count();
+        }
+        StateHasChanged();
     }
+
+    private async Task<bool> UserHasRole(string role)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authenticationState.User.IsInRole(role);
+    }
+
     public void CambiarModoFiltro()
     {
         allowFiltering = !allowFiltering;

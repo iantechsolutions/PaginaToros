@@ -3,6 +3,9 @@
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ICentrosiumServicio _centrosiumServicio
+@inject AuthenticationStateProvider AuthenticationStateProvider
+<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+    <Authorized>
 <style>
 
     .rz-cell-data,
@@ -75,7 +78,8 @@ else
         </div>
     </center>
 }
-
+    </Authorized>
+</AuthorizeView>
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
     public RadzenDataGrid<CentrosiumDTO>? grid;

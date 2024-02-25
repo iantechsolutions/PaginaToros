@@ -9,7 +9,7 @@ namespace PaginaToros.Shared.Models
 {
     public class ChangePassModel
     {
-        [Display(Name = "Nombre de ususario"), Required(ErrorMessage = Utilities.MSGREQUIRED)]
+        [Display(Name = "Nombre de usuario"), Required(ErrorMessage = Utilities.MSGREQUIRED)]
         public string UserName { get; set; }
 
         [Display(Name = "Password actual"), Required(ErrorMessage = Utilities.MSGREQUIRED)]

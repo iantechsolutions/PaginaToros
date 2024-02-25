@@ -3,6 +3,7 @@
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @inject IEstableServicio _estableServicio
+@inject AuthenticationStateProvider AuthenticationStateProvider
 <style>
 
     .rz-cell-data,
@@ -23,6 +24,8 @@
     }
     
 </style>
+<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+    <Authorized>
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Establecimientos</h3>
 
 
@@ -95,7 +98,65 @@ else
         </div>
     </center>
 }
+</Authorized>
+</AuthorizeView>
 
+<AuthorizeView Roles="Socio">
+    <Authorized>
+        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Establecimientos</h3>
+
+        @if (oRespuesta.List != null)
+        {
+
+            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <br />
+            <br />
+            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+                <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                                Count="@cantidad" IsLoading="@isLoading" Data="@oRespuesta.List" TItem="EstableDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="Ecod" Title="Cod. Establ." Width="3.6%" />
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="Activo" Title="Activo?" Width="3.6%">
+                            <Template Context="data">
+                                @if (data.Activo == "S")
+                                {
+                                    <a style="color:darkgreen">Si</a>
+                                }
+                                else
+                                {
+                                    <a style="color:red">No</a>
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="Nombre" Title="Nombre" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="Encargado" Title="Encargado" Width="4.6%" />
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="Direcc" Title="Domicilio" Width="4.6%" />
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="Tel" Title="Telefono" Width="5%" />
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="Locali" Title="Localidad" Width="5%" />
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="Codpos" Title="Codigo Postal" Width="5.6%" />
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="Provincia.Nombre" Title="Provincia" Width="5%" />
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="Plano" Title="Informacion" Width="5.3%" />
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="Codzon" Title="Cod. zona" Width="4.6%" />
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="Fechacreacion" Title="Año Creacion" Width="5.6%" />
+                    </Columns>
+
+                </RadzenDataGrid>
+            </div>
+            <br />
+        }
+        else
+        {
+            <br />
+            <center>
+                <div class="mb-2">
+                    <br />
+                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                </div>
+            </center>
+        }
+    </Authorized>
+</AuthorizeView>
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
@@ -104,7 +165,7 @@ else
     int cantidad;
     bool isLoading = false;
     public bool allowFiltering = false;
-    
+
     public Respuesta<List<EstableDTO>> oRespuesta = new Respuesta<List<EstableDTO>>();
     protected override async Task OnInitializedAsync()
     {
@@ -112,15 +173,36 @@ else
     }
     async Task Get()
     {
-        var cant = await _estableServicio.CantidadTotal();
-        cantidad = cant.List;
-        oRespuesta = await _estableServicio.Lista(0, 15);
+        var esSocio = await UserHasRole("Socio");
+        if (!esSocio)
+        {
+            var cant = await _estableServicio.CantidadTotal();
+            cantidad = cant.List;
+            oRespuesta = await _estableServicio.Lista(0, 15);
+        }
+        else
+        {
+            //CAMBIAR ID
+            oRespuesta = await _estableServicio.GetBySocioId(615);
+            cantidad = oRespuesta.List.Count;
+        }
     }
+
+    private async Task<bool> UserHasRole(string role)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authenticationState.User.IsInRole(role);
+    }
+
+
+
     public void CambiarModoFiltro()
     {
         allowFiltering = !allowFiltering;
         StateHasChanged();
     }
+
+
 
     async Task delete(int id)
     {

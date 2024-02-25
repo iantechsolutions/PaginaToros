@@ -100,14 +100,17 @@
     string Url = "/api/AspNetRole";
     protected override async Task OnInitializedAsync()
     {
+        try{
+            //UserName = user.Identity.Name;
 
-        //UserName = user.Identity.Name;
+            oRespuestaRoles = await Http.GetFromJsonAsync<Respuesta<List<AspNetRole>>>(Url);
 
-        oRespuestaRoles = await Http.GetFromJsonAsync<Respuesta<List<AspNetRole>>>(Url);
-
-        var rta = await _socioServicio.LimitadosFiltrados(0,0);
-        socios = rta.List;
-
+            var rta = await _socioServicio.LimitadosFiltrados(0,0);
+            socios = rta.List;
+        }catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)

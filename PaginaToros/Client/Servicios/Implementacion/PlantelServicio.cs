@@ -34,6 +34,13 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return result;
         }
 
+        public async Task<Respuesta<List<PlantelDTO>>> GetBySocioId(int socioId)
+        {
+            string filter = $"Socio.Id == {socioId}";
+            var result = await _http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>($"api/plantel/LimitadosFiltradosNoInclude?skip=0&take=0&expression={filter}");
+            return result;
+        }
+
         public async Task<bool> Eliminar(int id)
         {
             var result = await _http.DeleteAsync($"api/plantel/Eliminar/{id}");

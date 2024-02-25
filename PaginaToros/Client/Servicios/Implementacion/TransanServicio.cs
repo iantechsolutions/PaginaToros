@@ -28,6 +28,14 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var result = await _http.GetFromJsonAsync<Respuesta<List<TransanDTO>>>($"api/Transan/LimitadosFiltrados?skip={skip}&take={take}&expression={filter}");
             return result;
         }
+        public async Task<Respuesta<List<TransanDTO>>> GetBySocioCod(string socioCod)
+        {
+            string filter = $"Sven = \"{socioCod}\" || Scom = \"{socioCod}\"";
+            var result = await _http.GetFromJsonAsync<Respuesta<List<TransanDTO>>>($"api/Transan/LimitadosFiltrados?skip=0&take=0&expression={filter}");
+
+            return result;
+        }
+
 
         public async Task<bool> Eliminar(int id)
         {

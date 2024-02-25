@@ -3,6 +3,7 @@
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ITransanServicio _transanServicio
+@inject ISocioServicio _socioServicio
 <style>
 
     .rz-cell-data,
@@ -23,6 +24,8 @@
         border-top: solid #E0E0E0 1px;
     }
 </style>
+<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+    <Authorized>
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias Animales</h3>
 
 
@@ -97,6 +100,68 @@ else
         </div>
     </center>
 }
+</Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Socio">
+    <Authorized>
+        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias Animales</h3>
+
+        @if (oRespuesta.List != null)
+        {
+
+            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <br />
+            <br />
+            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+                <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                                Count="cantidad" Data="@oRespuesta.List" TItem="TransanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                    <Columns>
+
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="NroCert" Title="Nro Certificado" Width="5.3%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="Fecvta" Title="Fecha de Venta" Width="6.6%">
+                            <Template Context="data">
+                                @if (data.Fecvta.HasValue)
+                                {
+                                    <a>@data.Fecvta.Value.ToString("dd/MM/yyyy")</a>
+                                }
+                                else
+                                {
+
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="Vnom" Title="Socio Vendedor" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="Cnom" Title="Socio Comprador" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="Plant" Title="De Plantel" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="NvoPla" Title="A Plantel" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="CantHem" Title="Cant Hembras" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="CantMach" Title="Cant Machos" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="Tiphac" Title="Tipo de hacienda" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="Hemsta" Title="Estado de las Hembras" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="Tipohem" Title="Tipo de hembras" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="CantChem" Title="Cant C/Hembras" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="CantCmach" Title="Cant C/Machos" Width="6.6%" />
+                    </Columns>
+
+                </RadzenDataGrid>
+            </div>
+            <br />
+        }
+        else
+        {
+            <br />
+            <center>
+                <div class="mb-2">
+                    <br />
+                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                </div>
+            </center>
+        }
+    </Authorized>
+</AuthorizeView>
+
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
     public RadzenDataGrid<TransanDTO>? grid;
@@ -113,16 +178,33 @@ else
     public Respuesta<List<TransanDTO>> oRespuesta = new Respuesta<List<TransanDTO>>();
     protected override async Task OnInitializedAsync()
     {
+
         await Get();
     }
     async Task Get()
     {
-        var c = await _transanServicio.CantidadTotal();
-        cantidad = c.List;
-        oRespuesta = await _transanServicio.Lista(0, 15);
-
+        var esSocio = await UserHasRole("Socio");
+        if (!esSocio)
+        {
+            var c = await _transanServicio.CantidadTotal();
+            cantidad = c.List;
+            oRespuesta = await _transanServicio.Lista(0, 15);
+        }
+        else
+        {
+            string filtro = $"Id = {615}";
+            var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
+            oRespuesta = await _transanServicio.GetBySocioCod(socio.List.First().Scod);
+            cantidad = oRespuesta.List.Count();
+        }
         StateHasChanged();
     }
+    private async Task<bool> UserHasRole(string role)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authenticationState.User.IsInRole(role);
+    }
+
     public void CambiarModoFiltro()
     {
         allowFiltering = !allowFiltering;

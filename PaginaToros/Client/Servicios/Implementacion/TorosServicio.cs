@@ -35,7 +35,13 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var result = await _http.GetFromJsonAsync<Respuesta<List<TorosuniDTO>>>(url);
             return result;
         }
-
+        public async Task<Respuesta<List<TorosuniDTO>>> GetBySocioId(int socioId)
+        {
+            string filter = $"Socio.Id=={socioId}";
+            var url = $"api/toros/LimitadosFiltradosNoInclude?skip=0&take=0&expression={filter}";
+            var result = await _http.GetFromJsonAsync<Respuesta<List<TorosuniDTO>>>(url);
+            return result;
+        }
         public async Task<bool> Eliminar(int id)
         {
             var result = await _http.DeleteAsync($"api/toros/Eliminar/{id}");
