@@ -22,15 +22,14 @@
         
         .cuerpo {
         display: block!important;
-       
+        width: 80vw!important;  
         }
 }
     .cuerpo {
         margin-top: 10px !important;
-        width: 90% !important;
+        width: 95%;
     }
         .container {
-        width: 95%!important;
         justify-content: center;
         align-items: center;
         }
@@ -77,7 +76,7 @@
 
         <div>
 
-            <tr class="row" style="width: 100%; margin-top: 10px;">
+            <tr class="row" style="width: 100%; margin-top: 15px;">
                 <th class="col-sm-7" rowspan="4" style="width: 50%;">
                     <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
                 </th>
@@ -166,7 +165,7 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
        
           <div>
 
-        <tr class="row" style="width: 100%; margin-top: 10px;">
+        <tr class="row" style="width: 100%; margin-top: 15px;">
             <th class="col-sm-7" rowspan="4" style="width: 50%;">
                             <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
             </th>
@@ -190,9 +189,6 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                     </td>
                     <td>
                         <p class="s2">Fecha de venta</p>
-                    </td>
-                    <td>
-                        <p class="s2">Socio</p>
                     </td>
                     <td>
                         <p class="s2">Tatuaje</p>
@@ -235,9 +231,6 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                             {
                                 <p></p>
                             }
-                        </td>
-                        <td>
-                        <p class="s2">@cer.Socio.Nombre</p>
                         </td>
                         <td>
                         <p class="s2">@cer.Tatpart</p>
