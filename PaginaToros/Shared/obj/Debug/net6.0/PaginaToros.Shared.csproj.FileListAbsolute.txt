@@ -1,0 +1,13 @@
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\bin\Debug\net6.0\PaginaToros.Shared.deps.json
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\bin\Debug\net6.0\PaginaToros.Shared.dll
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\bin\Debug\net6.0\PaginaToros.Shared.pdb
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\PaginaToros.Shared.csproj.AssemblyReference.cache
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\PaginaToros.Shared.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\PaginaToros.Shared.AssemblyInfoInputs.cache
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\PaginaToros.Shared.AssemblyInfo.cs
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\PaginaToros.Shared.csproj.CoreCompileInputs.cache
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\PaginaToros.Shared.sourcelink.json
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\PaginaToros.Shared.dll
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\refint\PaginaToros.Shared.dll
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\PaginaToros.Shared.pdb
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Shared\obj\Debug\net6.0\ref\PaginaToros.Shared.dll

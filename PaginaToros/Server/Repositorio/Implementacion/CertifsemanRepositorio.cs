@@ -22,7 +22,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
 
                 // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Certifsemen.Include(t => t.Socio)
+                return await _dbContext.Certifsemen.AsNoTracking().Include(t => t.Socio)
                                                  .Include(e=>e.Centro)
                                                  .OrderByDescending(t => t.Id)
                                                  .Skip(skip)

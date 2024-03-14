@@ -1,0 +1,142 @@
+*[b-tbzienq9go] {
+    margin: 0;
+    padding: 0;
+    text-indent: 0;
+}
+
+p[b-tbzienq9go] {
+    color: black;
+    font-family: Arial, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: none;
+    font-size: 10pt;
+    margin: 0pt;
+}
+
+.s1[b-tbzienq9go] {
+    color: black;
+    font-family: Arial, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: none;
+    font-size: 18pt;
+}
+
+.s2[b-tbzienq9go] {
+    color: black;
+    font-family: Arial, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: none;
+    font-size: 7pt;
+}
+
+table[b-tbzienq9go],
+tbody[b-tbzienq9go] {
+    vertical-align: top;
+    overflow: visible;
+}
+
+td[b-tbzienq9go] {
+    width: 120pt;
+    border-top-style: solid;
+    border-top-width: 1pt;
+    border-left-style: solid;
+    border-left-width: 1pt;
+    border-bottom-style: solid;
+    border-bottom-width: 1pt;
+    border-right-style: solid;
+    border-right-width: 1pt;
+}
+
+.s2[b-tbzienq9go] {
+    padding-top: 3pt;
+    padding-left: 5pt;
+    text-indent: 0pt;
+    text-align: left;
+}
+
+/*    .table {
+        page-break-inside: auto; 
+    }
+
+    .todo{
+        page-break-inside: avoid !important;
+    }*/
+
+    /*.page {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        margin: 0px;
+        -webkit-print-color-adjust: exact;
+    }*/
+
+@media print {
+    .no-print[b-tbzienq9go] {
+        display: none !important;
+    }
+
+    footer[b-tbzienq9go] {
+        display: none !important;
+    }
+
+    header[b-tbzienq9go] {
+        display: none !important;
+    }
+
+    html[b-tbzienq9go], body[b-tbzienq9go] {
+        height: 99%;
+    }
+
+    .cuerpo[b-tbzienq9go] {
+        margin-top: 10px;
+        display: block !important;
+    }
+
+    table[b-tbzienq9go] {
+        page-break-inside: auto
+    }
+
+    tr[b-tbzienq9go] {
+        page-break-inside: avoid;
+        page-break-after: auto
+    }
+
+    td[b-tbzienq9go] {
+        padding: 0;
+        margin: 0;
+    }
+
+    thead[b-tbzienq9go] {
+        display: table-header-group
+    }
+
+    tfoot[b-tbzienq9go] {
+        display: table-footer-group
+    }
+
+    .page[b-tbzienq9go] {
+        margin-left: 0;
+        margin-right: 0;
+        -webkit-print-color-adjust: exact;
+    }
+    body[b-tbzienq9go] {
+        /* this affects the margin on the content before sending to printer */
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+
+.cuerpo[b-tbzienq9go] {
+    margin-top: 10px !important;
+    width: 90% !important;
+}
+
+.container[b-tbzienq9go] {
+    width: 95% !important;
+    justify-content: center;
+    align-items: center;
+}

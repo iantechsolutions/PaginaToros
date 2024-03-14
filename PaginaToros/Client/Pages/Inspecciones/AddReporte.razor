@@ -713,7 +713,8 @@ else
         string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
         var respuesta = await _resin3Servicio.LimitadosFiltrados(0, 0,filtro);
         mtos = respuesta.List;
-
+        salidasFinal = new();
+        entradasFinal = new();
         foreach (var mov in mtos)
         {
             if (mov.Tipmov == "S")

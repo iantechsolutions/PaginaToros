@@ -4,13 +4,14 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using PaginaToros.Server.Context;
 using PaginaToros.Shared.Models;
 using Microsoft.EntityFrameworkCore;
-
+using System.Net.Mail;
+using PaginaToros.Client.Pages.Socios;
+using System.Net.Mime;
 namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
@@ -41,7 +42,7 @@ namespace PaginaToros.Server.Controllers
         //Metodos
 
         [HttpPost("CreateUser")]
-        public async Task<ActionResult> CreateUser([FromBody] User model)
+        public async Task<ActionResult> CreateUser([FromBody] User model, string password)
         {
             try
             {
@@ -64,7 +65,7 @@ namespace PaginaToros.Server.Controllers
                 if (user.Email != null)
                     user.NormalizedEmail = model.Email.ToUpper();
 
-                var result = await _userManager.CreateAsync(user, "cambiar123");
+                var result = await _userManager.CreateAsync(user, password);
                 if (!result.Succeeded)
                 {
                     return BadRequest(result.Errors);
@@ -87,6 +88,41 @@ namespace PaginaToros.Server.Controllers
                 return BadRequest(e.Message);
             }
         }
+
+        [HttpPost("SendRegistrationMail")]
+        public async Task<ActionResult> SendRegistrationMail([FromBody] User model, string password)
+        {
+            try
+            {
+                using (MailMessage mail = new MailMessage())
+                {
+                    mail.From = new MailAddress("puroregistrado@hotmail.com");
+                    mail.To.Add(model.Email);
+                    mail.Subject = $"Confirmación de Registro en Hereford";
+                    string body = $"Estimado/a,\nNos complace confirmar que tu registro en nuestro sitio ha sido exitoso. A partir de ahora, tienes acceso completo a todos nuestros servicios y funcionalidades.\n";
+                    body += $"A continuación, encontrarás tus detalles de inicio de sesión:\nCorreo electrónico registrado: {model.Email}\nContraseña: {password}\n";
+                    body += $"Recuerda mantener segura esta información y no compartirla con nadie más.Gracias por unirte a nosotros y esperamos que disfrutes tu tiempo con nosotros.\n";
+                    body += $"¡Saludos cordiales!\n Hereford";
+                    mail.Body = body;
+                    using (SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587))
+                    {
+                        smtp.UseDefaultCredentials = false;
+                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2024","hotmail.com");
+                        smtp.EnableSsl = true;
+                        smtp.Send(mail);
+                    }
+                }
+                return Ok("ok");
+            }
+            catch (Exception e)
+            {
+
+                return BadRequest(e.Message);
+            }
+        }
+
+
+
 
         [HttpPut("SaveUser")]
         public async Task<ActionResult> SaveUser([FromBody] User model)
@@ -309,19 +345,8 @@ namespace PaginaToros.Server.Controllers
         public async Task<ActionResult> Login([FromBody] UserLogin userInfo)
         {
             var Usuario = db.User.FirstOrDefault(x => x.Email == userInfo.UserName);
-            if (Usuario != null || userInfo.UserName == "admin")
+            if (Usuario != null)
             {
-                if(userInfo.Password =="admin")
-                {
-                    try
-                    {
-
-                        return Ok(BuildToken(userInfo.UserName));
-                    }catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                }
                 if (Usuario != null && Usuario.Status != "ACTIVO")
                 {
                     return BadRequest(Utilities.MSGSUSPENDEDUSER);
@@ -384,11 +409,13 @@ namespace PaginaToros.Server.Controllers
             string role = db.UserRoles.First(x => x.UserId == user.Id).RoleId;
             string completeName = "USUARIO MAESTRO";
             int UsuarioId = 0;
+            int? SocioId = 0;
             if (role != "USUARIOMAESTRO")
             {
                 var Usuario = db.User.First(x => x.Email == user.UserName);
                 completeName = $"{Usuario.Names} {Usuario.LastNames}";
                 UsuarioId = Usuario.Id;
+                SocioId = Usuario.SocioId;
             }
 
             var claims = new[]
@@ -399,7 +426,8 @@ namespace PaginaToros.Server.Controllers
                 new Claim("userId", user.Id),
                 new Claim("UsuarioId", UsuarioId.ToString()),
                 new Claim(ClaimTypes.Role, role),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("SocioId",SocioId.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:key"]));
@@ -415,5 +443,5 @@ namespace PaginaToros.Server.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-    }
+}
 }

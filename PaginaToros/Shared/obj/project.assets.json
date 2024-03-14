@@ -1368,23 +1368,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Maxim\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\lolo1\\.nuget\\packages\\": {},
+    "E:\\LIBRERIAS\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+      "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
       "projectName": "PaginaToros.Shared",
-      "projectPath": "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
-      "packagesPath": "C:\\Users\\Maxim\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\obj\\",
+      "projectPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+      "packagesPath": "C:\\Users\\lolo1\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        "E:\\LIBRERIAS\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Maxim\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\lolo1\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -1394,6 +1394,7 @@
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "C:\\Program Files\\dotnet\\library-packs": {},
+        "C:\\Users\\lolo1\\DEVELOP\\nugets": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -1433,7 +1434,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.402\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.101\\RuntimeIdentifierGraph.json"
       }
     }
   }

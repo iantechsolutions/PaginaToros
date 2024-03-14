@@ -1,5 +1,6 @@
-﻿@attribute [Authorize(Roles = "USUARIOMAESTRO")]
+﻿@attribute [Authorize(Roles = "USUARIOMAESTRO, ADMINISTRADOR")]
 @page "/RegistroUsuario"
+@using System.Text
 @inject HttpClient http
 @inject NavigationManager uriHelper
 
@@ -14,15 +15,23 @@
 @code {
     User User { get; set; } = new User() { Status = "ACTIVO" };
     [CascadingParameter] public IModalService Modal { get; set; }
+    private const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!^&*()_+-;:,.";
+    Random random = new Random();
 
     private async Task CreateUser()
     {
+        User.Phone = User.Email;
+        User.Names = User.Email;
+        User.Dni = User.Email;
+        User.LastNames = User.Email;
         var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
-        var result = await http.PostAsJsonAsync<User>("api/Account/CreateUser", User);
+        var pswd = GenerateRandomPassword(random.Next(7, 11));
+        var result = await http.PostAsJsonAsync<User>($"api/Account/CreateUser?password={pswd}", User);
+        var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendRegistrationMail?password={pswd}", User);
         switch (result.StatusCode)
         {
             case System.Net.HttpStatusCode.OK:
-                uriHelper.NavigateTo("/Users");
+                uriHelper.NavigateTo("/Usuarios");
                 break;
             case System.Net.HttpStatusCode.Unauthorized:
                 uriHelper.NavigateTo("/Logout");
@@ -34,5 +43,18 @@
         }
     }
 
+    public string GenerateRandomPassword(int length)
+    {
+        StringBuilder sb = new StringBuilder();
+        
+
+        for (int i = 0; i < length; i++)
+        {
+            int randomIndex = random.Next(validChars.Length);
+            sb.Append(validChars[randomIndex]);
+        }
+
+        return sb.ToString();
+    }
 
 }

@@ -182,8 +182,20 @@ else
         }
         else
         {
-            //CAMBIAR ID
-            oRespuesta = await _estableServicio.GetBySocioId(615);
+            var usuarioId = 0;
+            var authState = await AuthenticationStateProvider
+            .GetAuthenticationStateAsync();
+            var user = authState.User;
+            foreach (var claim in user.Claims)
+            {
+                if (claim.Type == "SocioId")
+                {
+                    usuarioId = Int32.Parse(claim.Value);
+                    Console.WriteLine(usuarioId);
+                }
+
+            }
+            oRespuesta = await _estableServicio.GetBySocioId(usuarioId);
             cantidad = oRespuesta.List.Count;
         }
     }

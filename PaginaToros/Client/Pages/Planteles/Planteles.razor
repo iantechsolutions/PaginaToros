@@ -58,6 +58,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Anioex" Title="Año de Existencia" Width="4.6%" />
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Nroins" Title="Nro ultima inspeccion" Width="6.6%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" />
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Varede" Title="Vacas PR" Width="4%" />
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaquillonas PR C/S" Width="5%" />
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaquillonas PR S/S" Width="5%" />
@@ -124,7 +125,6 @@ else
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Anioex" Title="Año de Existencia" Width="4.6%" />
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Nroins" Title="Nro ultima inspeccion" Width="6.6%" />
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" />
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Varede" Title="Vacas PR" Width="4%" />
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaquillonas PR C/S" Width="5%" />
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaquillonas PR S/S" Width="5%" />
@@ -175,8 +175,21 @@ else
         }
         else
         {
+            var usuarioId = 0;
+            var authState = await AuthenticationStateProvider
+            .GetAuthenticationStateAsync();
+            var user = authState.User;
+            foreach (var claim in user.Claims)
+            {
+                if (claim.Type == "SocioId")
+                {
+                    usuarioId = Int32.Parse(claim.Value);
+                    Console.WriteLine(usuarioId);
+                }
+
+            }
             //CAMBIAR ID
-            oRespuesta = await _plantelServicio.GetBySocioId(615);
+            oRespuesta = await _plantelServicio.GetBySocioId(usuarioId);
             cantidad = oRespuesta.List.Count;
         }
     }

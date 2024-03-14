@@ -18,6 +18,8 @@ namespace PaginaToros.Shared.Models
         public DateTime? FchUsu { get; set; }
         public int? CodUsu { get; set; }
         public int Id { get; set; }
+        public int? Torovendido { get; set; }
+
         public Estable? Establecimiento { get; set; }
     }
 }

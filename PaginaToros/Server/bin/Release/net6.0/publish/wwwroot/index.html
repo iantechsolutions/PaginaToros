@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Sistema Puro Registrado</title>
+    <base href="/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="PaginaToros.Client.styles.css" rel="stylesheet" />
+    <link href="manifest.json" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    <link href="PaginaToros.Client.styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="_content/Radzen.Blazor/css/material-base.css">
+    <link href="_content/Blazored.Typeahead/blazored-typeahead.css" rel="stylesheet" />
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
+
+</head>
+
+<body>
+    <div id="app">
+        <div class="contenedor">
+            <div class="logo">
+                <img src="images/logo.png" alt="Logo">
+            </div>
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    <script src="_content/CurrieTechnologies.Razor.SweetAlert2/sweetAlert2.min.js"></script>
+    <script src="_content/Blazored.Typeahead/blazored-typeahead.js"></script>
+</body>
+
+</html>
+
+<style>
+    .contenedor {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
+
+    .logo {
+        margin-bottom: 20px;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: 5px solid #ccc;
+        border-top-color: #3498db;
+        animation: girar 1s infinite linear;
+    }
+
+    @keyframes girar {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>

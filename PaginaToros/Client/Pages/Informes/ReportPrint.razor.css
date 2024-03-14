@@ -11,7 +11,7 @@ p {
     font-weight: normal;
     text-decoration: none;
     font-size: 10pt;
-    margin: 5pt;
+    margin: 0pt;
 }
 
 .s1 {
@@ -29,7 +29,7 @@ p {
     font-style: normal;
     font-weight: normal;
     text-decoration: none;
-    font-size: 8pt;
+    font-size: 7pt;
 }
 
 table,
@@ -56,11 +56,6 @@ td {
     text-indent: 0pt;
     text-align: left;
 }
-@media-print {
-
-    .no-print {
-        display: none;
-    }
 
 /*    .table {
         page-break-inside: auto; 
@@ -77,4 +72,71 @@ td {
         margin: 0px;
         -webkit-print-color-adjust: exact;
     }*/
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    footer {
+        display: none !important;
+    }
+
+    header {
+        display: none !important;
+    }
+
+    html, body {
+        height: 99%;
+    }
+
+    .cuerpo {
+        margin-top: 10px;
+        display: block !important;
+    }
+
+    table {
+        page-break-inside: auto
+    }
+
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto
+    }
+
+    td {
+        padding: 0;
+        margin: 0;
+    }
+
+    thead {
+        display: table-header-group
+    }
+
+    tfoot {
+        display: table-footer-group
+    }
+
+    .page {
+        margin-left: 0;
+        margin-right: 0;
+        -webkit-print-color-adjust: exact;
+    }
+    body {
+        /* this affects the margin on the content before sending to printer */
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+
+.cuerpo {
+    margin-top: 10px !important;
+    width: 90% !important;
+}
+
+.container {
+    width: 95% !important;
+    justify-content: center;
+    align-items: center;
 }

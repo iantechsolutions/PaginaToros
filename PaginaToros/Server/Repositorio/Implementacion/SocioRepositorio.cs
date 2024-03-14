@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic.FileIO;
+using PaginaToros.Client.Pages.Auth;
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
@@ -33,6 +35,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
 
 
         public async Task<Socio> Obtener(Expression<Func<Socio, bool>> filtro = null)

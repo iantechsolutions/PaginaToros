@@ -2,35 +2,20 @@
 @using Blazored.Typeahead
 @inject HttpClient Http
 @inject ISocioServicio _socioServicio
-<EditForm Context="myContext" Model="@User" OnValidSubmit="@EventCallback">
-    <div style="overflow-y: auto; max-height: 63.33%;">
+<EditForm Context="myContext" Model="@User" OnValidSubmit="@EventCallback" >
+    <div style="overflow-y: auto;height:600px">
         <DataAnnotationsValidator />
         <ValidationSummary />
         <div class="row" style="margin-left:0; margin-right:0;">
             <div class="col-md-6">
                 <div class="form-group mb-3">
-                    <label>Nombres:</label>
-                    <InputText required class="form-control" @bind-Value="User.Names" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label>Apellidos:</label>
-                    <InputText required class="form-control" @bind-Value="User.LastNames" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label>Dni:</label>
-                    <InputText required class="form-control" @bind-Value="User.Dni" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label>Télefono:</label>
-                    <InputText required class="form-control" @bind-Value="User.Phone" />
+                    <label>Email:</label>
+                    <InputText class="form-control" @bind-Value="User.Email" />
                 </div>
 
                 <div class="form-group mb-3">
                     <label>Socio</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado">
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" TItem="SocioDTO" TValue="SocioDTO" ValueChanged="updateSocio" ValueExpression="@(() => socioSeleccionado)" EnableDropDown="true">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>
@@ -43,15 +28,9 @@
 
             <div class="col-md-6">
                 <div class="form-group mb-3">
-                    <label>Email:</label>
-                    <InputText class="form-control" @bind-Value="User.Email" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label>Posición:</label>
+                    <label>Rol:</label>
                     <InputSelect required class="form-control" @bind-Value="User.Rol">
                         <option value=""></option>
-                        <option value="Socio">Socio</option>
                         <option value="Inspector">Inspector</option>
 
                         @if (oRespuestaRoles == null || oRespuestaRoles.List == null)
@@ -71,7 +50,6 @@
                         }
                     </InputSelect>
                 </div>
-
                 <div class="form-group mb-3">
                     <label>Estado:</label>
                     <InputSelect required class="form-control" @bind-Value="User.Status">
@@ -89,6 +67,17 @@
             </button>
         </div>
     </div>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
 </EditForm>
 
 @code {
@@ -96,7 +85,7 @@
     [Parameter] public EventCallback EventCallback { get; set; }
     Respuesta<List<AspNetRole>> oRespuestaRoles = new Respuesta<List<AspNetRole>>();
     List<SocioDTO> socios = new();
-    SocioDTO socioSeleccionado = null;
+    public SocioDTO? socioSeleccionado = null;
     string Url = "/api/AspNetRole";
     protected override async Task OnInitializedAsync()
     {
@@ -111,6 +100,11 @@
         {
             Console.WriteLine(ex.Message);
         }
+    }
+
+    protected async Task updateSocio(SocioDTO socio)
+    {
+        User.SocioId = socio.Id;
     }
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)

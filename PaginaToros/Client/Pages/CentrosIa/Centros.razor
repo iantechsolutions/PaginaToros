@@ -96,7 +96,7 @@ else
         var userName = user.Identity.Name;
         foreach (var claim in user.Claims)
         {
-            if (claim.Type == "UsuarioId")
+            if (claim.Type == "SocioId")
             {
                 var usuarioId = claim.Value;
                 Console.WriteLine(usuarioId);

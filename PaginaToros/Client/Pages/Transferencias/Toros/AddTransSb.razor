@@ -129,6 +129,7 @@ else
                     socioComprador = socios.Where(x => x.Scod == oTranssb.Scom).First();
                     socioVendedor = socios.Where(x => x.Scod == oTranssb.Sven).First();
                     establecimientoSeleccionado = establecimientos.Where(x => x.Ecod == oTranssb.Ecod).First();
+                    toroSeleccionado = toros.Where(x => x.Id == oTranssb.Torovendido).FirstOrDefault();
                 }
                 catch
                 {
@@ -147,7 +148,8 @@ else
         oTranssb.Sven = socioVendedor.Scod;
         oTranssb.Scom = socioComprador.Scod;
         oTranssb.Ecod = establecimientoSeleccionado.Ecod;
-        toroSeleccionado.Criador= socioVendedor.Scod;
+        oTranssb.Torovendido = toroSeleccionado.Id;
+        toroSeleccionado.Criador = socioComprador.Scod;
         await _torosServicio.Editar(toroSeleccionado);
         if (Id == 0)
         {

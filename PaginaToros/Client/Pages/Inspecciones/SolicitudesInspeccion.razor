@@ -2,12 +2,10 @@
 @using PaginaToros.Client.Servicios.Contrato;
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
+@using System.Net.Mail
 @inject ISolici1Servicio _solici1Servicio
-
-<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Solicitudes de Inspeccion</h3>
-
-
-<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0)">Crear Nueva Solicitud</button>
+@inject ISocioServicio _socioServicio
+@inject HttpClient http
 <style>
 
     .rz-cell-data,
@@ -27,73 +25,226 @@
     .rz-paginator {
         border-top: solid #E0E0E0 1px;
     }
+
+    .custom-input-file {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        cursor: pointer;
+        padding: 6px 20px; /* Adjusted padding */
+        background-color: lawngreen;
+        color: black;
+        border: none;
+        border-radius: 5px;
+    }
+
+    .custom-input-file input[type="file"] {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 0;
+        padding: 0;
+        font-size: 20px;
+        cursor: pointer;
+        opacity: 0;
+        filter: alpha(opacity=0); /* For IE8 and earlier */
+    }
+
+        .custom-input-file a {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            cursor: pointer;
+            padding: 6px 20px; /* Adjusted padding */
+            background-color: lawngreen;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none; /* Remove default underline */
+        }
+
+
+
+
 </style>
 
-@if (oRespuesta.List != null)
-{
+<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+    <Authorized>
 
-    <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-    <br />
-    <br />
-    <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-          <RadzenDataGrid AllowFiltering="allowFiltering" LoadData="LoadData" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-                        Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Count="cantidad" Data="@oRespuesta.List" TItem="Solici1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+    <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Solicitudes de Inspeccion</h3>
+
+    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0)">Crear Nueva Solicitud</button>
+    @if (oRespuesta.List != null)
+    {
+        <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+        <br />
+        <br />
+        <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+              <RadzenDataGrid AllowFiltering="allowFiltering" LoadData="LoadData" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                            Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                            Count="cantidad" Data="@oRespuesta.List" TItem="Solici1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
    
-        <Columns>
-                <RadzenDataGridColumn TItem="Solici1DTO" Property="Nrosol" Title="Nro Solicitud" Width="21.7%" />
-                <RadzenDataGridColumn TItem="Solici1DTO" Property="Establecimiento.Socio.Nombre" Title="Socio" Width="21.7%"/>
-                <RadzenDataGridColumn TItem="Solici1DTO" Property="Fecsol" Title="Fecha De Solicitud" Width="21.7%">
+            <Columns>
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="Nrosol" Title="Nro Solicitud" Width="21.7%" />
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="Establecimiento.Socio.Nombre" Title="Socio" Width="21.7%"/>
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="Fecsol" Title="Fecha De Solicitud" Width="21.7%">
+                        <Template Context="data">
+                            @if (data.Fecsol.HasValue)
+                            {
+                                @data.Fecsol.Value.ToString("dd/MM/yyyy")
+                        }
+                        else{
+                        }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="Fecins" Title="Fecha De Autorizacion" Width="21.7%">
                     <Template Context="data">
-                        @if (data.Fecsol.HasValue)
+                        @if (data.Fecins.HasValue)
                         {
-                            @data.Fecsol.Value.ToString("dd/MM/yyyy")
-                    }
-                    else{
-                    }
+                                @data.Fecins.Value.ToString("dd/MM/yyyy")
+                        }
+                        else{
+
+                        }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Solici1DTO" Property="Fecins" Title="Fecha De Autorizacion" Width="21.7%">
-                <Template Context="data">
-                    @if (data.Fecins.HasValue)
-                    {
-                            @data.Fecins.Value.ToString("dd/MM/yyyy")
-                    }
-                    else{
-
-                    }
-                </Template>
-            </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
+                        <Template Context="data">
+                        <button class="btn" position="absolute" title="Editar Solicitud" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                    </Template>
+                </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
+                        <Template Context="data">
+                        <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="30px">
                     <Template Context="data">
-                    <button class="btn" position="absolute" title="Editar Solicitud" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
-                </Template>
-            </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
-                    <Template Context="data">
-                    <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="30px">
-                <Template Context="data">
-                        <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Size="16" Color="blue" /></button>
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
+                            <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Size="16" Color="blue" /></button>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
 
-    </RadzenDataGrid>
-    </div>
-}
-else
-{
-    <br />
-    <center>
-        <div class="mb-2">
-            <br />
-            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </RadzenDataGrid>
         </div>
-    </center>
-}
+    }
+    else
+    {
+        <br />
+        <center>
+            <div class="mb-2">
+                <br />
+                <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+            </div>
+        </center>
+    }
+    </Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Socio">
+    <Authorized>
+
+        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Solicitudes de Inspeccion</h3>
+
+        @if (oRespuesta.List != null)
+        {
+            <div class="row" style="border:solid 2px black;padding-top:5px;max-height:250px">
+                <div class="col-sm">
+                    <br />
+                    <br />
+                    <br />
+                    <a class="custom-input-file" href="Excel_Solicitud.xls" download target="_blank">Bajar Solicitud de Inspeccion</a>
+                    <br />
+                    <RadzenText>1. Cliquee en el boton para bajar el archivo de la solicitud en blanco</RadzenText>
+                </div>
+                <div class="col-sm">
+                    <img src="images/FileCompletion.png" alt="Complete el archivo" style="height:20%;width:auto;position:relative;left:34%">
+                    <br />
+                    <RadzenText>2. Complete la solicitud con todos los datos necesarios para realizarla</RadzenText>
+                </div>
+                <div class="col-sm">
+                    <br />
+                    <br />
+                    <br />
+                    <div class="custom-input-file">
+                        <span>Cargar excel</span>
+                        <InputFile OnChange="HandleLoadExcel" accept=".xls,.xlsx" maxAllowedFiles="1" />
+                    </div>
+                    <br />
+                    <RadzenText>3. Cuando tenga la solicitud completa clickee sobre "Cargar excel" para subirla</RadzenText>
+                </div>
+
+            </div>
+
+
+
+            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <br />
+            <br />
+            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+                <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                                Count="cantidad" Data="@oRespuesta.List" TItem="Solici1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+
+                    <Columns>
+                        <RadzenDataGridColumn TItem="Solici1DTO" Property="Nrosol" Title="Nro Solicitud" Width="21.7%" />
+                        <RadzenDataGridColumn TItem="Solici1DTO" Property="Fecsol" Title="Fecha De Solicitud" Width="21.7%">
+                            <Template Context="data">
+                                @if (data.Fecsol.HasValue)
+                                {
+                                    @data.Fecsol.Value.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Solici1DTO" Property="Fecins" Title="Fecha De Autorizacion" Width="21.7%">
+                            <Template Context="data">
+                                @if (data.Fecins.HasValue)
+                                {
+                                    @data.Fecins.Value.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
+                            <Template Context="data">
+                                <button class="btn" position="absolute" title="Editar Solicitud" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
+                            <Template Context="data">
+                                <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="30px">
+                            <Template Context="data">
+                                <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Size="16" Color="blue" /></button>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+
+                </RadzenDataGrid>
+            </div>
+        }
+        else
+        {
+            <br />
+            <center>
+                <div class="mb-2">
+                    <br />
+                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                </div>
+            </center>
+        }
+    </Authorized>
+</AuthorizeView>
+
+
 
 @code {
 
@@ -101,6 +252,7 @@ else
     public RadzenDataGrid<Solici1DTO>? grid;
     int currentPage;
     bool allowFiltering = false;
+    int socioId;
     Respuesta<List<Solici1DTO>> oRespuesta = new Respuesta<List<Solici1DTO>>();
     int cantidad;
     bool isLoading = false;
@@ -110,10 +262,35 @@ else
     }
     async Task Get()
     {
-        var c = await _solici1Servicio.CantidadTotal();
-        cantidad = c.List;
-        oRespuesta = await _solici1Servicio.Lista(0, 15);
-        StateHasChanged();
+        var esSocio = await UserHasRole("Socio");
+        if (!esSocio)
+        {
+            var c = await _solici1Servicio.CantidadTotal();
+            cantidad = c.List;
+            oRespuesta = await _solici1Servicio.Lista(0, 15);
+            StateHasChanged();
+        }
+        else
+        {
+            var authState = await AuthenticationStateProvider
+            .GetAuthenticationStateAsync();
+            var user = authState.User;
+            foreach (var claim in user.Claims)
+            {
+                if (claim.Type == "SocioId")
+                {
+                    socioId = Int32.Parse(claim.Value);
+                }
+
+            }
+            oRespuesta = await _solici1Servicio.GetBySocioId(socioId);
+        }
+
+    }
+    private async Task<bool> UserHasRole(string role)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authenticationState.User.IsInRole(role);
     }
     public void CambiarModoFiltro()
     {
@@ -234,27 +411,46 @@ else
 
     async Task gotoinfo(int id)
     {
-       currentPage = grid.CurrentPage;
-       var parameters = new ModalParameters();
-       var options = new ModalOptions()
+        currentPage = grid.CurrentPage;
+        var parameters = new ModalParameters();
+        var options = new ModalOptions()
            {
                HideHeader = true,
                HideCloseButton = true,
                Size = ModalSize.ExtraLarge
            };
-       parameters.Add(nameof(InfoSolicitud.id), id);
+        parameters.Add(nameof(InfoSolicitud.id), id);
         var formModal = Modal.Show<InfoSolicitud>("", parameters, options);
-       var result = await formModal.Result;
+        var result = await formModal.Result;
 
-       if (result.Cancelled)
-       {
-           Console.WriteLine("Modal was cancelled");
-           await grid.GoToPage(currentPage);
-       }
-       else
-       {
-           await grid.GoToPage(currentPage);
-       }
+        if (result.Cancelled)
+        {
+            Console.WriteLine("Modal was cancelled");
+            await grid.GoToPage(currentPage);
+        }
+        else
+        {
+            await grid.GoToPage(currentPage);
+        }
     }
+    async Task HandleLoadExcel(InputFileChangeEventArgs e)
+    {
+        var archivos = e.GetMultipleFiles(1);
+        var file = archivos.First();
+        using (var content = new MultipartFormDataContent())
+        {
+            content.Add(new StreamContent(file.OpenReadStream()), "file", file.Name);
 
+            HttpResponseMessage response = await http.PostAsync($"api/Solici1/SendExcel/{socioId}", content);
+        }
+        await OnInitializedAsync();
+        // MultipartFormDataContent content = new MultipartFormDataContent();
+        // content.Add(new StreamContent(file.OpenReadStream()), "file", file.Name);
+
+        // // Send the HTTP request to the controller endpoint
+        // HttpResponseMessage response = await http.PostAsync($"api/Solici1/SendExcel/{socioId}", content);
+
+        
+
+    }
 }

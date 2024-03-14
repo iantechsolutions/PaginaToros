@@ -8,32 +8,15 @@
 @using Blazored.Typeahead;
 
 <style>
-    @@media print {
-        .no-print{
-            display: none !important;
-        }
-        footer{
-            display: none!important;
-        }
-        header{
-            display: none !important;
-        }
-
-        
-        .cuerpo {
-        display: block!important;
-       
-        }
-}
-    .cuerpo {
-        margin-top: 10px !important;
-        width: 90% !important;
+    body {
+        margin-left: 0;
+        margin-right: 0;
     }
-        .container {
-        width: 95%!important;
-        justify-content: center;
-        align-items: center;
-        }
+
+    .body {
+        margin-left: 0;
+        margin-right: 0;
+    }
 </style>
 
 
@@ -50,7 +33,7 @@
 <div class="row">
     <div class="col-sm-3"/> 
     <div class="col-sm-6">
-    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Seleccione el socio" EnableDropDown="true" @bind-Value="socioSeleccionado">
+            <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Seleccione el socio" EnableDropDown="true" @bind-Value="socioSeleccionado" Disabled="seleccion">
         <SelectedTemplate Context="eleccion">
             @eleccion.Nombre
         </SelectedTemplate>
@@ -69,36 +52,36 @@
 
 </div>
 @if(socioSeleccionado!=null && terminado && opcion == 1){
-        <div class="cuerpo">
+    <div class="cuerpo">
         <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
         <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
-            <table style="border-collapse:collapse;position:relative;left:3%;width:100%!important; font-size: 8px!important;" cellspacing="0">
-            <tr>
-                <td>
+            <table style="border-collapse:collapse;position:relative; font-size: 8px!important;" cellspacing="0">
+                <tr style="white-space: nowrap;">
+                <td width="10%">
                     <p class="s2">HBA</p>
                 </td>
-                <td>
+                <td width="10%">
                     <p class="s2">Tatuaje</p>
                 </td>
-                <td>
+                <td width="10%">
                     <p class="s2">Var</p>
                 </td>
-                <td>
+                <td width="10%">
                     <p class="s2">Nacido</p>
                 </td>
-                <td>
+                <td width="15%">
                     <p class="s2">Nombre Toro</p>
                 </td>
-                <td>
+                <td width="10%">
                     <p class="s2">Es Padre Desde</p>
                 </td>
-                <td>
+                <td width="10%">
                     <p class="s2">Estado</p>
                 </td>
-                <td>
+                <td width="10%">
                     <p class="s2">-Actual?-</p>
                 </td>
-                <td>
+                <td width="15%">
                     <p class="s2">Tipo de Toro</p>
                 </td>
             </tr>
@@ -135,7 +118,7 @@
                         <p class="s2"></p>
                     </td>
                     <td>
-                        <p class="s2">@traductor[toro.TipToro]</p>
+                        <p class="s2" style="font-size:6pt">@traductor[toro.TipToro]</p>
                     </td>
                 </tr>
 
@@ -145,24 +128,11 @@
 }
 else if (opcion == 0 && socioSeleccionado != null && terminado)
 {
-      
-      <table class="cuerpo" style="width:95%!important; margin-right: 5%!important; margin-top: 0%!important;" cellspacing="0">
-       
-          <div>
-
-          <tr class="row" style="width: 100%;">
-            <th class="col-sm-7" rowspan="4" style="width: 50%;">
-                            <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
-            </th>
-            <th class="col-sm-7" rowspan="6" style="width: 50%;">
-                             <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
-            </th>        
-          </tr>
-          </div>
-          <div>
-
-        
-            <tr>
+    <div class="cuerpo">
+    <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
+            <table style="border-collapse:collapse;position:relative; font-size: 8px!important;" cellspacing="0">
+            <tr style="white-space:nowrap">
                     <td>
                         <p class="s2">Tipo cert.</p>
                     </td>
@@ -198,7 +168,7 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                     </td>
 
                 </tr>
-                @foreach (var cer in certificados)
+                @foreach (var cer in certificados.Where(x=>x.NrDosi>0))
                 {
                 <tr style="font-size: 5px!important;">
                         <td>
@@ -233,10 +203,10 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                         <p class="s2">@cer.NomDad</p>
                         </td>
                         <td>
-                        <p class="s2">@cer.NrDosi</p>
+                        <p class="s2">@cer.NrDosiOr</p>
                         </td>
                         <td>
-                        <p class="s2">@cer.NrDosiOr</p>
+                        <p class="s2">@cer.NrDosi</p>
                         </td>
                         <td>
                         <p class="s2">@cer.Variedad</p>
@@ -244,8 +214,8 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                     </tr>
 
                 }
-             </div>
-            </table>
+        </table>
+    </div>
 
 }
 else if (seleccion && !terminado)

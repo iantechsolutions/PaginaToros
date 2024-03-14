@@ -102,9 +102,9 @@ else
             <br />
             <br />
             <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-                <RadzenDataGrid AllowFiltering="allowFiltering" LoadData="LoadData" IsLoading=@isLoading AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading=@isLoading AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                                 Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                                Data="@oRespuesta.List" Count="cantotal" TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                                Data="@oRespuesta.List" TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                     <Columns>
                         <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipoCert" Title="Tipo cert." Width="6%" />
                         <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Centro.Nombre" Title="Nombre del centro" Width="7.34%" />
@@ -155,15 +155,27 @@ else
         var esSocio = await UserHasRole("Socio");
 
         if (!esSocio){
-            oRespuesta = await _certifsemanServicio.Lista(0, 15);
             var rt = await _certifsemanServicio.CantidadTotal();
             cantotal = rt.List;
+            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(cantotal - 15, cantotal);
             StateHasChanged();
         }
         else
         {
-            //CAMBIAR ID
-            oRespuesta = await _certifsemanServicio.GetBySocioId(615);
+            var usuarioId = 0;
+            var authState = await AuthenticationStateProvider
+            .GetAuthenticationStateAsync();
+            var user = authState.User;
+            foreach (var claim in user.Claims)
+            {
+                if (claim.Type == "SocioId")
+                {
+                    usuarioId = Int32.Parse(claim.Value);
+                    Console.WriteLine(usuarioId);
+                }
+
+            }
+            oRespuesta = await _certifsemanServicio.GetBySocioId(usuarioId);
             cantotal = oRespuesta.List.Count();
         }
 

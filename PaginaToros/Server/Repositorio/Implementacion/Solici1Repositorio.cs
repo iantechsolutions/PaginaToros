@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
+using System.Net.Mail;
 
 namespace PaginaToros.Server.Repositorio.Implementacion
 {
@@ -163,5 +165,6 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
     }
 }

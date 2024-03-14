@@ -1,5 +1,5 @@
 ﻿@page "/Usuarios"
-@*@attribute [Authorize(Roles = "USUARIOMAESTRO")]*@
+@*@attribute [Authorize(Roles = "USUARIOMAESTRO, ADMINISTRADOR")]*@
 @inject HttpClient http
 @inject NavigationManager uriHelper
 <style>
@@ -33,22 +33,22 @@
                             AllowSorting="true" PageSize="5" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                             Data="@Usuarios" TItem="User" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
                 <Columns>
-                    <RadzenDataGridColumn TItem="User" Property="Names" Filterable="false" Title="Nombre/s" Width="7.34%" />
-                    <RadzenDataGridColumn TItem="User" Property="LastNames" Filterable="false" Title="Apellido/s" Width="7.34%" />
-                    <RadzenDataGridColumn TItem="User" Property="Dni" Filterable="false" Title="Dni" Width="7.34%" />
-                    <RadzenDataGridColumn TItem="User" Property="Phone" Filterable="false" Title="Número" Width="7.34%" />
-                    <RadzenDataGridColumn TItem="User" Property="Rol" Filterable="false" Title="Rol" Width="7.34%" />
-                    <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="40px">
+                    <RadzenDataGridColumn TItem="User" Property="Names" Filterable="false" Title="Nombre/s" Width="15%" />
+                    <RadzenDataGridColumn TItem="User" Property="LastNames" Filterable="false" Title="Apellido/s" Width="15%" />
+                    <RadzenDataGridColumn TItem="User" Property="Dni" Filterable="false" Title="Dni" Width="15%" />
+                    <RadzenDataGridColumn TItem="User" Property="Phone" Filterable="false" Title="Número" Width="15%" />
+                    <RadzenDataGridColumn TItem="User" Property="Rol" Filterable="false" Title="Rol" Width="15  %" />
+                    <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="8%">
                         <Template Context="data">
                             <button class="btn" title="Editar" @onclick="@(()=>nav.NavigateTo($"/ActualizarUsuario/{@data.Id}"))"><FeatherEdit3 Color="green" /></button>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="40px">
+                    <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="8%">
                         <Template Context="data">
                             <button class="btn" title="Eliminar" @onclick="@(()=>nav.NavigateTo($"/EliminarUsuario/{data.Id}"))"><FeatherTrash2 Color="red" /></button>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="40px">
+                    <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="8%">
                         <Template Context="data">
                             <button class="btn" title="Info" @onclick="@(() => ShowDetails(data))"><FeatherInfo Color="blue" /></button>
                         </Template>

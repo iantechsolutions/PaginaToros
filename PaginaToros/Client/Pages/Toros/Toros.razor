@@ -71,6 +71,13 @@
                         @traductor[data.TipToro]
                     </Template>
                 </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Socio.Nombre" Title="Propietario" Width="7.34%">
+                    <Template Context="data">
+                        <a>
+                            @data.Socio.Nombre
+                        </a>
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="Variedad" Title="Variedad" Width="4%" />
                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="Sbcod" Title="Sbcod" Width="4%" />
@@ -226,8 +233,22 @@ else
         }
         else
         {
+            var usuarioId = 0;
+            var authState = await AuthenticationStateProvider
+            .GetAuthenticationStateAsync();
+            var user = authState.User;
+            foreach (var claim in user.Claims)
+            {
+                if (claim.Type == "SocioId")
+                {
+                    usuarioId = Int32.Parse(claim.Value);
+                    Console.WriteLine(usuarioId);
+                }
+
+            }
+
             //CAMBIAR ID
-            oRespuesta = await _torosServicio.GetBySocioId(615);
+            oRespuesta = await _torosServicio.GetBySocioId(usuarioId);
             cantidad = oRespuesta.List.Count();
         }
     }

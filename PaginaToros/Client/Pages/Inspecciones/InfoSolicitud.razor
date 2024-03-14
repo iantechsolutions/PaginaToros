@@ -96,7 +96,7 @@
         </table>
     </div> *@
     <br/>
-    @if (declaracion)
+    @if (Declaraciones.Count()>0)
     {
         <table class="table table-bordered text-center" id="tabla2" bottom="middle" width="334" bgcolor="#FFFFFF" align="center">
             <tbody>
@@ -115,27 +115,27 @@
                 </tr>
                 <tr>
                     <td style="font-size:12px"><strong>Disponibles</strong></td>
-                    <td>(Dec)</td>
-                    <td>(Dec)</td>
-                    <td>(Dec)</td>
+                    <td>@disponibles</td>
+                    <td>@disponibles</td>
+                    <td>0</td>
                 </tr>
                 <tr>
                     <td style="font-size:12px;background-color:#999999" ><strong>Pedidos</strong></td>
                     <td style="background-color:#999999">@oSolicitud.Cantor</td>
                     <td style="background-color:#999999">@oSolicitud.Cantvq</td>
-                        <td style="background-color:#999999">@(oSolicitud.Canvac + oSolicitud.Canvaq)</td>
+                    <td style="background-color:#999999">@(oSolicitud.Canvac + oSolicitud.Canvaq)</td>
                 </tr>
                 <tr>
                     <td style="font-size:12px"><strong>Autorizados</strong></td>
-                    <td>????res capaz </td>
-                    <td>????res capaz</td>
-                    <td>????res capaz</td>
+                    <td>@Math.Round(Math.Min((float)oSolicitud.Cantor, (float)disponibles))</td>
+                    <td>@Math.Round(Math.Min((float)oSolicitud.Cantvq, (float)disponibles))</td>
+                    <td>0</td>
                 </tr>
                 <tr>
                     <td style="font-size:12px" bgcolor="#999999"><strong>Remanentes</strong></td>
-                    <td bgcolor="#999999"><p>resta</p></td>
-                    <td bgcolor="#999999"><p>resta</p></td>
-                    <td bgcolor="#999999"><p>resta</p></td>
+                    <td bgcolor="#999999"><p>@(disponibles - Math.Round(Math.Min((float)oSolicitud.Cantor, (float)disponibles)))</p></td>
+                    <td bgcolor="#999999"><p>@(disponibles - Math.Round(Math.Min((float)oSolicitud.Cantvq, (float)disponibles)))</p></td>
+                    <td bgcolor="#999999"><p>0</p></td>
                 </tr>
                 <tr>
                     <td colspan="4" style="font-size:12px" bgcolor="#FFFFFF">
@@ -155,25 +155,13 @@
                     <td width="92"><strong style="font-size:12px">Hembras VIP</strong></td>
                 </tr>
                 <tr style="background-color:#999999">
-                    <td style="font-size:12px;background-color:#999999"><strong>Disponibles</strong></td>
-                    <td>@oSolicitud.Cantor</td>
-                    <td>@oSolicitud.Cantvq</td>
-                    <td>@oSolicitud.Canvac</td>
-                </tr>
-                <tr style="background-color:#999999">
                     <td style="font-size:12px;background-color:#999999"><strong>Pedidos</strong></td>
                     <td >@oSolicitud.Cantor</td>
                     <td >@oSolicitud.Cantvq</td>
-                    <td >@oSolicitud.Canvac</td>
+                        <td>@(oSolicitud.Canvac + oSolicitud.Canvaq)</td>
                 </tr>
                 <tr>
                     <td style="font-size:12px"><strong>Autorizados</strong></td>
-                    <td></td>
-                    <td></td>
-                    <td>0</td>
-                </tr>
-                <tr>
-                    <td style="font-size:12px"><strong>Remanentes</strong></td>
                     <td></td>
                     <td></td>
                     <td>0</td>
@@ -242,14 +230,13 @@ else
     Resin1DTO Resultado = new();
     List<Desepla1DTO> Declaraciones = new();
     List<InspectDTO> Inspectores = new();
+    double disponibles = 0;
     InspectDTO? Inspector = null;
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int id { get; set; }
     protected override async Task OnInitializedAsync()
     {
         try{
-            var rta = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 0);
-            Declaraciones = rta.List;
             var r = await _inspectServicio.LimitadosFiltrados(0, 0);
             Inspectores = r.List;
             if (id != 0)
@@ -259,10 +246,14 @@ else
                 oSolicitud = list.List.FirstOrDefault();
                 filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{oSolicitud.Nrosol}\".ToLower())";
                 var rt = await _resin1Servicio.LimitadosFiltrados(0, 1, filtro);
-
-                int anioSolicitud = 2024;
-                Declaraciones = Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year == anioSolicitud || x.Hasta.HasValue && x.Hasta.Value.Year == anioSolicitud).ToList();
-
+                var socioId = oSolicitud.Establecimiento.Socio.Id;
+                if(oSolicitud.Anio.HasValue){
+                    var rta = await _desepla1Servicio.GetBySocioId(socioId);
+                    Declaraciones = rta.List;
+                    Declaraciones = Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year == oSolicitud.Anio || x.Hasta.HasValue && x.Hasta.Value.Year == oSolicitud.Anio).ToList();
+                    Declaraciones = Declaraciones.GroupBy(x => x.Id).Select(x => x.First()).ToList();
+                    disponibles = Math.Round(Declaraciones.Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0));
+                }
                 if (rt.List.Count > 0)
                 {
                     Inspector = Inspectores.Where(x=>x.Icod==rt.List.FirstOrDefault().Icod).FirstOrDefault();
@@ -271,10 +262,7 @@ else
                 {
                     Inspector = new();
                 }
-                if (Declaraciones.Where(x => oSolicitud.Fecsol > x.Desde && oSolicitud.Fecsol < x.Hasta).Count() > 0)
-                {
-                    declaracion = true;
-                }
+
             }
         }
         catch(Exception ex)

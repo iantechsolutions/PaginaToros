@@ -2080,6 +2080,11 @@ namespace PaginaToros.Server.Context
                 entity.Property(e => e.Tyncte)
                     .HasMaxLength(20)
                     .HasColumnName("TYNCTE");
+
+                entity.Property(e => e.Anio)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("Anio");
+
             });
 
             modelBuilder.Entity<Solici1>()
@@ -2715,6 +2720,10 @@ namespace PaginaToros.Server.Context
                 entity.Property(e => e.CodUsu)
                     .HasColumnType("int(11)")
                     .HasColumnName("COD_USU");
+
+                entity.Property(e => e.Torovendido)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("TOROVENDIDO");
 
                 entity.Property(e => e.Ecod)
                     .HasMaxLength(6)

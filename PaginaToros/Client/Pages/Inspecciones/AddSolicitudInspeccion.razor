@@ -45,6 +45,10 @@
                         <label>Fecha de Autorizacion</label><br/>
                         <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                     </div>
+                    <div class="col-sm">
+                        <label>Año</label><br />
+                        <InputNumber @bind-Value="@oSolici1.Anio" class="form-control" placeholder="Año"></InputNumber>
+                    </div>
                 </div>
                 <br />
                 <div class="row" style="width=100%;">

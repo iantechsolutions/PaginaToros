@@ -192,7 +192,20 @@ else
         }
         else
         {
-            string filtro = $"Id = {615}";
+            var usuarioId = 0;
+            var authState = await AuthenticationStateProvider
+            .GetAuthenticationStateAsync();
+            var user = authState.User;
+            foreach (var claim in user.Claims)
+            {
+                if (claim.Type == "SocioId")
+                {
+                    usuarioId = Int32.Parse(claim.Value);
+                    Console.WriteLine(usuarioId);
+                }
+
+            }
+            string filtro = $"Id = {usuarioId}";
             var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
             oRespuesta = await _transanServicio.GetBySocioCod(socio.List.First().Scod);
             cantidad = oRespuesta.List.Count();

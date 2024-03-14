@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Server.Repositorio.Implementacion;
+using System.Net.Mail;
+using System.Net.Mime;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -18,10 +20,12 @@ namespace PaginaToros.Server.Controllers
 
         private readonly IMapper _mapper;
         private readonly ISolici1Repositorio _solicitudRepositorio;
-        public Solici1Controller(ISolici1Repositorio solicitudRepositorio, IMapper mapper)
+        private readonly ISocioRepositorio _socioRepositorio;
+        public Solici1Controller(ISolici1Repositorio solicitudRepositorio, ISocioRepositorio socioRepositorio, IMapper mapper)
         {
             _mapper = mapper;
             _solicitudRepositorio = solicitudRepositorio;
+            _socioRepositorio = socioRepositorio;
         }
 
         [HttpGet]
@@ -423,5 +427,46 @@ namespace PaginaToros.Server.Controllers
             }
             return Ok(oRespuesta);
         }
+
+
+        [HttpPost("SendExcel/{socioId}")]
+        public async Task<IActionResult> SendExcel(int socioId, [FromForm] IFormFile file)
+        {
+            try {
+                var tempFilePath = Path.Combine(Path.GetTempPath(), $"Excel_Solicitud_{DateTime.Now.ToString("dd_MM_yyyy")}.xls");
+                using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(fileStream);
+                }
+                string filtro = $"Id = {socioId}";
+            var rta = await _socioRepositorio.LimitadosFiltrados(0, 1, filtro);
+            Socio socio = rta.FirstOrDefault();
+            using (MailMessage mail = new MailMessage())
+            {
+                MemoryStream memoryStream = new MemoryStream();
+                await file.CopyToAsync(memoryStream);
+                mail.From = new MailAddress("puroregistrado@hotmail.com");
+                mail.To.Add("puroregistradohereford@gmail.com");
+                mail.Subject = $"Solicitud de Inspeccion de: {socio.Nombre}";
+                mail.Body = $"Nueva solicitud de inspeccion\nSocio: {socio.Nombre}";
+                mail.Attachments.Add(new Attachment(tempFilePath, MediaTypeNames.Application.Octet));
+                using (SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587))
+                {
+                    smtp.UseDefaultCredentials = false;
+                    smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2024", "hotmail.com");
+                    smtp.EnableSsl = true;
+                    smtp.Send(mail);
+                }
+            }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return Ok(); // Return 200 OK if email sent successfully
+        }
+
+
     }
 }

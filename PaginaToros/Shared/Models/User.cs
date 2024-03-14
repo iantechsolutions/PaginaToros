@@ -15,6 +15,8 @@ namespace PaginaToros.Shared.Models
         public string Status { get; set; } = null!;
         public DateTime Created { get; set; }
         public int? SocioId { get; set; }
+
+        //public string? GeneratedPswd { get; set;}
         public Socio? Socio { get; set; }
     }
 }

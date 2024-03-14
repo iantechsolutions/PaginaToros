@@ -16,11 +16,11 @@
                 </div>
                 <div class="col-sm">
                     <label>Fecha de existencia</label><br />
-                    <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTempCreacion" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@FechaTempCreacion" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 </div>
                 <div class="col-sm">
                     <label>Socio</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre"  EnableDropDown="true" @bind-Value="socioSeleccionado">
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" ValueExpression="@(()=>socioSeleccionado)"  EnableDropDown="true" ValueChanged="@( (SocioDTO c) => HandleSocioSeleccion(c) )" Value="socioSeleccionado" TValue="SocioDTO?" TItem="SocioDTO?">
                                 <SelectedTemplate Context="eleccion">
                                     @eleccion.Nombre
                                 </SelectedTemplate>
@@ -103,9 +103,7 @@
     PlantelDTO oPlantel = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
-    DateTime FechaTempInspeccion = DateTime.Now.Date;
-    DateTime FechaTempReInspeccion = DateTime.Now.Date;
-    DateTime FechaTempCreacion = DateTime.Now.Date;
+    DateTime? FechaTempCreacion = null;
 
     //string CodZona = "  ";
     bool activo = true;
@@ -131,18 +129,22 @@
                     activo = false;
                 }
                 socioSeleccionado = socios.Where(x => x.Scod == oPlantel.Nrocri).FirstOrDefault();
-
-
+                try{
+                    FechaTempCreacion = new DateTime(Int32.Parse(oPlantel.Anioex), 1, 1);
+                }catch{}
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
             }
         }
     }
     async Task Guardar()
     {
         oPlantel.Nrocri = socioSeleccionado.Scod;
-        oPlantel.Anioex = FechaTempCreacion.ToString("yyyy");
+        if(FechaTempCreacion.HasValue){
+            oPlantel.Anioex = FechaTempCreacion.Value.ToString("yyyy");
+        }
         if (activo)
         {
             oPlantel.Estado = "S";
@@ -178,6 +180,29 @@
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+    }
+
+    private async Task HandleSocioSeleccion(SocioDTO socio)
+    {
+        socioSeleccionado = socio;
+        var planteles = await _plantelServicio.GetBySocioId(socio.Id);
+        foreach (var plan in planteles.List)
+        {
+            if(oPlantel.Placod==null){
+                try{
+                    var numero = plan.Placod[0];
+                    oPlantel.Placod = (char.GetNumericValue(numero) + 1).ToString() + plan.Placod.Substring(1);
+                
+                }
+                catch(Exception  ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+        }
+        if(oPlantel.Placod==null){
+            oPlantel.Placod = "1" + planteles.List.First().Placod.Substring(1);
+        }
     }
 }
 
