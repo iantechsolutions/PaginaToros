@@ -139,6 +139,11 @@ else
                         <RadzenDataGridColumn TItem="EstableDTO" Property="Plano" Title="Informacion" Width="5.3%" />
                         <RadzenDataGridColumn TItem="EstableDTO" Property="Codzon" Title="Cod. zona" Width="4.6%" />
                         <RadzenDataGridColumn TItem="EstableDTO" Property="Fechacreacion" Title="Año Creacion" Width="5.6%" />
+                        <RadzenDataGridColumn TItem="EstableDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                            <Template Context="data">
+                                <button class="btn" position="absolute" title="Editar Establecimiento" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                            </Template>
+                        </RadzenDataGridColumn>
                     </Columns>
 
                 </RadzenDataGrid>

@@ -16,7 +16,7 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Socio</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre"  EnableDropDown="true" @bind-Value="socioSeleccionado">
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre"  EnableDropDown="true" @bind-Value="socioSeleccionado" Disabled="Id!=0">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>

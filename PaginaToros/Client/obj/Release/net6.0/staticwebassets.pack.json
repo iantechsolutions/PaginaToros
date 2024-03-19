@@ -93,6 +93,10 @@
       "PackagePath": "staticwebassets\\images\\background.jpg"
     },
     {
+      "Id": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\images\\background2.jpg",
+      "PackagePath": "staticwebassets\\images\\background2.jpg"
+    },
+    {
       "Id": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\images\\cargando.gif",
       "PackagePath": "staticwebassets\\images\\cargando.gif"
     },

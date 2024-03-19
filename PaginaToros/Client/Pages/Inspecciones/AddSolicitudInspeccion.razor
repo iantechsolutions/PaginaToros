@@ -12,7 +12,7 @@
                 <div class="col-sm"/>
                     <div class="col-md-6">
                         <label>Socio</label>
-                            <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre"  EnableDropDown="true" @bind-Value="socioSeleccionado">
+                            <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" Disabled="esSocio" EnableDropDown="true" @bind-Value="socioSeleccionado">
                                 <SelectedTemplate Context="eleccion">
                                     @eleccion.Nombre
                                 </SelectedTemplate>
@@ -28,7 +28,7 @@
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
                         <label class="col-sm">Establecimiento</label>
-                            <BlazoredTypeahead SearchMethod="BusquedaEstablecimientos" placeholder="Busque establecimiento por nombre" EnableDropDown="true" @bind-Value="establecimientoSeleccionado">
+                            <BlazoredTypeahead SearchMethod="BusquedaEstablecimientos" placeholder="Busque establecimiento por nombre" Disabled="esSocio" EnableDropDown="true" @bind-Value="establecimientoSeleccionado">
                                 <SelectedTemplate Context="eleccion">
                                     @eleccion.Nombre
                                 </SelectedTemplate>
@@ -39,39 +39,39 @@
                     </div>
                     <div class="col-sm">
                         <label>Fecha de Solicitud</label><br/>
-                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oSolici1.Fecsol" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                            <RadzenDatePicker TValue="DateTime?" @bind-Value="@oSolici1.Fecsol" ShowTime="false" Disabled="esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                     </div>
                     <div class="col-sm">
                         <label>Fecha de Autorizacion</label><br/>
-                        <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                            <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTemp" ShowTime="false" ShowSeconds="false" Disabled="esSocio" DateFormat="dd/MM/yyyy" Class="w-75" />
                     </div>
                     <div class="col-sm">
                         <label>Año</label><br />
-                        <InputNumber @bind-Value="@oSolici1.Anio" class="form-control" placeholder="Año"></InputNumber>
+                        <InputNumber @bind-Value="@oSolici1.Anio" class="form-control" placeholder="Año" disabled="esSocio"></InputNumber>
                     </div>
                 </div>
                 <br />
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
                         <label class="col-sm">Toros PR</label><br />
-                        <InputNumber @bind-Value="@oSolici1.Cantor" class="form-control" placeholder="Cantidad"></InputNumber>
+                            <InputNumber @bind-Value="@oSolici1.Cantor" class="form-control" placeholder="Cantidad" disabled="esSocio"></InputNumber>
                         <ValidationMessage For="(()=> oSolici1.Cantor)" style="color:red;" />
                     </div>
                     <div class="col-sm">
                         <label class="col-sm">Vacas PR</label><br />
-                        <InputNumber @bind-Value="@oSolici1.Cantvq" class="form-control" placeholder="Cantidad"></InputNumber>
+                            <InputNumber @bind-Value="@oSolici1.Cantvq" class="form-control" placeholder="Cantidad" disabled="esSocio"></InputNumber>
                         <ValidationMessage For="(()=> oSolici1.Cantvq)" style="color:red;" />
 
                     </div>
                     <div class="col-sm">
                         <label class="col-sm">Vacas Vip</label><br />
-                        <InputNumber @bind-Value="@oSolici1.Canvac" class="form-control" placeholder="Cantidad"></InputNumber>
+                            <InputNumber @bind-Value="@oSolici1.Canvac" class="form-control" placeholder="Cantidad" disabled="esSocio"></InputNumber>
                         <ValidationMessage For="(()=> oSolici1.Canvac)" style="color:red;" />
 
                     </div>
                     <div class="col-sm">
                         <label class="col-sm">Vaquillonas Vip</label>
-                        <InputNumber @bind-Value="@oSolici1.Canvaq" class="form-control" placeholder="Cantidad"></InputNumber>
+                            <InputNumber @bind-Value="@oSolici1.Canvaq" class="form-control" placeholder="Cantidad" disabled="esSocio"></InputNumber>
                         <ValidationMessage For="(()=> oSolici1.Canvaq)" style="color:red;" />
 
                     </div>
@@ -80,11 +80,11 @@
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
                         <label class="col-sm">Reinspeccion?</label><br/>
-                        <input type="checkbox" @bind="@activoReInspeccion">
+                            <input type="checkbox" @bind="@activoReInspeccion" disabled="esSocio">
                     </div>
                     <div class="col-sm">
                         <label class="col-sm">Control de Produccion?</label><br/>
-                        <input type="checkbox" @bind="@activoControl">
+                            <input type="checkbox" @bind="@activoControl" disabled="esSocio">
                     </div>
                     <div class="col-sm">
                     </div>
@@ -115,6 +115,7 @@ else
     List<EstableDTO> establecimientos = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
+    [Parameter] public bool esSocio { get; set; }
     DateTime FechaTemp = DateTime.Now.Date;
     bool activoReInspeccion = false;
     bool activoControl = false;

@@ -29,7 +29,7 @@
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Declaraciones de servicio</h3>
 
 
-<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0)">Agregar Declaracion</button>
+<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0,false)">Agregar Declaracion</button>
 
 
 
@@ -86,7 +86,7 @@
 
                 <RadzenDataGridColumn TItem="Desepla1DTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
-                        <button class="btn" position="absolute" title="Editar Declaracion" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                        <button class="btn" position="absolute" title="Editar Declaracion" @onclick="() => add(data.Id,false)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Desepla1DTO" Property="" Title="" Filterable="false" Width="3.33%">
@@ -176,6 +176,11 @@ else
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="Desepla1DTO" Property="Tipse" Title="Tipo de servicio" Width="5%" />
+                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="" Title="" Filterable="false" Width="3.33%">
+                            <Template Context="data">
+                                <button class="btn" position="absolute" title="Editar Declaracion" @onclick="() => add(data.Id,true)"><FeatherEdit Size="16" Color="green" /></button>
+                            </Template>
+                        </RadzenDataGridColumn>
                     </Columns>
 
                 </RadzenDataGrid>
@@ -293,7 +298,7 @@ else
         }
     }
 
-    async Task add(int Id)
+    async Task add(int Id,bool esSocio)
     {
         int numero = Id;
         if (numero != 0)
@@ -303,6 +308,8 @@ else
             {
                 var parameters = new ModalParameters();
                 parameters.Add(nameof(AddDeclaracion.Id), Id);
+                parameters.Add(nameof(AddDeclaracion.esSocio), esSocio);
+
                 var options = new ModalOptions()
                     {
                         Size = ModalSize.ExtraLarge

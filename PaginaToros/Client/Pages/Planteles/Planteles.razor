@@ -31,7 +31,7 @@
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Planteles</h3>
 
 
-<button style="position:relative;left:3.33%" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="()=>add(0)">Agregar Plantel</button>
+<button style="position:relative;left:3.33%" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="()=>add(0,false)">Agregar Plantel</button>
 
 @if (oRespuesta.List != null)
 {
@@ -67,7 +67,7 @@
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrp" Title="Vaquillonas VIP S/S" Width="4.6%" />
             <RadzenDataGridColumn TItem="PlantelDTO" Property="" Title="" Filterable="false" Width="2.3%">
                 <Template Context="data">
-                    <button class="btn" position="absolute" title="Editar Plantel @data.Id" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                    <button class="btn" position="absolute" title="Editar Plantel @data.Id" @onclick="() => add(data.Id,false)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="PlantelDTO" Property="" Title="" Filterable="false" Width="2.3%">
@@ -131,6 +131,11 @@ else
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Varepr" Title="Vacas VIP" Width="4%" />
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrp" Title="Vaquillonas VIP C/S o preñadas" Width="6.6%" />
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrp" Title="Vaquillonas VIP S/S" Width="4.6%" />
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="" Title="" Filterable="false" Width="2.3%">
+                        <Template Context="data">
+                            <button class="btn" position="absolute" title="Editar Plantel @data.Id" @onclick="() => add(data.Id,true)"><FeatherEdit Size="16" Color="green" /></button>
+                        </Template>
+                    </RadzenDataGridColumn>
                 </Columns>
 
             </RadzenDataGrid>
@@ -245,7 +250,7 @@ else
         }
     }
 
-    async Task add(int Id)
+    async Task add(int Id, bool esSocio)
     {
         int numero = Id;
         if (numero != 0)
@@ -255,6 +260,7 @@ else
             {
                 var parameters = new ModalParameters();
                 parameters.Add(nameof(AddPlantele.Id), Id);
+                parameters.Add(nameof(AddPlantele.esSocio), esSocio);
                 var options = new ModalOptions()
                     {
                         Size = ModalSize.ExtraLarge

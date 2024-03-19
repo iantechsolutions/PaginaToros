@@ -1,4 +1,4 @@
-﻿@page "/inforeporte/{Id:int}"
+﻿@page "/inforeporte/{Id:int}/{opcion:int}"
 @using Blazored.Typeahead
 @using PaginaToros.Client.Pages.CrudInspecciones
 @using PaginaToros.Client.Servicios.Contrato;
@@ -93,7 +93,7 @@
             <div class="col-sm">
                 <label>Inspector</label>
                 <br/>
-                    <BlazoredTypeahead SearchMethod="BusquedaInspects" placeholder="Busque inspector por nombre" EnableDropDown="true" @bind-Value="inspectorSeleccionado">
+                    <BlazoredTypeahead SearchMethod="BusquedaInspects" placeholder="Busque inspector por nombre" disabled="esSocio" EnableDropDown="true" @bind-Value="inspectorSeleccionado">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>
@@ -136,7 +136,7 @@
             </div>
                 <div class="col-sm">
                     <label>Plantel</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaPlanteles"  placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
+                    <BlazoredTypeahead SearchMethod="BusquedaPlanteles" Disabled="esSocio" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Placod
                         </SelectedTemplate>
@@ -152,23 +152,23 @@
             <div class="col-sm-1" />
             <div class="col-sm">
                 <label class="col-sm">Fecha De Solicitud</label>
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Fecsol" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Fecsol" disabled="esSocio" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
             </div>
             <div class="col-sm">
                 <label class="col-sm">Fecha De Inspeccion</label>
                 @if (@Id != 0)
                 {
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oResin1.Freali" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oResin1.Freali" ShowTime="false" disabled="esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 }
                 else
                 {
-                    <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" disabled="esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 }
             </div>
             <div class="col-sm">
                 <label class="col-sm">Reinspeccion?</label>
                 <br />
-                <input type="checkbox" @bind="@tempReinspeccion">
+                    <input type="checkbox" disabled="esSocio" @bind="@tempReinspeccion">
             </div>
         </div>
         <br />
@@ -179,7 +179,9 @@
             <RadzenTabs Class="w-100 mx-auto" RenderMode="TabRenderMode.Server">
                 <Tabs>
                     <RadzenTabsItem Text="Movimientos">
+                        @if(!esSocio){
                         <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>agregarMov(0)">Agregar Movimiento</button>
+                            }
                         <br/>
                         <br />
                         <div class="container">
@@ -230,7 +232,13 @@
                                                     <td>@mov.Rpvac</td>
                                                     <td>@mov.Rpvaqcs</td>
                                                     <td>@mov.Rpvaqss</td>
-                                                        <td><button class="btn" title="Editar info" @onclick='() => (agregarMov(mov.Id))'><FeatherEdit Size="16" Color="green" /></button><button class="btn" title="Borrar" @onclick='() => (alertaDeleteMovimiento(mov.Id))'><FeatherDelete Size="16" Color="red" /></button></td>
+                                                    @if(esSocio){
+                                                            <td></td>
+                                                    }
+                                                    else{
+                                                        <td><button class="btn" title="Editar info" @onclick='() => (agregarMov(mov.Id))' disabled="esSocio" ><FeatherEdit Size="16" Color="green" /></button><button class="btn" title="Borrar" @onclick='() => (alertaDeleteMovimiento(mov.Id))'><FeatherDelete Size="16" Color="red" /></button></td>
+                                                    }
+                                                    
                                                 </tr>
                                             }
                                             <tr style="background-color: #FFFF66;">
@@ -302,7 +310,12 @@
                                                 <td>@(hemyma.HdpM+hemyma.HdpAs)</td>
                                                 <td style="background-color: #666666;">-</td>
                                                 <td style="background-color: #666666;">@(hemyma.Hdp - hemyma.HdpM - hemyma.HdpAs)</td>
-                                                <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqpr"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                @if(esSocio){
+                                                    <td/>
+                                                }
+                                                else{
+                                                        <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqpr"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                }
                                             </tr>
                                             <!-- Otros PR -->
                                             <tr>
@@ -313,7 +326,14 @@
                                                 <td>@(hemyma.HppM+hemyma.HppAs)</td>
                                                 <td style="background-color: #666666;">-</td>
                                                 <td style="background-color: #666666;">@(hemyma.Hpp - hemyma.HppM - hemyma.HppAs)</td>
-                                                <td><button class="btn" title="Ver info @hemyma.Id" @onclick='() => (agregarHembraMacho("otrospr"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                @if (esSocio)
+                                                {
+                                                    <td />
+                                                }
+                                                else
+                                                {
+                                                    <td><button class="btn" title="Ver info @hemyma.Id" @onclick='() => (agregarHembraMacho("otrospr"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                }
                                             </tr>
                                             <!-- Vacas VIP -->
                                             <tr >
@@ -324,7 +344,14 @@
                                                 <td style="background-color: #666666;">-</td>
                                                 <td>@hemyma.Hgvb</td>
                                                 <td style="background-color: #666666;">@(hemyma.Hgvp-hemyma.Hgvb)</td>
-                                                <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vacvip"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                @if (esSocio)
+                                                {
+                                                    <td />
+                                                }
+                                                else
+                                                {
+                                                    <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vacvip"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                }
                                             </tr>
                                             <!-- Vaq VIP -->
                                             <tr>
@@ -335,7 +362,14 @@
                                                 <td style="background-color: #666666;">-</td>
                                                 <td>@hemyma.Hgqb</td>
                                                 <td style="background-color: #666666;">@(hemyma.Hgqp - hemyma.Hgqb)</td>
-                                                <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqvip"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                @if (esSocio)
+                                                {
+                                                    <td />
+                                                }
+                                                else
+                                                {
+                                                        <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqvip"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                    }
                                             </tr>
                                             <!-- TOTALES -->
                                             <tr style="background-color: #FF9966;">
@@ -381,7 +415,15 @@
                                                 <td>@(hemyma.McpM + hemyma.McpAs)</td>
                                                 <td style="background-color: #666666;">@(hemyma.Mcp-hemyma.McpM - hemyma.McpAs)</td>
                                                 <td style="background-color: #666666;">-</td>
-                                                <td style="background-color: #fff;"><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("scp"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                @if (esSocio)
+                                                {
+                                                    <td />
+                                                }
+                                                else
+                                                {
+                                                    <td style="background-color: #fff;"><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("scp"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                }
+                                                
                                             </tr>
                                             <!-- C.P. -->
                                             <tr>
@@ -392,7 +434,14 @@
                                                 <td>@(hemyma.MspM + hemyma.MspAs)</td>
                                                 <td style="background-color: #666666;">@(hemyma.Msp - hemyma.MspM - hemyma.MspAs)</td>
                                                 <td>@hemyma.Mspsb</td>
-                                                <td style="background-color: #fff;"><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("cp"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                @if (esSocio)
+                                                {
+                                                    <td />
+                                                }
+                                                else
+                                                {
+                                                        <td style="background-color: #fff;"><button disabled="esSocio" class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("cp"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                    }
                                             </tr>
                                                 <tr style="background-color: #FF9966;">
                                                     <td><strong>TOTALES</strong></td>
@@ -444,7 +493,13 @@
                                                 <td>@promediohembra.Pdl</td>
                                                 <td>@promediohembra.P2d</td>
                                                 <td>@promediohembra.P4d</td>
-                                                <td><button class="btn" title="Ver info" @onclick='() => (editarPromedio(promediohembra.Id,"H"))'><FeatherEdit Color="green" /></button></td>
+                                                @if(esSocio){
+                                                    <td/>
+                                                }
+                                                else{
+                                                    <td><button class="btn" title="Ver info" disabled="esSocio" @onclick='() => (editarPromedio(promediohembra.Id,"H"))'><FeatherEdit Color="green" /></button></td>
+
+                                                }
                                             </tr>
                                             <!-- MACHOS -->
                                             <tr>
@@ -458,7 +513,13 @@
                                                 <td>@promediomacho.Pdl</td>
                                                 <td>@promediomacho.P2d</td>
                                                 <td>@promediomacho.P4d</td>
-                                                <td><button class="btn" title="Ver info" @onclick='() => (editarPromedio(promediomacho.Id,"M"))'><FeatherEdit Color="green" /></button></td>
+                                                @if(esSocio){
+                                                    <td/>
+                                                }
+                                                else{
+                                                    <td><button class="btn" title="Ver info" disabled="esSocio" @onclick='() => (editarPromedio(promediomacho.Id,"M"))'><FeatherEdit Color="green" /></button></td>
+
+                                                }
                                             </tr>
                                         </tbody>
                                     </table>
@@ -492,8 +553,11 @@
                                                     <td>@re.Hembras</td>
                                                     <td>@re.Machos</td>
                                                     <td style="width:13.33%;">
+                                                        @if(!esSocio){
+
                                                         <button class="btn" title="Editar Rechazo" @onclick='() => (agregarRechazo(re.Id))'><FeatherEdit Color="green" /></button>
                                                         <button class="btn" title="Editar Rechazo" @onclick='() => (alertaDeleteRechazo(re.Id))'><FeatherTrash Color="red" /></button>
+                                                        }
                                                     </td>
                                                 </tr>
                                             }
@@ -560,6 +624,8 @@ else
     Resin2DTO estadoFinal = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
+    bool esSocio { get; set; }
+    [Parameter] public int opcion { get; set; }
     Dictionary<string, string> traductor = new Dictionary<string, string>{
         {"CO","Compras"},
         {"VE","Ventas"},
@@ -588,6 +654,7 @@ else
         try{
             var rtaaa = await _inspectServicio.LimitadosFiltrados(0, 0);
             Inspects = rtaaa.List;
+            esSocio = opcion == 1;
             var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
             Planteles = plan.List;
             if (Id != 0)

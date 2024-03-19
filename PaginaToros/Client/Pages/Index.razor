@@ -104,10 +104,20 @@
     List<inspecciones> NotFinished = new();
     protected override async Task OnInitializedAsync()
     {
+        var esSocio = await UserHasRole("Socio");
+        if (esSocio)
+        {
+            nav.NavigateTo($"/establecimientos");
+        }
         Finished = Inspecciones.Where(x => x.finished).ToList();
         NotFinished = Inspecciones.Where(x => !x.finished).ToList();
-    }
 
+    }
+    private async Task<bool> UserHasRole(string role)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authenticationState.User.IsInRole(role);
+    }
     DataItem[] revenue = new DataItem[] {
     new DataItem
     {

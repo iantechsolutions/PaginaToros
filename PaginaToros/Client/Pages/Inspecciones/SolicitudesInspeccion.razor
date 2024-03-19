@@ -73,7 +73,7 @@
 
     <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Solicitudes de Inspeccion</h3>
 
-    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0)">Crear Nueva Solicitud</button>
+    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0,false)">Crear Nueva Solicitud</button>
     @if (oRespuesta.List != null)
     {
         <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
@@ -110,7 +110,7 @@
                 </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
                         <Template Context="data">
-                        <button class="btn" position="absolute" title="Editar Solicitud" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                        <button class="btn" position="absolute" title="Editar Solicitud" @onclick="() => add(data.Id,false)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
@@ -153,7 +153,7 @@
                     <br />
                     <br />
                     <br />
-                    <a class="custom-input-file" href="Excel_Solicitud.xls" download target="_blank">Bajar Solicitud de Inspeccion</a>
+                    <a class="custom-input-file" href="Excel_Solicitud.xls" download target="_self">Bajar Solicitud de Inspeccion</a>
                     <br />
                     <RadzenText>1. Cliquee en el boton para bajar el archivo de la solicitud en blanco</RadzenText>
                 </div>
@@ -213,17 +213,7 @@
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
                             <Template Context="data">
-                                <button class="btn" position="absolute" title="Editar Solicitud" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="3.33%">
-                            <Template Context="data">
-                                <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="" Filterable="false" Width="30px">
-                            <Template Context="data">
-                                <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Size="16" Color="blue" /></button>
+                                <button class="btn" position="absolute" title="Editar Solicitud" @onclick="() => add(data.Id,true)"><FeatherEdit Size="16" Color="green" /></button>
                             </Template>
                         </RadzenDataGridColumn>
                     </Columns>
@@ -340,7 +330,7 @@
         }
     }
 
-    async Task add(int Id)
+    async Task add(int Id, bool esSocio)
     {
         int numero = Id;
         if (numero != 0)
@@ -350,6 +340,7 @@
             {
                 var parameters = new ModalParameters();
                 parameters.Add(nameof(AddSolicitudInspeccion.Id), Id);
+                parameters.Add(nameof(AddSolicitudInspeccion.esSocio), esSocio);
                 var options = new ModalOptions()
                     {
                         Size = ModalSize.ExtraLarge

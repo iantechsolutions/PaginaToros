@@ -419,6 +419,7 @@ else
 
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
+    [Parameter] public bool esSocio { get; set; }
     public string nrodec = "";
     SocioDTO? socioSeleccionado = null;
     PlantelDTO? Plantelseleccionado = null;
@@ -476,10 +477,10 @@ else
             deseplasViejos = rt.List;
             filtro = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
             var torosrta = await _torosServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
-            toros = torosrta.List;
-            filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
+            toros = torosrta.List.Where(x=>x.CodEstado=="1").ToList();
+            filtro = $"(Nrocri == null ? \"\" s: Nrocri).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
             var certrta = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
-            certificados = certrta.List;
+            certificados = certrta.List.Where(x=>x.NrDosi>0).ToList();
             Console.WriteLine(11);
             if (deseplasViejos != null && deseplasViejos.Count() > 0)
             {

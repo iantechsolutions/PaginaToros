@@ -10,17 +10,17 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Numero de Plantel</label>
-                    <InputText class="form-control" @bind-Value="@oPlantel.Placod"
+                    <InputText class="form-control" disabled="@esSocio" @bind-Value="@oPlantel.Placod"
                                placeholder="Numero"></InputText>
                     <ValidationMessage For="(()=> oPlantel.Placod)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Fecha de existencia</label><br />
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@FechaTempCreacion" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <RadzenDatePicker TValue="DateTime?" Disabled="esSocio" @bind-Value="@FechaTempCreacion" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 </div>
                 <div class="col-sm">
                     <label>Socio</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" ValueExpression="@(()=>socioSeleccionado)"  EnableDropDown="true" ValueChanged="@( (SocioDTO c) => HandleSocioSeleccion(c) )" Value="socioSeleccionado" TValue="SocioDTO?" TItem="SocioDTO?">
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" Disabled="esSocio" ValueExpression="@(()=>socioSeleccionado)"  EnableDropDown="true" ValueChanged="@( (SocioDTO c) => HandleSocioSeleccion(c) )" Value="socioSeleccionado" TValue="SocioDTO?" TItem="SocioDTO?">
                                 <SelectedTemplate Context="eleccion">
                                     @eleccion.Nombre
                                 </SelectedTemplate>
@@ -31,23 +31,23 @@
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Activo?</label><br/>
-                    <input type="checkbox" @bind="@activo">
+                    <input disabled="@esSocio" type="checkbox" @bind="@activo">
                 </div>
             </div>
             <br />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Numero de ultima inspeccion</label>
-                    <InputText @bind-Value="@oPlantel.Nroins" class="form-control" placeholder=""></InputText>
+                    <InputText @bind-Value="@oPlantel.Nroins" class="form-control" placeholder="" disabled="esSocio"></InputText>
                     <ValidationMessage For="(()=> oPlantel.Nroins)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Fecha ultima inspeccion</label><br/>
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oPlantel.Feulti" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oPlantel.Feulti" Disabled="esSocio" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 </div>
                 <div class="col-sm">
                     <label>Fecha ultima reinspeccion</label><br/>
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oPlantel.Urein" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oPlantel.Urein" Disabled="esSocio" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 </div>
 
                 
@@ -57,17 +57,17 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Vacas</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Varede" placeholder=""></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Varede" placeholder="" disabled="esSocio"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Varede)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas con servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrd" placeholder=""></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrd" placeholder="" disabled="esSocio"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqcsrd)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas sin servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrd" placeholder=""></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrd" placeholder="" disabled="esSocio"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqssrd)" style="color:red;" />
                 </div>
             </div>
@@ -76,17 +76,17 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Vacas</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Varepr" placeholder=""></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Varepr" placeholder="" disabled="esSocio"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Varepr)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas con servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrp" placeholder=""></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrp" placeholder="" disabled="esSocio"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqcsrp)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas sin servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrp" placeholder=""></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrp" placeholder="" disabled="esSocio"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqcsrp)" style="color:red;" />
                 </div>
             </div>
@@ -103,6 +103,7 @@
     PlantelDTO oPlantel = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
+    [Parameter] public bool esSocio { get; set; }
     DateTime? FechaTempCreacion = null;
 
     //string CodZona = "  ";
