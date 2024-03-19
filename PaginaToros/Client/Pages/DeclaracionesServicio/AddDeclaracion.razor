@@ -31,7 +31,7 @@
                 <div class="col-sm"/>
                 <div class="col-sm">
                     <label>Socio</label>
-                        <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioSeleccionado" ValueChanged="UpdateValores" ValueExpression="@(() => socioSeleccionado)">
+                        <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioSeleccionado" ValueChanged="UpdateValores" ValueExpression="@(() => socioSeleccionado)" Disabled="esSocio">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>
@@ -156,11 +156,11 @@
                     <div class="col-sm">
                             <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros</RadzenText>
                             <br />
-                            
 
 
-                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod)" TItem="TorosuniDTO" SelectionMode="DataGridSelectionMode.Single" 
-                            RowClick="@((args) => AddToSelectedToros(args))" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+
+                                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod).Where(x=>x.CodEstado=="1")" TItem="TorosuniDTO" SelectionMode="DataGridSelectionMode.Single"
+                                                RowClick="@((args) => AddToSelectedToros(args))" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                             <Columns>
                                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="Estado" Width="3.6%">
                                     <Template Context="data">
@@ -233,7 +233,7 @@
                     <div class="col-sm">
                     <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros</RadzenText>
                     <br/>
-                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod)" TItem="TorosuniDTO" ColumnWidth="3.33%" SelectionMode="DataGridSelectionMode.Single"
+                                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod).Where(x=>x.CodEstado=="1")" TItem="TorosuniDTO" ColumnWidth="3.33%" SelectionMode="DataGridSelectionMode.Single"
                                             RowClick="@((args) => AddToSelectedToros(args))" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                         <Columns>
                             <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="Estado" Width="3.6%">
@@ -317,7 +317,7 @@
                     <div class="col-sm">
                             <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros IA</RadzenText>
                             <br />
-                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificados.Where(x=>x.Nrocri==socioSeleccionado.Scod)" SelectionMode="DataGridSelectionMode.Single" RowClick="@((args) => AddToSelectedCertif(args))"
+                                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificados.Where(x=>x.Nrocri==socioSeleccionado.Scod).Where(x=>x.NrDosi>0)" SelectionMode="DataGridSelectionMode.Single" RowClick="@((args) => AddToSelectedCertif(args))"
                                             TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" >
                             <Columns>
                                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
@@ -452,6 +452,30 @@ else
     {
         var r = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = r.List;
+        Console.WriteLine(esSocio);
+        if (esSocio)
+        {
+            var usuarioId = 0;
+            var authState = await AuthenticationStateProvider
+            .GetAuthenticationStateAsync();
+            var user = authState.User;
+            foreach (var claim in user.Claims)
+            {
+                if (claim.Type == "SocioId")
+                {
+                    usuarioId = Int32.Parse(claim.Value);
+                    Console.WriteLine(usuarioId);
+                }
+
+            }
+            string filtro = $"Id = {usuarioId}";
+            var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
+
+            socioSeleccionado = socio.List.First();
+            UpdateValores(socioSeleccionado);
+            StateHasChanged();
+            Console.WriteLine("se setea");
+        }
         if (Id != 0)
         {
             string filtro = $"Id = {Id}";
@@ -476,11 +500,11 @@ else
             Console.WriteLine(10);
             deseplasViejos = rt.List;
             filtro = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
-            var torosrta = await _torosServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
-            toros = torosrta.List.Where(x=>x.CodEstado=="1").ToList();
-            filtro = $"(Nrocri == null ? \"\" s: Nrocri).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
-            var certrta = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
-            certificados = certrta.List.Where(x=>x.NrDosi>0).ToList();
+            var torosrta = await _torosServicio.LimitadosFiltrados(0, 0, filtro);
+            toros = torosrta.List.ToList();
+            filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
+            var certrta = await _certifsemanServicio.LimitadosFiltrados(0, 0, filtro);
+            certificados = certrta.List.ToList();
             Console.WriteLine(11);
             if (deseplasViejos != null && deseplasViejos.Count() > 0)
             {
@@ -532,8 +556,8 @@ else
             oDeclaracion.Desde = DateTime.Now;
             oDeclaracion.Hasta = DateTime.Now;
             oDeclaracion.Tipse = "NA";
-            
 
+            
 
         }
     }

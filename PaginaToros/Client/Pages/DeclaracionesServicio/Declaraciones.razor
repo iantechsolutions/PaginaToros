@@ -123,9 +123,11 @@ else
         <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Declaraciones de servicio</h3>
 
 
+        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0,true)">Agregar Declaracion</button>
 
         @if (oRespuesta.List != null)
         {
+
 
             <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
             <br />
@@ -338,7 +340,10 @@ else
                 {
                     Size = ModalSize.ExtraLarge
                 };
-            var formModal = Modal.Show<AddDeclaracion>("Agregar Declaracion", options);
+            var parameters = new ModalParameters();
+            parameters.Add(nameof(AddDeclaracion.Id), Id);
+            parameters.Add(nameof(AddDeclaracion.esSocio), esSocio);
+            var formModal = Modal.Show<AddDeclaracion>("Agregar Declaracion",parameters, options);
             var result = await formModal.Result;
 
             if (result.Cancelled)
