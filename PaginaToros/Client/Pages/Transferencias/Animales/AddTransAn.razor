@@ -3,6 +3,8 @@
 @inject ISocioServicio _sociosServicio
 @inject ITransanServicio _transanServicio
 @inject IPlantelServicio _plantelServicio
+@inject HttpClient http
+
 <style>
     .bm-title {
         font-size: 25px;
@@ -238,6 +240,15 @@ else
         if (Id == 0)
         {
             await _transanServicio.Crear(oTransan);
+            var mail = $"Aviso de nueva transferencia animal \nNroCertificado: {oTransan.NroCert} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Cantidad total de animales: {(oTransan.CantHem + oTransan.CantMach + oTransan.CantChem + oTransan.CantCmach)} ";
+            var request = new
+            {
+                Vendedor = socioVendedor.Id,
+                Comprador = socioComprador.Id,
+                Mail = mail
+            };
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else

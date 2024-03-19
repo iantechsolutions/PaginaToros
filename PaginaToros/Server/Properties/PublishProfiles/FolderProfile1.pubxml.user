@@ -5,7 +5,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>C:\Users\lolo1\source\repos\SPRPublish</_PublishTargetUrl>
-    <History>True|2024-03-05T14:02:18.6035839Z;True|2024-03-01T13:11:22.3548303-03:00;</History>
+    <History>True|2024-03-19T22:54:21.2779725Z;True|2024-03-05T11:02:18.6035839-03:00;True|2024-03-01T13:11:22.3548303-03:00;</History>
     <LastFailureDetails />
   </PropertyGroup>
 </Project>

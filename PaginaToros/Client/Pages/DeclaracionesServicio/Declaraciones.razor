@@ -240,6 +240,7 @@ else
 
             }
             oRespuesta = await _desepla1Servicio.GetBySocioId(usuarioId);
+            cantidad = oRespuesta.List.Count;
         }
 
     }
@@ -321,6 +322,7 @@ else
                 if (result.Cancelled)
                 {
                     Console.WriteLine("Modal was cancelled");
+                    await Get();
                     await grid.GoToPage(currentPage);
                 }
                 else

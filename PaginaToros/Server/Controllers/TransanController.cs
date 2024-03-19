@@ -1,20 +1,25 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PaginaToros.Client.Pages.Socios;
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
+using System.Net.Mail;
+using System.Net.Mime;
 namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class TransanController : ControllerBase
     {
+        private readonly ApplicationDbContext db;
         private readonly IMapper _mapper;
         private readonly ITransanRepositorio _TransanRepositorio;
-        public TransanController(ITransanRepositorio TransanRepositorio, IMapper mapper)
+        public TransanController(ApplicationDbContext db, ITransanRepositorio TransanRepositorio, IMapper mapper)
         {
+            this.db = db;
             _mapper = mapper;
             _TransanRepositorio = TransanRepositorio;
         }
@@ -93,6 +98,70 @@ namespace PaginaToros.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
+
+
+
+        [HttpPost]
+        [Route("SendMail")]
+        public IActionResult ExampleMethod([FromBody] ContenidoMails request)
+        {
+            // Do something with string1 and string2
+
+            string result = $"Received strings: {request.Vendedor} and {request.Comprador}";
+
+            Console.WriteLine(1);
+
+            using (MailMessage mail = new MailMessage())
+            {
+                try
+                {
+                    var socioVendedor = db.User.Where(x => x.SocioId == request.Vendedor).ToList().First();
+                    mail.To.Add(socioVendedor.Email);
+                    Console.WriteLine(2);
+                }
+                catch
+                {
+                    Console.WriteLine("Socio vendedor sin cuenta");
+                }
+                try
+                {
+                    var socioComprador = db.User.Where(x => x.SocioId == request.Comprador).ToList().First();
+                    mail.To.Add(socioComprador.Email);
+                    Console.WriteLine(3);
+                }
+                catch
+                {
+                    Console.WriteLine("Socio comprador sin cuenta");
+                }
+                MemoryStream memoryStream = new MemoryStream();
+                Console.WriteLine(4);
+                mail.From = new MailAddress("puroregistrado@hotmail.com");
+                mail.To.Add("puroregistradohereford@gmail.com");
+                Console.WriteLine(5);
+                mail.Subject = $"Nueva transferencia animal";
+                Console.WriteLine(6);
+                mail.Body = request.Mail;
+                using (SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587))
+                {
+                    Console.WriteLine(7);
+                    smtp.UseDefaultCredentials = false;
+                    smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2024", "hotmail.com");
+                    smtp.EnableSsl = true;
+                    Console.WriteLine(8);
+                    smtp.Send(mail);
+                    Console.WriteLine(9);
+                }
+            }
+
+
+
+
+            return Ok(result);
+        }
+
+
+
+
 
         [HttpDelete]
         [Route("Eliminar/{id:int}")]
@@ -201,6 +270,15 @@ namespace PaginaToros.Server.Controllers
                 _Respuesta = new Respuesta<TransanDTO>() { Exito = 1, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
+        }
+
+
+        public class ContenidoMails
+        {
+            public int Vendedor { get; set; }
+            public int Comprador { get; set; }
+            public string Mail { get; set; }
+
         }
     }
 }

@@ -1,0 +1,1 @@
+C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\browser-wasm\PubTmp\Out\web.config

@@ -53,7 +53,7 @@
       "url": "css\/open-iconic\/README.md"
     },
     {
-      "hash": "sha256-8pLmSvDYqbVNgHMoOW49OEBn8ZlrnPAwaeK14HFaO5k=",
+      "hash": "sha256-kcjAHc40WiqxR8jjq48oh5d\/q5Cd2XRsNvN3UkkI9lY=",
       "url": "Excel_Solicitud.xls"
     },
     {
@@ -71,6 +71,10 @@
     {
       "hash": "sha256-6ho\/rg\/USB3GkfRuCjGnkxamNiJbk7g6lfiVquIK7oQ=",
       "url": "images\/background.jpg"
+    },
+    {
+      "hash": "sha256-P9YREyE0QFiXvkGAhe5N4F6ktPwGhUR1lw43yqz5OyQ=",
+      "url": "images\/background2.jpg"
     },
     {
       "hash": "sha256-Oh7oCEQ1y6sagPSLOdJgU9Vc\/F6xV37BJhh76bJtM7w=",
@@ -121,7 +125,7 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-qd4z5ola\/FfJs2L424fPmhfpRFrXNJoZAumNnmvpUro=",
+      "hash": "sha256-Bs+CrBMxXYs475BI\/Xw9fYwrXsr6ugJ8R7yMiSPqKVc=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -309,11 +313,11 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-JE5z3wzX3tbj3Keo133r2\/s1c9MgwrCrP+155nUpGXE=",
+      "hash": "sha256-eReJe3Yb6gzJxJ+FXJFg3Rw6h+DqnmO3BJr9+8MVsrw=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-CigZsaPmuPwVslJzUkzUz+JsJEm9UmK4xALBGkkLRBE=",
+      "hash": "sha256-X560Yc993PvCdpuDFKLuPRSCFeT7P\/Sh08JnH2VprEw=",
       "url": "_framework\/PaginaToros.Shared.dll"
     },
     {
@@ -357,7 +361,7 @@
       "url": "_framework\/System.ComponentModel.TypeConverter.dll"
     },
     {
-      "hash": "sha256-oD8cKjfe+8K0GesuvxsaFNPfLJ+ckauuv71VJ3rT8uQ=",
+      "hash": "sha256-UmL3wYD4llxn\/yavS02Q6NIeikPgBUsfR5xdIJUNBPI=",
       "url": "_framework\/System.Console.dll"
     },
     {
@@ -429,7 +433,7 @@
       "url": "_framework\/System.ObjectModel.dll"
     },
     {
-      "hash": "sha256-9gS1F6qPBNJrW95isCSvE9vXOmA9GeLt2DRgDJkJfOk=",
+      "hash": "sha256-eiFmwBJsQysdW6BKPkosZQU5ac4krfXg2hfnvS7+gRQ=",
       "url": "_framework\/System.Private.CoreLib.dll"
     },
     {
@@ -585,7 +589,7 @@
       "url": "_framework\/dotnet.6.0.26.dhh7aztmqt.js"
     },
     {
-      "hash": "sha256-WMDYogQyGwJrR\/lwi7nXuwpJrXDpaSEOfErlJq6\/W8M=",
+      "hash": "sha256-Nz+SXZ6ftWRs0SrzmO6aabadGkCVHqyDEFWeYYBGQ+c=",
       "url": "_framework\/dotnet.wasm"
     },
     {
@@ -873,5 +877,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "XLP77L5a"
+  "version": "JQAlmcp\/"
 };

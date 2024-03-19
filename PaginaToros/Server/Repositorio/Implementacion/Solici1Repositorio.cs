@@ -122,6 +122,12 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
+                Console.WriteLine(entidad.Anio);
+                Console.WriteLine(entidad.Cantor);
+                Console.WriteLine(entidad.Cantvq);
+                Console.WriteLine(entidad.Canvac);
+                Console.WriteLine(entidad.Canvaq);
+
                 _dbContext.Set<Solici1>().Add(entidad);
                 await _dbContext.SaveChangesAsync();
                 return entidad;

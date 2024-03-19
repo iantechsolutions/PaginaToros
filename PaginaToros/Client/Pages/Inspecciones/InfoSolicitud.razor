@@ -234,6 +234,7 @@ else
     InspectDTO? Inspector = null;
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int id { get; set; }
+    List<string> aniosSoli = new();
     protected override async Task OnInitializedAsync()
     {
         try{
@@ -247,13 +248,34 @@ else
                 filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{oSolicitud.Nrosol}\".ToLower())";
                 var rt = await _resin1Servicio.LimitadosFiltrados(0, 1, filtro);
                 var socioId = oSolicitud.Establecimiento.Socio.Id;
-                if(oSolicitud.Anio.HasValue){
-                    var rta = await _desepla1Servicio.GetBySocioId(socioId);
-                    Declaraciones = rta.List;
-                    Declaraciones = Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year == oSolicitud.Anio || x.Hasta.HasValue && x.Hasta.Value.Year == oSolicitud.Anio).ToList();
-                    Declaraciones = Declaraciones.GroupBy(x => x.Id).Select(x => x.First()).ToList();
-                    disponibles = Math.Round(Declaraciones.Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0));
+
+                try
+                {
+                    aniosSoli = JsonSerializer.Deserialize<List<string>>(oSolicitud.Anio);
+
+                    if (!string.IsNullOrEmpty(oSolicitud.Anio))
+                    {
+                        var rta = await _desepla1Servicio.GetBySocioId(socioId);
+                        Declaraciones = rta.List;
+                        Declaraciones = Declaraciones.Where(x => x.Desde.HasValue && aniosSoli.Contains(x.Desde.Value.Year.ToString()) || x.Hasta.HasValue && aniosSoli.Contains(x.Hasta.Value.Year.ToString())).ToList();
+                        Declaraciones = Declaraciones.GroupBy(x => x.Id).Select(x => x.First()).ToList();
+                        disponibles = Math.Round(Declaraciones.Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0));
+                    }
                 }
+                catch
+                {
+                    aniosSoli.Add(oSolicitud.Anio);
+                        if(!string.IsNullOrEmpty(oSolicitud.Anio)){
+                        var rta = await _desepla1Servicio.GetBySocioId(socioId);
+                        Declaraciones = rta.List;
+                        Declaraciones = Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year == Int32.Parse(oSolicitud.Anio) || x.Hasta.HasValue && x.Hasta.Value.Year == Int32.Parse(oSolicitud.Anio)).ToList();
+                        Declaraciones = Declaraciones.GroupBy(x => x.Id).Select(x => x.First()).ToList();
+                        disponibles = Math.Round(Declaraciones.Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0));
+                    }
+
+                }
+
+                
                 if (rt.List.Count > 0)
                 {
                     Inspector = Inspectores.Where(x=>x.Icod==rt.List.FirstOrDefault().Icod).FirstOrDefault();

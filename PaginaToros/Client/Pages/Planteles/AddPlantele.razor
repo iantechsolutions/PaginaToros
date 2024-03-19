@@ -38,7 +38,7 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Numero de ultima inspeccion</label>
-                    <InputText @bind-Value="@oPlantel.Nroins" class="form-control" placeholder="" disabled="esSocio"></InputText>
+                    <InputText @bind-Value="@oPlantel.Nroins" class="form-control" placeholder="" disabled="@esSocio"></InputText>
                     <ValidationMessage For="(()=> oPlantel.Nroins)" style="color:red;" />
                 </div>
                 <div class="col-sm">
@@ -57,17 +57,17 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Vacas</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Varede" placeholder="" disabled="esSocio"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Varede" placeholder="" disabled="@esSocio"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Varede)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas con servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrd" placeholder="" disabled="esSocio"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrd" placeholder="" disabled="@esSocio"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqcsrd)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas sin servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrd" placeholder="" disabled="esSocio"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrd" placeholder="" disabled="@esSocio"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqssrd)" style="color:red;" />
                 </div>
             </div>
@@ -76,17 +76,17 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Vacas</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Varepr" placeholder="" disabled="esSocio"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Varepr" placeholder="" disabled="@esSocio"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Varepr)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas con servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrp" placeholder="" disabled="esSocio"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrp" placeholder="" disabled="@esSocio"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqcsrp)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas sin servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrp" placeholder="" disabled="esSocio"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrp" placeholder="" disabled="@esSocio"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqcsrp)" style="color:red;" />
                 </div>
             </div>

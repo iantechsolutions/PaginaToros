@@ -2082,7 +2082,7 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("TYNCTE");
 
                 entity.Property(e => e.Anio)
-                    .HasColumnType("int(11)")
+                    .HasMaxLength(200)
                     .HasColumnName("Anio");
 
             });
