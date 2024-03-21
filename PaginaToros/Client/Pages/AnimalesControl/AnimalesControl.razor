@@ -1,0 +1,113 @@
+﻿@page "/animalescontrol"
+
+@using PaginaToros.Client.Servicios.Contrato;
+@inject IDesepla1Servicio _desepla1Servicio
+
+
+<h3>Animales posibles para control: </h3>
+        @if (Declaraciones != null && Declaraciones.Count()>0)
+        {
+<center>
+    <h4>
+        Ingrese año de nacimiento de los animales
+    </h4>
+    <br/>
+    <div style="display:flex;flex-direction:row;align-items:center;justify-content:center">
+        <input type="number" class="form-control" @bind="@anioTemp" style="width:10%" />
+        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%;display:flex" @onclick="()=>GenerarResultado()">Consultar  <FeatherSearch Size="24" Color="Black"/> </button>
+    </div>
+
+    <br/>
+    <br/>
+    @if (generado)
+    {
+        <h4>Animales de nacimiento: @anioGenerado</h4>
+        <br/>
+        <table class="tableStyleClassTwo" id="tabla2" bottom="middle" width="334" bgcolor="#FFFFFF" align="center" style="text-align:center">
+            <tbody>
+                <tr bgcolor="#CCCCCC">
+                    <td colspan="3" bgcolor="#FFFFFF"><h3 align="center">Disponibles</h3></td>
+                </tr>
+                    <td colspan="3" bgcolor="#FFFFFF"></td>
+                <tr bgcolor="#CCCCCC">
+                    <td width="75"><strong style="font-size:12px">Toros PR</strong></td>
+                    <td width="62"><strong style="font-size:12px">Vq PR</strong></td>
+                </tr>
+                <tr>
+                    <td>@disponibles</td>
+                    <td>@disponibles</td>
+
+                </tr>
+            </tbody>
+        </table>
+    }
+    </center>
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
+@code {
+    int anioTemp;
+    int anioGenerado = 0;
+    bool generado = false;
+    bool esSocio;
+    List<Desepla1DTO> Declaraciones = new();
+    double disponibles;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Get();
+    }
+
+    private async Task GenerarResultado()
+    {
+        anioGenerado = anioTemp;
+        var dec = Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year == anioGenerado || x.Hasta.HasValue && x.Hasta.Value.Year == anioGenerado).ToList();
+        dec = dec.GroupBy(x => x.Id).Select(x => x.First()).ToList();
+        disponibles = Math.Round(dec.Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0));
+        generado = true;
+    }
+
+    async Task Get()
+    {
+         esSocio = await UserHasRole("Socio");
+        if (!esSocio)
+        {
+        }
+        else
+        {
+            var usuarioId = 0;
+            var authState = await AuthenticationStateProvider
+            .GetAuthenticationStateAsync();
+            var user = authState.User;
+            foreach (var claim in user.Claims)
+            {
+                if (claim.Type == "SocioId")
+                {
+                    usuarioId = Int32.Parse(claim.Value);
+                    Console.WriteLine(usuarioId);
+                }
+
+            }
+
+            var rta = await _desepla1Servicio.GetBySocioId(usuarioId);
+            Declaraciones = rta.List;
+        }
+
+    }
+    private async Task<bool> UserHasRole(string role)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authenticationState.User.IsInRole(role);
+    }
+
+
+}

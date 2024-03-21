@@ -125,7 +125,7 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-Bs+CrBMxXYs475BI\/Xw9fYwrXsr6ugJ8R7yMiSPqKVc=",
+      "hash": "sha256-MDlF3XNeRUHibMW2mU4spw4wPLGW2G+lzpYee\/ZOuRw=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -169,7 +169,7 @@
       "url": "_framework\/Microsoft.AspNetCore.Components.Authorization.dll"
     },
     {
-      "hash": "sha256-k1IKGoyKelHJ6ztqhjecezgJQCwYgqtdKikn5IzR7tc=",
+      "hash": "sha256-3H3dhIx\/tflGuhW9IxK7sHrdeCr1yUDlif6TSRHf0EE=",
       "url": "_framework\/Microsoft.AspNetCore.Components.dll"
     },
     {
@@ -313,7 +313,7 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-eReJe3Yb6gzJxJ+FXJFg3Rw6h+DqnmO3BJr9+8MVsrw=",
+      "hash": "sha256-euPVNPsfwVXdf4T2vlBiMRBH\/IGqkPO\/Y6pf\/+QnMMc=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
@@ -877,5 +877,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "JQAlmcp\/"
+  "version": "05lOKNY\/"
 };

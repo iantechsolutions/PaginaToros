@@ -1,7 +1,7 @@
 {
   "entryAssembly": "PaginaToros.Client",
   "resources": {
-    "hash": "sha256-q/hMc31pyvbNvOm+nsyXbjyKmigmjjsl6ESzNIL1tZQ=",
+    "hash": "sha256-VVlf1FPOAGxGtmvAxtzLyDWtXEr/A37254HMMkD3jG0=",
     "runtime": {
       "dotnet.6.0.26.dhh7aztmqt.js": "sha256-dZVPngqkNiC4z8nYXcHwvlP3cFxIrfbbzG5pDMmZjcQ=",
       "dotnet.timezones.blat": "sha256-klrDSl9zL0jGM+Fc+fiCLbJ5Z7U2C9fTDn0+NmIH9VY=",
@@ -21,7 +21,7 @@
       "Microsoft.AspNetCore.Authentication.dll": "sha256-DFfNBJMZfGVkHC93DoJ07/nLtUo9ZomWWrRGKVnRTII=",
       "Microsoft.AspNetCore.Authorization.dll": "sha256-uXLoDDsOOarcr8aUMBjBirztSgmX3FeCjMvwf0xFIfE=",
       "Microsoft.AspNetCore.Components.Authorization.dll": "sha256-s9oU5uJ4O8kvzkW+22IkSPAHRaVs2p0kaDUq6W/iCfc=",
-      "Microsoft.AspNetCore.Components.dll": "sha256-k1IKGoyKelHJ6ztqhjecezgJQCwYgqtdKikn5IzR7tc=",
+      "Microsoft.AspNetCore.Components.dll": "sha256-3H3dhIx/tflGuhW9IxK7sHrdeCr1yUDlif6TSRHf0EE=",
       "Microsoft.AspNetCore.Components.Forms.dll": "sha256-W7PmOTOYgV938bFIxLMK8dqTAd8XDrRJCdJ1OB9wLiM=",
       "Microsoft.AspNetCore.Components.Web.dll": "sha256-7TF7Z6WQbGdvlnqeom1tMNN8syu3EUmR0zoqH4mHGT4=",
       "Microsoft.AspNetCore.Components.WebAssembly.dll": "sha256-CP+sTJqluIY0rwdf0N9YjeQTIq0ml2VbyQLJvCB2URg=",
@@ -57,7 +57,7 @@
       "Microsoft.Win32.Registry.dll": "sha256-2axJkMKQ8Kxoyb1agdhqP/Plrhlpfr8jl3r6/wOW7d4=",
       "netstandard.dll": "sha256-S3K555WKrNbliqfToUTmnPr/QkbrBOHq59dfzvwPaAw=",
       "Newtonsoft.Json.dll": "sha256-IsZJ91/OW+fHzNqIgEc7Y072ns8z9dGritiSyvR9Wgc=",
-      "PaginaToros.Client.dll": "sha256-eReJe3Yb6gzJxJ+FXJFg3Rw6h+DqnmO3BJr9+8MVsrw=",
+      "PaginaToros.Client.dll": "sha256-euPVNPsfwVXdf4T2vlBiMRBH/IGqkPO/Y6pf/+QnMMc=",
       "PaginaToros.Shared.dll": "sha256-X560Yc993PvCdpuDFKLuPRSCFeT7P/Sh08JnH2VprEw=",
       "Radzen.Blazor.dll": "sha256-d5FYbYnR0OiuOlYZfKhRTnUlGeYEwPHi4n6Fmg3xTP4=",
       "System.Buffers.dll": "sha256-fvGm49OAWndCZLHwNTtD0KWIToeOHXUmY0Pa6HyGPko=",

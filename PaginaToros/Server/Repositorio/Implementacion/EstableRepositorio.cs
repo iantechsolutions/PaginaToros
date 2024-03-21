@@ -23,6 +23,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
                 // Use Skip and Take for paging, and include Socio
                 return await _dbContext.Estables.Include(t => t.Socio)
+                                                 .Include(x=>x.Provincia)
                                                  .OrderByDescending(t => t.Id)
                                                  .Skip(skip)
                                                  .Take(take)
@@ -53,11 +54,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 List<Estable> a;
                 if (filtro is not null)
                 {
-                    a = await _dbContext.Estables.Include(t => t.Socio).Where(filtro).Skip(skip).ToListAsync();
+                    a = await _dbContext.Estables.Include(t => t.Socio).Include(x => x.Provincia).Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
                 {
-                    a = await _dbContext.Estables.Include(t=>t.Socio).Skip(skip).ToListAsync();
+                    a = await _dbContext.Estables.Include(t=>t.Socio).Include(x => x.Provincia).Skip(skip).ToListAsync();
                 }
                 if (take == 0)
                 {

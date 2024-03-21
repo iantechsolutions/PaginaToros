@@ -38,7 +38,7 @@ namespace PaginaToros.Client.Servicios.Implementacion
         {
 
             string filter = $"Socio.Id = {socioId}";
-            var result = await _http.GetFromJsonAsync<Respuesta<List<Resin1DTO>>>($"api/Resin1/LimitadosFiltradosNoInclude?skip=0&take=0&expression={filter}");
+            var result = await _http.GetFromJsonAsync<Respuesta<List<Resin1DTO>>>($"api/Resin1/LimitadosFiltrados?skip=0&take=0&expression={filter}");
             return result;
         }
 
