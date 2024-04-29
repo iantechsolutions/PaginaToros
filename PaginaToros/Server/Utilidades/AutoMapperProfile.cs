@@ -93,6 +93,11 @@ namespace PaginaToros.Server.Utilidades
             CreateMap<Solici1DTO, Solici1>();
             #endregion Solici1
 
+            #region Solici1Aux
+            CreateMap<Solici1Aux, Solici1AuxDTO>();
+            CreateMap<Solici1AuxDTO, Solici1Aux>();
+            #endregion Solici1
+
             #region TorosUni
             CreateMap<Torosuni, TorosuniDTO>();
             CreateMap<TorosuniDTO, Torosuni>();

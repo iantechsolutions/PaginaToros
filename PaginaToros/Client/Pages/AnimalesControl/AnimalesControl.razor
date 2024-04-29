@@ -2,19 +2,16 @@
 
 @using PaginaToros.Client.Servicios.Contrato;
 @inject IDesepla1Servicio _desepla1Servicio
-
-
-<h3>Animales posibles para control: </h3>
-        @if (Declaraciones != null && Declaraciones.Count()>0)
-        {
+<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Animales posibles para control: </h3>
+@if (Declaraciones != null && Declaraciones.Count()>0)
+{
 <center>
-    <h4>
-        Ingrese año de nacimiento de los animales
-    </h4>
+    <br />
+    <RadzenText TextStyle="TextStyle.H5">Ingrese año de nacimiento de los animales</RadzenText>
     <br/>
     <div style="display:flex;flex-direction:row;align-items:center;justify-content:center">
         <input type="number" class="form-control" @bind="@anioTemp" style="width:10%" />
-        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%;display:flex" @onclick="()=>GenerarResultado()">Consultar  <FeatherSearch Size="24" Color="Black"/> </button>
+            <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%;display:flex" @onclick="()=>GenerarResultado()"> <FeatherSearch Size="24" Color="Black" /> Consultar </button>
     </div>
 
     <br/>

@@ -583,13 +583,20 @@ else
                 break;
         }
         List<CertifsemanDTO> certificadosAlterados = new();
+        
         foreach(var adaptacion in torosSeleccionados)
         {
             adaptacion.original.Desde = adaptacion.Desde.ToString("yyy-MM-dd");
             adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyy-MM-dd");
             seleccionFinal.Add(adaptacion.original);
-            oDeclaracion.Desde = adaptacion.Desde;
-            oDeclaracion.Hasta = adaptacion.Hasta;
+            if(tipoTemp!="Natural"){
+                if(adaptacion.Desde<oDeclaracion.Desde){
+                    oDeclaracion.Desde = adaptacion.Desde;
+                }
+                if(adaptacion.Hasta>oDeclaracion.Hasta){
+                    oDeclaracion.Hasta = adaptacion.Hasta;
+                }
+            }
         }
         foreach (var adaptacion in certificadosSeleccionados)
         {
@@ -636,7 +643,7 @@ else
     }
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+        return await Task.FromResult(socios.Where(x => x.Criador=="S" &&  x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
     private async Task<IEnumerable<PlantelDTO>> BusquedaPlanteles(string searchText)
     {

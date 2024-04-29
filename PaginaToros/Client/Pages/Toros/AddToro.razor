@@ -232,7 +232,7 @@ else
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var result = socios.Where(x => x.Criador=="S" && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 

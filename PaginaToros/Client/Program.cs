@@ -40,6 +40,7 @@ builder.Services.AddScoped<IResin6Servicio, Resin6Servicio>();
 builder.Services.AddScoped<IResin8Servicio, Resin8Servicio>();
 builder.Services.AddScoped<ISocioServicio, SocioServicio>();
 builder.Services.AddScoped<ISolici1Servicio, Solici1Servicio>();
+builder.Services.AddScoped<ISolici1AuxServicio, Solici1AuxServicio>();
 builder.Services.AddScoped<ITorosServicio, TorosServicio>();
 builder.Services.AddScoped<ITransanServicio, TransanServicio>();
 builder.Services.AddScoped<ITranssbServicio, TranssbServicio>();

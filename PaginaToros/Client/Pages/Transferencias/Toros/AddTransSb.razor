@@ -4,6 +4,7 @@
 @inject ITranssbServicio _transsbServicio
 @inject IEstableServicio _estableServicio
 @inject ITorosServicio _torosServicio
+@inject HttpClient http
 <style>
     .bm-title {
         font-size: 25px;
@@ -35,7 +36,7 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Socio Vendedor</label><br />
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioVendedor">
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" Disabled="IdSocio!=null" EnableDropDown="true" @bind-Value="socioVendedor">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>
@@ -45,8 +46,8 @@
                     </BlazoredTypeahead>
                 </div>
                 <div class="col-sm">
-                    <label class="col-sm">Socio Comprador</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioComprador">
+                    <label>Socio Comprador</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioComprador" ValueChanged="updateComprador" ValueExpression="@(() => socioComprador)" Disabled="IdSocio!=null">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>
@@ -71,16 +72,22 @@
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
                         <label class="col-sm">Toro Seleccionado</label>
-                        <BlazoredTypeahead SearchMethod="BusquedaToros" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="toroSeleccionado" Disabled="socioVendedor==null">
-                            <SelectedTemplate Context="eleccion">
-                                @eleccion.NomDad
-                            </SelectedTemplate>
-                            <ResultTemplate Context="eleccion">
-                                @eleccion.NomDad
-                            </ResultTemplate>
-                        </BlazoredTypeahead>
+                        <br/>
+                        <RadzenDropDownDataGrid TValue="string" Data=@toros.Where(x=>x.Criador==socioVendedor.Scod) TextProperty="Hba" ValueProperty="NomDad">
+                            <Columns>
+                                <RadzenDropDownDataGridColumn Property="NomDad" Title="Nombre" Width="30%" />
+                                <RadzenDropDownDataGridColumn Property="Hba" Title="HBA" Width="30%" />
+                                <RadzenDropDownDataGridColumn Property="Tatpart" Title="Tatuaje" Width="30%" />
+                            </Columns>
+                        </RadzenDropDownDataGrid>
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Mail</label>
+                        <InputText @bind-Value="@direccionCompra" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> direccionCompra)" style="color:red;" />
                     </div>
                 </div>
+                <br />
                 <br />
             <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
             <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
@@ -107,17 +114,33 @@ else
     List<TorosuniDTO> toros = new();
     EstableDTO establecimientoSeleccionado = new();
     TorosuniDTO toroSeleccionado = null;
+    IList<User> Usuarios;
+
+    string direccionCompra = "";
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
+    [Parameter] public int?  IdSocio { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         var rta = await _sociosServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
+        Console.WriteLine(1);
         var rt = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
         establecimientos = rt.List;
+        Console.WriteLine(2);
+        var result = await http.GetAsync($"api/Account/GetUsers/TODO/TODO/1");
+        var response = JsonSerializer.Deserialize<ResponseForList>(result.Content.ReadAsStringAsync().Result);
+        Usuarios = JsonSerializer.Deserialize<IList<User>>(response.EntitiesPricipal);
+        Console.WriteLine(3);
         var rtt = await _torosServicio.LimitadosFiltradosNoInclude(0, 0);
         toros = rtt.List;
+        toros = toros.Where(x=>x.TipToro=="S" && x.CodEstado=="1").ToList();
+        Console.WriteLine(4);
+        if (IdSocio != null || IdSocio != 0)
+        {
+            socioVendedor = socios.Where(x => x.Id == IdSocio).FirstOrDefault();
+        }
         if (Id != 0)
         {
             try
@@ -154,6 +177,15 @@ else
         if (Id == 0)
         {
             await _transsbServicio.Crear(oTranssb);
+            var mail = $"Aviso de nueva transferencia S/ \nNro de transaccion: {oTranssb.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Informacion del toro seleccionado: \n-Tatuaje: {toroSeleccionado.Tatpart} \n-HBA: {toroSeleccionado.Hba} \n-Nombre: {toroSeleccionado.NomDad}";
+            var request = new
+            {
+                Vendedor = socioVendedor.Id,
+                Comprador = socioComprador.Id,
+                Mail = mail,
+                Direccion = direccionCompra
+            };
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
@@ -170,7 +202,7 @@ else
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var result = socios.Where(x => x.Criador=="S" &&  x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 
@@ -184,5 +216,10 @@ else
         var result = toros.Where(x => x.Criador==socioVendedor.Scod && x.NomDad.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
-
+    protected async Task updateComprador(SocioDTO socio)
+    {
+        socioComprador = socio;
+        var usuarioComprador = Usuarios.Where(x => x.SocioId == socio.Id).ToList().First();
+        direccionCompra = usuarioComprador.Email;
+    }
 }

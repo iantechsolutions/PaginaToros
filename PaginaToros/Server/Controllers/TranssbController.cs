@@ -196,6 +196,7 @@ namespace PaginaToros.Server.Controllers
                     _TranssbParaEditar.Ecod = _Transsb.Ecod;
                     _TranssbParaEditar.FchUsu = _Transsb.FchUsu;
                     _TranssbParaEditar.CodUsu = _Transsb.CodUsu;
+                    _TranssbParaEditar.Torovendido = _Transsb.Torovendido;
                     bool respuesta = await _TranssbRepositorio.Editar(_TranssbParaEditar);
 
                     if (respuesta)

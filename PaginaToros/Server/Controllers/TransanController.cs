@@ -105,11 +105,6 @@ namespace PaginaToros.Server.Controllers
         [Route("SendMail")]
         public IActionResult ExampleMethod([FromBody] ContenidoMails request)
         {
-            // Do something with string1 and string2
-
-            string result = $"Received strings: {request.Vendedor} and {request.Comprador}";
-
-            Console.WriteLine(1);
 
             using (MailMessage mail = new MailMessage())
             {
@@ -125,9 +120,15 @@ namespace PaginaToros.Server.Controllers
                 }
                 try
                 {
-                    var socioComprador = db.User.Where(x => x.SocioId == request.Comprador).ToList().First();
-                    mail.To.Add(socioComprador.Email);
-                    Console.WriteLine(3);
+                    if (string.IsNullOrEmpty(request.Direccion)) { 
+                        var socioComprador = db.User.Where(x => x.SocioId == request.Comprador).ToList().First();
+                        mail.To.Add(socioComprador.Email);
+                        Console.WriteLine(3);
+                    }
+                    else
+                    {
+                        mail.To.Add(request.Direccion);
+                    }
                 }
                 catch
                 {
@@ -156,7 +157,7 @@ namespace PaginaToros.Server.Controllers
 
 
 
-            return Ok(result);
+            return Ok(request.Mail);
         }
 
 
@@ -278,6 +279,7 @@ namespace PaginaToros.Server.Controllers
             public int Vendedor { get; set; }
             public int Comprador { get; set; }
             public string Mail { get; set; }
+            public string? Direccion { get; set; }
 
         }
     }

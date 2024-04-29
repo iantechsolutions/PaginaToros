@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PaginaToros.Shared.Models
 {
@@ -31,5 +32,7 @@ namespace PaginaToros.Shared.Models
         public int Id { get; set; }
         public string? Anio { get; set; }
         public Estable? Establecimiento { get; set; }
+        [JsonIgnore]
+        public List<Solici1Aux>? ListaAux { get; set; }
     }
 }

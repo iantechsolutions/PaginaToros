@@ -49,11 +49,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseMySql(builder.Configuration.GetConnectionString("HerefordConnection"), ServerVersion.Parse("10.3.39-mariadb"));
+    options.UseMySql(builder.Configuration.GetConnectionString("HerefordConnection"), ServerVersion.Parse("10.3.39-mariadb"), options => options.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: System.TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null)
+                );
 });
 builder.Services.AddDbContext<hereford_prContext>(options =>
 {
-    options.UseMySql(builder.Configuration.GetConnectionString("HerefordConnection"), ServerVersion.Parse("10.3.39-mariadb"));
+    options.UseMySql(builder.Configuration.GetConnectionString("HerefordConnection"), ServerVersion.Parse("10.3.39-mariadb"), options => options.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: System.TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null)
+                );
 });
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddControllersWithViews();
@@ -75,6 +83,7 @@ builder.Services.AddScoped<IResin6Repositorio, Resin6Repositorio>();
 builder.Services.AddScoped<IResin8Repositorio, Resin8Repositorio>();
 builder.Services.AddScoped<ISocioRepositorio, SocioRepositorio>();
 builder.Services.AddScoped<ISolici1Repositorio, Solici1Repositorio>();
+builder.Services.AddScoped<ISolici1AuxRepositorio, Solici1AuxRepositorio>();
 builder.Services.AddScoped<ITorosRepositorio, TorosRepositorio>();
 builder.Services.AddScoped<ITransanRepositorio, TransanRepositorio>();
 builder.Services.AddScoped<ITranssbRepositorio, TranssbRepositorio>();

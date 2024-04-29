@@ -106,6 +106,7 @@ else
 <AuthorizeView Roles="Socio">
     <Authorized>
         <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias Animales</h3>
+        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick='()=>add(0)'>Agregar Transferencia</button>
 
         @if (oRespuesta.List != null)
         {
@@ -168,6 +169,7 @@ else
     int currentPage;
     bool isLoading = false;
     int cantidad;
+    int idSocio = 0;
     Dictionary<string, string> traductorTipo = new Dictionary<string, string>{
         {"P","Puro Pedigree (SRA)"},
         {"S","S/"},
@@ -192,7 +194,6 @@ else
         }
         else
         {
-            var usuarioId = 0;
             var authState = await AuthenticationStateProvider
             .GetAuthenticationStateAsync();
             var user = authState.User;
@@ -200,12 +201,13 @@ else
             {
                 if (claim.Type == "SocioId")
                 {
-                    usuarioId = Int32.Parse(claim.Value);
-                    Console.WriteLine(usuarioId);
+                    idSocio = Int32.Parse(claim.Value);
+                    Console.WriteLine(idSocio);
                 }
 
             }
-            string filtro = $"Id = {usuarioId}";
+            string filtro = $"Id = {idSocio}";
+            Console.WriteLine(idSocio);
             var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
             oRespuesta = await _transanServicio.GetBySocioCod(socio.List.First().Scod);
             cantidad = oRespuesta.List.Count();
@@ -278,6 +280,9 @@ else
             {
                 var parameters = new ModalParameters();
                 parameters.Add(nameof(AddTransAn.Id), Id);
+                if(idSocio != 0){
+                    parameters.Add(nameof(AddTransAn.IdSocio),idSocio);
+                }
                 var options = new ModalOptions()
                     {
                         Size = ModalSize.ExtraLarge
@@ -302,11 +307,16 @@ else
         }
         else
         {
+            var parameters = new ModalParameters();
+            if (idSocio != 0)
+            {
+                parameters.Add(nameof(AddTransAn.IdSocio), idSocio);
+            }
             var options = new ModalOptions()
                 {
                     Size = ModalSize.ExtraLarge
                 };
-            var formModal = Modal.Show<AddTransAn>("Agregar Transferencia", options);
+            var formModal = Modal.Show<AddTransAn>("Agregar Transferencia",parameters, options);
             var result = await formModal.Result;
 
             if (result.Cancelled)

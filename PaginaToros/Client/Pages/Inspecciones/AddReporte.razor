@@ -1054,7 +1054,7 @@ else
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+        return await Task.FromResult(socios.Where(x => x.Criador=="S" &&  x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
 

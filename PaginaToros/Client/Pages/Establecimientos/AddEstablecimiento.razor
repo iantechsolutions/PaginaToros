@@ -26,6 +26,12 @@
                     </BlazoredTypeahead>
                 </div>
                 <div class="col-sm">
+                    <label>Codigo de Establecimiento</label>
+                    <InputText class="form-control" @bind-Value="@oEstablecimiento.Ecod"
+                                placeholder="Codigo" disabled="@(Id!=0)"></InputText>
+                    <ValidationMessage For="(()=> oEstablecimiento.Ecod)" style="color:red;" />
+                </div>
+                <div class="col-sm">
                     <label class="col-sm">Nombre del establecimiento</label>
                     <InputText @bind-Value="@oEstablecimiento.Nombre" class="form-control" placeholder="Nombre"></InputText>
                     <ValidationMessage For="(()=> oEstablecimiento.Nombre)" style="color:red;" />
@@ -121,6 +127,7 @@ else
 }
 @code {
     EstableDTO oEstablecimiento = new();
+    EstableDTO oEstablecimientoPrevio = new();
     Respuesta<EstableDTO> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
@@ -128,6 +135,7 @@ else
     string CodZona = "  ";
     bool activo = true;
     List<SocioDTO> socios = new();
+    List<EstableDTO> estables = new();
     SocioDTO? socioSeleccionado = null;
     string provinciaTemp = "";
     List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal","Catamarca","Chaco","Chubut","Cordoba","Corrientes","Entre Rios","Formosa","Jujuy","La pampa","La rioja","Mendoza","Misiones","Neuquen","Rio negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Santiago Del Estero","Tierra del fuego","Tucuman" };
@@ -228,6 +236,8 @@ else
     {
         var rta = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
+        var rtes = await _estableServicio.LimitadosFiltradosNoInclude(0,0);
+        estables = rtes.List;
         if (Id != 0)
         {
 
@@ -236,6 +246,7 @@ else
                 string filtro = $"Id = {Id}";
                 var rt = await _estableServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
                 oEstablecimiento = rt.List.FirstOrDefault();
+                oEstablecimientoPrevio = oEstablecimiento;
                 if (oEstablecimiento.Activo == "S")
                 {
                     activo = true;
@@ -256,27 +267,60 @@ else
     }
     async Task Guardar()
     {
-        oEstablecimiento.Codsoc = socioSeleccionado.Scod;
-        oEstablecimiento.Fecing = FechaTemp.ToString("yyyy/MM/dd");
-        oEstablecimiento.Fechacreacion = FechaTemp.ToString("yyyy");
-        oEstablecimiento.Codzon = CodZona.Substring(0,2);
-        oEstablecimiento.Codpro = traductorProvincia[provinciaTemp];
-        @if (activo)
+        if(estables.Where(x=>x.Ecod==oEstablecimiento.Ecod).Count()>0)
         {
-            oEstablecimiento.Activo = "S";
+            await alertaCodigo();
+            return;
         }
         else{
-            oEstablecimiento.Activo = "N";
-        }
-        if (Id == 0)
-        {
-            await _estableServicio.Crear(oEstablecimiento);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-        }
-        else
-        {
-            await _estableServicio.Editar(oEstablecimiento);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            oEstablecimiento.Codsoc = socioSeleccionado.Scod;
+            oEstablecimiento.Fecing = FechaTemp.ToString("yyyy/MM/dd");
+            oEstablecimiento.Fechacreacion = FechaTemp.ToString("yyyy");
+            oEstablecimiento.Codzon = CodZona.Substring(0,2);
+            oEstablecimiento.Codpro = traductorProvincia[provinciaTemp];
+            @if (activo)
+            {
+                oEstablecimiento.Activo = "S";
+            }
+            else{
+                oEstablecimiento.Activo = "N";
+            }
+            if (Id == 0)
+            {
+                await _estableServicio.Crear(oEstablecimiento);
+                await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            }
+            else
+            {
+                var differences = new List<string>();
+                if (oEstablecimiento.Nombre != oEstablecimientoPrevio.Nombre) differences.Add("Nombre");
+                if (oEstablecimiento.Encargado != oEstablecimientoPrevio.Encargado) differences.Add("Encargado");
+                if (oEstablecimiento.Direcc != oEstablecimientoPrevio.Direcc) differences.Add("Direcc");
+                if (oEstablecimiento.Tel != oEstablecimientoPrevio.Tel) differences.Add("Tel");
+                if (oEstablecimiento.Locali != oEstablecimientoPrevio.Locali) differences.Add("Locali");
+                if (oEstablecimiento.Codpos != oEstablecimientoPrevio.Codpos) differences.Add("Codpos");
+                if (oEstablecimiento.Codzon != oEstablecimientoPrevio.Codzon) differences.Add("Codzon");
+                if (oEstablecimiento.Codpro != oEstablecimientoPrevio.Codpro) differences.Add("Codpro");
+                if (oEstablecimiento.Plano != oEstablecimientoPrevio.Plano) differences.Add("Plano");
+                if (oEstablecimiento.Activo != oEstablecimientoPrevio.Activo) differences.Add("Activo");
+                var socioVendedor = socios.Where(x => x.Scod == oEstablecimientoPrevio.Codsoc).FirstOrDefault();
+                var socioComprador = socios.Where(x => x.Scod == oEstablecimiento.Codsoc).FirstOrDefault();
+                var mail = $"Aviso de edicion a un establecimiento\nEstablecimiento: {oEstablecimiento.Nombre}\n";
+                foreach (var diff in differences)
+                {
+                    mail += $"{diff}: {oEstablecimientoPrevio.GetType().GetProperty(diff).GetValue(oEstablecimientoPrevio)} -> {oEstablecimiento.GetType().GetProperty(diff).GetValue(oEstablecimiento)}\n";
+                }
+                var http = new HttpClient();
+                var request = new
+                {
+                    Vendedor = socioVendedor.Id,
+                    Comprador = socioComprador.Id,
+                    Mail = mail,
+                };
+                HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+                await _estableServicio.Editar(oEstablecimiento);
+                await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            }
         }
     }
     async Task cancel()
@@ -290,8 +334,31 @@ else
         return await Task.FromResult(result);
     }
 
+    public async Task alertaCodigo()
+    {
+        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "No se puede agregar este establecimiento",
+                Text = "No se puede agregar debido a que ya existe un establecimiento con este codigo, por favor ingresar uno nuevo",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Aceptar",
+                CancelButtonText = "Cancelar"
+            });
+
+        if (!string.IsNullOrEmpty(result.Value))
+        {
+
+        }
+        else if (result.Dismiss == DismissReason.Cancel)
+        {
+
+        }
+    }
+
+
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+        return await Task.FromResult(socios.Where(x => x.Criador=="S" &&  x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
 }

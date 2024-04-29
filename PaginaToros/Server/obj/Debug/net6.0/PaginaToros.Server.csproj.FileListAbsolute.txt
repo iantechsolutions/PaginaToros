@@ -112,3 +112,4 @@ C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Server\obj\Debug\net6.0\refi
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Server\obj\Debug\net6.0\PaginaToros.Server.pdb
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Server\obj\Debug\net6.0\PaginaToros.Server.genruntimeconfig.cache
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Server\obj\Debug\net6.0\ref\PaginaToros.Server.dll
+c:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\MoreLinq.dll

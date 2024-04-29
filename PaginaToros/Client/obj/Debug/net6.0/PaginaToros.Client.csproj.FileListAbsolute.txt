@@ -940,8 +940,6 @@ C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\comp
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\mehzwwgi3j.gz
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\t3nydanbr9.gz
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\kk1mygefb5.gz
-C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\whvi0t0tat.gz
-C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\xf1cihk2sa.gz
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\44lmi3xy6m.gz
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\vvv4hcico1.gz
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\uji5zuu4c3.gz
@@ -952,3 +950,5 @@ C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\Pagi
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\refint\PaginaToros.Client.dll
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\PaginaToros.Client.pdb
 C:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\ref\PaginaToros.Client.dll
+c:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\epzxuv485h.gz
+c:\Users\lolo1\source\repos\PaginaToros\PaginaToros\Client\obj\Debug\net6.0\compressed\bksld7t31j.gz

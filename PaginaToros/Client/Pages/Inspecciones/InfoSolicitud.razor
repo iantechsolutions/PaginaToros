@@ -1,8 +1,10 @@
 ﻿@using PaginaToros.Client.Servicios.Contrato;
 @inject ISolici1Servicio _solici1Servicio
+@inject ISolici1AuxServicio _solici1AuxServicio
 @inject IDesepla1Servicio _desepla1Servicio
 @inject IResin1Servicio _resin1Servicio
 @inject IInspectServicio _inspectServicio
+@inject ISocioServicio _socioServicio
 @inject IJSRuntime _js
 <style>
     @@page {
@@ -31,7 +33,7 @@
         </div>
         <div class="col-6">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Plantel</RadzenText>
-            <RadzenText TextStyle="TextStyle.Body1"><b>-</b></RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@socio.Placod</b></RadzenText>
         </div>
         <div class="col-6">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Nombre Socio</RadzenText>
@@ -51,53 +53,47 @@
         <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecins</b></RadzenText>
     </div>
     <br/>
-@*     <div class="row">
-        <table class="tableStyleClass" bottom="middle" border="1" align="center">
-            <tbody>
-                <tr>
-                    <th width="58">Nro Declaracion</th>
-                    <th width="58">Nro Plantel</th>
-                    <th width="100">Tipo Servicio</th>
-                    <th width="100">DESDE</th>
-                    <th width="100">HASTA</th>
-                    <th width="48">Vtres PR</th>
-                    <th width="48">Vtres VIP (Base)</th>
-                    <th width="48">Toros PR</th>
-                    <th width="48">Vq PR</th>
-                </tr>
-                @foreach(var decla in Declaraciones.Where(x=>oSolicitud.Fecsol>x.Desde && oSolicitud.Fecsol < x.Hasta))
-                {
-                    <tr>
-                        <td>@decla.Nrodec</td>
-                        <td>@decla.Nroplan</td>
-                        <td>@decla.Tipse</td>
-                        @if(decla.Desde.HasValue){
-                            <td>@decla.Desde.Value.ToString("dd/MM/yyyy")</td>
-                        }
-                        else
-                        {
-                            <td/>
-                        }
-                        @if (decla.Hasta.HasValue)
-                        {
-                            <td>@decla.Hasta.Value.ToString("dd/MM/yyyy")</td>
-                        }
-                        else
-                        {
-                            <td />
-                        }
-                        <td>@decla.Cantv</td>
-                        <td>@decla.Cantb</td>
-                        <td></td>
-                        <td>12</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div> *@
     <br/>
     @if (Declaraciones.Count()>0)
     {
+        @foreach(var soliAux in ListaSoliAux){
+        if ((Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio).GroupBy(x => x.Id).Select(x => x.First())).Count()>0){
+        <center>
+        
+            <h3 style="font-weight:bold">Año de nacimiento: @soliAux.Anio</h3>
+            <br/>
+        </center>
+        <br/>
+            <table class="table table-bordered text-center" bottom="middle" border="1" align="center">
+                <tbody>
+                    <tr style="background-color: #82D682;font-size:12px">
+                        <th width="58">Nro Declaracion</th>
+                        <th width="58">Nro Plantel</th>
+                        <th width="100">Tipo Servicio</th>
+                        <th width="100">DESDE</th>
+                        <th width="100">HASTA</th>
+                        <th width="48">Vtres PR</th>
+                        <th width="48">Vtres VIP (Base)</th>
+                        <th width="48">Toros PR</th>
+                        <th width="48">Vq PR</th>
+                    </tr>
+                    @foreach (var decla in Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio).GroupBy(x => x.Id).Select(x => x.First()))
+                    {
+                        <tr class="oddClassStyle" style="background-color:#FFFFFF;width:95%">
+                            <td>@decla.Nrodec</td>
+                            <td>@decla.Nroplan</td>
+                            <td>@(traductor.ContainsKey(decla.Tipse) ? @traductor[decla.Tipse] : "") </td>
+                            <td>@(decla.Desde.HasValue ? @decla.Desde.Value.ToString("dd/MM/yyyy") : "") </td>
+                            <td>@(decla.Hasta.HasValue ? @decla.Hasta.Value.ToString("dd/MM/yyyy") : "") </td>
+                            <td>@decla.Cantv</td>
+                            <td>@decla.Cantb</td>
+                            <td>@(decla.Cantv.HasValue ? (decla.Tipse == "IR" ? Math.Round((double)(decla.Cantv * 0.8) / 2) : Math.Round((double)(decla.Cantv * 0.85) / 2)) : 0)</td>
+                            <td>@(decla.Cantv.HasValue ? (decla.Tipse == "IR" ? Math.Round((double)(decla.Cantv * 0.8) / 2) : Math.Round((double)(decla.Cantv * 0.85) / 2)) : 0)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <br/>
         <table class="table table-bordered text-center" id="tabla2" bottom="middle" width="334" bgcolor="#FFFFFF" align="center">
             <tbody>
                 <tr style="background-color:#FFFFFF">
@@ -115,26 +111,26 @@
                 </tr>
                 <tr>
                     <td style="font-size:12px"><strong>Disponibles</strong></td>
-                    <td>@disponibles</td>
-                    <td>@disponibles</td>
+                    <td>@Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0))</td>
+                    <td>@Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0))</td>
                     <td>0</td>
                 </tr>
                 <tr>
                     <td style="font-size:12px;background-color:#999999" ><strong>Pedidos</strong></td>
-                    <td style="background-color:#999999">@oSolicitud.Cantor</td>
-                    <td style="background-color:#999999">@oSolicitud.Cantvq</td>
-                    <td style="background-color:#999999">@(oSolicitud.Canvac + oSolicitud.Canvaq)</td>
+                    <td style="background-color:#999999">@soliAux.Cantor</td>
+                    <td style="background-color:#999999">@soliAux.Cantvq</td>
+                    <td style="background-color:#999999">@(soliAux.Canvac + soliAux.Canvaq)</td>
                 </tr>
                 <tr>
                     <td style="font-size:12px"><strong>Autorizados</strong></td>
-                    <td>@Math.Round(Math.Min((float)oSolicitud.Cantor, (float)disponibles))</td>
-                    <td>@Math.Round(Math.Min((float)oSolicitud.Cantvq, (float)disponibles))</td>
+                    <td>@Math.Round(Math.Min((float)soliAux.Cantor, (float)Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0))))</td>
+                    <td>@Math.Round(Math.Min((float)soliAux.Cantvq, (float)Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0))))</td>
                     <td>0</td>
                 </tr>
                 <tr>
                     <td style="font-size:12px" bgcolor="#999999"><strong>Remanentes</strong></td>
-                    <td bgcolor="#999999"><p>@(disponibles - Math.Round(Math.Min((float)oSolicitud.Cantor, (float)disponibles)))</p></td>
-                    <td bgcolor="#999999"><p>@(disponibles - Math.Round(Math.Min((float)oSolicitud.Cantvq, (float)disponibles)))</p></td>
+                    <td bgcolor="#999999"><p>@(Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0)) - Math.Round(Math.Min((float)soliAux.Cantor, (float)Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0)))))</p></td>
+                    <td bgcolor="#999999"><p>@(Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0)) - Math.Round(Math.Min((float)soliAux.Cantvq, (float)Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0)))))</p></td>
                     <td bgcolor="#999999"><p>0</p></td>
                 </tr>
                 <tr>
@@ -143,7 +139,11 @@
                 </tr>
             </tbody>
         </table>
-    }
+        <br/>
+        <br/>
+        }
+        }
+    } 
     else
     {
         <table class="table table-bordered text-center" bottom="middle" width="334" bgcolor="#FFFFFF" align="center">
@@ -229,12 +229,31 @@ else
     Solici1DTO oSolicitud = new();
     Resin1DTO Resultado = new();
     List<Desepla1DTO> Declaraciones = new();
+    SocioDTO socio = new();
     List<InspectDTO> Inspectores = new();
     double disponibles = 0;
     InspectDTO? Inspector = null;
+    List<Solici1AuxDTO> ListaSoliAux = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int id { get; set; }
     List<string> aniosSoli = new();
+    Dictionary<string, string> traductor = new Dictionary<string, string>
+    {
+        {"Natural","NA"},
+        {"Natural a Corral","NC"},
+        {"Santa Fe","IATFR"},
+        {"Inseminacion c/p y rep","IAPR"},
+        {"Inseminacion c/celo y rep","IACR"},
+        {"Inseminacion c/celo","IA"},
+        {"NA", "Natural"},
+        {"NC", "Natural a Corral"},
+        {"IR", "Inseminacion c/celo y rep"},
+        {"IATFR", "Santa Fe"},
+        {"IAPR", "Inseminacion c/p y rep"},
+        {"IACR", "Inseminacion c/celo y rep"},
+        {"IA", "Inseminacion c/celo"},
+        {"ANUAL", "Inseminacion c/celo y rep"}
+    };
     protected override async Task OnInitializedAsync()
     {
         try{
@@ -245,35 +264,27 @@ else
                 string filtro = $"Id = {id}";
                 var list = await _solici1Servicio.LimitadosFiltrados(0, 1, filtro);
                 oSolicitud = list.List.FirstOrDefault();
+
+                var auxs = await _solici1AuxServicio.GetBySolId(id);
+                ListaSoliAux = auxs.List;
+
                 filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{oSolicitud.Nrosol}\".ToLower())";
                 var rt = await _resin1Servicio.LimitadosFiltrados(0, 1, filtro);
                 var socioId = oSolicitud.Establecimiento.Socio.Id;
+                
+                filtro = $"Id == {socioId}";
+                var sociorta = await _socioServicio.LimitadosFiltrados(0,0,filtro);
+                socio = sociorta.List.First();
 
-                try
-                {
-                    aniosSoli = JsonSerializer.Deserialize<List<string>>(oSolicitud.Anio);
-
-                    if (!string.IsNullOrEmpty(oSolicitud.Anio))
-                    {
-                        var rta = await _desepla1Servicio.GetBySocioId(socioId);
-                        Declaraciones = rta.List;
-                        Declaraciones = Declaraciones.Where(x => x.Desde.HasValue && aniosSoli.Contains(x.Desde.Value.Year.ToString()) || x.Hasta.HasValue && aniosSoli.Contains(x.Hasta.Value.Year.ToString())).ToList();
-                        Declaraciones = Declaraciones.GroupBy(x => x.Id).Select(x => x.First()).ToList();
-                        disponibles = Math.Round(Declaraciones.Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0));
-                    }
+                foreach(var aux in ListaSoliAux){
+                    aniosSoli.Add(aux.Anio);
                 }
-                catch
-                {
-                    aniosSoli.Add(oSolicitud.Anio);
-                        if(!string.IsNullOrEmpty(oSolicitud.Anio)){
-                        var rta = await _desepla1Servicio.GetBySocioId(socioId);
-                        Declaraciones = rta.List;
-                        Declaraciones = Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year == Int32.Parse(oSolicitud.Anio) || x.Hasta.HasValue && x.Hasta.Value.Year == Int32.Parse(oSolicitud.Anio)).ToList();
-                        Declaraciones = Declaraciones.GroupBy(x => x.Id).Select(x => x.First()).ToList();
-                        disponibles = Math.Round(Declaraciones.Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0));
-                    }
-
-                }
+                var rta = await _desepla1Servicio.GetBySocioId(socioId);
+                Declaraciones = rta.List;
+                Declaraciones = Declaraciones.Where(x => x.Desde.HasValue && aniosSoli.Contains(x.Desde.Value.Year.ToString()) || x.Hasta.HasValue && aniosSoli.Contains(x.Hasta.Value.Year.ToString())).ToList();
+                Declaraciones = Declaraciones.GroupBy(x => x.Id).Select(x => x.First()).ToList();
+                disponibles = Math.Round(Declaraciones.Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0));
+                
 
                 
                 if (rt.List.Count > 0)

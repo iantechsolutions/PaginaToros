@@ -298,11 +298,13 @@ else
         }
         else
         {
+            var parameters = new ModalParameters();
+            parameters.Add(nameof(AddEstablecimiento.Id), 0);
             var options = new ModalOptions()
                 {
                     Size = ModalSize.ExtraLarge
                 };
-            var formModal = Modal.Show<AddEstablecimiento>("Agregar Establecimiento",options);
+            var formModal = Modal.Show<AddEstablecimiento>("Agregar Establecimiento",parameters,options);
             var result = await formModal.Result;
 
             if (result.Cancelled)

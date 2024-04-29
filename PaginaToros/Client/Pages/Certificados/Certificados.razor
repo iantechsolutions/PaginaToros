@@ -3,6 +3,7 @@
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
 @using Blazored.Typeahead;
+@inject ISocioServicio _socioServicio
 @inject ICertifsemanServicio _certifsemanServicio
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -37,8 +38,24 @@
 
 @if (oRespuesta.List != null)
 {
-    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="outline:none; float: right;margin-right:3%;height:100%;" @onclick="()=>PaginaReporte()">Reporte x socio</button>
-    <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <div class="row">
+                <div class="col-3" />
+                <div class="col-4">
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" class="max-w-sm" placeholder="Buscar por socio" EnableDropDown="true" @bind-Value="socioSeleccionado">
+                        <SelectedTemplate Context="eleccion">
+                            @eleccion.Nombre
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @eleccion.Nombre
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                </div>
+                <div class="col-5">
+                    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="outline:none; float: right;margin-right:3%;height:100%;" @onclick="()=>PaginaReporte()">Reporte x socio</button>
+                    <button style="outline:none; float: right;margin-right:3%;height:100%;" class="no-print px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+                    <button class="font-bold px-8 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="outline:none; float: right;margin-right:3%;height:100%;" @onclick="()=>BuscarPorSocio()">Buscar</button>
+                </div>
+            </div>
     <br />
     <br />
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
@@ -142,6 +159,8 @@ else
     public RadzenDataGrid<CertifsemanDTO>? grid;
     int currentPage;
     int cantotal;
+    SocioDTO socioSeleccionado;
+    List<SocioDTO> socios = new List<SocioDTO>();
     bool isLoading = false;
     public bool allowFiltering = false;
     List<CentrosiumDTO> centros = new();
@@ -155,6 +174,8 @@ else
         var esSocio = await UserHasRole("Socio");
 
         if (!esSocio){
+            var rta = await _socioServicio.LimitadosFiltrados(0, 0);
+            socios = rta.List;
             var rt = await _certifsemanServicio.CantidadTotal();
             cantotal = rt.List;
             oRespuesta = await _certifsemanServicio.LimitadosFiltrados(cantotal - 15, cantotal);
@@ -295,14 +316,29 @@ else
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
-        if (!string.IsNullOrEmpty(args.Filter))
-        {
-            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
-            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+        if(socioSeleccionado==null){
+            if (!string.IsNullOrEmpty(args.Filter))
+            {
+                oRespuesta = await _certifsemanServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+                // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+            }
+            else
+            {
+                oRespuesta = await _certifsemanServicio.Lista(args.Skip.Value, args.Top.Value);
+            }
         }
         else
         {
-            oRespuesta = await _certifsemanServicio.Lista(args.Skip.Value, args.Top.Value);
+            if (!string.IsNullOrEmpty(args.Filter))
+            {
+                oRespuesta = await _certifsemanServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+                // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+            }
+            else
+            {
+                string filtro = $"Socio.Id={socioSeleccionado.Id}";
+                oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 60,filtro);
+            }
         }
 
         isLoading = false;
@@ -311,4 +347,21 @@ else
     {
         nav.NavigateTo($"/reporteprint/0");
     }
+
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
+    {
+        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+
+    private async Task BuscarPorSocio()
+    {
+        if (socioSeleccionado != null)
+        {
+            var coso = new LoadDataArgs();
+            coso.Filter = "";
+            await LoadData(coso);
+        }
+    }
+
 }

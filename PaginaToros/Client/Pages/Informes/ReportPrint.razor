@@ -8,6 +8,11 @@
 @using Blazored.Typeahead;
 
 <style>
+    @@mediá print{
+        @@page{
+            margin:0
+        }
+    }
     body {
         margin-left: 0;
         margin-right: 0;
@@ -55,7 +60,7 @@
     <div class="cuerpo">
         <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
         <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
-            <table style="border-collapse:collapse;position:relative; font-size: 8px!important;" cellspacing="0">
+            <table style="border-collapse:collapse;position:relative; font-size: 8px!important;width:700px" cellspacing="0">
                 <tr style="white-space: nowrap;">
                 <td width="10%">
                     <p class="s2">HBA</p>
@@ -131,7 +136,7 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
     <div class="cuerpo">
     <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
     <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
-            <table style="border-collapse:collapse;position:relative; font-size: 8px!important;" cellspacing="0">
+        <table style="border-collapse:collapse;position:relative; font-size: 8px!important;width:700px" cellspacing="0">
             <tr style="white-space:nowrap">
                     <td>
                         <p class="s2">Tipo cert.</p>
@@ -172,7 +177,7 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                 {
                 <tr style="font-size: 5px!important;">
                         <td>
-                        <p class ="s2">@cer.TipoCert</p>
+                        <p class ="s2">@cer.TipoCert.ToUpper()</p>
                         </td>
                         <td>
                         <p class="s2">@cer.NroCert</p>
@@ -183,7 +188,7 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                         <td>
                             @if (cer.Fecvta.HasValue)
                             {
-                                <p>@cer.Fecvta.Value.ToString("dd/MM/yyyy")</p>
+                                <p class="s2">@cer.Fecvta.Value.ToString("dd/MM/yyyy")</p>
                             }
                             else
                             {

@@ -140,6 +140,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
         public async Task<bool> Editar(Solici1 entidad)
         {
+            Console.WriteLine(entidad.Anio);
             try
             {
                 _dbContext.Update(entidad);

@@ -3,7 +3,7 @@
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ISocioServicio _socioServicio
-
+@using Blazored.Typeahead
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Socios</h3>
 
 
@@ -32,7 +32,6 @@
 
 @if (oRespuesta.List != null)
 {
-
     <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
     <br />
     <br />
@@ -209,6 +208,7 @@ else
         else
         {
             var parameters = new ModalParameters();
+            parameters.Add(nameof(AddSocio.Id), Id);
             var options = new ModalOptions()
                 {
                     Size = ModalSize.ExtraLarge
@@ -271,6 +271,5 @@ else
 
         isLoading = false;
     }
-
 
 }

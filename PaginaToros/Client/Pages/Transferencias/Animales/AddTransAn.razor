@@ -31,7 +31,7 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Socio Vendedor</label><br />
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioVendedor">
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" Disabled="IdSocio!=null" EnableDropDown="true" @bind-Value="socioVendedor">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>
@@ -41,8 +41,8 @@
                     </BlazoredTypeahead>
                 </div>
                 <div class="col-sm">
-                    <label class="col-sm">Socio Comprador</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioComprador">
+                    <label>Socio Comprador</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioComprador" ValueChanged="updateComprador" ValueExpression="@(() => socioComprador)" Disabled="IdSocio!=null">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>
@@ -130,6 +130,14 @@
                 </div>
             </div>
             <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm">
+                    <label class="col-sm">Mail</label>
+                    <InputText @bind-Value="@direccionCompra" class="form-control" placeholder=""></InputText>
+                    <ValidationMessage For="(()=> direccionCompra)" style="color:red;" />
+                </div>
+            </div>
+            <br />
             <br />
 
             <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
@@ -153,6 +161,7 @@ else
     SocioDTO socioComprador = new();
     SocioDTO socioVendedor = new();
     List<SocioDTO> socios = new();
+    IList<User> Usuarios;
     List<PlantelDTO> Planteles = new();
     List<string> tiposHembra = new List<string> { "VQ", "VA" };
     List<string> tiposHacienda = new List<string> { "PHPR (Puro Registrado)", "HPR (Puro Registrado)", "PHVIP (VIP)", "HVIP (VIP)" };
@@ -196,13 +205,22 @@ else
 
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
-
+    [Parameter] public int? IdSocio { get; set; }
+    string direccionCompra = "";
     protected override async Task OnInitializedAsync()
     {
+        Console.WriteLine(IdSocio);
         var rta = await _sociosServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
+        var result = await http.GetAsync($"api/Account/GetUsers/TODO/TODO/1");
+        var response = JsonSerializer.Deserialize<ResponseForList>(result.Content.ReadAsStringAsync().Result);
+        Usuarios = JsonSerializer.Deserialize<IList<User>>(response.EntitiesPricipal);
         var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
         Planteles = rt.List;
+        if(IdSocio != null || IdSocio !=0){
+            socioVendedor = socios.Where(x=>x.Id==IdSocio).FirstOrDefault();
+        }
+        
         if (Id != 0)
         {
             try
@@ -245,7 +263,8 @@ else
             {
                 Vendedor = socioVendedor.Id,
                 Comprador = socioComprador.Id,
-                Mail = mail
+                Mail = mail,
+                Direccion = direccionCompra
             };
             HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
 
@@ -263,9 +282,16 @@ else
 
     }
 
+    protected async Task updateComprador(SocioDTO socio)
+    {
+        socioComprador = socio;
+        var usuarioComprador = Usuarios.Where(x => x.SocioId == socio.Id).ToList().First();
+        direccionCompra = usuarioComprador.Email;
+    }
+
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var result = socios.Where(x => x.Criador=="S" &&  x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 

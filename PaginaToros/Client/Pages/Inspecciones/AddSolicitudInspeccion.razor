@@ -1,6 +1,7 @@
 ﻿@using Blazored.Typeahead
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ISolici1Servicio _solici1Servicio
+@inject ISolici1AuxServicio _solici1AuxServicio
 @inject IEstableServicio _estableServicio
 @inject ISocioServicio _socioServicio
 @if(establecimientos.Count>0){
@@ -76,6 +77,10 @@
                                 <label>Año</label><br />
                                 <InputText @bind-Value="@soli.Anio" class="form-control" placeholder="Año" disabled="@esSocio"></InputText>
                             </div>
+                            <div class="col-sm">
+                                <br/>
+                                <button style="padding-top:15px ;" type="button" title="Eliminar" @onclick="() => deleteSolAux(soli.Id)"><FeatherXCircle Size="16" Color="red" /></button>
+                            </div>
                         </div>
                     }
 
@@ -125,9 +130,9 @@ else
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public bool esSocio { get; set; }
-    
-    List<Solici1DTO> listadoSolicitudes = new ();
 
+    List<Solici1DTO> listadoSolicitudes = new ();
+    List<Solici1AuxDTO> listadoSolicitudesAuxOriginal = new();
     DateTime FechaTemp = DateTime.Now.Date;
     bool activoReInspeccion = false;
     bool activoControl = false;
@@ -147,6 +152,18 @@ else
                 string filtro = $"Id = {Id}";
                 var coso = await _solici1Servicio.LimitadosFiltradosNoInclude(0,1,filtro);
                 oSolici1 = coso.List.FirstOrDefault();
+                var rtaAux = await _solici1AuxServicio.GetBySolId(oSolici1.Id);
+                listadoSolicitudesAuxOriginal = rtaAux.List;
+                foreach(var solAux in listadoSolicitudesAuxOriginal){
+                    Solici1DTO soli = new();
+                    soli.Id = solAux.Id;
+                    soli.Cantor = solAux.Cantor;
+                    soli.Cantvq = solAux.Cantvq;
+                    soli.Canvac = solAux.Canvac;
+                    soli.Canvaq = solAux.Canvaq;
+                    soli.Anio = solAux.Anio;
+                    listadoSolicitudes.Add(soli);
+                }
                 establecimientoSeleccionado = establecimientos.Where(x => x.Ecod == oSolici1.Codest).FirstOrDefault();
                 socioSeleccionado = socios.Where(x => x.Scod == establecimientoSeleccionado.Codsoc).FirstOrDefault();
                 if (oSolici1.Reinsp=="S")
@@ -175,37 +192,15 @@ else
             {
             }
         }
-        listadoSolicitudes.Add(oSolici1);
+        if(listadoSolicitudesAuxOriginal.Count()==0){
+            listadoSolicitudes.Add(oSolici1);
+        }
+        
     }
     async Task Guardar()
     {
 
-        Solici1DTO soliPush = new();
-        soliPush.Cantor = 0;
-        soliPush.Cantvq = 0;
-        soliPush.Canvac = 0;
-        soliPush.Canvaq = 0;
-        var anios = new List<string?>();
-
-        foreach(var data in listadoSolicitudes)
-        {
-
-            soliPush.Cantor = soliPush.Cantor + (data.Cantor ?? 0);
-            soliPush.Cantvq = soliPush.Cantvq + (data.Cantvq ?? 0);
-            soliPush.Canvac = soliPush.Canvac + (data.Canvac ?? 0);
-            soliPush.Canvaq = soliPush.Canvaq + (data.Canvaq ?? 0);
-            anios.Add(data.Anio);
-        }
-        if (anios.Count() > 1)
-        {
-            soliPush.Anio = JsonSerializer.Serialize<List<string>>(anios);
-        }
-        else
-        {
-            soliPush.Anio = anios.First();
-        }
-
-        soliPush.Fecsol = listadoSolicitudes.First().Fecsol;
+        Solici1DTO soliPush = oSolici1;
         soliPush.Fecins = FechaTemp;
         if (activoControl)
         {
@@ -227,13 +222,37 @@ else
 
         if (Id == 0)
         {
-            await _solici1Servicio.Crear(soliPush);
+            var rta = await _solici1Servicio.Crear(soliPush);
+            oSolici1 = rta.List;
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-            await _solici1Servicio.Editar(soliPush);
+            soliPush.Id = oSolici1.Id;
+            var coso = await _solici1Servicio.Editar(soliPush);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        foreach(var data in listadoSolicitudes)
+        {
+            if(data.Id==0 || data.Id==oSolici1.Id){
+                Solici1AuxDTO soliAux = new();
+                soliAux.Cantor = data.Cantor;
+                soliAux.Cantvq = data.Cantvq;
+                soliAux.Canvac = data.Canvac;
+                soliAux.Canvaq = data.Canvaq;
+                soliAux.Anio = data.Anio;
+                soliAux.IdSoli = oSolici1.Id;
+                await _solici1AuxServicio.Crear(soliAux);
+            }
+            else{
+                Solici1AuxDTO soliAux = listadoSolicitudesAuxOriginal.Where(x => x.Id == data.Id).FirstOrDefault();
+                soliAux.Cantor = data.Cantor;
+                soliAux.Cantvq = data.Cantvq;
+                soliAux.Canvac = data.Canvac;
+                soliAux.Canvaq = data.Canvaq;
+                soliAux.Anio = data.Anio;
+                await _solici1AuxServicio.Editar(soliAux);
+            }
         }
     }
     async Task cancel()
@@ -241,11 +260,16 @@ else
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
 
     }
-    
+    public async Task deleteSolAux(int id)
+    {
+        await _solici1AuxServicio.Eliminar(id);
+        listadoSolicitudesAuxOriginal= listadoSolicitudesAuxOriginal.Where(x=>x.Id!=id).ToList();
+        listadoSolicitudes = listadoSolicitudes.Where(x=>x.Id!=id).ToList();
+    }
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+        return await Task.FromResult(socios.Where(x => x.Criador=="S" &&  x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
     private async Task<IEnumerable<EstableDTO>> BusquedaEstablecimientos(string searchText)

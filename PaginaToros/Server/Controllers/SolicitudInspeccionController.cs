@@ -194,7 +194,7 @@ namespace PaginaToros.Server.Controllers
             {
                 Solici1 _Solicitud = _mapper.Map<Solici1>(request);
                 Solici1 _SolicitudParaEditar = await _solicitudRepositorio.Obtener(u => u.Id == _Solicitud.Id);
-
+                Console.WriteLine(_Solicitud.Id);
                 if (_SolicitudParaEditar != null)
                 {
                     _SolicitudParaEditar.Nrosol = _Solicitud.Nrosol;
@@ -220,9 +220,10 @@ namespace PaginaToros.Server.Controllers
                     _SolicitudParaEditar.Fecret = _Solicitud.Fecret;
                     _SolicitudParaEditar.FchUsu = _Solicitud.FchUsu;
                     _SolicitudParaEditar.CodUsu = _Solicitud.CodUsu;
-
+                    _SolicitudParaEditar.Anio = _Solicitud.Anio;
+                    Console.WriteLine(_SolicitudParaEditar.Anio);
                     bool respuesta = await _solicitudRepositorio.Editar(_SolicitudParaEditar);
-
+                    Console.WriteLine(respuesta);
                     if (respuesta)
                         _Respuesta = new Respuesta<Solici1DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Solici1DTO>(_SolicitudParaEditar) };
                     else
@@ -389,6 +390,7 @@ namespace PaginaToros.Server.Controllers
                     _SolicitudParaEditar.Fecret = _Solicitud.Fecret;
                     _SolicitudParaEditar.FchUsu = _Solicitud.FchUsu;
                     _SolicitudParaEditar.CodUsu = _Solicitud.CodUsu;
+                    _SolicitudParaEditar.Anio = _Solicitud.Anio;
                     db.Entry(_SolicitudParaEditar).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     db.SaveChanges();

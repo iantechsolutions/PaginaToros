@@ -53,6 +53,7 @@ namespace PaginaToros.Server.Context
         public virtual DbSet<Retenida> Retenidas { get; set; } = null!;
         public virtual DbSet<Socio> Socios { get; set; } = null!;
         public virtual DbSet<Solici1> Solici1s { get; set; } = null!;
+        public virtual DbSet<Solici1Aux> Solici1Auxs { get; set; } = null!;
         public virtual DbSet<Solici4> Solici4s { get; set; } = null!;
         public virtual DbSet<Solici6> Solici6s { get; set; } = null!;
         public virtual DbSet<TorosRural> TorosRurals { get; set; } = null!;
@@ -71,7 +72,11 @@ namespace PaginaToros.Server.Context
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseMySql("server=vxsct3514.avnam.net;port=3306;user=herefordapp_com_ar;password=RWEr4dod6g3G;persist security info=True;database=hereford_pr;convert zero datetime=True", ServerVersion.Parse("10.3.39-mariadb"));
+                optionsBuilder.UseMySql("server=vxsct3514.avnam.net;port=3306;user=herefordapp_com_ar;password=RWEr4dod6g3G;persist security info=True;database=hereford_pr;convert zero datetime=True", ServerVersion.Parse("10.3.39-mariadb"), options => options.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: System.TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null)
+                );
             }
         }
 
@@ -2093,11 +2098,48 @@ namespace PaginaToros.Server.Context
                .HasForeignKey(t => t.Codest)
                .HasPrincipalKey(s => s.Ecod);
 
-            //modelBuilder.Entity<Solici1>()
-            // .HasOne(p => p.)
-            // .WithMany(s => s.Establecimientos)
-            // .HasForeignKey(t => t.Codsoc)
-            // .HasPrincipalKey(s => s.Scod);
+
+            modelBuilder.Entity<Solici1Aux>(entity =>
+            {
+                entity.ToTable("SOLICI1AUX");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.IdSoli)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("IdSoli");
+
+                entity.Property(e => e.Cantor)
+                    .HasColumnName("CANTOR")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Cantvq)
+                    .HasColumnName("CANTVQ")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Canvac)
+                    .HasColumnName("CANVAC")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Canvaq)
+                    .HasColumnName("CANVAQ")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.Anio)
+                    .HasMaxLength(200)
+                    .HasColumnName("Anio");
+
+            });
+
+            modelBuilder.Entity<Solici1Aux>()
+               .HasOne(s => s.Solicitud)
+               .WithMany(e => e.ListaAux)
+               .HasForeignKey(t => t.IdSoli)
+               .HasPrincipalKey(s => s.Id);
+
+
             modelBuilder.Entity<Solici4>(entity =>
             {
                 entity.ToTable("SOLICI4");

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PaginaToros.Shared")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9bc52c0ec8a4af81e0b4a40b4b8383e19f0762ec")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4e4831594cc6c6ef9029a661ba3838bfab4dbc2e")]
 [assembly: System.Reflection.AssemblyProductAttribute("PaginaToros.Shared")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PaginaToros.Shared")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

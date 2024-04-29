@@ -162,6 +162,7 @@ else
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
     public RadzenDataGrid<FutcontrolDTO>? grid;
     int currentPage;
+    int socioId = 0;
     public bool allowFiltering = false;
     bool isLoading = false;
     int cantidad;
@@ -175,10 +176,10 @@ else
         var esSocio = await UserHasRole("Socio");
         if (!esSocio)
         {
-        var c = await _futcontrolServicio.CantidadTotal();
-        cantidad = c.List;
-        oRespuesta = await _futcontrolServicio.Lista(0, 15);
-        StateHasChanged();
+            var c = await _futcontrolServicio.CantidadTotal();
+            cantidad = c.List;
+            oRespuesta = await _futcontrolServicio.Lista(0, 15);
+            StateHasChanged();
         }
         else
         {
@@ -195,6 +196,7 @@ else
                 }
 
             }
+            socioId = usuarioId;
             string filtro = $"Id = {usuarioId}";
             var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
             oRespuesta = await _futcontrolServicio.GetBySocioCod(socio.List.First().Scod);
@@ -269,6 +271,10 @@ else
             {
                 var parameters = new ModalParameters();
                 parameters.Add(nameof(AddTransferenciaFu.Id), Id);
+                if (socioId != 0)
+                {
+                    parameters.Add(nameof(AddTransferenciaFu.IdSocio), socioId);
+                }
                 var options = new ModalOptions()
                     {
                         Size = ModalSize.ExtraLarge
@@ -293,11 +299,16 @@ else
         }
         else
         {
+            var parameters = new ModalParameters();
+            if (socioId != 0)
+            {
+                parameters.Add(nameof(AddTransferenciaFu.IdSocio), socioId);
+            }
             var options = new ModalOptions()
                 {
                     Size = ModalSize.ExtraLarge
                 };
-            var formModal = Modal.Show<AddTransferenciaFu>("Agregar Transaccion", options);
+            var formModal = Modal.Show<AddTransferenciaFu>("Agregar Transaccion",parameters, options);
             var result = await formModal.Result;
 
             if (result.Cancelled)
