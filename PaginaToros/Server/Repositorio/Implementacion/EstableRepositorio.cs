@@ -135,9 +135,38 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                _dbContext.Update(entidad);
-                await _dbContext.SaveChangesAsync();
-                return true;
+                var estableviejo = _dbContext.Find<Estable>(entidad.Id);
+                try
+                {
+                    if(estableviejo.Ecod!= entidad.Ecod)
+                    {
+                        var solicis = _dbContext.Solici1s.Where(x => x.Codest == estableviejo.Ecod).ToList();
+                        foreach(var soli in solicis)
+                        {
+                            soli.Codest = entidad.Ecod;
+                            _dbContext.Update(soli);
+                        }
+                        var transsbs = _dbContext.Transsbs.Where(x => x.Ecod == estableviejo.Ecod).ToList();
+                        foreach(var tran in transsbs)
+                        {
+                            tran.Ecod = entidad.Ecod;
+                            _dbContext.Update(tran);
+                        }
+                        var resins = _dbContext.Resin1s.Where(x => x.Estcod == estableviejo.Ecod).ToList();
+                        foreach(var resi in resins)
+                        {
+                            resi.Estcod = entidad.Ecod;
+                            _dbContext.Update(resi);
+                        }
+                    }
+                    _dbContext.Update(entidad);
+                    await _dbContext.SaveChangesAsync();
+                    return true;
+                }
+                catch {
+                    return false;
+                }
+                
             }
             catch
             {

@@ -210,6 +210,7 @@ namespace PaginaToros.Server.Controllers
                     _CertifsemanParaEditar.CodUsu = _Certifseman.CodUsu;
                     _CertifsemanParaEditar.Id = _Certifseman.Id;
                     _CertifsemanParaEditar.Apodo = _Certifseman.Apodo;
+                    _CertifsemanParaEditar.Apodacion = _Certifseman.Apodacion;
                     bool respuesta = await _CertifsemanRepositorio.Editar(_CertifsemanParaEditar);
 
                     if (respuesta)

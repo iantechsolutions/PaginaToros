@@ -410,6 +410,10 @@ namespace PaginaToros.Server.Context
                     .HasMaxLength(50)
                     .HasColumnName("APODO");
 
+                entity.Property(e => e.Apodacion)
+                    .HasMaxLength(250)
+                    .HasColumnName("Apodacion");
+
                 entity.Property(e => e.CategSc)
                     .HasMaxLength(1)
                     .HasColumnName("CATEG_SC");

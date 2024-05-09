@@ -88,6 +88,11 @@
                     <RadzenDropDown @bind-Value=@oCertifseman.Variedad Data=@variedades Style="width: 100%; max-width: 400px;" />
                     <ValidationMessage For="(()=> oCertifseman.Variedad)" style="color:red;" />
                 </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Apodo</label>
+                        <InputText @bind-Value="@oCertifseman.Apodacion" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oCertifseman.Apodacion)" style="color:red;" />
+                    </div>
             </div>
             <br />
             <div class="row" style="width=100%;">

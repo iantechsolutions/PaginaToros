@@ -33,6 +33,7 @@ namespace PaginaToros.Shared.Models
         public int? CodUsu { get; set; }
         public int Id { get; set; }
         public string? Apodo { get; set; }
+        public string? Apodacion { get; set; }
         public Socio? Socio { get; set; }
         public Centrosium? Centro { get; set; }
     }

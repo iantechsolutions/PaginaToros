@@ -47,7 +47,7 @@
                 </div>
                 <div class="col-sm">
                     <label>Socio Comprador</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioComprador" ValueChanged="updateComprador" ValueExpression="@(() => socioComprador)" Disabled="IdSocio!=null">
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioComprador" ValueChanged="updateComprador" ValueExpression="@(() => socioComprador)">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>

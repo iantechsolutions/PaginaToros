@@ -168,6 +168,7 @@ else
     public RadzenDataGrid<EstableDTO>? grid;
     int currentPage;
     int cantidad;
+    bool esSocio = false;
     bool isLoading = false;
     public bool allowFiltering = false;
 
@@ -178,7 +179,7 @@ else
     }
     async Task Get()
     {
-        var esSocio = await UserHasRole("Socio");
+        esSocio = await UserHasRole("Socio");
         if (!esSocio)
         {
             var cant = await _estableServicio.CantidadTotal();
@@ -274,6 +275,7 @@ else
             {
                 var parameters = new ModalParameters();
                 parameters.Add(nameof(AddEstablecimiento.Id), Id);
+                parameters.Add(nameof(AddEstablecimiento.esSocio), esSocio);
                 var options = new ModalOptions()
                     {
                         Size = ModalSize.ExtraLarge
@@ -300,6 +302,7 @@ else
         {
             var parameters = new ModalParameters();
             parameters.Add(nameof(AddEstablecimiento.Id), 0);
+            parameters.Add(nameof(AddEstablecimiento.esSocio), esSocio);
             var options = new ModalOptions()
                 {
                     Size = ModalSize.ExtraLarge

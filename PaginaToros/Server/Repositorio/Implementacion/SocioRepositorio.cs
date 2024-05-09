@@ -108,9 +108,57 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
+                var socioViejo = _dbContext.Find<Socio>(entidad.Id);
+                try { 
+                if (socioViejo.Scod != entidad.Scod)
+                {
+                    var certificados = _dbContext.Certifsemen.Where(x => x.Nrocri == socioViejo.Scod).ToList();
+                    foreach (var certificado in certificados)
+                    {
+                        certificado.Nrocri = entidad.Scod;
+                        _dbContext.Update(certificado);
+                    }
+                    var deseplas = _dbContext.Desepla1s.Where(x => x.Nrocri == socioViejo.Scod).ToList();
+                    foreach (var desepla in deseplas)
+                    {
+                        desepla.Nrocri = entidad.Scod;
+                        _dbContext.Update(desepla);
+                    }
+                    var planteles = _dbContext.Planteles.Where(x => x.Nrocri == socioViejo.Scod).ToList();
+                    foreach(var plantel in planteles)
+                        {
+                        plantel.Nrocri = entidad.Scod;
+                        _dbContext.Update(plantel);
+                    }
+                    var toros = _dbContext.Torosunis.Where(x => x.Criador == socioViejo.Scod).ToList();
+                    foreach (var toro in toros)
+                    {
+                        toro.Criador = entidad.Scod;
+                        _dbContext.Update(toro);
+                    }
+                    var establecimientos = _dbContext.Estables.Where(x => x.Codsoc == socioViejo.Scod).ToList();
+                    foreach (var establecimiento in establecimientos)
+                        {
+                        establecimiento.Codsoc = entidad.Scod;
+                        _dbContext.Update(establecimiento);
+                    }
+                    var resultados = _dbContext.Resin1s.Where(x => x.Scod == socioViejo.Scod).ToList();
+                    foreach (var resultado in resultados)
+                        {
+                        resultado.Scod = entidad.Scod;
+                        _dbContext.Update(resultado);
+                    }
+
+                }
+
                 _dbContext.Update(entidad);
                 await _dbContext.SaveChangesAsync();
                 return true;
+                }
+                catch {
+                    return false;
+                }
+                
             }
             catch
             {

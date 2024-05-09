@@ -282,8 +282,16 @@ else
                 }
                 else
                 {
-                    await Get();
-                    await grid.GoToPage(currentPage);
+                    if (socioSeleccionado == null)
+                    {
+                        await Get();
+                        await grid.GoToPage(currentPage);
+                    }
+                    else
+                    {
+                        string filtro = $"Socio.Id={socioSeleccionado.Id}";
+                        oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 60, filtro);
+                    }
                 }
             }
             catch (Exception ex)
@@ -307,8 +315,16 @@ else
             }
             else
             {
-                await Get();
-                await grid.GoToPage(currentPage);
+                if (socioSeleccionado == null)
+                {
+                    await Get();
+                    await grid.GoToPage(currentPage);
+                }
+                else
+                {
+                    string filtro = $"Socio.Id={socioSeleccionado.Id}";
+                    oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 60, filtro);
+                }
             }
         }
     }

@@ -25,16 +25,18 @@
 </style>
 
 
-<div class="no-print">
 
+<br/>
 @if (opcion == 1)
 {
-    <center ><RadzenText TextStyle="TextStyle.H4">Toros del Criador</RadzenText></center>
+    <center ><RadzenText TextStyle="TextStyle.H5">Toros del Criador</RadzenText></center>
 }
 @if (opcion == 0)
 {
-        <center><RadzenText TextStyle="TextStyle.H4">Certificados del Criador</RadzenText></center>
+    <center><RadzenText TextStyle="TextStyle.H5">Certificados del Criador</RadzenText></center>
 }
+<div class="no-print">
+    <br/>
 <div class="row">
     <div class="col-sm-3"/> 
     <div class="col-sm-6">
@@ -145,9 +147,6 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                         <p class="s2">Nro cert.</p>
                     </td>
                     <td>
-                        <p class="s2">Nombre Centro</p>
-                    </td>
-                    <td>
                         <p class="s2">Fecha de venta</p>
                     </td>
                     <td>
@@ -181,9 +180,6 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                         </td>
                         <td>
                         <p class="s2">@cer.NroCert</p>
-                        </td>
-                        <td>
-                        <p class="s2">@cer.Centro.Nombre</p>
                         </td>
                         <td>
                             @if (cer.Fecvta.HasValue)

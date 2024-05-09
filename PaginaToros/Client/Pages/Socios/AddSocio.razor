@@ -15,7 +15,7 @@
                 <div class="col-sm">
                     <label>Codigo de Socio</label>
                     <InputText class="form-control" @bind-Value="@oSocio.Scod"
-                               placeholder="Codigo" disabled="@(Id!=0)"></InputText>
+                               placeholder="Codigo"></InputText>
                     <ValidationMessage For="(()=> oSocio.Scod)" style="color:red;" />
                 </div>
                 <div class="col-sm">
@@ -169,6 +169,13 @@
     {
         Console.WriteLine("Id");
         Console.WriteLine(Id);
+        var rta = await _socioServicio.LimitadosFiltrados(0, 0);
+        socios = rta.List;
+        try
+        {
+            socios = socios.Where(x=>x.Id!=oSocio.Id).ToList();
+        }
+        catch{}
         if (Id != 0)
         {
             try
@@ -176,6 +183,7 @@
                 string filtro = $"Id = {Id}";
                 var c = await _socioServicio.LimitadosFiltrados(0,1,filtro);
                 oSocio = c.List.FirstOrDefault();
+
 
                 if (oSocio.Criador == "S")
                 {
@@ -201,14 +209,13 @@
         }
         else
         {
-            var rta = await _socioServicio.LimitadosFiltrados(0, 0);
-            socios = rta.List;
+            var codigo = Int32.Parse(socios.First().Scod);
+                oSocio.Scod= (codigo+1).ToString("D4");
         }
     }
     async Task Guardar()
     {
         if(socios.Where(x=>x.Scod==oSocio.Scod).Count()==0){
-            oSocio.Scod = cod;
             oSocio.Codpro1 = traductorProvincia[tempProvincia];
             oSocio.Fecing = FechaTemp;
             if (activo)
@@ -232,7 +239,8 @@
         }
         else
         {
-            alertaCodigo();
+            await alertaCodigo();
+            return;
         }
     }
     async Task cancel()

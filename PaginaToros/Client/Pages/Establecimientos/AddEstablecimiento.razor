@@ -27,8 +27,8 @@
                 </div>
                 <div class="col-sm">
                     <label>Codigo de Establecimiento</label>
-                    <InputText class="form-control" @bind-Value="@oEstablecimiento.Ecod"
-                                placeholder="Codigo" disabled="@(Id!=0)"></InputText>
+                        <InputText class="form-control" @bind-Value="@oEstablecimiento.Ecod" disabled="@esSocio"
+                                placeholder="Codigo"></InputText>
                     <ValidationMessage For="(()=> oEstablecimiento.Ecod)" style="color:red;" />
                 </div>
                 <div class="col-sm">
@@ -131,6 +131,7 @@ else
     Respuesta<EstableDTO> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
+    [Parameter] public bool esSocio { get; set; }
     DateTime FechaTemp = DateTime.Now.Date;
     string CodZona = "  ";
     bool activo = true;
@@ -246,6 +247,9 @@ else
                 string filtro = $"Id = {Id}";
                 var rt = await _estableServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
                 oEstablecimiento = rt.List.FirstOrDefault();
+                //codigo to string with 6 digits at least
+
+                estables = estables.Where(x => x.Id != oEstablecimiento.Id).ToList();
                 oEstablecimientoPrevio = oEstablecimiento;
                 if (oEstablecimiento.Activo == "S")
                 {
@@ -263,6 +267,11 @@ else
             {
                 oRespuesta.Mensaje = ex.Message;
             }
+        }
+        else
+        {
+            var codigo = Int32.Parse(estables.First().Ecod);
+            oEstablecimiento.Ecod = (codigo + 1).ToString("D6");
         }
     }
     async Task Guardar()
