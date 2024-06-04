@@ -173,7 +173,7 @@
         socios = rta.List;
         try
         {
-            socios = socios.Where(x=>x.Id!=oSocio.Id).ToList();
+            socios = socios.Where(x=>x.Id!=Id).ToList();
         }
         catch{}
         if (Id != 0)

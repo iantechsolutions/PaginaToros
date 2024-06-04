@@ -135,7 +135,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                var estableviejo = _dbContext.Find<Estable>(entidad.Id);
+                var estableviejo = _dbContext.Estables.Where(x=>x.Id == entidad.Id).First();
                 try
                 {
                     if(estableviejo.Ecod!= entidad.Ecod)
@@ -164,7 +164,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     return true;
                 }
                 catch {
-                    return false;
+                    throw;
                 }
                 
             }

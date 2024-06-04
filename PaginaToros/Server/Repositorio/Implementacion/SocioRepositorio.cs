@@ -108,9 +108,15 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                var socioViejo = _dbContext.Find<Socio>(entidad.Id);
-                try { 
-                if (socioViejo.Scod != entidad.Scod)
+                var socioViejo = _dbContext.Socios.Where(x=>x.Id == entidad.Id).First();
+                Console.WriteLine("viejo");
+                Console.WriteLine(socioViejo.Scod);
+                Console.WriteLine("entidad");
+                Console.WriteLine(entidad.Scod);
+                try {
+                    Console.WriteLine(socioViejo);
+                    Console.WriteLine(socioViejo.Id);
+                    if (socioViejo.Scod != entidad.Scod)
                 {
                     var certificados = _dbContext.Certifsemen.Where(x => x.Nrocri == socioViejo.Scod).ToList();
                     foreach (var certificado in certificados)
@@ -156,7 +162,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 return true;
                 }
                 catch {
-                    return false;
+                    throw;
                 }
                 
             }

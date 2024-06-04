@@ -164,6 +164,7 @@ namespace PaginaToros.Server.Controllers
 
                 if (_SocioParaEditar != null)
                 {
+                    _SocioParaEditar.Scod = _Socio.Scod;
                     _SocioParaEditar.Nombre = _Socio.Nombre;
                     _SocioParaEditar.Direcc1 = _Socio.Direcc1;
                     _SocioParaEditar.Telefo1 = _Socio.Telefo1;

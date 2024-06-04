@@ -301,32 +301,38 @@ else
             }
             else
             {
-                var differences = new List<string>();
-                if (oEstablecimiento.Nombre != oEstablecimientoPrevio.Nombre) differences.Add("Nombre");
-                if (oEstablecimiento.Encargado != oEstablecimientoPrevio.Encargado) differences.Add("Encargado");
-                if (oEstablecimiento.Direcc != oEstablecimientoPrevio.Direcc) differences.Add("Direcc");
-                if (oEstablecimiento.Tel != oEstablecimientoPrevio.Tel) differences.Add("Tel");
-                if (oEstablecimiento.Locali != oEstablecimientoPrevio.Locali) differences.Add("Locali");
-                if (oEstablecimiento.Codpos != oEstablecimientoPrevio.Codpos) differences.Add("Codpos");
-                if (oEstablecimiento.Codzon != oEstablecimientoPrevio.Codzon) differences.Add("Codzon");
-                if (oEstablecimiento.Codpro != oEstablecimientoPrevio.Codpro) differences.Add("Codpro");
-                if (oEstablecimiento.Plano != oEstablecimientoPrevio.Plano) differences.Add("Plano");
-                if (oEstablecimiento.Activo != oEstablecimientoPrevio.Activo) differences.Add("Activo");
-                var socioVendedor = socios.Where(x => x.Scod == oEstablecimientoPrevio.Codsoc).FirstOrDefault();
-                var socioComprador = socios.Where(x => x.Scod == oEstablecimiento.Codsoc).FirstOrDefault();
-                var mail = $"Aviso de edicion a un establecimiento\nEstablecimiento: {oEstablecimiento.Nombre}\n";
-                foreach (var diff in differences)
-                {
-                    mail += $"{diff}: {oEstablecimientoPrevio.GetType().GetProperty(diff).GetValue(oEstablecimientoPrevio)} -> {oEstablecimiento.GetType().GetProperty(diff).GetValue(oEstablecimiento)}\n";
+                try{
+                    var differences = new List<string>();
+                    if (oEstablecimiento.Nombre != oEstablecimientoPrevio.Nombre) differences.Add("Nombre");
+                    if (oEstablecimiento.Encargado != oEstablecimientoPrevio.Encargado) differences.Add("Encargado");
+                    if (oEstablecimiento.Direcc != oEstablecimientoPrevio.Direcc) differences.Add("Direcc");
+                    if (oEstablecimiento.Tel != oEstablecimientoPrevio.Tel) differences.Add("Tel");
+                    if (oEstablecimiento.Locali != oEstablecimientoPrevio.Locali) differences.Add("Locali");
+                    if (oEstablecimiento.Codpos != oEstablecimientoPrevio.Codpos) differences.Add("Codpos");
+                    if (oEstablecimiento.Codzon != oEstablecimientoPrevio.Codzon) differences.Add("Codzon");
+                    if (oEstablecimiento.Codpro != oEstablecimientoPrevio.Codpro) differences.Add("Codpro");
+                    if (oEstablecimiento.Plano != oEstablecimientoPrevio.Plano) differences.Add("Plano");
+                    if (oEstablecimiento.Activo != oEstablecimientoPrevio.Activo) differences.Add("Activo");
+                    var socioVendedor = socios.Where(x => x.Scod == oEstablecimientoPrevio.Codsoc).FirstOrDefault();
+                    var socioComprador = socios.Where(x => x.Scod == oEstablecimiento.Codsoc).FirstOrDefault();
+                    var mail = $"Aviso de edicion a un establecimiento\nEstablecimiento: {oEstablecimiento.Nombre}\n";
+                    foreach (var diff in differences)
+                    {
+                        mail += $"{diff}: {oEstablecimientoPrevio.GetType().GetProperty(diff).GetValue(oEstablecimientoPrevio)} -> {oEstablecimiento.GetType().GetProperty(diff).GetValue(oEstablecimiento)}\n";
+                    }
+                    var http = new HttpClient();
+                    var request = new
+                    {
+                        Vendedor = socioVendedor.Id,
+                        Comprador = socioComprador.Id,
+                        Mail = mail,
+                    };
+                    HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
                 }
-                var http = new HttpClient();
-                var request = new
+                catch
                 {
-                    Vendedor = socioVendedor.Id,
-                    Comprador = socioComprador.Id,
-                    Mail = mail,
-                };
-                HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+                    Console.WriteLine("Mail no enviado");
+                }
                 await _estableServicio.Editar(oEstablecimiento);
                 await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
             }
