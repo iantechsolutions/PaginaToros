@@ -121,7 +121,7 @@ else
     {
         var c = await _socioServicio.CantidadTotal();
         cantidad = c.List;
-        oRespuesta = await _socioServicio.Lista(0, 15);
+        oRespuesta = await _socioServicio.LimitadosFiltradoTodos(0, 15);
         StateHasChanged();
     }
     public void CambiarModoFiltro()
@@ -261,12 +261,12 @@ else
         isLoading = true;
         if (!string.IsNullOrEmpty(args.Filter))
         {
-            oRespuesta = await _socioServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+            oRespuesta = await _socioServicio.LimitadosFiltradoTodos(args.Skip.Value, args.Top.Value, args.Filter);
             // oRespuesta.List = oRespuesta.List.Where(args.Filter)
         }
         else
         {
-            oRespuesta = await _socioServicio.Lista(args.Skip.Value, args.Top.Value);
+            oRespuesta = await _socioServicio.LimitadosFiltradoTodos(args.Skip.Value, args.Top.Value);
         }
 
         isLoading = false;

@@ -1,14 +1,90 @@
-﻿@attribute [Authorize(Roles = "USUARIOMAESTRO, ADMINISTRADOR")]
-
+﻿@using System.Text
+@attribute [Authorize(Roles = "USUARIOMAESTRO, ADMINISTRADOR")]
+@inject HttpClient http
+@inject NavigationManager uriHelper
 <AuthorizeView Roles="USUARIOMAESTRO,ADMINISTRADOR">
     <div class="row" style="overflow-y: auto; max-height: 63.33%;">
         <UserInfo Usuario="Usuario" />
     </div>
-    <hr />
-    @*<button @onclick="ModalInstance.CancelAsync" class="btn btn-secondary">Cerrar</button>*@
+    <br />
+    @* <button @onclick="()=>ModalInstance.CancelAsync" class="btn btn-secondary">Cerrar</button> *@
+    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" disabled="@disabled" @onclick="()=>ResetPass()">Reiniciar contraseña</button>
+    @* @if (context.User.Claims.Count()>0 && context.User.Claims.First(x => x.Type == "UserId").Value == Usuario.Id.ToString())
+    {
+        logout = true;
+    } *@
 </AuthorizeView>
 
 @code {
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    private const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    Random random = new Random();
+    bool disabled = false;
     [Parameter] public User Usuario { get; set; }
+    [CascadingParameter] public IModalService Modal { get; set; }
+    bool logout = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine("Usuario: " + Usuario.Email);
+    }
+
+    public class ResetPasswordModel
+    {
+        public int UserId { get; set; }
+        public string Password { get; set; }
+    }
+    public string GenerateRandomPassword(int length)
+    {
+        StringBuilder sb = new StringBuilder();
+
+
+        for (int i = 0; i < length; i++)
+        {
+            int randomIndex = random.Next(validChars.Length);
+            sb.Append(validChars[randomIndex]);
+        }
+
+        return sb.ToString();
+    }
+
+    private async Task ResetPass()
+    {
+        disabled = true;
+        var pswd = GenerateRandomPassword(random.Next(7, 11));
+        Console.WriteLine(1);
+        var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
+        Console.WriteLine(2);
+        var payload = new ResetPasswordModel { UserId = Usuario.Id, Password = pswd };
+        Console.WriteLine(3);
+        var result = await http.PutAsJsonAsync<ResetPasswordModel>("api/Account/ResetPassword", payload);
+        Console.WriteLine(4);
+        var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendResetMail?nuevaContraseña={pswd}", Usuario);
+        Console.WriteLine(5);
+        switch (result.StatusCode)
+        {
+            case System.Net.HttpStatusCode.OK:
+                if (logout)
+                {
+                    uriHelper.NavigateTo("/Logout");
+                }
+                else
+                {
+                    modal.Close();
+                    Modal.Show<ModalInfo>("Operación Exitosa", SharedModalOptions.SetParameterModalInfo(Utilities.MSGSUCCESS, "alert alert-success"), SharedModalOptions.modalOptionsInfo);
+                }
+                break;
+            case System.Net.HttpStatusCode.Unauthorized:
+                uriHelper.NavigateTo("/Logout");
+                break;
+            default:
+                modal.Close();
+                Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(result.Content.ReadAsStringAsync().Result, "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
+                break;
+        }
+        disabled = false;
+    }
+
+
 }

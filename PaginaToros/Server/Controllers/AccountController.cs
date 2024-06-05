@@ -121,6 +121,37 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
+        [HttpPost("SendResetMail")]
+        public async Task<ActionResult> SendResetMail([FromBody] User model, string nuevaContraseña)
+        {
+            try
+            {
+                using (MailMessage mail = new MailMessage())
+                {
+                    mail.From = new MailAddress("puroregistrado@hotmail.com");
+                    mail.To.Add(model.Email);
+                    mail.Subject = $"Restablecimiento de contraseña para Hereford";
+                    string body = $"Estimado,\nHemos recibido una solicitud para restablecer su contraseña. Los detalles de su nueva contraseña son los siguientes:\n";
+                    body += $"Correo electrónico registrado: {model.Email}\nNueva contraseña: {nuevaContraseña}\n";
+                    body += $"Recuerde mantener esta información segura y no compartirla con nadie más. Gracias por estar con nosotros y esperamos que continúe disfrutando de nuestros servicios.\n";
+                    body += $"Saludos cordiales,\n Hereford";
+                    mail.Body = body;
+                    using (SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587))
+                    {
+                        smtp.UseDefaultCredentials = false;
+                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2024","hotmail.com");
+                        smtp.EnableSsl = true;
+                        smtp.Send(mail);
+                    }
+                }
+                return Ok("ok");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
 
 
 
@@ -216,42 +247,47 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
-        [HttpPut("ResetPassword")]
-        public async Task<ActionResult> ResetPassword([FromBody] int id)
+        public class ResetPasswordModel
+            {
+                public int UserId { get; set; }
+                public string Password { get; set; }
+            }
+
+[HttpPut("ResetPassword")]
+public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordModel model)
+{
+    try
+    {
+        var Usuario = db.User.FirstOrDefault(x => x.Id == model.UserId);
+        if (Usuario == null)
         {
-            try
-            {
-                var Usuario = db.User.FirstOrDefault(x => x.Id == id);
-                if (Usuario == null)
-                {
-                    return BadRequest("No se pudo encontrar un usuario");
-                }
-
-                var user = db.Users.FirstOrDefault(x => x.UserName == Usuario.Email);
-                if (user == null)
-                {
-                    return BadRequest("No se pudo encontrar un usuario de acceso");
-                }
-
-                var result = await _userManager.RemovePasswordAsync(user);
-                if (!result.Succeeded)
-                {
-                    return BadRequest(result.Errors);
-                }
-
-                result = await _userManager.AddPasswordAsync(user, user.UserName);
-                if (!result.Succeeded)
-                {
-                    return BadRequest(result.Errors);
-                }
-                return Ok("ok");
-            }
-            catch (Exception e)
-            {
-
-                return BadRequest(e.Message);
-            }
+            return BadRequest("No se pudo encontrar un usuario");
         }
+
+        var user = db.Users.FirstOrDefault(x => x.UserName == Usuario.Email);
+        if (user == null)
+        {
+            return BadRequest("No se pudo encontrar un usuario de acceso");
+        }
+
+        var result = await _userManager.RemovePasswordAsync(user);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        result = await _userManager.AddPasswordAsync(user, model.Password);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors);
+        }
+        return Ok("ok");
+    }
+    catch (Exception e)
+    {
+        return BadRequest(e.Message);
+    }
+}
 
         [HttpGet("GetUsers/{search}/{status}/{actualPage}")]
         public async Task<ActionResult> GetUsers(string search, string status, int actualPage)

@@ -12,5 +12,6 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<Respuesta<SocioDTO>> Crear(SocioDTO entidad);
         Task<bool> Editar(SocioDTO entidad);
         Task<Respuesta<SocioDTO>> Filtrar(string descripcion);
+        Task<Respuesta<List<SocioDTO>>> LimitadosFiltradoTodos(int skip, int take, string filtro = null);
     }
 }

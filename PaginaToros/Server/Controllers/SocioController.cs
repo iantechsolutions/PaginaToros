@@ -97,6 +97,33 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
+
+        [Route("LimitadosFiltradoTodos")]
+        public async Task<IActionResult> LimitadosFiltradosTodos(int skip, int take, string? expression = null)
+        {
+
+            Respuesta<List<SocioDTO>> _ResponseDTO = new Respuesta<List<SocioDTO>>();
+
+            try
+            {
+                var a = await _SocioRepositorio.LimitadosFiltradosTodos(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<SocioDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<SocioDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<SocioDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+
+
         [HttpDelete]
         [Route("Eliminar/{id:int}")]
         public async Task<IActionResult> Eliminar(int id)

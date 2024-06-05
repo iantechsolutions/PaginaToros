@@ -144,9 +144,6 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                         <p class="s2">Tipo cert.</p>
                     </td>
                     <td>
-                        <p class="s2">Nro cert.</p>
-                    </td>
-                    <td>
                         <p class="s2">Fecha de venta</p>
                     </td>
                     <td>
@@ -162,6 +159,9 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                         <p class="s2">Nombre</p>
                     </td>
                     <td>
+                        <p class="s2">Apodo</p>
+                    </td>
+                    <td>
                         <p class="s2">Cant Dosis</p>
                     </td>
                     <td>
@@ -170,16 +170,12 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                     <td>
                         <p class="s2">Variedad</p>
                     </td>
-
                 </tr>
                 @foreach (var cer in certificados.Where(x=>x.NrDosi>0))
                 {
                 <tr style="font-size: 5px!important;">
                         <td>
                         <p class ="s2">@cer.TipoCert.ToUpper()</p>
-                        </td>
-                        <td>
-                        <p class="s2">@cer.NroCert</p>
                         </td>
                         <td>
                             @if (cer.Fecvta.HasValue)
@@ -193,6 +189,9 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                         </td>
                         <td>
                         <p class="s2">@cer.Socio.Nombre</p>
+                        </td>
+                        <td>
+                        <p class="s2">@cer.Apodacion</p>
                         </td>
                         <td>
                         <p class="s2">@cer.Tatpart</p>

@@ -56,5 +56,11 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var result = await _http.GetFromJsonAsync<Respuesta<SocioDTO>>($"api/Socio/filtrar?categoriaItem={descripcion}");
             return result!;
         }
+
+        public async Task<Respuesta<List<SocioDTO>>> LimitadosFiltradoTodos(int skip, int take, string filter)
+        {
+            var result = await _http.GetFromJsonAsync<Respuesta<List<SocioDTO>>>($"api/Socio/LimitadosFiltradoTodos?skip={skip}&take={take}&expression={filter}");
+            return result;
+        }
     }
 }

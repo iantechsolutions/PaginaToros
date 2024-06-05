@@ -24,7 +24,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
 
                 // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Socios.Include(x => x.Provincia)
+                return await _dbContext.Socios.Where(x=>x.Criador=="S").Include(x => x.Provincia)
                                                  .OrderByDescending(t => t.Id)
                                                  .Skip(skip)
                                                  .Take(take)
@@ -42,7 +42,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                return await _dbContext.Socios.Where(filtro).FirstOrDefaultAsync();
+                return await _dbContext.Socios.Where(x => x.Criador == "S").Where(filtro).FirstOrDefaultAsync();
             }
             catch
             {
@@ -55,11 +55,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
                 List<Socio> a;
                 if(filtro is not null) { 
-                    a = await _dbContext.Socios.Include(x=>x.Provincia).Where(filtro).Skip(skip).ToListAsync();
+                    a = await _dbContext.Socios.Where(x => x.Criador == "S").Include(x=>x.Provincia).Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
                 {
-                    a = await _dbContext.Socios.Include(x => x.Provincia).Skip(skip).ToListAsync();
+                    a = await _dbContext.Socios.Where(x => x.Criador == "S").Include(x => x.Provincia).Skip(skip).ToListAsync();
                 }
                 if (take == 0)
                 {
@@ -191,5 +191,34 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
+        public async Task<List<Socio>> LimitadosFiltradosTodos(int skip, int take, string filtro = null)
+        {
+            try
+            {
+                List<Socio> a;
+                if (filtro is not null)
+                {
+                    a = await _dbContext.Socios.Include(x => x.Provincia).Where(filtro).Skip(skip).ToListAsync();
+                }
+                else
+                {
+                    a = await _dbContext.Socios.Include(x => x.Provincia).Skip(skip).ToListAsync();
+                }
+                if (take == 0)
+                {
+                    return a.OrderByDescending(t => t.Id).ToList();
+                }
+                else
+                {
+                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
     }
 }
