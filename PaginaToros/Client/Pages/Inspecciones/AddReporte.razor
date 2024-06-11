@@ -676,7 +676,7 @@ else
                 establecimientoSeleccionado = estable.List.Where(x=>x.Ecod==oResin1.Estcod).FirstOrDefault();
 
                 inspectorSeleccionado = Inspects.Where(x => x.Icod == oResin1.Icod).FirstOrDefault();
-                Plantelseleccionado = Planteles.Where(x =>x.Placod==oResin1.Nropla).FirstOrDefault();
+
 
                 await updateEstadoHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
 
@@ -689,6 +689,17 @@ else
                 await updateHembrasMachos(solicitudSeleccionada.FirstOrDefault().Nrosol);
 
                 confirmado = true;
+                try
+                {
+                    int anio = oResin1.Freali.Value.Year;
+                    var planT = Planteles.Where(x => x.Anioex == anio.ToString() && x.Nrocri == socioSeleccionado.Scod).FirstOrDefault();
+                    Plantelseleccionado = planT;
+                }
+                catch { }
+                if (Planteles.Where(x => x.Placod == oResin1.Nropla).Count()>0)
+                {
+                    Plantelseleccionado = Planteles.Where(x => x.Placod == oResin1.Nropla).FirstOrDefault();
+                }
             }
             else{
                 var rta = await _socioServicio.LimitadosFiltrados(0, 0);
@@ -902,11 +913,12 @@ else
 
     async Task updatePlantel()
     {
-        var planViejo = Planteles.Where(x => x.Placod == oResin1.Nropla).FirstOrDefault();
+        // var planViejo = Planteles.Where(x => x.Placod == oResin1.Nropla).FirstOrDefault();
+        var planViejo = Plantelseleccionado;
         var anio = planViejo.Anioex;
         var planNuevo = Planteles.Where(x => x.Anioex == (Int32.Parse(anio)+1).ToString()).FirstOrDefault();
         var socio = socios.Where(x => x.Scod == planViejo.Nrocri).FirstOrDefault();
-        if(planNuevo !=null ){
+        if( planNuevo !=null ){
             planNuevo.Varede = estadoFinal.Ea1;
             planNuevo.Vqcsrd = estadoFinal.Ea2;
             planNuevo.Vqssrd = estadoFinal.Ea3;

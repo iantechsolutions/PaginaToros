@@ -259,6 +259,16 @@ else
                 {
                     activo = false;
                 }
+                DateTime fecha;
+                if (DateTime.TryParseExact(oEstablecimiento.Fecing, "yyyy/MM/dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out fecha))
+                {
+                    FechaTemp = fecha;
+                }
+                else
+                {
+                    int year = int.Parse(oEstablecimiento.Fechacreacion); 
+                    FechaTemp = new DateTime(year, 1, 1); 
+                }
                 socioSeleccionado = socios.Where(x => x.Scod == oEstablecimiento.Codsoc).FirstOrDefault();
                 CodZona = oEstablecimiento.Codzon;
                 provinciaTemp = traductorProvinciaInverso[oEstablecimiento.Codpro];

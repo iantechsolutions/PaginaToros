@@ -63,7 +63,11 @@
                         Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                         Data="@oRespuesta.List" Count="cantotal" TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipoCert" Title="Tipo cert." Width="6%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipoCert" Title="Tipo cert." Width="6%" >
+                    <Template Context="data">
+                        @data.TipoCert.ToUpper()
+                    </Template>
+                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Centro.Nombre" Title="Nombre del centro" Width="7.34%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="5.3%" />

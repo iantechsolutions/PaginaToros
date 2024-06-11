@@ -79,7 +79,7 @@
                             </div>
                             <div class="col-sm">
                                 <br/>
-                                <button style="padding-top:15px ;" type="button" title="Eliminar" @onclick="() => deleteSolAux(soli.Id)"><FeatherXCircle Size="16" Color="red" /></button>
+                                <button style="padding-top:15px ;" type="button" title="Eliminar" disabled="esSocio" @onclick="() => deleteSolAux(soli.Id)"><FeatherXCircle Size="16" Color="red" /></button>
                             </div>
                         </div>
                     }
@@ -87,7 +87,7 @@
                     <br/>
                 @if(!esSocio){
                 <center style="padding-right:20px">
-                        <button type="button" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>listadoSolicitudes.Add(new Solici1DTO())"><FeatherPlus Size="24" Color="Black" /></button>
+                    <button type="button" disabled="esSocio" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>listadoSolicitudes.Add(new Solici1DTO())"><FeatherPlus Size="24" Color="Black" /></button>
                 </center>
                     }
                 <br />

@@ -270,6 +270,7 @@ else
 
             //CAMBIAR ID
             oRespuesta = await _torosServicio.GetBySocioId(usuarioId);
+            oRespuesta.List = oRespuesta.List.OrderBy(x => x.CodEstado != "1").ThenBy(x=> x.CodEstado != "3").ToList();
             cantidad = oRespuesta.List.Count();
         }
     }
