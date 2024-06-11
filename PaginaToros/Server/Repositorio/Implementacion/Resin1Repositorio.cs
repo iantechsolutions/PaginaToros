@@ -22,7 +22,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
 
                 // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Resin1s.Include(t=>t.Socio).OrderBy(x=>x.Freali).Include(x=>x.Establecimiento)
+                return await _dbContext.Resin1s.Include(t=>t.Socio).OrderByDescending(x=>x.Freali).Include(x=>x.Establecimiento)
                                                  .Skip(skip)
                                                  .Take(take)
                                                  .ToListAsync();
@@ -52,11 +52,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 List<Resin1> a;
                 if (filtro is not null)
                 {
-                    a = await _dbContext.Resin1s.Include(t => t.Socio).OrderBy(x => x.Freali).Include(x=>x.Establecimiento).Where(filtro).Skip(skip).ToListAsync();
+                    a = await _dbContext.Resin1s.Include(t => t.Socio).OrderByDescending(x => x.Freali).Include(x=>x.Establecimiento).Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
                 {
-                    a = await _dbContext.Resin1s.Include(t => t.Socio).OrderBy(x => x.Freali).Include(x => x.Establecimiento).Skip(skip).ToListAsync();
+                    a = await _dbContext.Resin1s.Include(t => t.Socio).OrderByDescending(x => x.Freali).Include(x => x.Establecimiento).Skip(skip).ToListAsync();
                 }
                 if (take == 0)
                 {
