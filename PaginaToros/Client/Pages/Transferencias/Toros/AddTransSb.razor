@@ -27,10 +27,18 @@
                     <InputText @bind-Value="@oTranssb.NroOrden" class="form-control" placeholder=""></InputText>
                     <ValidationMessage For="(()=> oTranssb.NroOrden)" style="color:red;" />
                 </div>
-@*                 <div class="col-sm">
-                    <label>Fecha de venta</label><br />
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTransan.Fecvta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                </div> *@
+                    <div class="col-sm">
+                        <label class="col-sm">Toro Seleccionado</label>
+                        <br/>
+                        <RadzenDropDownDataGrid TValue="string" Data=@toros.Where(x=>x.Criador==socioVendedor.Scod) TextProperty="Hba" ValueProperty="NomDad">
+                            <Columns>
+                                <RadzenDropDownDataGridColumn Property="NomDad" Title="Nombre" Width="30%" />
+                                <RadzenDropDownDataGridColumn Property="Hba" Title="HBA" Width="30%" />
+                                <RadzenDropDownDataGridColumn Property="Tatpart" Title="Tatuaje" Width="30%" />
+                            </Columns>
+                        </RadzenDropDownDataGrid>
+                        <p>*La busqueda del toro se realiza por Nro de Identificacion</p>
+                    </div>
             </div>
             <br />
             <div class="row" style="width=100%;">
@@ -70,18 +78,6 @@
             </div>
             <br />
                 <div class="row" style="width=100%;">
-                    <div class="col-sm">
-                        <label class="col-sm">Toro Seleccionado</label>
-                        <br/>
-                        <RadzenDropDownDataGrid TValue="string" Data=@toros.Where(x=>x.Criador==socioVendedor.Scod) TextProperty="Hba" ValueProperty="NomDad">
-                            <Columns>
-                                <RadzenDropDownDataGridColumn Property="NomDad" Title="Nombre" Width="30%" />
-                                <RadzenDropDownDataGridColumn Property="Hba" Title="HBA" Width="30%" />
-                                <RadzenDropDownDataGridColumn Property="Tatpart" Title="Tatuaje" Width="30%" />
-                            </Columns>
-                        </RadzenDropDownDataGrid>
-                        <p>*La busqueda del toro se realiza por HBA</p>
-                    </div>
                     <div class="col-sm">
                         <label class="col-sm">Mail</label>
                         <InputText @bind-Value="@direccionCompra" class="form-control" placeholder=""></InputText>

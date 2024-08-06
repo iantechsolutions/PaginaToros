@@ -24,7 +24,7 @@ namespace PaginaToros.Shared.Models
         public int? CodUsu { get; set; }
         public string? Comment { get; set; }
         public string Estado { get; set; } = null!;
-        public string Fecing { get; set; } = null!;
+        public string? Fecing { get; set; } = null!;
         public int Id { get; set; }
         public Socio? Socio {get;set;}
         [JsonIgnore]

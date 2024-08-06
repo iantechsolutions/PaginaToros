@@ -53,7 +53,7 @@
       "url": "css\/open-iconic\/README.md"
     },
     {
-      "hash": "sha256-Ayyphp1EXLDgT0ZNEzxpllM+XRxB+\/T5trC2BSR7zfM=",
+      "hash": "sha256-IjbEXKVb\/7dlTaytx1L7TLC9jgoeRcigB\/vy0aKtdBQ=",
       "url": "Excel_Solicitud.xls"
     },
     {
@@ -133,7 +133,7 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-4w9\/\/2G\/633WMpT0ucTH++Oujd+zzSKdWM8XlRthdv0=",
+      "hash": "sha256-lKkBRjrMz\/cEVQ9T3LJWi6MQRkC98nxelx+8JhPCSdA=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -321,11 +321,11 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-Qq\/m6S6UW2Y1daCksMj9Euz0JGUO2EVR6EXJNgvFfWk=",
+      "hash": "sha256-UJfX1NMEgri+fdz6v74CB\/loRobs8LwDWRPvMFzVpCs=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-ih0TnLPe7RA+baNUf+LcEB2+4sQ3HjZv5TIyVuRu1Jk=",
+      "hash": "sha256-CKLikTYzP19BQmdnQripis2sx4IC88OkVy\/FlXPJYoM=",
       "url": "_framework\/PaginaToros.Shared.dll"
     },
     {
@@ -369,7 +369,7 @@
       "url": "_framework\/System.ComponentModel.TypeConverter.dll"
     },
     {
-      "hash": "sha256-n6pLI1rBshgxoDCh7DAEv9L1lMSFQgIF6N\/m7u6P+K4=",
+      "hash": "sha256-R6nqq5IZS7WOKPWgqTXT4EDowD34w\/zhWBldCy\/KrCU=",
       "url": "_framework\/System.Console.dll"
     },
     {
@@ -441,7 +441,7 @@
       "url": "_framework\/System.ObjectModel.dll"
     },
     {
-      "hash": "sha256-cfsxbUGjw0DF0Kbbw5xGUMGJVrX2xEp8MM1Tlfd9vKg=",
+      "hash": "sha256-kp9iCFyRSfBRlsjijMJNtD47J+nxANushoLIMgpD9n4=",
       "url": "_framework\/System.Private.CoreLib.dll"
     },
     {
@@ -877,5 +877,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "g5PuKkZn"
+  "version": "al4qE8\/p"
 };

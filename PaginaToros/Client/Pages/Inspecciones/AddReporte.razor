@@ -50,7 +50,7 @@
             else
             {
             <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@solicitudes.Where(x=>establecimientos.Where(t => t.Codsoc == socioSeleccionado.Scod).Any(t => t.Ecod == x.Codest) && !resultados.Any(r=>r.Nrores==x.Nrosol)).ToList()" TItem="Solici1DTO"
-                                    LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" SelectionMode="DataGridSelectionMode.Single" @bind-Value="@solicitudSeleccionada">
+                                    LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" SelectionMode="DataGridSelectionMode.Single" ValueChanged="(e)=>onSolicitudChange(e)" >
                 <Columns>
                             <RadzenDataGridColumn TItem="Solici1DTO" Property="Nrosol" Title="Nro Sol" />
                     <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Socio">
@@ -601,14 +601,14 @@ else
     Resin4DTO promediomacho = new();
 
     List<InspectDTO> Inspects = new();
-    InspectDTO? inspectorSeleccionado = new();
+    InspectDTO? inspectorSeleccionado = null;
 
     List<Resin1DTO> resultados = new();
     List<EstableDTO> establecimientos = new();
 
     List<PlantelDTO> Planteles = new();
-    PlantelDTO? Plantelseleccionado = new();
-
+    PlantelDTO? Plantelseleccionado = null;
+    bool primerMov = true;
     EstableDTO? establecimientoSeleccionado = null;
     List<Resin4DTO> promedios = new();
     List<Solici1DTO> solicitudes = new();
@@ -726,11 +726,18 @@ else
 
     async Task guardarReporte()
     {
+        Console.WriteLine("guardarReporte");
         oResin1.Id = Id;
+        Console.WriteLine(1);
+        Console.WriteLine(Id);
         oResin1.Nrores = solicitudSeleccionada.FirstOrDefault().Nrosol;
+        Console.WriteLine("2");
         oResin1.Icod = inspectorSeleccionado.Icod;
+        Console.WriteLine("3");
         oResin1.Scod = socioSeleccionado.Scod;
+        Console.WriteLine("4");
         oResin1.Estcod = solicitudSeleccionada.FirstOrDefault().Codest;
+        Console.WriteLine("5");
         if (Id == 0)
         {
             oResin1.Nropla = socioSeleccionado.Placod;
@@ -760,6 +767,7 @@ else
         temp.Ea5 = Convert.ToInt32(Plantelseleccionado.Vqcsrp);
         temp.Ea6 = Convert.ToInt32(Plantelseleccionado.Vqssrp);
         temp.Nrores = nrores;
+        estadoAnterior = temp;
         await _resin2Servicio.Crear(temp);
     }
 
@@ -843,20 +851,45 @@ else
         {
             string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
             var rt = await _resin2Servicio.LimitadosFiltrados(0, 1,filtro);
-            estadoAnterior = rt.List.FirstOrDefault();
+            estadoAnterior = rt.List.First();
+            // estadoAnterior = new Resin2DTO();
+            // estadoAnterior.Ea1 = Convert.ToInt32(Plantelseleccionado.Varede);
+            // estadoAnterior.Ea2 = Convert.ToInt32(Plantelseleccionado.Vqcsrd);
+            // estadoAnterior.Ea3 = Convert.ToInt32(Plantelseleccionado.Vqssrd);
+            // estadoAnterior.Ea4 = Convert.ToInt32(Plantelseleccionado.Varepr);
+            // estadoAnterior.Ea5 = Convert.ToInt32(Plantelseleccionado.Vqcsrp);
+            // estadoAnterior.Ea6 = Convert.ToInt32(Plantelseleccionado.Vqssrp);
+
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
         }
     }
+    async Task onSolicitudChange(IList<Solici1DTO?> lista){
+        solicitudSeleccionada = lista;
+        Console.WriteLine("aca");
+        Console.WriteLine(Plantelseleccionado);
+        Plantelseleccionado = Planteles.Where(x => x.Nrocri == socioSeleccionado.Scod).OrderByDescending(x => x.Id).First();
+        Console.WriteLine(Plantelseleccionado);
+        // oResinAnterior = repor
+        Resin1DTO oResinAnterior = resultados.Where(x=>x.Establecimiento.Ecod == establecimientoSeleccionado.Ecod && x.Scod == socioSeleccionado.Scod).OrderByDescending(x => x.Id).FirstOrDefault();
+        
+        if (oResinAnterior != null)
+        {
+            inspectorSeleccionado = Inspects.Where(x => x.Icod == oResinAnterior.Icod).FirstOrDefault();
+        }
 
+    }
     async Task confirmar()
     {
 
         confirmado = true;
         string nrores = solicitudSeleccionada.FirstOrDefault().Nrosol;
-
+        if(Plantelseleccionado==null){
+            Plantelseleccionado = Planteles.OrderByDescending(x => Int32.Parse(x.Anioex)).Where(x => x.Nrocri == socioSeleccionado.Scod).First();
+        }
+        Console.WriteLine("REPORTE");
         guardarReporte();
 
         await updatePromedios(nrores);
@@ -902,6 +935,7 @@ else
             else
             {
                 await updateMovimientos(solicitudSeleccionada.FirstOrDefault().Nrosol, "si");
+                await updatePlantel();
             }
         }
         catch(Exception ex)
@@ -913,34 +947,66 @@ else
 
     async Task updatePlantel()
     {
+        var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
+        Planteles = plan.List;
         // var planViejo = Planteles.Where(x => x.Placod == oResin1.Nropla).FirstOrDefault();
+        Console.WriteLine("A");
         var planViejo = Plantelseleccionado;
+        Console.WriteLine("B");
         var anio = planViejo.Anioex;
-        var planNuevo = Planteles.Where(x => x.Anioex == (Int32.Parse(anio)+1).ToString()).FirstOrDefault();
-        var socio = socios.Where(x => x.Scod == planViejo.Nrocri).FirstOrDefault();
-        if( planNuevo !=null ){
+        Console.WriteLine("C");
+        var socio = socioSeleccionado;
+        Console.WriteLine("D");
+        var planNuevo = Planteles.Where(x => x.Anioex == (Int32.Parse(anio)+1).ToString() && x.Nrocri == socio.Scod).FirstOrDefault();
+        Console.WriteLine("1");
+        if( planNuevo !=null){
+            Console.WriteLine("2");
             planNuevo.Varede = estadoFinal.Ea1;
             planNuevo.Vqcsrd = estadoFinal.Ea2;
             planNuevo.Vqssrd = estadoFinal.Ea3;
             planNuevo.Varepr = estadoFinal.Ea4;
             planNuevo.Vqcsrp = estadoFinal.Ea5;
             planNuevo.Vqssrp = estadoFinal.Ea6;
+            planNuevo.Fecing = "";
             await _plantelServicio.Editar(planNuevo);
         }
-        else{
-            var anioNuevo = (Int32.Parse(anio)+1).ToString();
-            var planCreado = new PlantelDTO();
-            planCreado.Anioex = anioNuevo;
-            planCreado.Varede = estadoFinal.Ea1;
-            planCreado.Vqcsrd = estadoFinal.Ea2;
-            planCreado.Vqssrd = estadoFinal.Ea3;
-            planCreado.Varepr = estadoFinal.Ea4;
-            planCreado.Vqcsrp = estadoFinal.Ea5;
-            planCreado.Vqssrp = estadoFinal.Ea6;
-            planCreado.Nrocri = planViejo.Nrocri;
-            planCreado.Placod = anioNuevo.ElementAt(4) + (socio.Placod);
-            planCreado.Estado = planViejo.Estado;
-            await _plantelServicio.Crear(planCreado);
+        else if(primerMov){
+            try{
+                primerMov = false;
+                Console.WriteLine(anio);
+                Console.WriteLine("3");
+                Console.WriteLine("aca");
+                var anioNuevo = (Int32.Parse(anio)+1).ToString();
+                Console.WriteLine(anioNuevo);
+                Console.WriteLine(socio.Placod);
+                Console.WriteLine(1);
+                var planCreado = new PlantelDTO();
+                planCreado.Anioex = anioNuevo;
+                Console.WriteLine(2);
+                planCreado.Varede = estadoFinal.Ea1;
+                Console.WriteLine(3);
+                planCreado.Vqcsrd = estadoFinal.Ea2;
+                Console.WriteLine(4);
+                planCreado.Vqssrd = estadoFinal.Ea3;
+                planCreado.Varepr = estadoFinal.Ea4;
+                Console.WriteLine(5);
+                planCreado.Vqcsrp = estadoFinal.Ea5;
+                planCreado.Vqssrp = estadoFinal.Ea6;
+                Console.WriteLine(6);
+                planCreado.Nrocri = planViejo.Nrocri;
+                Console.WriteLine(7);
+                Console.WriteLine(anioNuevo.ElementAt(3));
+                Console.WriteLine(socio.Placod);
+                planCreado.Placod = anioNuevo.ElementAt(3) + (socio.Placod);
+                Console.WriteLine(1);
+                planCreado.Estado = planViejo.Estado;
+                await _plantelServicio.Crear(planCreado);
+                Console.WriteLine("4");
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 

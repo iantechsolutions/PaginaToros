@@ -360,7 +360,7 @@ else
                     else
                     {
                         string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                        oRespuesta = await _torosServicio.LimitadosFiltrados(0, 60, filtro);
+                        oRespuesta = await _torosServicio.LimitadosFiltrados(0, 600, filtro);
                     }
                 }
             }

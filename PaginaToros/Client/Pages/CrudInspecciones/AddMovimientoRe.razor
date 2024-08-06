@@ -13,10 +13,12 @@
             <DataAnnotationsValidator />
             <div class="row" style="width=100%;">
                 <div class="col-sm-5">
+                    <label>Tipo de Movimiento</label>
                     <RadzenDropDown @bind-Value=@movimiento Placeholder="Seleccione el movimiento" Data=@movimientos Style="width: 100%; max-width: 400px;" />
                 </div>
                 <div class="col-sm-2"/>
                 <div class="col-sm-5">
+                    <label>Motivo del movimiento</label>
                     <RadzenDropDown @bind-Value=@motivo Placeholder="Seleccione el motivo" Data=@motivos Style="width: 100%; max-width: 400px;" />
                 </div>
             </div>
@@ -76,7 +78,15 @@
     </div>
 </div>
 @code {
-    Resin3DTO oResin3 = new();
+    Resin3DTO oResin3 = new()
+    {
+        Rdvac = 0,
+        Rdvaqcs = 0,
+        Rdvaqss = 0,
+        Rpvac = 0,
+        Rpvaqcs = 0,
+        Rpvaqss = 0 
+    };
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public string numeroRes { get; set; }

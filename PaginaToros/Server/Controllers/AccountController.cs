@@ -98,16 +98,56 @@ namespace PaginaToros.Server.Controllers
                 {
                     mail.From = new MailAddress("puroregistrado@hotmail.com");
                     mail.To.Add(model.Email);
-                    mail.Subject = $"Confirmación de Registro en Hereford";
-                    string body = $"Estimado/a,\nNos complace confirmar que tu registro en nuestro sitio ha sido exitoso. A partir de ahora, tienes acceso completo a todos nuestros servicios y funcionalidades.\n";
-                    body += $"A continuación, encontrarás tus detalles de inicio de sesión:\nCorreo electrónico registrado: {model.Email}\nContraseña: {password}\n";
-                    body += $"Recuerda mantener segura esta información y no compartirla con nadie más.Gracias por unirte a nosotros y esperamos que disfrutes tu tiempo con nosotros.\n";
-                    body += $"¡Saludos cordiales!\n Hereford";
-                    mail.Body = body;
+                    mail.Subject = "Confirmación de Registro en Hereford";
+
+                    // Path to the image
+                    string currentDirectory = AppContext.BaseDirectory;
+                    Console.WriteLine(currentDirectory);
+                    string imagePath = Path.Combine(currentDirectory,"background.jpg");
+                    Console.WriteLine(imagePath);
+                    Console.WriteLine(model.Email);
+                    // HTML body with background image and text on top
+                    string body = $@"
+                    <html>
+                    <body style='margin:0;padding:0;'>
+                        <table width='100%' border='0' cellspacing='0' cellpadding='0'>
+                            <tr>
+                                <td>
+                                    <table width='600' border='0' cellspacing='0' cellpadding='0' align='center' style='background-repeat:no-repeat;background-image:url(cid:backgroundImage);background-size:cover;'>
+                                        <tr>
+                                            <td style='padding: 20px;padding-top: 90px; padding-bottom:300px; color: #000;'>
+                                                <h2>Estimado socio.</h2>
+                                                <p>Nos complace confirmar que su registro en nuestro sitio ha sido exitoso. A partir de ahora, tiene acceso completo a todos los servicios y funcionalidades disponibles.</p>
+                                                <p><strong>Detalles de inicio de sesión:</strong></p>
+                                                <p>Correo electrónico registrado: {model.Email}<br>Contraseña: {password}</p>
+                                                <p>Recuerde mantener segura esta información y no compartirla. Gracias por su tiempo y ante cualquier consulta no dude en comunicarse por mail a planteles@hereford.org.ar</p>
+                                                <p>Saludos cordiales,<br>Equipo de Puro Registrado Hereford.</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </body>
+                    </html>";
+
+                    // Create an alternate view to hold the HTML content
+                    AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, MediaTypeNames.Text.Html);
+
+                    // Add the background image as a linked resource
+                    LinkedResource background = new LinkedResource(imagePath, MediaTypeNames.Image.Jpeg);
+                    background.ContentId = "backgroundImage";
+                    background.TransferEncoding = TransferEncoding.Base64;
+                    htmlView.LinkedResources.Add(background);
+
+                    // Add the HTML view to the email message
+                    mail.AlternateViews.Add(htmlView);
+                    mail.IsBodyHtml = true;
+
                     using (SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587))
                     {
                         smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2024","hotmail.com");
+                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2024");
                         smtp.EnableSsl = true;
                         smtp.Send(mail);
                     }
@@ -116,10 +156,10 @@ namespace PaginaToros.Server.Controllers
             }
             catch (Exception e)
             {
-
                 return BadRequest(e.Message);
             }
         }
+
 
         [HttpPost("SendResetMail")]
         public async Task<ActionResult> SendResetMail([FromBody] User model, string nuevaContraseña)

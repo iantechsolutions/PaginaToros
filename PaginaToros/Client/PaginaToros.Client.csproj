@@ -11,6 +11,14 @@
     <Optimize>True</Optimize>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Remove="wwwroot\background.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\background.jpg" />
+  </ItemGroup>
+
 	<ItemGroup>
     <PackageReference Include="Blazored.Modal" Version="7.1.0" />
     <PackageReference Include="Blazored.SessionStorage" Version="2.3.0" />
