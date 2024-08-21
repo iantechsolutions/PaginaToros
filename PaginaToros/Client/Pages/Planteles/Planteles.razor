@@ -1,8 +1,9 @@
 ﻿@page "/Planteles"
-
+@using Blazored.Typeahead;
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
+@inject ISocioServicio _socioServicio
 @inject IPlantelServicio _plantelServicio
 <style>
 
@@ -37,7 +38,7 @@
 {
      <div class="row">
         <div class="col-3"/>
-@*         <div class="col-4">
+        <div class="col-4">
             <BlazoredTypeahead SearchMethod="BusquedaSocios" class="max-w-sm" placeholder="Buscar por socio" EnableDropDown="true" @bind-Value="socioSeleccionado">
                 <SelectedTemplate Context="eleccion">
                     @eleccion.Nombre
@@ -46,7 +47,7 @@
                     @eleccion.Nombre
                 </ResultTemplate>
             </BlazoredTypeahead>
-        </div> *@
+        </div>
         <div class="col-5">
             <button style="outline:none; float: right;margin-right:3%;height:100%;" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
 
@@ -179,7 +180,7 @@ else
     int cantidad;
     SocioDTO socioSeleccionado;
     public bool allowFiltering = false;
-    List<Socio> socios = new();
+    List<SocioDTO> socios = new();
     public Respuesta<List<PlantelDTO>> oRespuesta = new Respuesta<List<PlantelDTO>>();
     protected override async Task OnInitializedAsync()
     {
@@ -188,7 +189,8 @@ else
     async Task Get()
     {
         var esSocio = await UserHasRole("Socio");
-
+        var rta = await _socioServicio.LimitadosFiltrados(0, 0);
+        socios = rta.List;
         if (!esSocio){
             var c = await _plantelServicio.CantidadTotal();
             cantidad = c.List;
@@ -398,6 +400,13 @@ else
 
         isLoading = false;
     }
+
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
+    {
+        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return await Task.FromResult(result);
+    }
+
     private async Task BuscarPorSocio()
     {
         if (socioSeleccionado != null)

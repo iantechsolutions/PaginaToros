@@ -178,7 +178,8 @@ else
         socios = rta.List;
         var rt = await _centrosiumServicio.LimitadosFiltrados(0, 0);
         centros = rt.List;
-
+        Console.WriteLine("ADD");
+        Console.WriteLine(Id);
         if (Id != 0)
         {
             try
@@ -201,6 +202,7 @@ else
     }
     async Task Guardar()
     {
+        Console.WriteLine("Se envia");
         oCertifseman.Nrocri = socioSeleccionado.Scod;
         oCertifseman.Nrocen = centroSeleccionado.Nrocen;
         oCertifseman.Apodo = tipoToro;

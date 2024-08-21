@@ -159,7 +159,7 @@ namespace PaginaToros.Server.Controllers
                 Certifseman _Certifseman = _mapper.Map<Certifseman>(request);
 
                 Certifseman _CertifsemanCreado = await _CertifsemanRepositorio.Crear(_Certifseman);
-
+                Console.WriteLine("Llega aca");
                 if (_CertifsemanCreado.Id != 0)
                     _Respuesta = new Respuesta<CertifsemanDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<CertifsemanDTO>(_CertifsemanCreado) };
                 else

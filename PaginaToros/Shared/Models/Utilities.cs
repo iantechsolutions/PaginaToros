@@ -21,7 +21,7 @@ namespace PaginaToros.Shared.Models
         public const string MSGSUSPENDEDUSER = "Este usuario está suspendido";
         public const string MSGCANNOTUSERREGISTER = "No se ha podido registrar el usuario";
         public const string MSGNODATA = "No se encontraron resultados";
-        public const string MSGSUCCESS = "La opreción se ha realizado exitosamente";
+        public const string MSGSUCCESS = "La operación se ha realizado exitosamente";
         public const string MSGSTRINGlENGSHORT = "El Campo {0} requiere más caracteres";
     }
 }

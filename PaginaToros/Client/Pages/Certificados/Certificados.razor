@@ -182,7 +182,9 @@ else
             socios = rta.List;
             var rt = await _certifsemanServicio.CantidadTotal();
             cantotal = rt.List;
-            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(cantotal - 15, cantotal);
+            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(cantotal - 30, cantotal);
+            oRespuesta.List = RemoveDuplicates(oRespuesta.List);
+            Console.WriteLine(oRespuesta);
             StateHasChanged();
         }
         else
@@ -204,6 +206,26 @@ else
             cantotal = oRespuesta.List.Count();
         }
 
+    }
+
+
+    public static List<CertifsemanDTO> RemoveDuplicates(List<CertifsemanDTO> items)
+    {
+        var seenIds = new HashSet<int>();
+        var uniqueItems = new List<CertifsemanDTO>();
+
+        foreach (var item in items)
+        {
+            Console.WriteLine(item.Id);
+            var boole = seenIds.Add(item.Id);
+            Console.WriteLine(boole);
+            if (boole)  // HashSet.Add returns false if the item was already in the set
+            {
+                uniqueItems.Add(item);
+            }
+        }
+        Console.WriteLine(uniqueItems.Count());
+        return uniqueItems;
     }
 
     private async Task<bool> UserHasRole(string role)

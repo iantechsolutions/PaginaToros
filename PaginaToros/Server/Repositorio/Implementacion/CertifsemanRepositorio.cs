@@ -22,7 +22,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
 
                 // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Certifsemen.AsNoTracking().Include(t => t.Socio)
+                return await _dbContext.Certifsemen.Include(t => t.Socio)
                                                  .Include(e=>e.Centro)
                                                  .OrderByDescending(t => t.Id)
                                                  .Skip(skip)
@@ -61,12 +61,22 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 }
                 if (take == 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    a = a.OrderByDescending(t => t.Id).ToList();
                 }
                 else
                 {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                    
+                    a = a.Take(take).OrderByDescending(t => t.Id).ToList();
                 }
+                a = RemoveDuplicates(a);
+                foreach (var item in a)
+                {
+                    Console.WriteLine("nrocert post");
+                    Console.WriteLine(item.NroCert);
+                }   
+
+
+                return a;
             }
             catch
             {
@@ -89,12 +99,14 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 }
                 if (take == 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    a = a.OrderByDescending(t => t.Id).ToList();
                 }
                 else
                 {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                    a = a.Take(take).OrderByDescending(t => t.Id).ToList();
                 }
+                a = RemoveDuplicates(a);
+                return a;
             }
             catch
             {
@@ -120,6 +132,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
+                Console.WriteLine("SE CREA CERTIFICADO");
+                Console.WriteLine(entidad);
                 _dbContext.Set<Certifseman>().Add(entidad);
                 await _dbContext.SaveChangesAsync();
                 return entidad;
@@ -162,6 +176,24 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
                 throw;
             }
+        }
+        public static List<Certifseman> RemoveDuplicates(List<Certifseman> items)
+        {
+            var seenIds = new HashSet<int>();
+            var uniqueItems = new List<Certifseman>();
+
+            foreach (var item in items)
+            {
+                Console.WriteLine(item.Id);
+                var boole = seenIds.Add(item.Id);
+                Console.WriteLine(boole);
+                if (boole)  // HashSet.Add returns false if the item was already in the set
+                {
+                    uniqueItems.Add(item);
+                }
+            }
+            Console.WriteLine(uniqueItems.Count());
+            return uniqueItems;
         }
     }
 }
