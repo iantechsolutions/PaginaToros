@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace PaginaToros.Shared.Models
@@ -18,5 +19,7 @@ namespace PaginaToros.Shared.Models
         public DateTime? FchUsu { get; set; }
 
         public Inspect? Inspector { get; set; }
+        [JsonIgnore]
+        public List<Estable>? Estables { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PaginaToros.Shared.Models
 {
@@ -14,5 +15,8 @@ namespace PaginaToros.Shared.Models
         public int Id { get; set; }
         public DateTime? FchUsu { get; set; }
         public Inspect? Inspector { get; set; }
+
+        [JsonIgnore]
+        public List<Estable>? Estables {  get; set; }
     }
 }

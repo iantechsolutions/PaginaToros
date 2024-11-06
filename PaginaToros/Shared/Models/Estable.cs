@@ -33,5 +33,7 @@ namespace PaginaToros.Shared.Models
         public List<Transsb> TransS { get; set; }
         [JsonIgnore]
         public List<Resin1> Resins { get; set; }
+
+        public Zona? Zona { get; set; }
     }
 }

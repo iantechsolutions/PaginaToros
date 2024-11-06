@@ -2,6 +2,7 @@
 @inject ISolici1Servicio _solici1Servicio
 @inject ISolici1AuxServicio _solici1AuxServicio
 @inject IDesepla1Servicio _desepla1Servicio
+@inject IEstableServicio _estableServicio
 @inject IResin1Servicio _resin1Servicio
 @inject IInspectServicio _inspectServicio
 @inject ISocioServicio _socioServicio
@@ -248,6 +249,7 @@ else
 @code {
     bool declaracion = false;
     Solici1DTO oSolicitud = new();
+    List<EstableDTO> establecimientos = new();
     Resin1DTO Resultado = new();
     List<Desepla1DTO> Declaraciones = new();
     SocioDTO socio = new();
@@ -280,6 +282,9 @@ else
         try{
             var r = await _inspectServicio.LimitadosFiltrados(0, 0);
             Inspectores = r.List;
+            var respuesta = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
+            establecimientos = respuesta.List;
+            var rtaZonas = await _zo
             if (id != 0)
             {
                 string filtro = $"Id = {id}";
@@ -314,13 +319,21 @@ else
                 }
                 if (Inspector is null)
                 {
-                    if (Inspectores.Where(x=> x.Provincia.Pcod == socio.Provincia.Pcod).Count() > 0)
+                    EstableDTO? est = establecimientos.Where(x => x.Ecod == oSolicitud.Codest).First();
+                    if (est != null)
                     {
-                        Inspector = Inspectores.Where(x => x.Provincia.Pcod == socio.Provincia.Pcod).First();
+                        ZonaDTO = 
                     }
-                    else
-                    {
-                        Inspector = new InspectDTO();
+                    else{
+
+                        if (Inspectores.Where(x=>  == socio.Provincia.Pcod).Count() > 0)
+                        {
+                            Inspector = Inspectores.Where(x => x.Provincia.Pcod == socio.Provincia.Pcod).First();
+                        }
+                        else
+                        {
+                            Inspector = new InspectDTO();
+                        }
                     }
                 }
 

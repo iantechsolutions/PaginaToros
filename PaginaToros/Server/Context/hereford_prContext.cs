@@ -896,6 +896,12 @@ namespace PaginaToros.Server.Context
                .HasPrincipalKey(s => s.Scod);
 
 
+            modelBuilder.Entity<Estable>()
+               .HasOne(p => p.Zona)
+               .WithMany(s => s.Estables)
+               .HasForeignKey(t => t.Codzon)
+               .HasPrincipalKey(s => s.Zcod);
+
             modelBuilder.Entity<Futcontrol>(entity =>
             {
                 entity.ToTable("FUT_CONTROL");
