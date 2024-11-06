@@ -9,49 +9,81 @@
 @inject IJSRuntime _js
 <style>
     @@page {
-    margin: 0;
+        margin: 0;
+        size: auto; 
     }
-    @@media-print{
-        .row{
-        break-inside:avoid
+
+  
+
+    @@media-print {
+        .row {
+            break-inside: avoid;
         }
-        table{
-            break-inside:avoid
+
+        table {
+            break-inside: avoid;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        br {
+            display: none !important;
+        }
+
+       
+
+        * {
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .modal-content {
+            border: none;
+        }
+        body {
+            margin: 0 !important;
         }
     }
 </style>
 @if(Inspector is not null){
-<h3>Solicitud id nro° @id</h3>
 
-<RadzenCard Class="m-3">
+<div class="m-3" style="height:max-content;">
+        <div>
+        <h3><strong>Solicitud id nro° @id</strong></h3>
+            <button class="btn no-print" style="float:right" title="Imprimir" @onclick="() => Print()"><FeatherPrinter Color="Black" Size="24" /></button>
+        </div>
     <div class="row">
-        <div class="col-6">
+        <div class="col-3">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Establecimiento</RadzenText>
             <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Establecimiento.Nombre</b></RadzenText>
         </div>
-        <div class="col-5">
+            <div class="col-3">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Nro Socio</RadzenText>
             <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Establecimiento.Socio.Scod</b></RadzenText>
         </div>
-        <div class="col-1">
-            <button class="btn no-print" style="float:right" title="Imprimir" @onclick="() => Print()"><FeatherPrinter Color="Black" Size="24" /></button>
-        </div>
-        <div class="col-6">
+
+            <div class="col-3">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Plantel</RadzenText>
             <RadzenText TextStyle="TextStyle.Body1"><b>@socio.Placod</b></RadzenText>
         </div>
-        <div class="col-6">
+            <div class="col-3">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Nombre Socio</RadzenText>
             <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Establecimiento.Socio.Nombre</b></RadzenText>
         </div>
-        <div class="col-6">
+            <div class="col-3">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Control de Produccion?</RadzenText>
             <RadzenText TextStyle="TextStyle.Body1"><b>@(oSolicitud.Produc=="S" ? "SI" : "NO")</b></RadzenText>
         </div>
-        <div class="col-6">
+            <div class="col-3">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">ReInspeccion?</RadzenText>
             <RadzenText TextStyle="TextStyle.Body1"><b>@(oSolicitud.Reinsp=="S" ? "SI" : "NO")</b></RadzenText>
         </div>
+            <div class="col-3">
         <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion solicitada el</RadzenText>
             @if (oSolicitud.Fecsol.HasValue)
             {
@@ -60,6 +92,9 @@
             else{
                 <RadzenText TextStyle="TextStyle.Body1"><b></b></RadzenText>
             }
+            </div>
+            <div class="col-3">
+
         <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion autorizada el</RadzenText>
             @if (oSolicitud.Fecins.HasValue){
                 <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecins.Value.ToString("dd/MM/yyyy")</b></RadzenText>
@@ -67,8 +102,9 @@
             else{
                 <RadzenText TextStyle="TextStyle.Body1"><b></b></RadzenText>
             }
+        </div>
     </div>
-    <br/>
+    <br class="no-print"/>
     <br/>
     @if (Declaraciones.Count()>0)
     {
@@ -79,7 +115,7 @@
             <h3 style="font-weight:bold">Año de nacimiento: @soliAux.Anio</h3>
             <br/>
         </center>
-        <br/>
+        <br class="no-print"/>
             <table class="table table-bordered text-center" bottom="middle" border="1" align="center">
                 <tbody>
                     <tr style="background-color: #82D682;font-size:12px">
@@ -112,13 +148,13 @@
             <br/>
         <table class="table table-bordered text-center" id="tabla2" bottom="middle" width="334" bgcolor="#FFFFFF" align="center">
             <tbody>
-                <tr style="background-color:#FFFFFF">
+                @* <tr style="background-color:#FFFFFF">
                     <td colspan="4" height="21"></td>
                 </tr>
                 <tr style="background-color:#FFFFFF">
                     <td width="85">&nbsp;</td>
                     <td colspan="3">&nbsp;</td>
-                </tr>
+                </tr> *@
                 <tr style="background-color:#CCCCCC">
                     <td width="85" style="background-color:#FFFFFF">&nbsp;</td>
                     <td width="75"><strong style="font-size:12px">Toros PR</strong></td>
@@ -155,8 +191,8 @@
                 </tr>
             </tbody>
         </table>
-        <br/>
-        <br/>
+                    <br class="no-print" />
+                    <br class="no-print" />
         }
         }
     } 
@@ -191,8 +227,8 @@
             </tbody>
         </table>
     }
-    <br/>
-    <br/>
+        <br class="no-print" />
+        <br class="no-print" />
     <table class="table table-bordered text-center" bottom="middle" style="font-size:18px" align="center">
         <tbody>
             <tr>
@@ -217,8 +253,8 @@
             </tr>
         </tbody>
     </table>
-    <br/>
-    <br/>
+    <br class="no-print"/>
+        <br class ="no-print" />
     <table class="table table-bordered text-center" bottom="middle" align="center">
         <tbody>
             <tr>
@@ -234,7 +270,7 @@
             </tr>
         </tbody>
     </table>
-    </RadzenCard>
+    </div>
 }
 else
 {

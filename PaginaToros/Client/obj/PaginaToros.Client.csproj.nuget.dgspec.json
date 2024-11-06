@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj": {}
+    "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj": {}
   },
   "projects": {
-    "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj": {
+    "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj",
+        "projectUniqueName": "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj",
         "projectName": "PaginaToros.Client",
-        "projectPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj",
-        "packagesPath": "C:\\Users\\lolo1\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Client\\obj\\",
+        "projectPath": "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj",
+        "packagesPath": "C:\\Users\\Maxim\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Client\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "E:\\LIBRERIAS\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\lolo1\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Users\\Maxim\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -27,15 +23,14 @@
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "C:\\Program Files\\dotnet\\library-packs": {},
-          "C:\\Users\\lolo1\\DEVELOP\\nugets": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net6.0": {
             "targetAlias": "net6.0",
             "projectReferences": {
-              "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
-                "projectPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj"
+              "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
+                "projectPath": "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj"
               }
             }
           }
@@ -99,19 +94,19 @@
             "Microsoft.NET.ILLink.Analyzers": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[7.0.100-1.23211.1, )",
+              "version": "[7.0.100-1.23401.1, )",
               "autoReferenced": true
             },
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[7.0.100-1.23211.1, )",
+              "version": "[7.0.100-1.23401.1, )",
               "autoReferenced": true
             },
             "Microsoft.NET.Sdk.WebAssembly.Pack": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[8.0.4, )",
+              "version": "[8.0.6, )",
               "autoReferenced": true
             },
             "Newtonsoft.Json": {
@@ -136,8 +131,20 @@
           "warn": true,
           "downloadDependencies": [
             {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[6.0.31, 6.0.31]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[6.0.31, 6.0.31]"
+            },
+            {
               "name": "Microsoft.NETCore.App.Runtime.Mono.browser-wasm",
-              "version": "[6.0.29, 6.0.29]"
+              "version": "[6.0.30, 6.0.30]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[6.0.31, 6.0.31]"
             }
           ],
           "frameworkReferences": {
@@ -145,7 +152,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.302\\RuntimeIdentifierGraph.json"
         }
       },
       "runtimes": {
@@ -154,21 +161,17 @@
         }
       }
     },
-    "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
+    "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+        "projectUniqueName": "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
         "projectName": "PaginaToros.Shared",
-        "projectPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
-        "packagesPath": "C:\\Users\\lolo1\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\lolo1\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\obj\\",
+        "projectPath": "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+        "packagesPath": "C:\\Users\\Maxim\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Maxim\\Source\\Repos\\PaginaToros\\PaginaToros\\Shared\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "E:\\LIBRERIAS\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\lolo1\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Users\\Maxim\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -177,7 +180,6 @@
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "C:\\Program Files\\dotnet\\library-packs": {},
-          "C:\\Users\\lolo1\\DEVELOP\\nugets": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -217,12 +219,26 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[6.0.31, 6.0.31]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[6.0.31, 6.0.31]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[6.0.31, 6.0.31]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.302\\RuntimeIdentifierGraph.json"
         }
       }
     }
