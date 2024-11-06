@@ -96,6 +96,32 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("LimitadosFiltradosIncludeZonas")]
+        public async Task<IActionResult> LimitadosFiltradosIncludeZonas(int skip, int take, string? expression = null)
+        {
+
+            Respuesta<List<InspectDTO>> _ResponseDTO = new Respuesta<List<InspectDTO>>();
+
+            try
+            {
+                var a = await _InspectRepositorio.LimitadosFiltradosIncludeZonas(skip, take, expression);
+
+                var listaFiltrada = _mapper.Map<List<InspectDTO>>(a);
+
+                _ResponseDTO = new Respuesta<List<InspectDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+
+
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<InspectDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+
         [HttpDelete]
         [Route("Eliminar/{id:int}")]
         public async Task<IActionResult> Eliminar(int id)

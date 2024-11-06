@@ -4,6 +4,7 @@ using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
+using System.Text.Json;
 
 namespace PaginaToros.Server.Repositorio.Implementacion
 {
@@ -46,7 +47,35 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
-        public async Task<List<Inspect>> LimitadosFiltrados(int skip, int take, string filtro = null)
+        public async Task<List<Inspect>> LimitadosFiltradosIncludeZonas(int skip, int take, string filtro = null)
+        {
+            try
+            {
+                List<Inspect> a;
+                if(filtro is not null)
+                {
+                    a = await _dbContext.Inspects.Include(x => x.Provincia).Include(x=>x.Zonas).Where(filtro).Skip(skip).ToListAsync();
+                }
+                else
+                {
+                    a = await _dbContext.Inspects.Include(x => x.Provincia).Include(x => x.Zonas).Skip(skip).ToListAsync();
+                }
+                if (take == 0)
+                {
+                    Console.WriteLine("INSPECTS");
+                    Console.WriteLine(JsonSerializer.Serialize(a));
+                    return a.OrderByDescending(t => t.Id).ToList();
+                }
+                else
+                {
+                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }public async Task<List<Inspect>> LimitadosFiltrados(int skip, int take, string filtro = null)
         {
             try
             {

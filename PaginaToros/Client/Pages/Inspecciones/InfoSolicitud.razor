@@ -285,7 +285,6 @@ else
 @code {
     bool declaracion = false;
     Solici1DTO oSolicitud = new();
-    List<EstableDTO> establecimientos = new();
     Resin1DTO Resultado = new();
     List<Desepla1DTO> Declaraciones = new();
     SocioDTO socio = new();
@@ -316,11 +315,9 @@ else
     protected override async Task OnInitializedAsync()
     {
         try{
-            var r = await _inspectServicio.LimitadosFiltrados(0, 0);
+            var r = await _inspectServicio.LimitadosFiltradosIncludeZonas(0, 0);
             Inspectores = r.List;
-            var respuesta = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
-            establecimientos = respuesta.List;
-            var rtaZonas = await _zo
+
             if (id != 0)
             {
                 string filtro = $"Id = {id}";
@@ -355,14 +352,34 @@ else
                 }
                 if (Inspector is null)
                 {
-                    EstableDTO? est = establecimientos.Where(x => x.Ecod == oSolicitud.Codest).First();
+                    Estable? est = oSolicitud.Establecimiento;
                     if (est != null)
                     {
-                        ZonaDTO = 
+                        Console.WriteLine(Inspectores);
+                        foreach( var ins in Inspectores){
+                            Console.WriteLine("Zonas");
+                            Console.WriteLine(JsonSerializer.Serialize(ins));
+                        }
+                        InspectDTO inspec = Inspectores.Where(inspector => inspector.Zonas.Any(zona => zona.Zcod == est.Codzon)).First();
+                        if (inspec != null)
+                        {
+                            Inspector = inspec;
+                        }
+                        else
+                        {
+                            if (Inspectores.Where(x => x.Provincia.Pcod == socio.Provincia.Pcod).Count() > 0)
+                            {
+                                Inspector = Inspectores.Where(x => x.Provincia.Pcod == socio.Provincia.Pcod).First();
+                            }
+                            else
+                            {
+                                Inspector = new InspectDTO();
+                            }
+                        }
                     }
                     else{
 
-                        if (Inspectores.Where(x=>  == socio.Provincia.Pcod).Count() > 0)
+                        if (Inspectores.Where(x=> x.Provincia.Pcod == socio.Provincia.Pcod).Count() > 0)
                         {
                             Inspector = Inspectores.Where(x => x.Provincia.Pcod == socio.Provincia.Pcod).First();
                         }

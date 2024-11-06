@@ -8,6 +8,8 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<Respuesta<List<InspectDTO>>> Lista(int page, int count);
         Task<Respuesta<int>> CantidadTotal();
         Task<Respuesta<List<InspectDTO>>> LimitadosFiltrados(int skip, int take, string filtro = null);
+
+        Task<Respuesta<List<InspectDTO>>> LimitadosFiltradosIncludeZonas(int skip, int take, string filtro = null);
         Task<bool> Eliminar(int id);
         Task<Respuesta<InspectDTO>> Crear(InspectDTO entidad);
         Task<bool> Editar(InspectDTO entidad);
