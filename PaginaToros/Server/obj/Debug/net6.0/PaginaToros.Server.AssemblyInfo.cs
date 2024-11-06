@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PaginaToros.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+233ac908baaa1110ce4bf18ca141f61d1689792d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6c234284a46783c2d8ade6f02d9dbcde2e4ac61b")]
 [assembly: System.Reflection.AssemblyProductAttribute("PaginaToros.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PaginaToros.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

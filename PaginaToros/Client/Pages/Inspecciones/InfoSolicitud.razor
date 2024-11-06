@@ -31,10 +31,7 @@
             display: none !important;
         }
 
-        .rz-card {
-            border: none !important;
-            box-shadow: none !important;
-        }
+       
 
         * {
             border: none !important;
@@ -44,6 +41,9 @@
             padding: 0 !important;
         }
 
+        .modal-content {
+            border: none;
+        }
         body {
             margin: 0 !important;
         }
@@ -51,7 +51,7 @@
 </style>
 @if(Inspector is not null){
 
-<div Class="m-3">
+<div class="m-3" style="height:max-content;">
         <div>
         <h3><strong>Solicitud id nro° @id</strong></h3>
             <button class="btn no-print" style="float:right" title="Imprimir" @onclick="() => Print()"><FeatherPrinter Color="Black" Size="24" /></button>
