@@ -147,7 +147,7 @@ namespace PaginaToros.Server.Controllers
                     using (SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587))
                     {
                         smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2024");
+                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2025");
                         smtp.EnableSsl = true;
                         smtp.Send(mail);
                     }
@@ -166,25 +166,41 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                using (MailMessage mail = new MailMessage())
-                {
+                try { 
+                Console.WriteLine(model.Email);
+
+
+                    SmtpClient client = new SmtpClient();
+                    client.UseDefaultCredentials = false;
+                    client.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2025", "hotmail.com");
+                    client.Port = 587; // 25 587
+                    client.Host = "smtp.office365.com";
+                    client.DeliveryMethod = SmtpDeliveryMethod.Network;
+                    client.EnableSsl = true;
+
+
+
+                    Console.WriteLine(nuevaContraseña);
+                    MailMessage mail = new MailMessage();
                     mail.From = new MailAddress("puroregistrado@hotmail.com");
-                    mail.To.Add(model.Email);
+                    mail.To.Add(new MailAddress(model.Email));
                     mail.Subject = $"Restablecimiento de contraseña para Hereford";
                     string body = $"Estimado,\nHemos recibido una solicitud para restablecer su contraseña. Los detalles de su nueva contraseña son los siguientes:\n";
                     body += $"Correo electrónico registrado: {model.Email}\nNueva contraseña: {nuevaContraseña}\n";
                     body += $"Recuerde mantener esta información segura y no compartirla con nadie más. Gracias por estar con nosotros y esperamos que continúe disfrutando de nuestros servicios.\n";
                     body += $"Saludos cordiales,\n Hereford";
+
                     mail.Body = body;
-                    using (SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587))
-                    {
-                        smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2024","hotmail.com");
-                        smtp.EnableSsl = true;
-                        smtp.Send(mail);
-                    }
-                }
+
+                    client.Send(mail);
+
                 return Ok("ok");
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    return BadRequest(e.Message);
+                }
             }
             catch (Exception e)
             {

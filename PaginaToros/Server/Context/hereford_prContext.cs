@@ -2915,6 +2915,13 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("ZCOD");
             });
 
+            modelBuilder.Entity<Zona>()
+               .HasOne(p => p.Inspector)
+               .WithMany(s => s.Zonas)
+               .HasForeignKey(t => t.Inspec)
+               .HasPrincipalKey(s => s.Icod);
+
+
             OnModelCreatingPartial(modelBuilder);
         }
 

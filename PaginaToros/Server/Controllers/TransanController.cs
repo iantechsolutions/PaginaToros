@@ -146,7 +146,7 @@ namespace PaginaToros.Server.Controllers
                 {
                     Console.WriteLine(7);
                     smtp.UseDefaultCredentials = false;
-                    smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2024", "hotmail.com");
+                    smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2025", "hotmail.com");
                     smtp.EnableSsl = true;
                     Console.WriteLine(8);
                     smtp.Send(mail);

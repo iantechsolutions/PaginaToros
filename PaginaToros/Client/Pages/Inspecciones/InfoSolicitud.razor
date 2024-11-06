@@ -12,7 +12,11 @@
     }
     @@media-print{
         .row{
-        break-inside:avoid}
+        break-inside:avoid
+        }
+        table{
+            break-inside:avoid
+        }
     }
 </style>
 @if(Inspector is not null){
@@ -48,9 +52,20 @@
             <RadzenText TextStyle="TextStyle.Body1"><b>@(oSolicitud.Reinsp=="S" ? "SI" : "NO")</b></RadzenText>
         </div>
         <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion solicitada el</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecsol</b></RadzenText>
+            @if (oSolicitud.Fecsol.HasValue)
+            {
+                <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecsol.Value.ToString("dd/MM/yyyy")</b></RadzenText>
+            }
+            else{
+                <RadzenText TextStyle="TextStyle.Body1"><b></b></RadzenText>
+            }
         <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Inspeccion autorizada el</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecins</b></RadzenText>
+            @if (oSolicitud.Fecins.HasValue){
+                <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Fecins.Value.ToString("dd/MM/yyyy")</b></RadzenText>
+            }
+            else{
+                <RadzenText TextStyle="TextStyle.Body1"><b></b></RadzenText>
+            }
     </div>
     <br/>
     <br/>
@@ -166,6 +181,12 @@
                     <td></td>
                     <td>0</td>
                 </tr>
+                    <tr>
+                        <td style="font-size:12px" bgcolor="#999999"><strong>Remanentes</strong></td>
+                        <td bgcolor="#999999"><p></p></td>
+                        <td bgcolor="#999999"><p></p></td>
+                        <td bgcolor="#999999"><p>0</p></td>
+                    </tr>
             </tbody>
         </table>
     }
@@ -270,8 +291,9 @@ else
 
                 filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{oSolicitud.Nrosol}\".ToLower())";
                 var rt = await _resin1Servicio.LimitadosFiltrados(0, 1, filtro);
+
                 var socioId = oSolicitud.Establecimiento.Socio.Id;
-                
+
                 filtro = $"Id == {socioId}";
                 var sociorta = await _socioServicio.LimitadosFiltrados(0,0,filtro);
                 socio = sociorta.List.First();
@@ -284,16 +306,22 @@ else
                 Declaraciones = Declaraciones.Where(x => x.Desde.HasValue && aniosSoli.Contains(x.Desde.Value.Year.ToString()) || x.Hasta.HasValue && aniosSoli.Contains(x.Hasta.Value.Year.ToString())).ToList();
                 Declaraciones = Declaraciones.GroupBy(x => x.Id).Select(x => x.First()).ToList();
                 disponibles = Math.Round(Declaraciones.Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0));
-                
-
-                
                 if (rt.List.Count > 0)
-                {
-                    Inspector = Inspectores.Where(x=>x.Icod==rt.List.FirstOrDefault().Icod).FirstOrDefault();
+                {  
+                    var inspecId = rt.List.FirstOrDefault().Icod;
+
+                    Inspector = Inspectores.Where(x => x.Icod == inspecId).FirstOrDefault();
                 }
                 if (Inspector is null)
                 {
-                    Inspector = new();
+                    if (Inspectores.Where(x=> x.Provincia.Pcod == socio.Provincia.Pcod).Count() > 0)
+                    {
+                        Inspector = Inspectores.Where(x => x.Provincia.Pcod == socio.Provincia.Pcod).First();
+                    }
+                    else
+                    {
+                        Inspector = new InspectDTO();
+                    }
                 }
 
             }

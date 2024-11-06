@@ -21,7 +21,7 @@
                                     @eleccion.Nombre
                                 </ResultTemplate>
                             </BlazoredTypeahead>
-                    </div>
+                    </div>  
                 <div class="col-sm"/>
             </div>
             <br/>
@@ -79,7 +79,7 @@
                             </div>
                             <div class="col-sm">
                                 <br/>
-                                <button style="padding-top:15px ;" type="button" title="Eliminar" disabled="esSocio" @onclick="() => deleteSolAux(soli.Id)"><FeatherXCircle Size="16" Color="red" /></button>
+                                <button style="padding-top:15px ;" type="button" title="Eliminar" disabled="@esSocio" @onclick="() => deleteSolAux(soli.Id, listadoSolicitudes.IndexOf(soli))"><FeatherXCircle Size="16" Color="red" /></button>
                             </div>
                         </div>
                     }
@@ -87,7 +87,7 @@
                     <br/>
                 @if(!esSocio){
                 <center style="padding-right:20px">
-                    <button type="button" disabled="esSocio" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>listadoSolicitudes.Add(new Solici1DTO())"><FeatherPlus Size="24" Color="Black" /></button>
+                    <button type="button" disabled="@esSocio" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>addElement()"><FeatherPlus Size="24" Color="Black" /></button>
                 </center>
                     }
                 <br />
@@ -138,6 +138,13 @@ else
     bool activoControl = false;
     SocioDTO? socioSeleccionado = null;
     EstableDTO establecimientoSeleccionado = new();
+
+    protected async Task addElement()
+    {
+        Console.WriteLine("Agregando elemento");
+        listadoSolicitudes.Add(new Solici1DTO());
+        Console.WriteLine(listadoSolicitudes.Count());
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -260,11 +267,12 @@ else
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
 
     }
-    public async Task deleteSolAux(int id)
+    public async Task deleteSolAux(int id, int index)
     {
         await _solici1AuxServicio.Eliminar(id);
         listadoSolicitudesAuxOriginal= listadoSolicitudesAuxOriginal.Where(x=>x.Id!=id).ToList();
-        listadoSolicitudes = listadoSolicitudes.Where(x=>x.Id!=id).ToList();
+        // listadoSolicitudes = listadoSolicitudes.Where(x=>x.Id!=id).ToList();
+        listadoSolicitudes.RemoveAt(index);
     }
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PaginaToros.Shared.Models
 {
@@ -17,5 +18,8 @@ namespace PaginaToros.Shared.Models
         public int Id { get; set; }
         public string? Mail { get; set; }
         public Provin? Provincia { get; set; }
+        [JsonIgnore]
+        public List<Zona>? Zonas { get; set; }
+        
     }
 }

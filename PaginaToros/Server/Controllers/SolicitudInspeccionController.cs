@@ -455,7 +455,7 @@ namespace PaginaToros.Server.Controllers
                 using (SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587))
                 {
                     smtp.UseDefaultCredentials = false;
-                    smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2024", "hotmail.com");
+                    smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2025", "hotmail.com");
                     smtp.EnableSsl = true;
                     smtp.Send(mail);
                 }

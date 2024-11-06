@@ -402,7 +402,10 @@ else
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
+        Console.WriteLine(socioSeleccionado);
+        Console.WriteLine(socioSeleccionado == null);
         if(socioSeleccionado==null){
+            Console.WriteLine("Entro aca");
             if (args!=null && !string.IsNullOrEmpty(args.Filter))
             {
                 oRespuesta = await _torosServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
@@ -446,6 +449,13 @@ else
         {
             var coso = new LoadDataArgs();
             coso.Filter = "";
+            await LoadData(coso);
+        }
+        else
+        {
+            var coso = new LoadDataArgs();
+            coso.Skip = 0;
+            coso.Top = 15;
             await LoadData(coso);
         }
     }

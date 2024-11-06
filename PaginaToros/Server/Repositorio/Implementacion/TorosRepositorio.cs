@@ -22,8 +22,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
 
                 // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Torosunis.OrderBy(x => x.CodEstado != "1").ThenBy(x => x.CodEstado != "3").Include(t => t.Socio)
-                                                 .OrderByDescending(t => t.Id)
+                return await _dbContext.Torosunis.OrderBy(x=>x.CodEstado!="1").ThenByDescending(x => x.Id).Include(t => t.Socio)
+                                                 //.OrderByDescending(t => t.Id)
                                                  .Skip(skip)
                                                  .Take(take)
                                                  .ToListAsync();
@@ -52,19 +52,24 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
                 List<Torosuni> a;
                 if(filtro is not null) { 
-                a = await _dbContext.Torosunis.OrderBy(x => x.CodEstado != "1").ThenBy(x => x.CodEstado != "3").Include(t=>t.Socio).Where(filtro).Skip(skip).ToListAsync();
+                a = await _dbContext.Torosunis.OrderBy(x => x.CodEstado != "1").ThenByDescending(x => x.Id).Include(t=>t.Socio).Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
                 {
-                    a= await _dbContext.Torosunis.OrderBy(x => x.CodEstado != "1").ThenBy(x => x.CodEstado != "3").Include(t=>t.Socio).Skip(skip).ToListAsync(); 
+                    a= await _dbContext.Torosunis.OrderBy(x => x.CodEstado != "1").ThenByDescending(x => x.Id).Include(t=>t.Socio).Skip(skip).ToListAsync(); 
                 }
                 if (take == 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    return a
+                        //.OrderByDescending(t => t.Id)
+                        .ToList();
                 }
                 else
                 {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                    return a
+                        .Take(take)
+                        //.OrderByDescending(t => t.Id)
+                        .ToList();
                 }
             }
             catch
@@ -80,19 +85,24 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 List<Torosuni> a;
                 if (filtro is not null)
                 {
-                    a = await _dbContext.Torosunis.Where(filtro).Skip(skip).ToListAsync();
+                    a = await _dbContext.Torosunis.OrderBy(x => x.CodEstado != "1").ThenByDescending(x => x.Id).Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
                 {
-                    a = await _dbContext.Torosunis.Skip(skip).ToListAsync();
+                    a = await _dbContext.Torosunis.OrderBy(x => x.CodEstado != "1").ThenByDescending(x => x.Id).Skip(skip).ToListAsync();
                 }
                 if (take == 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    return a
+                        //.OrderByDescending(t => t.Id)
+                        .ToList();
                 }
                 else
                 {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                    return a
+                        .Take(take)
+                        //.OrderByDescending(t => t.Id)
+                        .ToList();
                 }
             }
             catch

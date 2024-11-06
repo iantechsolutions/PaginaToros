@@ -396,7 +396,7 @@ else
         }
 
 
-        
+
 
         isLoading = false;
     }
@@ -413,6 +413,13 @@ else
         {
             var coso = new LoadDataArgs();
             coso.Filter = "";
+            await LoadData(coso);
+        }
+        else
+        {
+            var coso = new LoadDataArgs();
+            coso.Skip = 0;
+            coso.Top = 15;
             await LoadData(coso);
         }
     }
