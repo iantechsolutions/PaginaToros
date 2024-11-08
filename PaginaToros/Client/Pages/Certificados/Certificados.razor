@@ -1,4 +1,5 @@
 ﻿@page "/certificados"
+@using Newtonsoft.Json
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
@@ -13,7 +14,10 @@
     .rz-column-title-content {
         font-size: 13px !important;
     }
-
+    .rz-column-title-content {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+    }
     .rz-cell-data {
         overflow: visible !important;
         white-space: normal !important;
@@ -73,6 +77,7 @@
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="5.3%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="5.3%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre" Width="8.6%" />
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Apodacion" Title="Apodo" Width="8.6%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrTsan" Title="Tip/ADN" Width="5.3%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrInsd" Title="Nro Macho Dador" Width="7.34%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosiOr" Title="Cant. de dosis" Width="6.6%" />
@@ -182,9 +187,11 @@ else
             socios = rta.List;
             var rt = await _certifsemanServicio.CantidadTotal();
             cantotal = rt.List;
-            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(cantotal - 30, cantotal);
+            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 15);
             oRespuesta.List = RemoveDuplicates(oRespuesta.List);
-            Console.WriteLine(oRespuesta);
+            string s = JsonConvert.SerializeObject(oRespuesta);
+            Console.WriteLine("oRespuesta");
+            Console.WriteLine(s);
             StateHasChanged();
         }
         else
@@ -362,11 +369,13 @@ else
             if (!string.IsNullOrEmpty(args.Filter))
             {
                 oRespuesta = await _certifsemanServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+                oRespuesta.List = RemoveDuplicates(oRespuesta.List);
                 // oRespuesta.List = oRespuesta.List.Where(args.Filter)
             }
             else
             {
                 oRespuesta = await _certifsemanServicio.Lista(args.Skip.Value, args.Top.Value);
+                oRespuesta.List = RemoveDuplicates(oRespuesta.List);
             }
         }
         else
@@ -374,12 +383,14 @@ else
             if (!string.IsNullOrEmpty(args.Filter))
             {
                 oRespuesta = await _certifsemanServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+                oRespuesta.List = RemoveDuplicates(oRespuesta.List);
                 // oRespuesta.List = oRespuesta.List.Where(args.Filter)
             }
             else
             {
                 string filtro = $"Socio.Id={socioSeleccionado.Id}";
                 oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 60,filtro);
+                oRespuesta.List = RemoveDuplicates(oRespuesta.List);
             }
         }
 

@@ -53,27 +53,26 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
                 List<Certifseman> a; 
                 if(filtro is not null) {
-                    a = await _dbContext.Certifsemen.Include(t => t.Socio).Include(t => t.Centro).Where(filtro).Skip(skip).ToListAsync();
+                    a = await _dbContext.Certifsemen.OrderByDescending(x => x.Id).Include(t => t.Socio).Include(t => t.Centro).Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
                 {
-                    a = await _dbContext.Certifsemen.Include(t => t.Socio).Include(t => t.Centro).Skip(skip).ToListAsync();
+                    a = await _dbContext.Certifsemen.OrderByDescending(x => x.Id).Include(t => t.Socio).Include(t => t.Centro).Skip(skip).ToListAsync();
                 }
                 if (take == 0)
                 {
-                    a = a.OrderByDescending(t => t.Id).ToList();
+                    a = a.ToList();
                 }
                 else
                 {
                     
-                    a = a.Take(take).OrderByDescending(t => t.Id).ToList();
+                    a = a.Take(take).ToList();
                 }
+                Console.WriteLine("cantidad pre");
+                Console.WriteLine(a.Count());
                 a = RemoveDuplicates(a);
-                foreach (var item in a)
-                {
-                    Console.WriteLine("nrocert post");
-                    Console.WriteLine(item.NroCert);
-                }   
+                Console.WriteLine("cantidad post");
+                Console.WriteLine(a.Count());
 
 
                 return a;
@@ -91,19 +90,19 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 List<Certifseman> a;
                 if (filtro is not null)
                 {
-                    a = await _dbContext.Certifsemen.Where(filtro).Skip(skip).ToListAsync();
+                    a = await _dbContext.Certifsemen.OrderByDescending(x => x.Id).Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
                 {
-                    a = await _dbContext.Certifsemen.Skip(skip).ToListAsync();
+                    a = await _dbContext.Certifsemen.OrderByDescending(x => x.Id).Skip(skip).ToListAsync();
                 }
                 if (take == 0)
                 {
-                    a = a.OrderByDescending(t => t.Id).ToList();
+                    a = a.ToList();
                 }
                 else
                 {
-                    a = a.Take(take).OrderByDescending(t => t.Id).ToList();
+                    a = a.Take(take).ToList();
                 }
                 a = RemoveDuplicates(a);
                 return a;
