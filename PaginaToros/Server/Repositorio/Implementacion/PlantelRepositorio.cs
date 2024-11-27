@@ -53,11 +53,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 List<Plantel> a;
                 if(filtro is not null)
                 {
-                    a = await _dbContext.Planteles.Include(x => x.Socio).Where(filtro).Skip(skip).ToListAsync();
+                    a = await _dbContext.Planteles.OrderByDescending(t => t.Id).Include(x => x.Socio).Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
                 {
-                    a= await _dbContext.Planteles.Include(x => x.Socio).Skip(skip).ToListAsync();
+                    a= await _dbContext.Planteles.OrderByDescending(t => t.Id).Include(x => x.Socio).Skip(skip).ToListAsync();
                 }
                 if (take == 0)
                 {
@@ -81,11 +81,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 List<Plantel> a;
                 if (filtro is not null)
                 {
-                    a = await _dbContext.Planteles.Where(filtro).Skip(skip).ToListAsync();
+                    a = await _dbContext.Planteles.OrderByDescending(t => t.Id).Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
                 {
-                    a = await _dbContext.Planteles.Skip(skip).ToListAsync();
+                    a = await _dbContext.Planteles.OrderByDescending(t => t.Id).Skip(skip).ToListAsync();
                 }
                 if (take == 0)
                 {
@@ -166,7 +166,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         public async Task<List<Plantel>> ObtenerPorAnios(int anio1, int anio2)
         {
             try { 
-            return await _dbContext.Planteles.Include(p=>p.Socio).Where(x => !string.IsNullOrEmpty(x.Anioex) && Convert.ToInt32(x.Anioex) >= anio1 && Convert.ToInt32(x.Anioex) <= anio2).ToListAsync();
+            return await _dbContext.Planteles.OrderByDescending(t => t.Id).Include(p=>p.Socio).Where(x => !string.IsNullOrEmpty(x.Anioex) && Convert.ToInt32(x.Anioex) >= anio1 && Convert.ToInt32(x.Anioex) <= anio2).ToListAsync();
             }
             catch
             {

@@ -2081,7 +2081,6 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("LUGAR");
 
                 entity.Property(e => e.Nrosol)
-                    .HasMaxLength(6)
                     .HasColumnName("NROSOL");
 
                 entity.Property(e => e.Produc)

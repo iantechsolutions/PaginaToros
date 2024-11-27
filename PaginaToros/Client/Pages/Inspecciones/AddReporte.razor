@@ -2,6 +2,7 @@
 @using Blazored.Typeahead
 @using PaginaToros.Client.Pages.CrudInspecciones
 @using PaginaToros.Client.Servicios.Contrato;
+@inject NavigationManager NavigationManager
 @inject ISocioServicio _socioServicio
 @inject IResin8Servicio _resin8Servicio
 @inject IResin3Servicio _resin3Servicio
@@ -50,7 +51,7 @@
             else
             {
             <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@solicitudes.Where(x=>establecimientos.Where(t => t.Codsoc == socioSeleccionado.Scod).Any(t => t.Ecod == x.Codest) && !resultados.Any(r=>r.Nrores==x.Nrosol)).ToList()" TItem="Solici1DTO"
-                                    LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" SelectionMode="DataGridSelectionMode.Single" ValueChanged="(e)=>onSolicitudChange(e)" >
+                    LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" SelectionMode="DataGridSelectionMode.Single" ValueChanged="(e)=>onSolicitudChange(e)" >
                 <Columns>
                             <RadzenDataGridColumn TItem="Solici1DTO" Property="Nrosol" Title="Nro Sol" />
                     <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Socio">
@@ -83,6 +84,14 @@
                 </Columns>
             </RadzenDataGrid>
             }
+            <br/>
+            <div class="row">
+                <div class="col-sm-9"/>
+                <div class="col-sm-3">
+                    <br/>
+                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick="()=>{ResultWithoutSolicitud();}" disabled=@(solicitudSeleccionada != null)>Resultado sin solicitud</button>
+                </div>
+            </div>
         </div>
         }
         @if (solicitudSeleccionada!=null && solicitudSeleccionada.FirstOrDefault() != null && socioSeleccionado!=null)
@@ -170,9 +179,14 @@
                 <br />
                     <input type="checkbox" disabled="@esSocio" @bind="@tempReinspeccion">
             </div>
+            <div class="col-sm">
+                <label class="col-sm">Crear nuevo plantel?</label>
+                <br />
+                    <input type="checkbox" disabled="@esSocio" @bind="@createNewPlantel">
+            </div>
         </div>
         <br />
-        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">Guardar Datos</button>
+        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">@(Id == 0 ? "Guardar Datos" : "Actualizar datos")</button>
         <br />
         <br />
          @if (confirmado){
@@ -199,11 +213,11 @@
                                             </tr>
                                             <tr style="background-color: #FFFFFF;">
                                                 <th style="background-color: #FFFFFF;">VACAS</th>
-                                                <th style="background-color: #FFFFFF;">VAQUILL c/ Servicio</th>
-                                                <th style="background-color: #FFFFFF;">VAQUILL s/Servicio</th>
+                                                <th style="background-color: #FFFFFF;">VAQ c/ Servicio</th>
+                                                <th style="background-color: #FFFFFF;">VAQ s/Servicio</th>
                                                 <th style="background-color: #FFFFFF;">VACAS</th>
-                                                <th style="background-color: #FFFFFF;">VAQUILL c/Servicio o preñadas</th>
-                                                <th style="background-color: #FFFFFF;">VAQUILL s/Servicio</th>
+                                                <th style="background-color: #FFFFFF;">VAQ c/Servicio o preñadas</th>
+                                                <th style="background-color: #FFFFFF;">VAQ s/Servicio</th>
                                                 <th/>
                                             </tr>
                                         </thead>
@@ -400,7 +414,7 @@
                                                 <th>PR Mochos</th>
                                                 <th>PR Astados</th>
                                                 <th>PR Total</th>
-                                                <th>Rechazadas</th>
+                                                <th>Rechazados</th>
                                                 <th>Control S/</th>
                                                 <th></th>
                                             </tr>
@@ -548,7 +562,7 @@
                                             @foreach (var re in rechazos)
                                             {
                                                 <tr>
-                                                    <td></td>
+                                                    <td>@(rechazos.IndexOf(re) + 1)</td>
                                                     <td>@traductor[re.MotivoRechazo.ToString()]</td>
                                                     <td>@re.Hembras</td>
                                                     <td>@re.Machos</td>
@@ -566,6 +580,21 @@
                                 </div>
                             </div>
                         </div>
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col">
+                                        <br />
+                                        <strong>OBSERVACIONES</strong>
+                                        <br />
+                                        
+                                        <textarea class="form-control" rows="4" disabled="@esSocio" @bind="@oResin1.Observ"></textarea>
+                                        <br />
+                                        <div class=" align-content-end">
+                                            <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>saveObservations()">Guardar observaciones</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                     </RadzenTabsItem>
                 </Tabs>
             </RadzenTabs>
@@ -589,6 +618,7 @@ else
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
 
     bool tempReinspeccion = false;
+    bool createNewPlantel = false;
 
     List<SocioDTO> socios = new();
     SocioDTO? socioSeleccionado = null;
@@ -633,6 +663,8 @@ else
         {"PI","Por Inspeccion"},
         {"EP","Epidemias"},
         {"RE","Rechazos"},
+        {"RI","Reinspeccion"},
+        {"AJ","Ajuste"},
         {"OT","Otros"},
         {"E","Entrada"},
         {"S","Salida"},
@@ -645,6 +677,15 @@ else
         {"7","Pureza"},
         {"8","Sanidad"},
         {"9","Otros"},
+        {"10","Compras"},
+        {"11","Ventas"},
+        {"12","Cambio Categoria"},
+        {"13","Por Inspeccion"},
+        {"14","Epidemias"},
+        {"15","Rechazos"},
+        {"16","Otros"},
+        {"17","Reinspeccion"},
+        {"18","Ajuste"}
     };
 
     bool activo = true;
@@ -742,7 +783,8 @@ else
         {
             oResin1.Nropla = socioSeleccionado.Placod;
             oResin1.Freali = fechaTemp;
-            await _resin1Servicio.Crear(oResin1);
+            var result  = await _resin1Servicio.Crear(oResin1);
+            Id = result.List.Id;
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
@@ -868,13 +910,14 @@ else
     }
     async Task onSolicitudChange(IList<Solici1DTO?> lista){
         solicitudSeleccionada = lista;
+        Console.WriteLine(JsonSerializer.Serialize(solicitudSeleccionada));
         Console.WriteLine("aca");
         Console.WriteLine(Plantelseleccionado);
         Plantelseleccionado = Planteles.Where(x => x.Nrocri == socioSeleccionado.Scod).OrderByDescending(x => x.Id).First();
         Console.WriteLine(Plantelseleccionado);
         // oResinAnterior = repor
-        Resin1DTO oResinAnterior = resultados.Where(x=>x.Establecimiento.Ecod == establecimientoSeleccionado.Ecod && x.Scod == socioSeleccionado.Scod).OrderByDescending(x => x.Id).FirstOrDefault();
-        
+        Resin1DTO oResinAnterior = resultados.OrderByDescending(x => x.Id).Where(x => x.Establecimiento.Ecod == establecimientoSeleccionado.Ecod && x.Scod == socioSeleccionado.Scod).FirstOrDefault();
+
         if (oResinAnterior != null)
         {
             inspectorSeleccionado = Inspects.Where(x => x.Icod == oResinAnterior.Icod).FirstOrDefault();
@@ -889,7 +932,6 @@ else
         if(Plantelseleccionado==null){
             Plantelseleccionado = Planteles.OrderByDescending(x => Int32.Parse(x.Anioex)).Where(x => x.Nrocri == socioSeleccionado.Scod).First();
         }
-        Console.WriteLine("REPORTE");
         guardarReporte();
 
         await updatePromedios(nrores);
@@ -908,10 +950,15 @@ else
 
     async Task confirmarNuevo()
     {
+        bool shouldRedirect = (Id != 0);
         Console.WriteLine(1);
         crearHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
         Console.WriteLine(2);
-        confirmar();
+        await confirmar();
+        if(shouldRedirect){
+            //send back to /reportes
+            NavigationManager.NavigateTo("/reportes");
+        }
     }
 
 
@@ -950,17 +997,22 @@ else
         var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
         Planteles = plan.List;
         // var planViejo = Planteles.Where(x => x.Placod == oResin1.Nropla).FirstOrDefault();
-        Console.WriteLine("A");
         var planViejo = Plantelseleccionado;
-        Console.WriteLine("B");
         var anio = planViejo.Anioex;
-        Console.WriteLine("C");
+        string anioNuevo;
+        if (createNewPlantel)
+        {
+            anioNuevo = (Int32.Parse(anio) + 1).ToString();
+        }
+        else
+        {
+            anioNuevo = anio;
+        }
         var socio = socioSeleccionado;
-        Console.WriteLine("D");
-        var planNuevo = Planteles.Where(x => x.Anioex == (Int32.Parse(anio)+1).ToString() && x.Nrocri == socio.Scod).FirstOrDefault();
-        Console.WriteLine("1");
-        if( planNuevo !=null){
-            Console.WriteLine("2");
+
+
+        var planNuevo = Planteles.Where(x => x.Anioex == anioNuevo && x.Nrocri == socio.Scod).FirstOrDefault();
+        if( planNuevo != null){
             planNuevo.Varede = estadoFinal.Ea1;
             planNuevo.Vqcsrd = estadoFinal.Ea2;
             planNuevo.Vqssrd = estadoFinal.Ea3;
@@ -970,38 +1022,21 @@ else
             planNuevo.Fecing = "";
             await _plantelServicio.Editar(planNuevo);
         }
-        else if(primerMov){
+        else{
             try{
                 primerMov = false;
-                Console.WriteLine(anio);
-                Console.WriteLine("3");
-                Console.WriteLine("aca");
-                var anioNuevo = (Int32.Parse(anio)+1).ToString();
-                Console.WriteLine(anioNuevo);
-                Console.WriteLine(socio.Placod);
-                Console.WriteLine(1);
                 var planCreado = new PlantelDTO();
                 planCreado.Anioex = anioNuevo;
-                Console.WriteLine(2);
                 planCreado.Varede = estadoFinal.Ea1;
-                Console.WriteLine(3);
                 planCreado.Vqcsrd = estadoFinal.Ea2;
-                Console.WriteLine(4);
                 planCreado.Vqssrd = estadoFinal.Ea3;
                 planCreado.Varepr = estadoFinal.Ea4;
-                Console.WriteLine(5);
                 planCreado.Vqcsrp = estadoFinal.Ea5;
                 planCreado.Vqssrp = estadoFinal.Ea6;
-                Console.WriteLine(6);
                 planCreado.Nrocri = planViejo.Nrocri;
-                Console.WriteLine(7);
-                Console.WriteLine(anioNuevo.ElementAt(3));
-                Console.WriteLine(socio.Placod);
                 planCreado.Placod = anioNuevo.ElementAt(3) + (socio.Placod);
-                Console.WriteLine(1);
                 planCreado.Estado = planViejo.Estado;
                 await _plantelServicio.Crear(planCreado);
-                Console.WriteLine("4");
             }
             catch(Exception ex)
             {
@@ -1016,7 +1051,7 @@ else
     {
         try
         {
-            var parameters = new ModalParameters();
+            var parameters = new ModalParameters(); 
             parameters.Add(nameof(AddHembraMachoRe.Id), hemyma.Id);
             parameters.Add(nameof(AddHembraMachoRe.botonclick), parametro);
             parameters.Add(nameof(AddMovimientoRe.numeroRes), solicitudSeleccionada.FirstOrDefault().Nrosol);
@@ -1024,7 +1059,16 @@ else
                 {
                     Size = ModalSize.ExtraLarge
                 };
-            var formModal = Modal.Show<AddHembraMachoRe>("Editar", parameters, options);
+            var textoPopUp = "Editar";
+            if (parametro == "vaqpr")
+            {
+                textoPopUp = "Editar Registro Definitivo";
+            }
+            if (parametro == "otrospr")
+            {
+                textoPopUp = "Editar Registro Preparatorio";
+            }
+            var formModal = Modal.Show<AddHembraMachoRe>(textoPopUp, parameters, options);
             var result = await formModal.Result;
             if (result.Cancelled)
             {
@@ -1129,6 +1173,64 @@ else
     {
         await Http.DeleteAsync($"/api/Resin8/{id}");
         await updateRechazos(solicitudSeleccionada.FirstOrDefault().Nrosol);
+    }
+
+    async Task saveObservations()
+    {
+        Console.WriteLine("0");
+        if(Id == 0){
+            Console.WriteLine("entra");
+        }
+        else{
+            oResin1.Id = Id;
+            Console.WriteLine("1");
+            await _resin1Servicio.Editar(oResin1);
+            Console.WriteLine("2");
+        }
+
+    }
+
+    async Task ResultWithoutSolicitud(){
+        Console.WriteLine("ResultWithoutSolicitud");
+        string codEst = establecimientos.Where(x => x.Codsoc == socioSeleccionado.Scod).FirstOrDefault().Ecod;
+        Guid guid = Guid.NewGuid();
+        solicitudSeleccionada = new List<Solici1DTO>
+        {
+            new Solici1DTO
+            {
+                Nrosol = guid.ToString(),
+                Codest = codEst,
+                Fecsol = DateTime.Now,
+            }
+        };
+        Console.WriteLine(JsonSerializer.Serialize(solicitudSeleccionada));
+        Plantelseleccionado = Planteles.Where(x => x.Nrocri == socioSeleccionado.Scod).OrderByDescending(x => x.Id).First();
+        Console.WriteLine("Aca Llega");
+        // oResinAnterior = repor
+        Console.WriteLine(resultados.Count());
+        int count = resultados
+            .Where(x => 
+                x.Establecimiento?.Ecod == establecimientoSeleccionado?.Ecod &&
+                x.Scod == socioSeleccionado?.Scod)
+            .Count();
+        Console.WriteLine(count);
+        if(resultados.Count() > 0 && count > 0){
+            Console.WriteLine("JUSTO ANTES DEL COSO");
+            // Resin1DTO oResinAnterior = resultados.OrderByDescending(x => x.Id).Where(x => x.Establecimiento.Ecod == establecimientoSeleccionado.Ecod && x.Scod == socioSeleccionado.Scod).FirstOrDefault();
+            Resin1DTO oResinAnterior = resultados.OrderByDescending(x => x.Id)
+            .Where(x =>
+                x.Establecimiento?.Ecod == establecimientoSeleccionado?.Ecod &&
+                x.Scod == socioSeleccionado?.Scod).FirstOrDefault();
+
+            Console.WriteLine("Aca tambien llega");
+            if (oResinAnterior != null)
+            {
+                inspectorSeleccionado = Inspects.Where(x => x.Icod == oResinAnterior.Icod).FirstOrDefault();
+            }
+            Console.WriteLine("Termina");
+        }
+        Console.WriteLine("Termina");
+        Console.WriteLine(JsonSerializer.Serialize(solicitudSeleccionada.FirstOrDefault()));
     }
 
     public async Task alertaDeleteRechazo(int id)

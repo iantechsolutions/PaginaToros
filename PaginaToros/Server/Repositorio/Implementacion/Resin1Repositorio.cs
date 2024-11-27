@@ -60,12 +60,14 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 }
                 if (take == 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    a = a.OrderByDescending(t => t.Id).ToList();
                 }
                 else
                 {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                    a = a.Take(take).OrderByDescending(t => t.Id).ToList();
                 }
+                a = RemoveDuplicates(a);
+                return a;
             }
             catch
             {
@@ -88,12 +90,14 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 }
                 if (take == 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    a = a.OrderByDescending(t => t.Id).ToList();
                 }
                 else
                 {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                    a = a.Take(take).OrderByDescending(t => t.Id).ToList();
                 }
+                a = RemoveDuplicates(a);
+                return a;
             }
             catch
             {
@@ -166,6 +170,24 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
                 throw;
             }
+        }
+        public static List<Resin1> RemoveDuplicates(List<Resin1> items)
+        {
+            var seenIds = new HashSet<int>();
+            var uniqueItems = new List<Resin1>();
+
+            foreach (var item in items)
+            {
+                Console.WriteLine(item.Id);
+                var boole = seenIds.Add(item.Id);
+                Console.WriteLine(boole);
+                if (boole)  // HashSet.Add returns false if the item was already in the set
+                {
+                    uniqueItems.Add(item);
+                }
+            }
+            Console.WriteLine(uniqueItems.Count());
+            return uniqueItems;
         }
     }
 }

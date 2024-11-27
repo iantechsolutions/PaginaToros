@@ -44,7 +44,18 @@
             Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
             Count="cantotal" LoadData="LoadData" Data="@oRespuesta.List" TItem="Resin1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
             <Columns>
-                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nrores" Title="Nro Resultado" Width="21.7%" />
+                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nrores" Title="Nro Resultado" Width="21.7%">
+                    <Template Context="data">
+                        @if(data.Nrores.Length > 15)
+                        {
+                            <p>Sin solicitud</p>
+                        }
+                        else
+                        {
+                            @(data.Nrores)
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Resin1DTO" Property="Nropla" Title="Plantel" Width="21.7%" />
                 <RadzenDataGridColumn TItem="Resin1DTO" Property="Socio.Nombre" Title="Socio" Width="21.7%"/>
                 <RadzenDataGridColumn TItem="Resin1DTO" Property="Freali" Title="Fecha De Inspeccion" Width="21.7%">
@@ -166,6 +177,7 @@ else
 
         if (!esSocio){
             oRespuesta = await _resin1Servicio.Lista(0, 15);
+            oRespuesta.List = RemoveDuplicates(oRespuesta.List);
             var cantidad = await _resin1Servicio.CantidadTotal();
             cantotal = cantidad.List;
             StateHasChanged();
@@ -236,7 +248,7 @@ else
 
         if (!string.IsNullOrEmpty(result.Value))
         {
-            delete(id);
+            await delete(id);
 
         }
         else if (result.Dismiss == DismissReason.Cancel)
@@ -323,12 +335,33 @@ else
         {
             oRespuesta = await _resin1Servicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
             // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+            oRespuesta.List = RemoveDuplicates(oRespuesta.List);
         }
         else
         {
             oRespuesta = await _resin1Servicio.Lista(args.Skip.Value, args.Top.Value);
+            oRespuesta.List = RemoveDuplicates(oRespuesta.List);
         }
 
         isLoading = false;
+    }
+
+    public static List<Resin1DTO> RemoveDuplicates(List<Resin1DTO> items)
+    {
+        var seenIds = new HashSet<int>();
+        var uniqueItems = new List<Resin1DTO>();
+
+        foreach (var item in items)
+        {
+            Console.WriteLine(item.Id);
+            var boole = seenIds.Add(item.Id);
+            Console.WriteLine(boole);
+            if (boole)  // HashSet.Add returns false if the item was already in the set
+            {
+                uniqueItems.Add(item);
+            }
+        }
+        Console.WriteLine(uniqueItems.Count());
+        return uniqueItems;
     }
 }

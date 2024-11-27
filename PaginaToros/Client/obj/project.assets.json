@@ -4078,8 +4078,9 @@
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "C:\\Program Files\\dotnet\\library-packs": {},
-        "C:\\Users\\lolo1\\DEVELOP\\nugets": {},
-        "https://api.nuget.org/v3/index.json": {}
+        "E:\\IdAnimal\\Nuggets": {},
+        "https://api.nuget.org/v3/index.json": {},
+        "https://pkgs.dev.azure.com/sumato-id/AKIRA.SOLUTION/_packaging/SumatoNugets/nuget/v3/index.json": {}
       },
       "frameworks": {
         "net6.0": {

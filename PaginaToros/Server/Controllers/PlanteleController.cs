@@ -208,7 +208,6 @@ namespace PaginaPlantels.Server.Cont{
 
                 if (_PlantelParaEditar != null)
                 {
-
                     _PlantelParaEditar.Placod = _Plantel.Placod;
                     _PlantelParaEditar.Anioex = _Plantel.Anioex;
                     _PlantelParaEditar.Varede = _Plantel.Varede;
