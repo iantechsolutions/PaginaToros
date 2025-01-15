@@ -1,6 +1,12 @@
 ﻿@using Blazored.Typeahead
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ICentrosiumServicio _centrosiumServicio
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Security.Claims
+@inject HttpClient http
+
+
 <style>
     .bm-title {
         font-size: 25px;
@@ -55,8 +61,15 @@ else
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
 
+    private ClaimsPrincipal? user;
+
+
     protected override async Task OnInitializedAsync()
     {
+
+        var authState1 = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState1.User;
+
         if (Id != 0)
         {
             try
@@ -81,14 +94,50 @@ else
         if (Id == 0)
         {
             await _centrosiumServicio.Crear(oCentrosiumDTO);
+
+
+
+
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
+
             await _centrosiumServicio.Editar(oCentrosiumDTO);
+
+            var changeNotification = new ChangeNotificationModel
+                {
+                    Names = user?.Claims?.FirstOrDefault(c => c.Type == "userNM")?.Value,
+                    Apellido = user?.Claims?.FirstOrDefault(c => c.Type == "userLN")?.Value,
+                    Email = user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value,
+                    Tipo = "Edición",  // El tipo de la acción que estás realizando
+                    Clase = "Cento",  // La clase de la acción
+                    Detalle = "El usuario ha editado un centro."  // Detalles adicionales sobre la acción
+                };
+
+            // Enviar el objeto completo al backend
+            var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
+
+
+
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
+
+
+
+    public class ChangeNotificationModel
+    {
+        public string Names { get; set; }
+        public string Apellido { get; set; }
+        public string Email { get; set; }
+
+        public string Tipo { get; set; }
+        public string Clase { get; set; }
+        public string Detalle { get; set; }
+    }
+
+
     async Task cancel()
     {
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));

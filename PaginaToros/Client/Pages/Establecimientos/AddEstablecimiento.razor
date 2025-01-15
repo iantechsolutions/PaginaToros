@@ -2,6 +2,12 @@
 @using PaginaToros.Client.Servicios.Contrato;
 @inject IEstableServicio _estableServicio
 @inject ISocioServicio _socioServicio
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Security.Claims
+@inject HttpClient http
+
+
 <style>
     .bm-title{
         font-size:25px;
@@ -233,8 +239,16 @@ else
         {"",""}
     };
 
+
+    private ClaimsPrincipal? user;
+
     protected override async Task OnInitializedAsync()
     {
+    
+        
+        var authState1 = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState1.User;
+        
         var rta = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
         var rtes = await _estableServicio.LimitadosFiltradosNoInclude(0,0);
@@ -325,19 +339,42 @@ else
                     if (oEstablecimiento.Activo != oEstablecimientoPrevio.Activo) differences.Add("Activo");
                     var socioVendedor = socios.Where(x => x.Scod == oEstablecimientoPrevio.Codsoc).FirstOrDefault();
                     var socioComprador = socios.Where(x => x.Scod == oEstablecimiento.Codsoc).FirstOrDefault();
-                    var mail = $"Aviso de edicion a un establecimiento\nEstablecimiento: {oEstablecimiento.Nombre}\n";
+                    var mail = $"Aviso de edición a un establecimiento\n" +
+           $"Establecimiento: {oEstablecimiento.Nombre}\n" +
+           $"Socio: {socioVendedor?.Nombre} {socioVendedor.Mail}\n" +
+           $"Tipo: Edición\n" +
+           $"Dirección: {oEstablecimiento.Direcc}\n";
                     foreach (var diff in differences)
                     {
                         mail += $"{diff}: {oEstablecimientoPrevio.GetType().GetProperty(diff).GetValue(oEstablecimientoPrevio)} -> {oEstablecimiento.GetType().GetProperty(diff).GetValue(oEstablecimiento)}\n";
                     }
-                    var http = new HttpClient();
+
+
+
                     var request = new
                     {
                         Vendedor = socioVendedor.Id,
                         Comprador = socioComprador.Id,
                         Mail = mail,
+                        Direccion = oEstablecimiento.Direcc
                     };
                     HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+
+
+
+                    //     Console.WriteLine("Se va a enviar");
+                    //     Console.WriteLine(user.Claims.FirstOrDefault().Value);
+                    // var changeNotification = new 
+                    //     {
+                    //     Id = user?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value,
+                    //         Tipo = "Edición",  // El tipo de la acción que estás realizando
+                    //         Clase = "Establecimiento",  // La clase de la acción
+                    //         Detalle = "El usuario ha editado un establecimiento."  // Detalles adicionales sobre la acción
+                    //     };
+
+                    // // Enviar el objeto completo al backend
+                    // var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
+
                 }
                 catch
                 {
@@ -348,6 +385,21 @@ else
             }
         }
     }
+
+
+
+
+
+    public class ChangeNotificationModel
+    {
+        public string Id { get; set; }
+        public string Tipo { get; set; }
+        public string Clase { get; set; }
+        public string Detalle { get; set; }
+    }
+
+
+
     async Task cancel()
     {
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));

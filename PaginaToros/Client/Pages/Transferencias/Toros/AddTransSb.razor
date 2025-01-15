@@ -150,7 +150,7 @@ else
                     socioComprador = socios.Where(x => x.Scod == oTranssb.Scom).First();
                     socioVendedor = socios.Where(x => x.Scod == oTranssb.Sven).First();
                     establecimientoSeleccionado = establecimientos.Where(x => x.Ecod == oTranssb.Ecod).First();
-                    toroSeleccionado = toros.Where(x => x.Id == oTranssb.Torovendido).FirstOrDefault();
+                    toroSeleccionado = toros.Where(x => x.Id == oTranssb.Torovendido).FirstOrDefault() ?? new TorosuniDTO();
                 }
                 catch
                 {
@@ -169,7 +169,7 @@ else
         oTranssb.Sven = socioVendedor.Scod;
         oTranssb.Scom = socioComprador.Scod;
         oTranssb.Ecod = establecimientoSeleccionado.Ecod;
-        oTranssb.Torovendido = toroSeleccionado.Id;
+        oTranssb.Torovendido = toroSeleccionado?.Id;
         toroSeleccionado.Criador = socioComprador.Scod;
         await _torosServicio.Editar(toroSeleccionado);
         if (Id == 0)
@@ -188,6 +188,16 @@ else
         }
         else
         {
+
+            var mail = $"Aviso de edición transferencia S/ \nNro de transaccion: {oTranssb.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Informacion del toro seleccionado: \n-Tatuaje: {toroSeleccionado.Tatpart} \n-HBA: {toroSeleccionado.Hba} \n-Nombre: {toroSeleccionado.NomDad}";
+            var request = new
+            {
+                Vendedor = socioVendedor.Id,
+                Comprador = socioComprador.Id,
+                Mail = mail,
+                Direccion = direccionCompra
+            };
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
             await _transsbServicio.Editar(oTranssb);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }

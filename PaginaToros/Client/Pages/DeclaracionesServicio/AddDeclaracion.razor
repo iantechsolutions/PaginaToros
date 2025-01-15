@@ -6,6 +6,12 @@
 @inject IPlantelServicio _plantelServicio
 @inject ITorosServicio _torosServicio
 @inject ICertifsemanServicio _certifsemanServicio
+@inject HttpClient http
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Security.Claims
+
+
 <style>
     .td
     {
@@ -448,8 +454,17 @@ else
         {"IA", "Inseminacion c/celo"},
         {"ANUAL", "Inseminacion c/celo y rep"}
     };
+
+
+    private ClaimsPrincipal? user;
+
+
     protected override async Task OnInitializedAsync()
     {
+
+        var authState1 = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState1.User;
+
         var r = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = r.List;
         Console.WriteLine(esSocio);
@@ -583,7 +598,7 @@ else
                 break;
         }
         List<CertifsemanDTO> certificadosAlterados = new();
-        
+
         foreach(var adaptacion in torosSeleccionados)
         {
             adaptacion.original.Desde = adaptacion.Desde.ToString("yyy-MM-dd");
@@ -624,6 +639,21 @@ else
                 await _desepla3Servicio.Crear(dese);
             }
             await _desepla1Servicio.Crear(oDeclaracion);
+
+
+           
+
+
+            // var mail = $"Aviso de creación de declaración S/ \n -Nro de folio: {oDeclaracion.NrFolio} \n -Tipo: {tipoTemp} \n -Servicio de Vientres PR: {oDeclaracion.Plantel} \n-Servicio de Vientres VIP: {oDeclaracion.Cantb} \n- plantel: {oDeclaracion.Plantel}";
+            // var request = new
+            // {
+            //     Vendedor = "",
+            //     Comprador = "",
+            //     Mail = mail,
+            //     Direccion = ""
+            // };
+            // HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
@@ -632,10 +662,46 @@ else
             {
                 await _desepla3Servicio.Editar(dese);
             }
-            await _desepla1Servicio.Editar(oDeclaracion);
+            
+             await _desepla1Servicio.Editar(oDeclaracion);
+            
+
+            Console.WriteLine("BOSSS");
+
+            Console.WriteLine(user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value);
+
+            var changeNotification = new
+            {
+                Id = user?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value,
+                // Email = user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value,
+                Tipo = "Creacion",  // El tipo de la acción que estás realizando
+                Clase = "Declaracion",  // La clase de la acción
+                Detalle = "El usuario ha creado una declaracion."  // Detalles adicionales sobre la acción
+            };
+
+            // Enviar el objeto completo al backend
+            var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
+            
+            
+            
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
+
+
+
+
+
+
+    public class ChangeNotificationModel
+    {
+        public string Id { get; set; }
+        public string Tipo { get; set; }
+        public string Clase { get; set; }
+        public string Detalle { get; set; }
+    }
+
+
     async Task cancel()
     {
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));

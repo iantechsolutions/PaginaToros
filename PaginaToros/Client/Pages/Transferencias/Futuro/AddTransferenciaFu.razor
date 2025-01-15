@@ -4,6 +4,13 @@
 @inject IFutcontrolServicio _futcontrolServicio
 @inject IPlantelServicio _plantelServicio
 @inject HttpClient http
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Security.Claims
+
+
+
+
 
 <style>
     .bm-title {
@@ -137,9 +144,19 @@ else
     [Parameter] public int Id { get; set; }
     [Parameter] public int? IdSocio { get; set; }
     List<string> estadosHembra = new List<string> {"CC" ,"CCP", "SS","PR" };
+    private ClaimsPrincipal? user;
+
+
 
     protected override async Task OnInitializedAsync()
     {
+
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState.User;
+
+
+
         var rta = await _sociosServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
         Console.WriteLine("1");
@@ -204,6 +221,15 @@ else
         else
         {
             await _futcontrolServicio.Editar(oFutcontrol);
+            var mail = $"Aviso de edición transferencia Futuro Control \nNro de Transferencia: {oFutcontrol.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \nCantidad de hembras: {oFutcontrol.CantHem} \nCantidad de machos: {oFutcontrol.CantMach} \nEstado de las hembras: {oFutcontrol.Hemsta}";
+            var request = new
+            {
+                Vendedor = socioVendedor.Id,
+                Comprador = socioComprador.Id,
+                Mail = mail,
+                Direccion = direccionCompra
+            };
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

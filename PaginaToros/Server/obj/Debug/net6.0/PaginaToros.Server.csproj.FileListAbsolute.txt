@@ -228,3 +228,13 @@ C:\Users\Maxim\Source\Repos\PaginaToros\PaginaToros\Server\obj\Debug\net6.0\refi
 C:\Users\Maxim\Source\Repos\PaginaToros\PaginaToros\Server\obj\Debug\net6.0\PaginaToros.Server.pdb
 C:\Users\Maxim\Source\Repos\PaginaToros\PaginaToros\Server\obj\Debug\net6.0\PaginaToros.Server.genruntimeconfig.cache
 C:\Users\Maxim\Source\Repos\PaginaToros\PaginaToros\Server\obj\Debug\net6.0\ref\PaginaToros.Server.dll
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\SendGrid.dll
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\StarkbankEcdsa.dll
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\BouncyCastle.Cryptography.dll
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\MailKit.dll
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\MimeKit.dll
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\System.Formats.Asn1.dll
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\System.Text.Encoding.CodePages.dll
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\runtimes\win\lib\net6.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Debug\net6.0\runtimes\win\lib\net6.0\System.Text.Encoding.CodePages.dll

@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Net.Mail;
 using PaginaToros.Client.Pages.Socios;
 using System.Net.Mime;
+using Org.BouncyCastle.Crypto.Macs;
+using Org.BouncyCastle.Asn1.Ocsp;
 namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
@@ -39,7 +41,7 @@ namespace PaginaToros.Server.Controllers
             _hfdb = hfdb;
         }
 
-        //Metodos
+        //Metodos dmuu kdke jobp bhgo
 
         [HttpPost("CreateUser")]
         public async Task<ActionResult> CreateUser([FromBody] User model, string password)
@@ -96,17 +98,23 @@ namespace PaginaToros.Server.Controllers
             {
                 using (MailMessage mail = new MailMessage())
                 {
-                    mail.From = new MailAddress("puroregistrado@hotmail.com");
+                    mail.From = new MailAddress("puroregistrado@gmail.com");
                     mail.To.Add(model.Email);
                     mail.Subject = "Confirmación de Registro en Hereford";
 
                     // Path to the image
-                    string currentDirectory = AppContext.BaseDirectory;
-                    Console.WriteLine(currentDirectory);
-                    string imagePath = Path.Combine(currentDirectory,"background.jpg");
+                    // Obtén el directorio raíz del proyecto
+                    string projectRoot = Directory.GetParent(AppContext.BaseDirectory)?.Parent?.Parent?.FullName;
+
+                    // Construye el path absoluto del archivo
+                    string imagePath = Path.Combine(projectRoot, "Server", "background.jpg");
+
+
+
+                    Console.WriteLine(projectRoot); ;
+
                     Console.WriteLine(imagePath);
                     Console.WriteLine(model.Email);
-                    // HTML body with background image and text on top
                     string body = $@"
                     <html>
                     <body style='margin:0;padding:0;'>
@@ -131,23 +139,20 @@ namespace PaginaToros.Server.Controllers
                     </body>
                     </html>";
 
-                    // Create an alternate view to hold the HTML content
                     AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, MediaTypeNames.Text.Html);
 
-                    // Add the background image as a linked resource
                     LinkedResource background = new LinkedResource(imagePath, MediaTypeNames.Image.Jpeg);
                     background.ContentId = "backgroundImage";
                     background.TransferEncoding = TransferEncoding.Base64;
                     htmlView.LinkedResources.Add(background);
 
-                    // Add the HTML view to the email message
                     mail.AlternateViews.Add(htmlView);
                     mail.IsBodyHtml = true;
 
-                    using (SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587))
+                    using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
                     {
                         smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2025");
+                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@gmail.com", "dmuu kdke jobp bhgo");
                         smtp.EnableSsl = true;
                         smtp.Send(mail);
                     }
@@ -156,10 +161,122 @@ namespace PaginaToros.Server.Controllers
             }
             catch (Exception e)
             {
+                Console.WriteLine(e);
                 return BadRequest(e.Message);
             }
         }
 
+
+        [HttpPost("SendChangeNotificationMail")]
+        public async Task<ActionResult> SendChangeNotificationMail([FromBody] ChangeNotificationModel model)
+        {
+
+            Console.WriteLine(model.Id);
+
+            var socio = db.User.FirstOrDefault(x => x.Id == model.Id)
+                ?? db.User.FirstOrDefault(x => x.Id == model.Id);
+
+            // Verifica si se encontró un socio
+            if (socio == null)
+            {
+                return BadRequest($"No se encontró un socio con el ID proporcionado ({model.Id}).");
+            }
+        
+
+            try
+            {
+                using (MailMessage mail = new MailMessage())
+                {
+            
+                    mail.From = new MailAddress("puroregistrado@gmail.com");
+            
+                    mail.To.Add("puroregistrado@gmail.com");
+            
+                    mail.Subject = "Notificación de Cambio en el Sistema de Hereford";
+
+                    // Path to the image
+                    // Obtén el directorio raíz del proyecto
+                    //string projectRoot = Directory.GetParent(AppContext.BaseDirectory)?.Parent?.Parent?.FullName;
+
+                    //// Construye el path absoluto del archivo
+                    //string imagePath = Path.Combine(projectRoot, "Server", "background.jpg");
+                    //Console.WriteLine(projectRoot);
+
+                    //Console.WriteLine(imagePath);
+
+
+
+            Console.WriteLine("puroregistrado@gmail.com");
+
+                    string body = $@"
+            <html>
+            <body style='margin:0;padding:0;'>
+                <table width='100%' border='0' cellspacing='0' cellpadding='0'>
+                    <tr>
+                        <td>
+                            <table width='600' border='0' cellspacing='0' cellpadding='0' align='center'>
+                                <tr>
+                                    <td style='padding: 20px; color: #000;'>
+                                        <h2>Notificación de cambio realizado por el socio</h2>
+                                        <p><strong>Usuario:</strong> {socio.Names} {socio.LastNames}</p>
+                                        <p><strong>Email:</strong> {socio.Email}</p>
+
+                                        <p><strong>Clase:</strong> {model.Clase}</p>
+                                        <p><strong>Tipo de acción:</strong> {model.Tipo}</p>
+                                        <p><strong>Detalle:</strong> {model.Detalle}</p>
+                                       
+                                        <p>Saludos cordiales,<br>Equipo de Puro Registrado Hereford.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>";
+
+                    AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, MediaTypeNames.Text.Html);
+
+                    //LinkedResource background = new LinkedResource(imagePath, MediaTypeNames.Image.Jpeg);
+                    //background.ContentId = "backgroundImage";
+                    //background.TransferEncoding = TransferEncoding.Base64;
+                    //htmlView.LinkedResources.Add(background);
+
+                    mail.AlternateViews.Add(htmlView);
+                    mail.IsBodyHtml = true;
+
+                    using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
+                    {
+                        smtp.UseDefaultCredentials = false;
+                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@gmail.com", "dmuu kdke jobp bhgo");
+                        smtp.EnableSsl = true;
+                        smtp.Send(mail);
+                    }
+                }
+
+                Console.WriteLine("Llego");
+                return Ok("ok");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return BadRequest(e.Message);
+            }
+        }
+
+
+        //dmuu kdke jobp bhgo
+        //dmuu kdke jobp bhgo
+        public class ChangeNotificationModel
+        {
+            public int Id { get; set; }
+            //public string? Apellido { get; set; }
+            //public string Email { get; set; }
+
+            public string? Tipo { get; set; }
+            public string? Clase { get; set; }
+            public string? Detalle { get; set; }
+        }
 
         [HttpPost("SendResetMail")]
         public async Task<ActionResult> SendResetMail([FromBody] User model, string nuevaContraseña)
@@ -172,9 +289,9 @@ namespace PaginaToros.Server.Controllers
 
                     SmtpClient client = new SmtpClient();
                     client.UseDefaultCredentials = false;
-                    client.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2025", "hotmail.com");
+                    client.Credentials = new System.Net.NetworkCredential("puroregistrado@gmail.com", "dmuu kdke jobp bhgo", "gmail.com");
                     client.Port = 587; // 25 587
-                    client.Host = "smtp.office365.com";
+                    client.Host = "smtp.gmail.com";
                     client.DeliveryMethod = SmtpDeliveryMethod.Network;
                     client.EnableSsl = true;
 
@@ -182,7 +299,7 @@ namespace PaginaToros.Server.Controllers
 
                     Console.WriteLine(nuevaContraseña);
                     MailMessage mail = new MailMessage();
-                    mail.From = new MailAddress("puroregistrado@hotmail.com");
+                    mail.From = new MailAddress("puroregistrado@gmail.com");
                     mail.To.Add(new MailAddress(model.Email));
                     mail.Subject = $"Restablecimiento de contraseña para Hereford";
                     string body = $"Estimado,\nHemos recibido una solicitud para restablecer su contraseña. Los detalles de su nueva contraseña son los siguientes:\n";

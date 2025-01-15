@@ -100,69 +100,147 @@ namespace PaginaToros.Server.Controllers
         }
 
 
-
         [HttpPost]
         [Route("SendMail")]
         public IActionResult ExampleMethod([FromBody] ContenidoMails request)
         {
-
             using (MailMessage mail = new MailMessage())
             {
                 try
                 {
-                    var socioVendedor = db.User.Where(x => x.SocioId == request.Vendedor).ToList().First();
-                    mail.To.Add(socioVendedor.Email);
-                    Console.WriteLine(2);
-                }
-                catch
-                {
-                    Console.WriteLine("Socio vendedor sin cuenta");
-                }
-                try
-                {
-                    if (string.IsNullOrEmpty(request.Direccion)) { 
-                        var socioComprador = db.User.Where(x => x.SocioId == request.Comprador).ToList().First();
-                        mail.To.Add(socioComprador.Email);
-                        Console.WriteLine(3);
+                    // Obtener correo del socio vendedor
+                    var socioVendedor = db.User.FirstOrDefault(x => x.SocioId == request.Vendedor);
+                    if (socioVendedor != null && IsValidEmail(socioVendedor.Email))
+                    {
+                        mail.To.Add(socioVendedor.Email);
                     }
                     else
                     {
-                        mail.To.Add(request.Direccion);
+                        Console.WriteLine("Socio vendedor sin cuenta o correo inválido");
+                    }
+
+                    // Obtener correo del socio comprador
+                    if (string.IsNullOrEmpty(request.Direccion))
+                    {
+                        var socioComprador = db.User.FirstOrDefault(x => x.SocioId == request.Comprador);
+                        if (socioComprador != null && IsValidEmail(socioComprador.Email))
+                        {
+                            mail.To.Add(socioComprador.Email);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Socio comprador sin cuenta o correo inválido");
+                        }
+                    }
+                    else
+                    {
+                        if (IsValidEmail(request.Direccion))
+                        {
+                            mail.To.Add(request.Direccion);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Dirección de correo inválida");
+                        }
+                    }
+
+                    // Agregar correo de "puroregistrado"
+                    if (IsValidEmail("puroregistrado@gmail.com"))
+                    {
+                        mail.To.Add("puroregistrado@gmail.com");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Correo de puroregistrado no válido");
+                    }
+
+                    // Configurar el mensaje
+                    mail.From = new MailAddress("puroregistrado@gmail.com");
+                    mail.Subject = "Nueva transferencia animal";
+                    mail.Body = request.Mail;
+
+                    // Configurar SMTP y enviar
+                    using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
+                    {
+                        smtp.UseDefaultCredentials = false;
+                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@gmail.com", "dmuu kdke jobp bhgo"); // Agrega tu contraseña aquí
+                        smtp.EnableSsl = true;
+                        smtp.Send(mail);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Socio comprador sin cuenta");
+                    Console.WriteLine($"Error al enviar el correo: {ex.Message}");
+                    return BadRequest("Error al enviar el correo.");
                 }
-                MemoryStream memoryStream = new MemoryStream();
-                Console.WriteLine(4);
-                mail.From = new MailAddress("puroregistrado@hotmail.com");
-                mail.To.Add("puroregistradohereford@gmail.com");
-                Console.WriteLine(5);
-                mail.Subject = $"Nueva transferencia animal";
-                Console.WriteLine(6);
-                mail.Body = request.Mail;
-                using (SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587))
-                {
-                    Console.WriteLine(7);
-                    smtp.UseDefaultCredentials = false;
-                    smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2025", "hotmail.com");
-                    smtp.EnableSsl = true;
-                    Console.WriteLine(8);
-                    smtp.Send(mail);
-                    Console.WriteLine(9);
-                }
+
+                return Ok("Correo enviado correctamente.");
             }
-
-
-
-
-            return Ok(request.Mail);
         }
 
 
+        [HttpPost]
+        [Route("SendMailChange")]
+        public IActionResult ExampleMethodChange([FromBody] ContenidoMails2 request)
+        {
+            using (MailMessage mail = new MailMessage())
+            {
+                try
+                {
+                    // Obtener correo del socio vendedor
+
+                   
+
+                    // Agregar correo de "puroregistrado"
+                    if (IsValidEmail("puroregistrado@gmail.com"))
+                    {
+                        mail.To.Add("puroregistrado@gmail.com");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Correo de puroregistrado no válido");
+                    }
+
+                    // Configurar el mensaje
+                    mail.From = new MailAddress("puroregistrado@gmail.com");
+                    mail.Subject = "Cambio de socio";
+                    mail.Body = request.Mail;
+
+                    // Configurar SMTP y enviar
+                    using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
+                    {
+                        smtp.UseDefaultCredentials = false;
+                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@gmail.com", "dmuu kdke jobp bhgo"); // Agrega tu contraseña aquí
+                        smtp.EnableSsl = true;
+                        smtp.Send(mail);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error al enviar el correo: {ex.Message}");
+                    return BadRequest("Error al enviar el correo.");
+                }
+
+                return Ok("Correo enviado correctamente.");
+            }
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var mailAddress = new MailAddress(email);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
 
+        //dmuu kdke jobp bhgo dmuu kdke jobp bhgo
+        // puroregistradohereford@gmail.com
 
         [HttpDelete]
         [Route("Eliminar/{id:int}")]
@@ -273,7 +351,14 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
+        public class ContenidoMails2
+        {
+            public int Tipo { get; set; }
+            public int Clase { get; set; }
+            public string Mail { get; set; }
+            public string? Nombre { get; set; }
 
+        }
         public class ContenidoMails
         {
             public int Vendedor { get; set; }

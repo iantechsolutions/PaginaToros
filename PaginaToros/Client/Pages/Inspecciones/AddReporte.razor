@@ -42,11 +42,20 @@
     </div>
         @if (socioSeleccionado != null)
         {
+
         <div class="row">
             <label>Solicitudes</label>
-            @if (Id != 0 && socioSeleccionado != null)
+            @if (socioSeleccionado != null)
             {
-                    <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Nrosol" class="w-100"></RadzenNumeric>
+                    if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
+                    {
+
+                 <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Nrosol" class="w-100"></RadzenNumeric>
+                 }else{
+                    <RadzenText  Disabled="true"  class="w-100">
+                    Sin solicitudes
+                    </RadzenText>  
+                 }
             }
             else
             {
@@ -93,8 +102,8 @@
                 </div>
             </div>
         </div>
-        }
-        @if (solicitudSeleccionada!=null && solicitudSeleccionada.FirstOrDefault() != null && socioSeleccionado!=null)
+    }
+        @if (socioSeleccionado != null)
         {
         <br />
         <div class="row" style="width=100%;">
@@ -124,7 +133,11 @@
 
         </div>
         <br />
+
         <div class="row" style="width=100%;">
+
+                
+            @if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null){
             <div class="col-sm-1" />
             <div class="col-sm">
                 <label class="col-sm">Establecimiento</label>
@@ -143,6 +156,7 @@
                 }
                 
             </div>
+             
                 <div class="col-sm">
                     <label>Plantel</label>
                     <BlazoredTypeahead SearchMethod="BusquedaPlanteles" Disabled="esSocio" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
@@ -153,16 +167,37 @@
                             @eleccion.Placod
                         </ResultTemplate>
                     </BlazoredTypeahead>
-            </div>
+                    </div>
+
+            }else if (Id != 0){
+                    <div class="col-sm">
+                        <label>Plantel</label>
+                        <BlazoredTypeahead SearchMethod="BusquedaPlanteles" Disabled="esSocio" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.Placod
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.Placod
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                    </div>
+                    <div class="col-sm">
+                    </div>
+                    <div class="col-sm">
+                    </div>
+            }
         </div>
         <br />
 
         <div class="row" style="width=100%;">
             <div class="col-sm-1" />
+                @if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
+                {
             <div class="col-sm">
                 <label class="col-sm">Fecha De Solicitud</label>
                     <RadzenDatePicker TValue="DateTime?" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Fecsol" disabled="@esSocio" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
             </div>
+                }
             <div class="col-sm">
                 <label class="col-sm">Fecha De Inspeccion</label>
                 @if (@Id != 0)
@@ -174,16 +209,22 @@
                         <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" disabled="@esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                 }
             </div>
+
+            @* bolonqui *@
             <div class="col-sm">
                 <label class="col-sm">Reinspeccion?</label>
                 <br />
                     <input type="checkbox" disabled="@esSocio" @bind="@tempReinspeccion">
             </div>
-            <div class="col-sm">
-                <label class="col-sm">Crear nuevo plantel?</label>
-                <br />
-                    <input type="checkbox" disabled="@esSocio" @bind="@createNewPlantel">
-            </div>
+                @if (Id == 0)
+                {
+                    <div class="col-sm">
+                        <label class="col-sm">Crear nuevo plantel?</label>
+                        <br />
+                        <input type="checkbox" disabled="@esSocio" @bind="@createNewPlantel">
+                    </div>
+                }
+           
         </div>
         <br />
         <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">@(Id == 0 ? "Guardar Datos" : "Actualizar datos")</button>
@@ -706,11 +747,15 @@ else
 
                 filtro = $"(Scod == null ? \"\" : Scod).ToLower().Contains(\"{oResin1.Scod}\".ToLower())";
                 var rt = await _socioServicio.LimitadosFiltrados(0,1,filtro);
-                socioSeleccionado = rt.List.Where(x=>x.Scod==oResin1.Scod).FirstOrDefault();
+                socioSeleccionado = rt.List.Where(x => x.Scod == oResin1.Scod).FirstOrDefault() ?? new SocioDTO();
 
                 filtro = $"(Nrosol == null ? \"\" : Nrosol).ToLower().Contains(\"{oResin1.Nrores}\".ToLower())";
+
+                // var sol = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
+                // solicitudSeleccionada = sol.List.Where(x=>x.Nrosol==oResin1.Nrores).ToList();
                 var sol = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-                solicitudSeleccionada = sol.List.Where(x=>x.Nrosol==oResin1.Nrores).ToList();
+                solicitudSeleccionada = sol.List.Where(x => x.Nrosol == oResin1.Nrores).ToList();
+
 
                 filtro = $"(Ecod == null ? \"\" : Ecod).ToLower().Contains(\"{oResin1.Estcod}\".ToLower())";
                 var estable = await _estableServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
@@ -811,6 +856,11 @@ else
         temp.Nrores = nrores;
         estadoAnterior = temp;
         await _resin2Servicio.Crear(temp);
+    }
+
+    async Task RestartEstadoAnterior(){
+
+
     }
 
 
@@ -945,6 +995,9 @@ else
 
         await updateEstadoHistorico(nrores);
 
+        NavigationManager.NavigateTo("/reportes");
+
+
         //cambiar todos los gets a unicos por nrosol
     }
 
@@ -955,10 +1008,10 @@ else
         crearHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
         Console.WriteLine(2);
         await confirmar();
-        if(shouldRedirect){
+        // if(shouldRedirect){
             //send back to /reportes
             NavigationManager.NavigateTo("/reportes");
-        }
+        // }
     }
 
 

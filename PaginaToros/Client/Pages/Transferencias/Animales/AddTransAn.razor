@@ -5,6 +5,12 @@
 @inject IPlantelServicio _plantelServicio
 @inject HttpClient http
 
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Security.Claims
+
+
+
 <style>
     .bm-title {
         font-size: 25px;
@@ -175,6 +181,14 @@ else
     string temp4 = "";
     PlantelDTO plantelOrigen = new();
     PlantelDTO plantelDestino = new();
+
+
+
+    private ClaimsPrincipal? user;
+
+
+
+
     Dictionary<string, string> traductor = new Dictionary<string, string>{
         {"PHPR (Puro Registrado)","PHPR"},
         {"HPR (Puro Registrado)","HPR"},
@@ -208,8 +222,21 @@ else
     [Parameter] public int Id { get; set; }
     [Parameter] public int? IdSocio { get; set; }
     string direccionCompra = "";
+
+
+
+
+
+
+
     protected override async Task OnInitializedAsync()
     {
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState.User;
+
+
+
         Console.WriteLine(IdSocio);
         var rta = await _sociosServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
@@ -258,7 +285,25 @@ else
 
         if (Id == 0)
         {
+
+
+
+
             await _transanServicio.Crear(oTransan);
+            var changeNotification = new
+                {
+                    Names = user?.Claims?.FirstOrDefault(c => c.Type == "userNM")?.Value,
+                    Apellido = user?.Claims?.FirstOrDefault(c => c.Type == "userLN")?.Value,
+                    Email = user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value,
+                    Tipo = "Creado",  // El tipo de la acción que estás realizando
+                    Clase = "Transferencia",  // La clase de la acción
+                    Detalle = "El usuario ha creado una nueva transferencia."  // Detalles adicionales sobre la acción
+                };
+
+            // Enviar el objeto completo al backend
+            var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
+
+
             var mail = $"Aviso de nueva transferencia animal \nNroCertificado: {oTransan.NroCert} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Cantidad total de animales: {(oTransan.CantHem + oTransan.CantMach + oTransan.CantChem + oTransan.CantCmach)} ";
             var request = new
             {
@@ -273,10 +318,43 @@ else
         }
         else
         {
+
+            var mail = $"Aviso de edición transferencia animal \nNroCertificado: {oTransan.NroCert} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Cantidad total de animales: {(oTransan.CantHem + oTransan.CantMach + oTransan.CantChem + oTransan.CantCmach)} ";
+            var request = new
+            {
+                Vendedor = socioVendedor.Id,
+                Comprador = socioComprador.Id,
+                Mail = mail,
+                Direccion = direccionCompra
+            };
             await _transanServicio.Editar(oTransan);
+
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
+
+
+
+
+
+
+
+
+    public class ChangeNotificationModel
+    {
+        public string Names { get; set; }
+        public string Apellido { get; set; }
+        public string Email { get; set; }
+
+        public string Tipo { get; set; }
+        public string Clase { get; set; }
+        public string Detalle { get; set; }
+    }
+
+
+
     async Task cancel()
     {
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));

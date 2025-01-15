@@ -4,6 +4,11 @@
 @inject ISolici1AuxServicio _solici1AuxServicio
 @inject IEstableServicio _estableServicio
 @inject ISocioServicio _socioServicio
+@inject HttpClient http
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Security.Claims
+
 @if(establecimientos.Count>0){
 <div class="card" >
     <div class="card-body">
@@ -93,8 +98,12 @@
                 <br />
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
-                        <label class="col-sm">Reinspeccion?</label><br/>
-                            <input type="checkbox" @bind="@activoReInspeccion" disabled="@esSocio">
+                            @if (Id == 0)
+                            {
+                                <label class="col-sm">Reinspeccion?</label>
+                                <br />
+                                <input type="checkbox" @bind="@activoReInspeccion" disabled="@esSocio">
+                            }
                     </div>
                     <div class="col-sm">
                         <label class="col-sm">Control de Produccion?</label><br/>
@@ -123,6 +132,9 @@ else
             </div>
         </center>
     }
+
+
+
 @code {
     Solici1DTO oSolici1 = new();
     List<SocioDTO> socios = new();
@@ -131,6 +143,7 @@ else
     [Parameter] public int Id { get; set; }
     [Parameter] public bool esSocio { get; set; }
 
+
     List<Solici1DTO> listadoSolicitudes = new ();
     List<Solici1AuxDTO> listadoSolicitudesAuxOriginal = new();
     DateTime FechaTemp = DateTime.Now.Date;
@@ -138,6 +151,9 @@ else
     bool activoControl = false;
     SocioDTO? socioSeleccionado = null;
     EstableDTO establecimientoSeleccionado = new();
+
+
+    private ClaimsPrincipal? user;
 
     protected async Task addElement()
     {
@@ -148,6 +164,11 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState.User;
+
+
         var rta = await _socioServicio.LimitadosFiltrados(0,0);
         socios = rta.List;
         var respuesta = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
@@ -231,12 +252,42 @@ else
         {
             var rta = await _solici1Servicio.Crear(soliPush);
             oSolici1 = rta.List;
+            
+
+            
+
+            var changeNotification = new ChangeNotificationModel
+                {
+                    Id = user?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value,
+                    Tipo = "Creacion",  // El tipo de la acción que estás realizando
+                    Clase = "Solicitud",  // La clase de la acción
+                    Detalle = "El usuario ha creado una solicitud."  // Detalles adicionales sobre la acción
+                };
+
+            // Enviar el objeto completo al backend
+            var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
+
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
             soliPush.Id = oSolici1.Id;
             var coso = await _solici1Servicio.Editar(soliPush);
+
+
+
+            var changeNotification = new ChangeNotificationModel
+                {
+                    Id = user?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value,
+                    Tipo = "Edicion",  // El tipo de la acción que estás realizando
+                    Clase = "Solicitud",  // La clase de la acción
+                    Detalle = "El usuario ha editado una solicid."  // Detalles adicionales sobre la acción
+                };
+
+            // Enviar el objeto completo al backend
+            var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
+
+
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         foreach(var data in listadoSolicitudes)
@@ -262,6 +313,16 @@ else
             }
         }
     }
+
+
+    public class ChangeNotificationModel
+    {
+        public string Id { get; set; }
+        public string Tipo { get; set; }
+        public string Clase { get; set; }
+        public string Detalle { get; set; }
+    }
+
     async Task cancel()
     {
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
