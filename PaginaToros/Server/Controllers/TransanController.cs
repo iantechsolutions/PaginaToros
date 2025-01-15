@@ -112,7 +112,7 @@ namespace PaginaToros.Server.Controllers
                     var socioVendedor = db.User.FirstOrDefault(x => x.SocioId == request.Vendedor);
                     if (socioVendedor != null && IsValidEmail(socioVendedor.Email))
                     {
-                        mail.To.Add(socioVendedor.Email);
+                        //mail.To.Add(socioVendedor.Email);
                     }
                     else
                     {
@@ -125,7 +125,7 @@ namespace PaginaToros.Server.Controllers
                         var socioComprador = db.User.FirstOrDefault(x => x.SocioId == request.Comprador);
                         if (socioComprador != null && IsValidEmail(socioComprador.Email))
                         {
-                            mail.To.Add(socioComprador.Email);
+                            //mail.To.Add(socioComprador.Email);
                         }
                         else
                         {

@@ -1017,15 +1017,15 @@
       "url": "_framework\/PaginaToros.Shared.pdb"
     },
     {
-      "hash": "sha256-R5HR1sQZ50gyPeSKvZIJazmO+9GYH+MPkkmuFSlG4aU=",
+      "hash": "sha256-YjvM7CeQYqtH9SVwGY8\/RGAVCJQo5KE5+43OOVzBgak=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-zRMTq7qNHA+46XYue9L6kX1uqDvxVWWMIU0FxennoCg=",
+      "hash": "sha256-SPw1lkM0rQh4Z7JQDq9EIv4aKXS7hISz8cRGYnpX2Ms=",
       "url": "_framework\/PaginaToros.Client.pdb"
     },
     {
-      "hash": "sha256-lwsQK1GZESaQbLj72kdVoPb4jW+AnVRwhF+DAhSzHkM=",
+      "hash": "sha256-2X74TU6xZzWT96bN9fZ\/wDHuzxbSpnPTeSZ5zmzsHw8=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -1313,5 +1313,5 @@
       "url": "_content\/Blazored.Modal\/Blazored.Modal.bundle.scp.css"
     }
   ],
-  "version": "x762btFf"
+  "version": "k6VUeY+S"
 };

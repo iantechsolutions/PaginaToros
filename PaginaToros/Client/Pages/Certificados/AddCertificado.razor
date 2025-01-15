@@ -3,6 +3,11 @@
 @inject ICertifsemanServicio _certifsemanServicio
 @inject ISocioServicio _socioServicio
 @inject ICentrosiumServicio _centrosiumServicio
+@inject HttpClient http
+
+
+
+
 <style>
     .bm-title {
         font-size: 25px;
@@ -224,7 +229,29 @@ else
         }
         else
         {
+
             await _certifsemanServicio.Editar(oCertifseman);
+
+
+            Console.WriteLine("cAMBIO CERTIFICADO");
+            Console.WriteLine("cAMBIO CERTIFICADO");
+
+
+            var mail = $"Aviso de edición a un certificado\n" +
+          $"certificado: {oCertifseman.Nrocri}\n" +
+          $"Socio: {oCertifseman.Socio}\n" +
+          $"Tipo: Edición\n";
+
+
+            var request = new
+            {
+                Vendedor = oCertifseman.Socio,
+                Comprador = oCertifseman.Socio,
+                Mail = mail,
+                Direccion = oCertifseman.Apodo
+            };
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
