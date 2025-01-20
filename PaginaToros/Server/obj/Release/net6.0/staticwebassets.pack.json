@@ -1,0 +1,89 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Actualizacion.cs",
+      "PackagePath": "staticwebassets\\Actualizacion.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Archrural.cs",
+      "PackagePath": "staticwebassets\\Archrural.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Autoriza.cs",
+      "PackagePath": "staticwebassets\\Autoriza.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\DeseUsada.cs",
+      "PackagePath": "staticwebassets\\DeseUsada.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Desepla4NoUsadum.cs",
+      "PackagePath": "staticwebassets\\Desepla4NoUsadum.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Desepla5NoUsadum.cs",
+      "PackagePath": "staticwebassets\\Desepla5NoUsadum.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Opcdecserv.cs",
+      "PackagePath": "staticwebassets\\Opcdecserv.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Peg.cs",
+      "PackagePath": "staticwebassets\\Peg.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Remansol.cs",
+      "PackagePath": "staticwebassets\\Remansol.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Resin9.cs",
+      "PackagePath": "staticwebassets\\Resin9.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Retenida.cs",
+      "PackagePath": "staticwebassets\\Retenida.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Solici4.cs",
+      "PackagePath": "staticwebassets\\Solici4.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Solici6.cs",
+      "PackagePath": "staticwebassets\\Solici6.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\TorosRural.cs",
+      "PackagePath": "staticwebassets\\TorosRural.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Torospr.cs",
+      "PackagePath": "staticwebassets\\Torospr.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Torosuniestado.cs",
+      "PackagePath": "staticwebassets\\Torosuniestado.cs"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\Usuario.cs",
+      "PackagePath": "staticwebassets\\Usuario.cs"
+    },
+    {
+      "Id": "obj\\Release\\net6.0\\staticwebassets\\msbuild.PaginaToros.Server.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Release\\net6.0\\staticwebassets\\msbuild.build.PaginaToros.Server.props",
+      "PackagePath": "build\\PaginaToros.Server.props"
+    },
+    {
+      "Id": "obj\\Release\\net6.0\\staticwebassets\\msbuild.buildMultiTargeting.PaginaToros.Server.props",
+      "PackagePath": "buildMultiTargeting\\PaginaToros.Server.props"
+    },
+    {
+      "Id": "obj\\Release\\net6.0\\staticwebassets\\msbuild.buildTransitive.PaginaToros.Server.props",
+      "PackagePath": "buildTransitive\\PaginaToros.Server.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

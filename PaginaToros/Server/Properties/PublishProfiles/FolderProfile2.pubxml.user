@@ -5,7 +5,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>C:\Users\Maxim\source\repos\SPRPublish</_PublishTargetUrl>
-    <History>True|2025-01-15T17:23:26.0141522Z||;True|2025-01-15T14:22:59.9757504-03:00||;True|2025-01-15T14:10:29.5745550-03:00||;</History>
+    <History>True|2025-01-20T15:59:46.6551412Z||;True|2025-01-15T14:23:26.0141522-03:00||;True|2025-01-15T14:22:59.9757504-03:00||;True|2025-01-15T14:10:29.5745550-03:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
 </Project>

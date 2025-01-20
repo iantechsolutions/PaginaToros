@@ -105,18 +105,15 @@ else
 
             await _centrosiumServicio.Editar(oCentrosiumDTO);
 
-            var changeNotification = new ChangeNotificationModel
-                {
-                    Names = user?.Claims?.FirstOrDefault(c => c.Type == "userNM")?.Value,
-                    Apellido = user?.Claims?.FirstOrDefault(c => c.Type == "userLN")?.Value,
-                    Email = user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value,
-                    Tipo = "Edición",  // El tipo de la acción que estás realizando
-                    Clase = "Cento",  // La clase de la acción
-                    Detalle = "El usuario ha editado un centro."  // Detalles adicionales sobre la acción
-                };
-
-            // Enviar el objeto completo al backend
-            var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
+            var mail = $"Aviso de edición de centro \nNombre: {oCentrosiumDTO.Nombre} \nNro centro: {oCentrosiumDTO.Nrocen}   \n Nro segun Secretaria Agric y Ganaderia: {oCentrosiumDTO.NroCSayg} ";
+            var request = new
+            {
+                Tipo = "Centro",
+                Clase = "Centro",
+                Mail = mail,
+                Nombre = user?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value
+            };
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
 
 
 

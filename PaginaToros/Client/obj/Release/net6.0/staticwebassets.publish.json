@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "2lcAG2Nhw+lEOxWWa3nrgucB9rTtXjmtOcduc+5tNig=",
+  "Hash": "juGrZlotIvNBRe2BPTZ9cTy7cQytHoMffaEenxA41JA=",
   "Source": "PaginaToros.Client",
   "BasePath": "/",
   "Mode": "Root",
@@ -8736,25 +8736,6 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\icon-512.png"
-    },
-    {
-      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\images\\background.jpg",
-      "SourceId": "PaginaToros.Client",
-      "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\",
-      "BasePath": "/",
-      "RelativePath": "images/background.jpg",
-      "AssetKind": "All",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
-      "AssetMergeSource": "",
-      "RelatedAsset": "",
-      "AssetTraitName": "",
-      "AssetTraitValue": "",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\images\\background.jpg"
     },
     {
       "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\images\\background2.jpg",
