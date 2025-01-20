@@ -156,7 +156,7 @@
                 }
                 
             </div>
-             
+                    <div class="col-sm-1" />
                 <div class="col-sm">
                     <label>Plantel</label>
                     <BlazoredTypeahead SearchMethod="BusquedaPlanteles" Disabled="esSocio" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
@@ -170,6 +170,7 @@
                     </div>
 
             }else if (Id != 0){
+                    <div class="col-sm-1" />
                     <div class="col-sm">
                         <label>Plantel</label>
                         <BlazoredTypeahead SearchMethod="BusquedaPlanteles" Disabled="esSocio" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
@@ -202,11 +203,18 @@
                 <label class="col-sm">Fecha De Inspeccion</label>
                 @if (@Id != 0)
                 {
+            <div class="col-sm">
+
                     <RadzenDatePicker TValue="DateTime?" @bind-Value="@oResin1.Freali" ShowTime="false" disabled="@esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                }
+                        </div>
+
+                    }
                 else
                 {
+            <div class="col-sm">
                         <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" disabled="@esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                            </div>
+
                 }
             </div>
 

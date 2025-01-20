@@ -13,10 +13,12 @@
 
   <ItemGroup>
     <Content Remove="wwwroot\background.jpg" />
+    <Content Remove="wwwroot\images\background.jpg" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="wwwroot\background.jpg" />
+    <None Include="wwwroot\images\background.jpg" />
   </ItemGroup>
 
 	<ItemGroup>

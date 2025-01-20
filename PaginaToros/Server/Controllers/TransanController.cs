@@ -112,20 +112,21 @@ namespace PaginaToros.Server.Controllers
                     var socioVendedor = db.User.FirstOrDefault(x => x.SocioId == request.Vendedor);
                     if (socioVendedor != null && IsValidEmail(socioVendedor.Email))
                     {
-                        //mail.To.Add(socioVendedor.Email);
+                        mail.To.Add(socioVendedor.Email); // Se agrega el correo del vendedor si es válido
                     }
                     else
                     {
                         Console.WriteLine("Socio vendedor sin cuenta o correo inválido");
                     }
 
-                    // Obtener correo del socio comprador
+
+                    // Obtener correo del socio comprador o verificar si hay una dirección
                     if (string.IsNullOrEmpty(request.Direccion))
                     {
                         var socioComprador = db.User.FirstOrDefault(x => x.SocioId == request.Comprador);
                         if (socioComprador != null && IsValidEmail(socioComprador.Email))
                         {
-                            //mail.To.Add(socioComprador.Email);
+                            mail.To.Add(socioComprador.Email); // Se agrega el correo del comprador si es válido
                         }
                         else
                         {
@@ -136,18 +137,20 @@ namespace PaginaToros.Server.Controllers
                     {
                         if (IsValidEmail(request.Direccion))
                         {
-                            mail.To.Add(request.Direccion);
+                            mail.To.Add(request.Direccion); // Se agrega la dirección de correo proporcionada si es válida
                         }
                         else
                         {
                             Console.WriteLine("Dirección de correo inválida");
                         }
                     }
+                    Console.WriteLine(mail.Body);
 
                     // Agregar correo de "puroregistrado"
-                    if (IsValidEmail("puroregistrado@gmail.com"))
+                    string correoPuroRegistrado = "planteles@hereford.org.ar";
+                    if (IsValidEmail(correoPuroRegistrado))
                     {
-                        mail.To.Add("puroregistrado@gmail.com");
+                        mail.To.Add(correoPuroRegistrado); // Se agrega el correo de "puroregistrado" si es válido
                     }
                     else
                     {
@@ -155,18 +158,20 @@ namespace PaginaToros.Server.Controllers
                     }
 
                     // Configurar el mensaje
-                    mail.From = new MailAddress("puroregistrado@gmail.com");
+                    mail.From = new MailAddress(correoPuroRegistrado);
                     mail.Subject = "Nueva transferencia animal";
                     mail.Body = request.Mail;
 
                     // Configurar SMTP y enviar
-                    using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
+                    using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
                     {
                         smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@gmail.com", "dmuu kdke jobp bhgo"); // Agrega tu contraseña aquí
+                        smtp.Credentials = new System.Net.NetworkCredential(correoPuroRegistrado, "Hereford.2033"); // Agrega tu contraseña aquí
                         smtp.EnableSsl = true;
                         smtp.Send(mail);
                     }
+
+                    Console.WriteLine("Se envio");
                 }
                 catch (Exception ex)
                 {
@@ -178,42 +183,59 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
+        //Hereford.2033
+
 
         [HttpPost]
         [Route("SendMailChange")]
-        public IActionResult ExampleMethodChange([FromBody] ContenidoMails2 request)
+        public async Task<IActionResult> ExampleMethodChange([FromBody] ContenidoMails2 request)
         {
             using (MailMessage mail = new MailMessage())
             {
                 try
                 {
-                    // Obtener correo del socio vendedor
-
-                   
-
-                    // Agregar correo de "puroregistrado"
-                    if (IsValidEmail("puroregistrado@gmail.com"))
+                    // Aquí agregamos los correos destinatarios y validamos si son correctos.
+                    if (IsValidEmail("planteles@hereford.org.ar"))
                     {
-                        mail.To.Add("puroregistrado@gmail.com");
+                        mail.To.Add("planteles@hereford.org.ar"); // Correo de destino
                     }
                     else
                     {
-                        Console.WriteLine("Correo de puroregistrado no válido");
+                        Console.WriteLine("Correo de 'puroregistrado' no válido");
+                        return BadRequest("Correo de 'puroregistrado' no válido");
                     }
 
                     // Configurar el mensaje
-                    mail.From = new MailAddress("puroregistrado@gmail.com");
-                    mail.Subject = "Cambio de socio";
+                    mail.From = new MailAddress("planteles@hereford.org.ar");
+                    mail.Subject = "El socio " + request.Nombre + " ha realizado un cambio";
                     mail.Body = request.Mail;
 
-                    // Configurar SMTP y enviar
-                    using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
+                    // Configurar SMTP (Aquí debes cambiar por el servidor y las credenciales adecuadas)
+                    string smtpHost = "mail.hereford.org.ar"; // Reemplazar por el servidor SMTP de tu proveedor
+                    int smtpPort = 587;  // O el puerto que corresponda
+
+                    // Obtención de credenciales de manera segura (por ejemplo, variables de entorno)
+                    string smtpUsername = "planteles@hereford.org.ar";
+                    string smtpPassword = "Hereford.2033"; // Agregar tu variable de entorno para la contraseña
+
+                    if (string.IsNullOrEmpty(smtpPassword))
+                    {
+                        Console.WriteLine("La contraseña del servidor SMTP no está configurada.");
+                        return BadRequest("Error al enviar el correo. Falta la configuración de la contraseña.");
+                    }
+
+                    // Configuración del cliente SMTP
+                    using (SmtpClient smtp = new SmtpClient(smtpHost, smtpPort))
                     {
                         smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@gmail.com", "dmuu kdke jobp bhgo"); // Agrega tu contraseña aquí
+                        smtp.Credentials = new System.Net.NetworkCredential(smtpUsername, smtpPassword);
                         smtp.EnableSsl = true;
-                        smtp.Send(mail);
+
+                        // Enviar el correo de forma asincrónica
+                        await smtp.SendMailAsync(mail);
                     }
+                    Console.WriteLine("Cambio realizado");
+                    
                 }
                 catch (Exception ex)
                 {
@@ -224,6 +246,7 @@ namespace PaginaToros.Server.Controllers
                 return Ok("Correo enviado correctamente.");
             }
         }
+
 
         private bool IsValidEmail(string email)
         {

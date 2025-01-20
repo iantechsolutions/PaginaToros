@@ -98,115 +98,104 @@ namespace PaginaToros.Server.Controllers
             {
                 using (MailMessage mail = new MailMessage())
                 {
-                    mail.From = new MailAddress("puroregistrado@gmail.com");
+                    mail.From = new MailAddress("planteles@hereford.org.ar");
                     mail.To.Add(model.Email);
                     mail.Subject = "Confirmación de Registro en Hereford";
 
-                    // Path to the image
-                    // Obtén el directorio raíz del proyecto
-                    string projectRoot = Directory.GetParent(AppContext.BaseDirectory)?.Parent?.Parent?.FullName;
+                    Console.WriteLine("LLego");
 
-                    // Construye el path absoluto del archivo
-                    string imagePath = Path.Combine(projectRoot, "Server", "background.jpg");
+                    string projectRoot = Directory.GetCurrentDirectory(); // Obtiene la raíz del proyecto
+                    string imagePath = Path.Combine("wwwroot", "images", "background.jpg");
 
 
 
-                    Console.WriteLine(projectRoot); ;
 
-                    Console.WriteLine(imagePath);
-                    Console.WriteLine(model.Email);
+
                     string body = $@"
-                    <html>
-                    <body style='margin:0;padding:0;'>
-                        <table width='100%' border='0' cellspacing='0' cellpadding='0'>
-                            <tr>
-                                <td>
-                                    <table width='600' border='0' cellspacing='0' cellpadding='0' align='center' style='background-repeat:no-repeat;background-image:url(cid:backgroundImage);background-size:cover;'>
-                                        <tr>
-                                            <td style='padding: 20px;padding-top: 90px; padding-bottom:300px; color: #000;'>
-                                                <h2>Estimado socio.</h2>
-                                                <p>Nos complace confirmar que su registro en nuestro sitio ha sido exitoso. A partir de ahora, tiene acceso completo a todos los servicios y funcionalidades disponibles.</p>
-                                                <p><strong>Detalles de inicio de sesión:</strong></p>
-                                                <p>Correo electrónico registrado: {model.Email}<br>Contraseña: {password}</p>
-                                                <p>Recuerde mantener segura esta información y no compartirla. Gracias por su tiempo y ante cualquier consulta no dude en comunicarse por mail a planteles@hereford.org.ar</p>
-                                                <p>Saludos cordiales,<br>Equipo de Puro Registrado Hereford.</p>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-                    </body>
-                    </html>";
+            <html>
+            <body style='margin:0;padding:0;'>
+                <table width='100%' border='0' cellspacing='0' cellpadding='0'>
+                    <tr>
+                        <td>
+                            <table width='600' border='0' cellspacing='0' cellpadding='0' align='center' style='background-repeat:no-repeat;background-image:url(cid:backgroundImage);background-size:cover;'>
+                                <tr>
+                                    <td style='padding: 20px; padding-top: 90px; padding-bottom: 300px; color: #000;'>
+                                        <h2>Estimado socio.</h2>
+                                        <p>Nos complace confirmar que su registro en nuestro sitio ha sido exitoso. A partir de ahora, tiene acceso completo a todos los servicios y funcionalidades disponibles.</p>
+                                        <p><strong>Detalles de inicio de sesión:</strong></p>
+                                        <p>Correo electrónico registrado: {model.Email}<br>Contraseña: {password}</p>
+                                        <p>Recuerde mantener segura esta información y no compartirla. Gracias por su tiempo y ante cualquier consulta no dude en comunicarse por mail a planteles@hereford.org.ar</p>
+                                        <p>Saludos cordiales,<br>Equipo de Puro Registrado Hereford.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>";
 
+                    // Configura la vista HTML del correo con la imagen como recurso vinculado
                     AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, MediaTypeNames.Text.Html);
 
-                    LinkedResource background = new LinkedResource(imagePath, MediaTypeNames.Image.Jpeg);
-                    background.ContentId = "backgroundImage";
-                    background.TransferEncoding = TransferEncoding.Base64;
+                    Console.WriteLine(model.Email);
+                    Console.WriteLine(password);
+
+
+
+                    LinkedResource background = new LinkedResource(imagePath, MediaTypeNames.Image.Jpeg)
+                    {
+                        ContentId = "backgroundImage",
+                        TransferEncoding = TransferEncoding.Base64
+                    };
                     htmlView.LinkedResources.Add(background);
 
                     mail.AlternateViews.Add(htmlView);
                     mail.IsBodyHtml = true;
 
-                    using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
+                    // Configuración del cliente SMTP
+                    using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587)) // Cambia el host y el puerto según tu proveedor
                     {
                         smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@gmail.com", "dmuu kdke jobp bhgo");
-                        smtp.EnableSsl = true;
+                        smtp.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"); // Coloca tu contraseña aquí
+                        smtp.EnableSsl = true; // Cambia a false si el servidor no usa SSL
                         smtp.Send(mail);
                     }
                 }
-                return Ok("ok");
+
+                return Ok("Correo enviado correctamente.");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                return BadRequest(e.Message);
+                Console.WriteLine($"Error: {e.Message}");
+                return BadRequest($"Error al enviar el correo: {e.Message}");
             }
         }
+
+        //Hereford.2033
+
+
+
 
 
         [HttpPost("SendChangeNotificationMail")]
         public async Task<ActionResult> SendChangeNotificationMail([FromBody] ChangeNotificationModel model)
         {
-
             Console.WriteLine(model.Id);
 
-            var socio = db.User.FirstOrDefault(x => x.Id == model.Id)
-                ?? db.User.FirstOrDefault(x => x.Id == model.Id);
-
-            // Verifica si se encontró un socio
+            var socio = db.User.FirstOrDefault(x => x.Id == model.Id);
             if (socio == null)
             {
                 return BadRequest($"No se encontró un socio con el ID proporcionado ({model.Id}).");
             }
-        
 
             try
             {
                 using (MailMessage mail = new MailMessage())
                 {
-            
-                    mail.From = new MailAddress("puroregistrado@gmail.com");
-            
-                    mail.To.Add("puroregistrado@gmail.com");
-            
+                    mail.From = new MailAddress("planteles@hereford.org.ar");
+                    mail.To.Add("planteles@hereford.org.ar");
                     mail.Subject = "Notificación de Cambio en el Sistema de Hereford";
-
-                    // Path to the image
-                    // Obtén el directorio raíz del proyecto
-                    //string projectRoot = Directory.GetParent(AppContext.BaseDirectory)?.Parent?.Parent?.FullName;
-
-                    //// Construye el path absoluto del archivo
-                    //string imagePath = Path.Combine(projectRoot, "Server", "background.jpg");
-                    //Console.WriteLine(projectRoot);
-
-                    //Console.WriteLine(imagePath);
-
-
-
-            Console.WriteLine("puroregistrado@gmail.com");
 
                     string body = $@"
             <html>
@@ -220,11 +209,9 @@ namespace PaginaToros.Server.Controllers
                                         <h2>Notificación de cambio realizado por el socio</h2>
                                         <p><strong>Usuario:</strong> {socio.Names} {socio.LastNames}</p>
                                         <p><strong>Email:</strong> {socio.Email}</p>
-
                                         <p><strong>Clase:</strong> {model.Clase}</p>
                                         <p><strong>Tipo de acción:</strong> {model.Tipo}</p>
                                         <p><strong>Detalle:</strong> {model.Detalle}</p>
-                                       
                                         <p>Saludos cordiales,<br>Equipo de Puro Registrado Hereford.</p>
                                     </td>
                                 </tr>
@@ -235,36 +222,29 @@ namespace PaginaToros.Server.Controllers
             </body>
             </html>";
 
-                    AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, MediaTypeNames.Text.Html);
-
-                    //LinkedResource background = new LinkedResource(imagePath, MediaTypeNames.Image.Jpeg);
-                    //background.ContentId = "backgroundImage";
-                    //background.TransferEncoding = TransferEncoding.Base64;
-                    //htmlView.LinkedResources.Add(background);
-
-                    mail.AlternateViews.Add(htmlView);
+                    mail.Body = body;
                     mail.IsBodyHtml = true;
 
-                    using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
+                    using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587)) // Cambia esto al servidor SMTP correcto
                     {
                         smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@gmail.com", "dmuu kdke jobp bhgo");
-                        smtp.EnableSsl = true;
+                        smtp.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"); // Coloca la contraseña correcta aquí
+                        smtp.EnableSsl = true; // Cambia a false si el hosting no requiere SSL/TLS en este puerto
                         smtp.Send(mail);
                     }
                 }
 
-                Console.WriteLine("Llego");
-                return Ok("ok");
+                Console.WriteLine("Correo enviado.");
+                return Ok("Correo enviado correctamente.");
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                return BadRequest(e.Message);
+                return BadRequest($"Error al enviar el correo: {e.Message}");
             }
         }
 
-
+        //Hereford.2033
         //dmuu kdke jobp bhgo
         //dmuu kdke jobp bhgo
         public class ChangeNotificationModel
@@ -277,55 +257,45 @@ namespace PaginaToros.Server.Controllers
             public string? Clase { get; set; }
             public string? Detalle { get; set; }
         }
-
         [HttpPost("SendResetMail")]
         public async Task<ActionResult> SendResetMail([FromBody] User model, string nuevaContraseña)
         {
             try
             {
-                try { 
                 Console.WriteLine(model.Email);
 
-
-                    SmtpClient client = new SmtpClient();
+                using (SmtpClient client = new SmtpClient("mail.hereford.org.ar", 587)) // Cambia esto al servidor SMTP de tu hosting
+                {
                     client.UseDefaultCredentials = false;
-                    client.Credentials = new System.Net.NetworkCredential("puroregistrado@gmail.com", "dmuu kdke jobp bhgo", "gmail.com");
-                    client.Port = 587; // 25 587
-                    client.Host = "smtp.gmail.com";
-                    client.DeliveryMethod = SmtpDeliveryMethod.Network;
-                    client.EnableSsl = true;
+                    client.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"); // Ingresa la contraseña correcta
+                    client.EnableSsl = true; // Cambia a false si tu hosting no soporta SSL/TLS en este puerto
 
-
-
-                    Console.WriteLine(nuevaContraseña);
-                    MailMessage mail = new MailMessage();
-                    mail.From = new MailAddress("puroregistrado@gmail.com");
+                    MailMessage mail = new MailMessage
+                    {
+                        From = new MailAddress("planteles@hereford.org.ar"),
+                        Subject = "Restablecimiento de contraseña para Hereford",
+                        Body = $"Estimado,\nHemos recibido una solicitud para restablecer su contraseña. Los detalles de su nueva contraseña son los siguientes:\n" +
+                               $"Correo electrónico registrado: {model.Email}\nNueva contraseña: {nuevaContraseña}\n" +
+                               "Recuerde mantener esta información segura y no compartirla con nadie más. Gracias por estar con nosotros y esperamos que continúe disfrutando de nuestros servicios.\n" +
+                               "Saludos cordiales,\nHereford",
+                        IsBodyHtml = false
+                    };
                     mail.To.Add(new MailAddress(model.Email));
-                    mail.Subject = $"Restablecimiento de contraseña para Hereford";
-                    string body = $"Estimado,\nHemos recibido una solicitud para restablecer su contraseña. Los detalles de su nueva contraseña son los siguientes:\n";
-                    body += $"Correo electrónico registrado: {model.Email}\nNueva contraseña: {nuevaContraseña}\n";
-                    body += $"Recuerde mantener esta información segura y no compartirla con nadie más. Gracias por estar con nosotros y esperamos que continúe disfrutando de nuestros servicios.\n";
-                    body += $"Saludos cordiales,\n Hereford";
-
-                    mail.Body = body;
 
                     client.Send(mail);
+                }
 
-                return Ok("ok");
-                }
-                catch(Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    return BadRequest(e.Message);
-                }
+                Console.WriteLine(nuevaContraseña);
+                return Ok("Correo enviado correctamente.");
             }
             catch (Exception e)
             {
-                return BadRequest(e.Message);
+                Console.WriteLine(e.Message);
+                return BadRequest($"Error al enviar el correo: {e.Message}");
             }
         }
-        
 
+        //dmuu kdke jobp bhgo
 
 
         [HttpPut("SaveUser")]

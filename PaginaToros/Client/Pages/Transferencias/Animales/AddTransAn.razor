@@ -290,29 +290,29 @@ else
 
 
             await _transanServicio.Crear(oTransan);
-            var changeNotification = new
-                {
-                    Names = user?.Claims?.FirstOrDefault(c => c.Type == "userNM")?.Value,
-                    Apellido = user?.Claims?.FirstOrDefault(c => c.Type == "userLN")?.Value,
-                    Email = user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value,
-                    Tipo = "Creado",  // El tipo de la acción que estás realizando
-                    Clase = "Transferencia",  // La clase de la acción
-                    Detalle = "El usuario ha creado una nueva transferencia."  // Detalles adicionales sobre la acción
-                };
+            // var changeNotification = new
+            //     {
+            //         Names = user?.Claims?.FirstOrDefault(c => c.Type == "userNM")?.Value,
+            //         Apellido = user?.Claims?.FirstOrDefault(c => c.Type == "userLN")?.Value,
+            //         Email = user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value,
+            //         Tipo = "Creado",  // El tipo de la acción que estás realizando
+            //         Clase = "Transferencia",  // La clase de la acción
+            //         Detalle = "El usuario ha creado una nueva transferencia."  // Detalles adicionales sobre la acción
+            //     };
 
-            // Enviar el objeto completo al backend
-            var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
+            // // Enviar el objeto completo al backend
+            // var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
 
 
             var mail = $"Aviso de nueva transferencia animal \nNroCertificado: {oTransan.NroCert} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Cantidad total de animales: {(oTransan.CantHem + oTransan.CantMach + oTransan.CantChem + oTransan.CantCmach)} ";
             var request = new
             {
-                Vendedor = socioVendedor.Id,
-                Comprador = socioComprador.Id,
+                Tipo = socioVendedor.Id,
+                Clase = socioComprador.Id,
                 Mail = mail,
-                Direccion = direccionCompra
+                Nombre = socioVendedor.Nombre
             };
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
 
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
@@ -322,14 +322,14 @@ else
             var mail = $"Aviso de edición transferencia animal \nNroCertificado: {oTransan.NroCert} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Cantidad total de animales: {(oTransan.CantHem + oTransan.CantMach + oTransan.CantChem + oTransan.CantCmach)} ";
             var request = new
             {
-                Vendedor = socioVendedor.Id,
-                Comprador = socioComprador.Id,
+                Tipo = socioVendedor.Id,
+                Clase = socioComprador.Id,
                 Mail = mail,
-                Direccion = direccionCompra
+                Nombre = socioVendedor.Nombre
             };
             await _transanServicio.Editar(oTransan);
 
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
 
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }

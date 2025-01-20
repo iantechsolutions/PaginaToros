@@ -7,6 +7,30 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\images\background.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="wwwroot\Actualizacion.cs" />
+    <Compile Include="wwwroot\Archrural.cs" />
+    <Compile Include="wwwroot\Autoriza.cs" />
+    <Compile Include="wwwroot\Desepla4NoUsadum.cs" />
+    <Compile Include="wwwroot\Desepla5NoUsadum.cs" />
+    <Compile Include="wwwroot\DeseUsada.cs" />
+    <Compile Include="wwwroot\Opcdecserv.cs" />
+    <Compile Include="wwwroot\Peg.cs" />
+    <Compile Include="wwwroot\Remansol.cs" />
+    <Compile Include="wwwroot\Resin9.cs" />
+    <Compile Include="wwwroot\Retenida.cs" />
+    <Compile Include="wwwroot\Solici4.cs" />
+    <Compile Include="wwwroot\Solici6.cs" />
+    <Compile Include="wwwroot\Torospr.cs" />
+    <Compile Include="wwwroot\TorosRural.cs" />
+    <Compile Include="wwwroot\Torosuniestado.cs" />
+    <Compile Include="wwwroot\Usuario.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="MailKit" Version="4.9.0" />
@@ -33,6 +57,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Client\PaginaToros.Client.csproj" />
     <ProjectReference Include="..\Shared\PaginaToros.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\images\background.jpg" />
   </ItemGroup>
 
 

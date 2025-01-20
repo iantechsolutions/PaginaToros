@@ -353,27 +353,16 @@ else
 
                     var request = new
                     {
-                        Vendedor = socioVendedor.Id,
-                        Comprador = socioComprador.Id,
+                        Tipo = socioVendedor.Id,
+                        Clase = socioComprador.Id,
                         Mail = mail,
-                        Direccion = oEstablecimiento.Direcc
+                        Nombre = socioVendedor.Nombre
                     };
-                    HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+                    HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
 
 
 
-                    //     Console.WriteLine("Se va a enviar");
-                    //     Console.WriteLine(user.Claims.FirstOrDefault().Value);
-                    // var changeNotification = new 
-                    //     {
-                    //     Id = user?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value,
-                    //         Tipo = "Edición",  // El tipo de la acción que estás realizando
-                    //         Clase = "Establecimiento",  // La clase de la acción
-                    //         Detalle = "El usuario ha editado un establecimiento."  // Detalles adicionales sobre la acción
-                    //     };
-
-                    // // Enviar el objeto completo al backend
-                    // var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
+                   
 
                 }
                 catch

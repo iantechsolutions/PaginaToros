@@ -207,29 +207,32 @@ else
         if (Id == 0)
         {
             await _futcontrolServicio.Crear(oFutcontrol);
-            var mail = $"Aviso de nueva transferencia Futuro Control \nNro de Transferencia: {oFutcontrol.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \nCantidad de hembras: {oFutcontrol.CantHem} \nCantidad de machos: {oFutcontrol.CantMach} \nEstado de las hembras: {oFutcontrol.Hemsta}";
+
+
+            var mail = $"Aviso de nueva transferencia futura \nNroCertificado: {oFutcontrol.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Cantidad total de animales: {(oFutcontrol.CantHem + oFutcontrol.CantMach)} ";
             var request = new
             {
-                Vendedor = socioVendedor.Id,
-                Comprador = socioComprador.Id,
+                Tipo = socioVendedor.Id,
+                Clase = socioComprador.Id,
                 Mail = mail,
-                Direccion = direccionCompra
+                Nombre = socioVendedor.Nombre
             };
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
             await _futcontrolServicio.Editar(oFutcontrol);
-            var mail = $"Aviso de edición transferencia Futuro Control \nNro de Transferencia: {oFutcontrol.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \nCantidad de hembras: {oFutcontrol.CantHem} \nCantidad de machos: {oFutcontrol.CantMach} \nEstado de las hembras: {oFutcontrol.Hemsta}";
+            
+            var mail = $"Aviso de edición transferencia futura \nNroCertificado: {oFutcontrol.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Cantidad total de animales: {(oFutcontrol.CantHem + oFutcontrol.CantMach)} ";
             var request = new
             {
-                Vendedor = socioVendedor.Id,
-                Comprador = socioComprador.Id,
+                Tipo = socioVendedor.Id,
+                Clase = socioComprador.Id,
                 Mail = mail,
-                Direccion = direccionCompra
+                Nombre = socioVendedor.Nombre
             };
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }

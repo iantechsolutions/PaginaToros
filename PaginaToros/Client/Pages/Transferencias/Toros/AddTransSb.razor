@@ -175,15 +175,17 @@ else
         if (Id == 0)
         {
             await _transsbServicio.Crear(oTranssb);
-            var mail = $"Aviso de nueva transferencia S/ \nNro de transaccion: {oTranssb.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Informacion del toro seleccionado: \n-Tatuaje: {toroSeleccionado.Tatpart} \n-HBA: {toroSeleccionado.Hba} \n-Nombre: {toroSeleccionado.NomDad}";
+
+
+            var mail = $"Aviso de  transferencia S/ \nNro de transaccion: {oTranssb.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Informacion del toro seleccionado: \n-Tatuaje: {toroSeleccionado.Tatpart} \n-HBA: {toroSeleccionado.Hba} \n-Nombre: {toroSeleccionado.NomDad}";
             var request = new
             {
-                Vendedor = socioVendedor.Id,
-                Comprador = socioComprador.Id,
+                Tipo = socioVendedor.Id,
+                Clase = socioComprador.Id,
                 Mail = mail,
-                Direccion = direccionCompra
+                Nombre = socioVendedor.Nombre
             };
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
@@ -192,12 +194,12 @@ else
             var mail = $"Aviso de edición transferencia S/ \nNro de transaccion: {oTranssb.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Informacion del toro seleccionado: \n-Tatuaje: {toroSeleccionado.Tatpart} \n-HBA: {toroSeleccionado.Hba} \n-Nombre: {toroSeleccionado.NomDad}";
             var request = new
             {
-                Vendedor = socioVendedor.Id,
-                Comprador = socioComprador.Id,
+                Tipo = socioVendedor.Id,
+                Clase = socioComprador.Id,
                 Mail = mail,
-                Direccion = direccionCompra
+                Nombre = socioVendedor.Nombre
             };
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
             await _transsbServicio.Editar(oTranssb);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
