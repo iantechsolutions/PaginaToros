@@ -53,7 +53,7 @@
       "url": "css\/open-iconic\/README.md"
     },
     {
-      "hash": "sha256-IjbEXKVb\/7dlTaytx1L7TLC9jgoeRcigB\/vy0aKtdBQ=",
+      "hash": "sha256-xQToZ3plQ0hgk408dAicAvwARiyPoMbk1n4yAgf\/ruQ=",
       "url": "Excel_Solicitud.xls"
     },
     {
@@ -129,7 +129,7 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-7BZRVrH+PXDZW380DXwEtcDP4CbbJXB+MZ3oMfoZCzM=",
+      "hash": "sha256-xe\/ZH7YzDjh29L72osPb8g0pJ+IefBdH0+dKGbvn9NA=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -317,7 +317,7 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-uORwg9dUe2FAwuAAAijlYlpDqRbJYbxyGt6rxQdnOU4=",
+      "hash": "sha256-3i2p68nF0bKm59TYF0hZOYpPv5+v78cyIOG2r9XKDwU=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
@@ -873,5 +873,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "EczcaggT"
+  "version": "w3tCmKHW"
 };
