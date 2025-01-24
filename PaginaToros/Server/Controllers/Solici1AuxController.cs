@@ -349,41 +349,55 @@ namespace PaginaToros.Server.Controllers
         [HttpPost("SendExcel/{socioId}")]
         public async Task<IActionResult> SendExcel(int socioId, [FromForm] IFormFile file)
         {
-            try {
+            try
+            {
                 var tempFilePath = Path.Combine(Path.GetTempPath(), $"Excel_Solicitud_{DateTime.Now.ToString("dd_MM_yyyy")}.xls");
+
                 using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
                 {
                     await file.CopyToAsync(fileStream);
                 }
-                string filtro = $"Id = {socioId}";
-            var rta = await _socioRepositorio.LimitadosFiltrados(0, 1, filtro);
-            Socio socio = rta.FirstOrDefault();
-            using (MailMessage mail = new MailMessage())
-            {
-                MemoryStream memoryStream = new MemoryStream();
-                await file.CopyToAsync(memoryStream);
-                mail.From = new MailAddress("puroregistrado@hotmail.com");
-                mail.To.Add("puroregistradohereford@gmail.com");
-                mail.Subject = $"Solicitud de Inspeccion de: {socio.Nombre}";
-                mail.Body = $"Nueva solicitud de inspeccion\nSocio: {socio.Nombre}";
-                mail.Attachments.Add(new Attachment(tempFilePath, MediaTypeNames.Application.Octet));
-                using (SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587))
-                {
-                    smtp.UseDefaultCredentials = false;
-                    smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2025", "hotmail.com");
-                    smtp.EnableSsl = true;
-                    smtp.Send(mail);
-                }
-            }
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
 
-            return Ok(); // Return 200 OK if email sent successfully
+                string filtro = $"Id = {socioId}";
+                var rta = await _socioRepositorio.LimitadosFiltrados(0, 1, filtro);
+                Socio socio = rta.FirstOrDefault();
+
+                using (MailMessage mail = new MailMessage())
+                {
+                    mail.From = new MailAddress("planteles@hereford.org.ar");
+                    mail.To.Add("puroregistradohereford@gmail.com");
+                    mail.To.Add("planteles@hereford.org.ar");
+
+                    mail.Subject = $"Solicitud de Inspección de: {socio.Nombre}";
+                    mail.Body = $"Nueva solicitud de inspección\nSocio: {socio.Nombre}";
+
+                    mail.Attachments.Add(new Attachment(tempFilePath, MediaTypeNames.Application.Octet));
+
+                    using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
+                    {
+                        smtp.UseDefaultCredentials = false;
+                        smtp.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"); 
+                        smtp.EnableSsl = true; 
+                        smtp.Send(mail);
+                    }
+                }
+
+                if (System.IO.File.Exists(tempFilePath))
+                {
+                    System.IO.File.Delete(tempFilePath);
+                }
+                Console.WriteLine("Subido");
+                return Ok("Correo enviado correctamente.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return BadRequest($"Error al enviar el correo: {ex.Message}");
+            }
         }
 
 
     }
 }
+
+//

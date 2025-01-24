@@ -141,7 +141,23 @@ namespace PaginaToros.Server.Controllers
                     Console.WriteLine(model.Email);
                     Console.WriteLine(password);
 
+                    string filePath = Path.Combine("wwwroot", "images", "Tarifas Registros 2025.docx");
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        Attachment attachment = new Attachment(filePath);
+                        mail.Attachments.Add(attachment);
 
+                        Console.WriteLine("Adjunto añadido.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("El archivo no se encuentra en la ruta especificada.");
+                        return BadRequest("Archivo no encontrado.");
+                    }
+
+
+
+                    Console.WriteLine(mail.Attachments);
 
                     LinkedResource background = new LinkedResource(imagePath, MediaTypeNames.Image.Jpeg)
                     {
@@ -172,9 +188,112 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
-        //Hereford.2033
+        //Hereford.2033 Hereford.2033
+
+        [HttpPost("SendMail2025")]
+        public async Task<ActionResult> SendMailInfo([FromBody] User model, string password)
+        {
+            try
+            {
+                using (MailMessage mail = new MailMessage())
+                {
+                    mail.From = new MailAddress("planteles@hereford.org.ar");
+                    mail.To.Add(model.Email);
+                    mail.Subject = "controles de procreos y las nuevas tarifas vigentes a partir del 1 de enero de 2025.";
+
+                    Console.WriteLine("LLego send email");
+
+                  
 
 
+
+
+
+                    string body = $@"
+<html>
+<body style='margin:0;padding:0;'>
+    <table width='100%' border='0' cellspacing='0' cellpadding='0'>
+        <tr>
+            <td>
+                <table width='600' border='0' cellspacing='0' cellpadding='0' align='center'>
+                    <tr>
+                        <td style='padding: 20px; padding-top: 90px; padding-bottom: 300px; color: #000;'>
+                            <h2>Buenos Aires, 20 de enero de 2025</h2>
+                            <p>Señor Criador:</p>
+                            <p>Tenemos el agrado de dirigirnos a usted con el objeto de enviarle la documentación relacionada con los controles de procreos y las nuevas tarifas vigentes a partir del 1 de enero de 2025.</p>
+                            <p>Recuerde que, para una mejor organización de los controles, las <strong>SOLICITUDES DE INSPECCIÓN</strong> junto con el correspondiente <strong>ADELANTO</strong> deberán enviarse <strong>HASTA EL 15 DE MARZO PRÓXIMO</strong>, para evitar recargos por presentación fuera de término. Además, es importante regularizar cualquier saldo pendiente para evitar inconvenientes.</p>
+                            <p>En la <strong>SOLICITUD DE INSPECCIÓN</strong> adjunta, el adelanto se calcula automáticamente, por lo que sólo se debe completar los campos requeridos en cantidad de animales solicitados y su año de nacimiento.</p>
+                            <p>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar/autogestion/ '>aquí</a>.</p>
+                            <p>Si tiene alguna duda o necesita asistencia, no dude en ponerse en contacto con nosotros. Estamos disponibles para ayudarlo en todo lo que necesite.</p>
+                            <p>Gracias por su comprensión y colaboración.</p>
+                            <p>Les deseamos que reciban este nuevo año con optimismo, preparados para seguir trabajando juntos por la raza y por el país que todos queremos y necesitamos.</p>
+                        </td>
+                    </tr>
+                </table>
+                <table width='600' border='0' cellspacing='0' cellpadding='0' align='center'>
+                    <tr>
+                        <td style='padding: 20px; color: #777;'>
+                            <p>Ing. Emilio Ortiz (Responsable Puro Registrado) - <a href='mailto:eortiz@hereford.org.ar'>eortiz@hereford.org.ar</a></p>
+                            <p>Paz Hernández (Encargada Registros) - <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a></p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>";
+
+                    // Configura la vista HTML del correo con la imagen como recurso vinculado
+                    AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, MediaTypeNames.Text.Html);
+
+                    Console.WriteLine(model.Email);
+                    Console.WriteLine(password);
+
+
+                    string projectRoot = Directory.GetCurrentDirectory(); // Obtiene la raíz del proyecto
+                    string filePath = Path.Combine("wwwroot", "images", "Tarifas Registros 2025.docx");
+                    //string filePath = @"C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\wwwroot\images\Tarifas Registros 2025.docx";
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        Attachment attachment = new Attachment(filePath);
+                        mail.Attachments.Add(attachment);
+
+                        Console.WriteLine("Adjunto añadido.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("El archivo no se encuentra en la ruta especificada.");
+                        return BadRequest("Archivo no encontrado.");
+                    }
+
+
+
+                    Console.WriteLine(mail.Attachments);
+
+                    
+               
+
+                    mail.AlternateViews.Add(htmlView);
+                    mail.IsBodyHtml = true;
+
+                    using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587)) 
+                    {
+                        smtp.UseDefaultCredentials = false;
+                        smtp.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"); 
+                        smtp.EnableSsl = true; 
+                        smtp.Send(mail);
+                    }
+                }
+
+                return Ok("Correo enviado correctamente.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error: {e.Message}");
+                return BadRequest($"Error al enviar el correo: {e.Message}");
+            }
+        }
 
 
 
@@ -196,6 +315,11 @@ namespace PaginaToros.Server.Controllers
                     mail.From = new MailAddress("planteles@hereford.org.ar");
                     mail.To.Add("planteles@hereford.org.ar");
                     mail.Subject = "Notificación de Cambio en el Sistema de Hereford";
+
+
+                  
+
+
 
                     string body = $@"
             <html>
@@ -224,6 +348,18 @@ namespace PaginaToros.Server.Controllers
 
                     mail.Body = body;
                     mail.IsBodyHtml = true;
+
+                    string filePath = @"C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\wwwroot\images\Mail.docx";
+                    if (!System.IO.File.Exists(filePath))
+                    {
+                        Attachment attachment = new Attachment(filePath);
+                        mail.Attachments.Add(attachment);
+                    }
+
+                    Console.WriteLine(filePath);
+                    Console.WriteLine(mail.Attachments);
+
+
 
                     using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587)) // Cambia esto al servidor SMTP correcto
                     {

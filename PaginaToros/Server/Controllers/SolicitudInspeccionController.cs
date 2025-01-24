@@ -447,15 +447,16 @@ namespace PaginaToros.Server.Controllers
             {
                 MemoryStream memoryStream = new MemoryStream();
                 await file.CopyToAsync(memoryStream);
-                mail.From = new MailAddress("puroregistrado@hotmail.com");
+                mail.From = new MailAddress("planteles@hereford.org.ar");
                 mail.To.Add("puroregistradohereford@gmail.com");
+                    mail.To.Add("planteles@hereford.org.ar");
                 mail.Subject = $"Solicitud de Inspeccion de: {socio.Nombre}";
                 mail.Body = $"Nueva solicitud de inspeccion\nSocio: {socio.Nombre}";
                 mail.Attachments.Add(new Attachment(tempFilePath, MediaTypeNames.Application.Octet));
-                using (SmtpClient smtp = new SmtpClient("smtp-mail.outlook.com", 587))
+                using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
                 {
                     smtp.UseDefaultCredentials = false;
-                    smtp.Credentials = new System.Net.NetworkCredential("puroregistrado@hotmail.com", "puro2025", "hotmail.com");
+                    smtp.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033");
                     smtp.EnableSsl = true;
                     smtp.Send(mail);
                 }
