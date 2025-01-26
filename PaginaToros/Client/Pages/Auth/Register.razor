@@ -27,7 +27,7 @@
         var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
         var pswd = GenerateRandomPassword(random.Next(7, 11));
         var result = await http.PostAsJsonAsync<User>($"api/Account/CreateUser?password={pswd}", User);
-        var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendRegistrationMail?password={pswd}", User);
+        var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendMail2025?password={pswd}", User);
         switch (result.StatusCode)
         {
             case System.Net.HttpStatusCode.OK:

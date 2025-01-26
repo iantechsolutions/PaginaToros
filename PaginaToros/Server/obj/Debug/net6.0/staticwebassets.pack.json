@@ -69,12 +69,20 @@
       "PackagePath": "staticwebassets\\Usuario.cs"
     },
     {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\images\\LOGO.jpg",
+      "PackagePath": "staticwebassets\\images\\LOGO.jpg"
+    },
+    {
       "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\images\\Mail.docx",
       "PackagePath": "staticwebassets\\images\\Mail.docx"
     },
     {
       "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\images\\Tarifas Registros 2025.docx",
       "PackagePath": "staticwebassets\\images\\Tarifas Registros 2025.docx"
+    },
+    {
+      "Id": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Server\\wwwroot\\images\\backgroundEnvio.jpg",
+      "PackagePath": "staticwebassets\\images\\backgroundEnvio.jpg"
     },
     {
       "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.PaginaToros.Server.Microsoft.AspNetCore.StaticWebAssets.props",
