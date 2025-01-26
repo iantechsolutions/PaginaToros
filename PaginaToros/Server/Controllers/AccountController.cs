@@ -206,79 +206,93 @@ namespace PaginaToros.Server.Controllers
                     string imagePath = Path.Combine(projectRoot, "wwwroot", "images", "backgroundEnvio.jpg");
                     string logoPath = Path.Combine(projectRoot, "wwwroot", "images", "LOGO.jpg");
 
-                    if (!System.IO.File.Exists(imagePath) || !System.IO.File.Exists(logoPath))
+                    // Verifica si el email es de Outlook, en tal caso no carga las imágenes
+                    if (model.Email.Contains("outlook"))
                     {
-                        Console.WriteLine("Una o más imágenes no se encuentran en la ruta especificada.");
-                        return BadRequest("Imágenes no encontradas.");
+                        logoPath = null;
+                        imagePath = null; // No cargamos la imagen de fondo
                     }
 
+                    if (!string.IsNullOrEmpty(imagePath) && !System.IO.File.Exists(imagePath))
+                    {
+                        Console.WriteLine("Imagen de fondo no encontrada.");
+                        return BadRequest("Imagen de fondo no encontrada.");
+                    }
 
+                    if (!string.IsNullOrEmpty(logoPath) && !System.IO.File.Exists(logoPath))
+                    {
+                        Console.WriteLine("Logo no encontrado.");
+                        return BadRequest("Logo no encontrado.");
+                    }
 
-                   
+                    string logoHtml = string.IsNullOrEmpty(logoPath) ? "" : $"<img src='cid:logoImage' alt='Hereford Logo' style='width:150px; height:auto;' />";
 
                     string body = $@"
-                    <html>
-                    <body style='margin:0;padding:0;'>
-                        <table width='100%' border='0' cellspacing='0' cellpadding='0'>
-                            <tr>
-                                <td>
-                                    <table width='600' border='0' cellspacing='0' cellpadding='0' align='center' style='background-repeat:no-repeat;background-image:url(cid:backgroundImage);background-size:cover; alt='Hereford Logo'>
-                                        <tr>
-                                            <td style='padding: 20px; text-align: left;'>
-                                                <img src='cid:logoImage' alt='Hereford Logo' style='width:150px; height:auto;' />
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style='padding: 20px; padding-top: 10px; color: #000;'>
-                                                <h2>Buenos Aires, 26 de enero de 2025</h2>
-                                                <p>Señor Criador:</p>
-                                                <p>Tenemos el agrado de dirigirnos a usted con el objeto de enviarle la documentación relacionada con los controles de procreos y las nuevas tarifas vigentes a partir del 1 de enero de 2025.</p>
-                                                <p>Recuerde que, para una mejor organización de los controles, las <strong>SOLICITUDES DE INSPECCIÓN</strong> junto con el correspondiente <strong>ADELANTO</strong> deberán enviarse <strong>HASTA EL 15 DE MARZO PRÓXIMO</strong>, para evitar recargos por presentación fuera de término. Además, es importante regularizar cualquier saldo pendiente para evitar inconvenientes.</p>
-                                                <p>En la <strong>SOLICITUD DE INSPECCIÓN</strong> adjunta, el adelanto se calcula automáticamente, por lo que sólo se debe completar los campos requeridos en cantidad de animales solicitados y su año de nacimiento.</p>
-                                                <p>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar:1050/'>aquí</a>.</p>
-                                                <p><strong>Detalles de inicio de sesión:</strong></p>
-                                                <p>Correo electrónico registrado: {model.Email}<br>Contraseña: '{password}'</p>
-                                                <p>Recuerde mantener segura esta información y no compartirla. Gracias por su tiempo y ante cualquier consulta no dude en comunicarse por mail a planteles@hereford.org.ar</p>
-                                                <p>Gracias por su comprensión y colaboración.</p>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style='padding: 20px; padding-top: 25px; color: #777;'>
-                                                <p>Ing. Emilio Ortiz (Responsable Puro Registrado) - <a href='mailto:eortiz@hereford.org.ar'>eortiz@hereford.org.ar</a></p>
-                                                <p>Paz Hernández (Encargada Registros) - <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a></p>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style='height: 200px;'></td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-                    </body>
-                    </html>";
-
-
-                    LinkedResource background = new LinkedResource(imagePath, MediaTypeNames.Image.Jpeg)
-                    {
-                        ContentId = "backgroundImage",
-                        TransferEncoding = System.Net.Mime.TransferEncoding.Base64
-                    };
-
-                    LinkedResource logo = new LinkedResource(logoPath, MediaTypeNames.Image.Jpeg)
-                    {
-                        ContentId = "logoImage",
-                        TransferEncoding = System.Net.Mime.TransferEncoding.Base64
-                    };
+            <html>
+            <body style='margin:0;padding:0;'>
+                <table width='100%' border='0' cellspacing='0' cellpadding='0'>
+                    <tr>
+                        <td>
+                            <table width='600' border='0' cellspacing='0' cellpadding='0' align='center' style='background-repeat:no-repeat;background-image:url(cid:backgroundImage);background-size:cover;'>
+                                <tr>
+                                    <td style='padding: 20px; text-align: left;'>
+                                        {logoHtml}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 20px; padding-top: 10px; color: #000;'>
+                                        <h2>Buenos Aires, 26 de enero de 2025</h2>
+                                        <p>Señor Criador:</p>
+                                        <p>Tenemos el agrado de dirigirnos a usted con el objeto de enviarle la documentación relacionada con los controles de procreos y las nuevas tarifas vigentes a partir del 1 de enero de 2025.</p>
+                                        <p>Recuerde que, para una mejor organización de los controles, las <strong>SOLICITUDES DE INSPECCIÓN</strong> junto con el correspondiente <strong>ADELANTO</strong> deberán enviarse <strong>HASTA EL 15 DE MARZO PRÓXIMO</strong>, para evitar recargos por presentación fuera de término. Además, es importante regularizar cualquier saldo pendiente para evitar inconvenientes.</p>
+                                        <p>En la <strong>SOLICITUD DE INSPECCIÓN</strong> adjunta, el adelanto se calcula automáticamente, por lo que sólo se debe completar los campos requeridos en cantidad de animales solicitados y su año de nacimiento.</p>
+                                        <p>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar:1050/'>aquí</a>.</p>
+                                        <p><strong>Detalles de inicio de sesión:</strong></p>
+                                        <p>Correo electrónico registrado: {model.Email}<br>Contraseña: '{password}'</p>
+                                        <p>Recuerde mantener segura esta información y no compartirla. Gracias por su tiempo y ante cualquier consulta no dude en comunicarse por mail a planteles@hereford.org.ar</p>
+                                        <p>Gracias por su comprensión y colaboración.</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 20px; padding-top: 25px; color: #777;'>
+                                        <p>Ing. Emilio Ortiz (Responsable Puro Registrado) - <a href='mailto:eortiz@hereford.org.ar'>eortiz@hereford.org.ar</a></p>
+                                        <p>Paz Hernández (Encargada Registros) - <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style='height: 200px;'></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>";
 
                     AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, MediaTypeNames.Text.Html);
-                    htmlView.LinkedResources.Add(background);
-                    htmlView.LinkedResources.Add(logo);
+
+                    if (!string.IsNullOrEmpty(imagePath))
+                    {
+                        LinkedResource background = new LinkedResource(imagePath, MediaTypeNames.Image.Jpeg)
+                        {
+                            ContentId = "backgroundImage",
+                            TransferEncoding = System.Net.Mime.TransferEncoding.Base64
+                        };
+                        htmlView.LinkedResources.Add(background);
+                    }
+
+                    if (!string.IsNullOrEmpty(logoPath))
+                    {
+                        LinkedResource logo = new LinkedResource(logoPath, MediaTypeNames.Image.Jpeg)
+                        {
+                            ContentId = "logoImage",
+                            TransferEncoding = System.Net.Mime.TransferEncoding.Base64
+                        };
+                        htmlView.LinkedResources.Add(logo);
+                    }
 
                     mail.AlternateViews.Add(htmlView);
                     mail.IsBodyHtml = true;
-
-                    
 
                     string filePath = Path.Combine(projectRoot, "wwwroot", "images", "Tarifas Registros 2025.docx");
                     if (System.IO.File.Exists(filePath))
