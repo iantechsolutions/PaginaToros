@@ -190,6 +190,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGxhbnRlbGVzXFBsYW50ZWxlcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Maxim/source/repos/PaginaToros/PaginaToros/Client/Pages/qwerty/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNccXdlcnR5XEluZGV4LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Maxim/source/repos/PaginaToros/PaginaToros/Client/Pages/Socios/AddSocio.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU29jaW9zXEFkZFNvY2lvLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
