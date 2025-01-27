@@ -181,12 +181,12 @@ else
             // var correo = "maximocorsani@gmail.com";
             if (socio.Criador == "S")
             {
-                
-            try
-            {
 
-                // Datos del usuario simulado
-                var usuario = new User
+                try
+                {
+
+                    // Datos del usuario simulado
+                    var usuario = new User
                     {
                         Phone = socio.Telefo1,
                         Names = socio.Nombre,
@@ -200,32 +200,32 @@ else
                     };
 
 
-                Console.WriteLine($"Enviando usuario: {JsonSerializer.Serialize(usuario)}");
+                    Console.WriteLine($"Enviando usuario: {JsonSerializer.Serialize(usuario)}");
 
-                // Generar contraseña aleatoria
-                var pswd = GenerateRandomPassword(random.Next(7, 11));
+                    // Generar contraseña aleatoria
+                    var pswd = GenerateRandomPassword(random.Next(7, 11));
 
-                // Enviar solicitudes HTTP
-                var result = await http.PostAsJsonAsync($"api/Account/CreateUser?password={pswd}", usuario);
-                var result2 = await http.PostAsJsonAsync($"api/Account/SendMail2025?password={pswd}", usuario);
+                    // Enviar solicitudes HTTP
+                    var result = await http.PostAsJsonAsync($"api/Account/CreateUser?password={pswd}", usuario);
+                    var result2 = await http.PostAsJsonAsync($"api/Account/SendMail2025?password={pswd}", usuario);
 
-                // Agregar resultado al estado
-                statusList.Add(new MailStatus
+                    // Agregar resultado al estado
+                    statusList.Add(new MailStatus
                     {
                         Email = socio.Mail,
                         Status = result.IsSuccessStatusCode && result2.IsSuccessStatusCode ? "Enviado" : $"Error ({result.StatusCode})"
                     });
-            }
-            catch (Exception ex)
-            {
-                statusList.Add(new MailStatus
+                }
+                catch (Exception ex)
+                {
+                    statusList.Add(new MailStatus
                     {
                         Email = socio.Mail,
                         Status = $"Error ({ex.Message})"
                     });
-            }
+                }
 
-            StateHasChanged();
+                StateHasChanged();
             }
 
         }
@@ -280,6 +280,12 @@ else
 
     async Task ImprimirStatus()
     {
-        Console.WriteLine(statusList);
+        foreach(var status in statusList)
+        {
+            Console.WriteLine(status.Email);
+            Console.WriteLine(status.Status);
+
+            
+        }
     }
 }
