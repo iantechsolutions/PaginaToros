@@ -46,6 +46,8 @@ namespace PaginaToros.Server.Controllers
         [HttpPost("CreateUser")]
         public async Task<ActionResult> CreateUser([FromBody] User model, string password)
         {
+
+            Console.WriteLine("Entro");
             try
             {
                 model.Dni = model.Dni.ToUpper();
@@ -198,6 +200,8 @@ namespace PaginaToros.Server.Controllers
             {
                 using (MailMessage mail = new MailMessage())
                 {
+                    Console.WriteLine("Entro por lo mens");
+
                     mail.From = new MailAddress("planteles@hereford.org.ar");
                     mail.To.Add(model.Email);
                     mail.Subject = "Hereford - Puro Registrado.";
@@ -316,6 +320,8 @@ namespace PaginaToros.Server.Controllers
             catch (Exception e)
             {
                 Console.WriteLine($"Error: {e.Message}");
+                Console.WriteLine(model.Email); 
+                Console.WriteLine(password);
                 return BadRequest($"Error al enviar el correo: {e.Message}");
             }
         }

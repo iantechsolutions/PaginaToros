@@ -20,6 +20,9 @@
 
     private async Task CreateUser()
     {
+
+        Console.WriteLine($"Enviando usuario: {JsonSerializer.Serialize(User)}");
+
         User.Phone = User.Email;
         User.Names = User.Email;
         User.Dni = User.Email;

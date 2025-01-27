@@ -1,0 +1,285 @@
+﻿@attribute [Authorize(Roles = "USUARIOMAESTRO, ADMINISTRADOR")]
+@page "/qwerty/ytrewq"
+@using PaginaToros.Shared.Models.Response
+@using PaginaToros.Shared.Models
+@using PaginaToros.Client.Servicios.Contrato;
+@inject ISocioServicio _socioServicio
+@inject HttpClient http
+@using System.Text
+
+
+<h3>Mail masivos </h3>
+@{
+    <h1>@cantidad</h1>
+};
+
+@if (oRespuesta.List != null)
+{
+    <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+    <br />
+    <button @onclick="EnviarMails" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">Enviar Mails</button>
+    <button @onclick="ImprimirStatus" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">Imprimir status</button>
+    <br />
+    
+    <RadzenDataGrid class="tablacontent" IsLoading="isLoading" LoadData="LoadData" style="position:relative;width:93.5%;left:3.33%" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                    AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                    Density="Density.Compact" Count="cantidad" Data="@oRespuesta.List" TItem="SocioDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+        <Columns>
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Scod" Title="Nro Socio" Width="3.6%" />        
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Nombre" Title="Nombre" Width="9.3%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Criador" Title="Activo?" Width="3.33%">
+                <Template Context="data">
+                    @if (data.Criador == "S")
+                    {
+                        <a style="color:green">Si</a>
+                    }
+                    else
+                    {
+                        <a style="color:red">No</a>
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="SocioDTO" Property="FechaExistencia" Title="Fecha de Creacion" Width="6.6%">
+                <Template Context="data">
+                    @if (data.Fecing.HasValue)
+                    {
+                        @data.Fecing.Value.ToString("dd/MM/yyyy")
+                    }
+                    else
+                    {
+
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+
+
+           @*  <RadzenDataGridColumn TItem="SocioDTO" Property="" Title="" Filterable="false" Width="3%">
+                <Template Context="data">
+                    <button class="btn" position="absolute" title="Editar Socio" @onclick="() => add(data.Id,data.Scod)"><FeatherEdit Size="16" Color="green" /></button>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="SocioDTO" Property="" Title="" Filterable="false" Width="3%">
+                <Template Context="data">
+                    <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id,data.Scod)"><FeatherTrash2 Size="16" Color="red" /></button>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="SocioDTO" Property="" Title="" Filterable="false" Width="3%">
+                <Template Context="data">
+                    <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id,data.Scod)"><FeatherInfo Size="16" Color="blue" /></button>
+                </Template>
+            </RadzenDataGridColumn> *@
+        </Columns>
+
+    </RadzenDataGrid>
+    <br />
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
+
+
+
+<br/>
+<br/>
+@if (statusList.Any())
+{
+    <h4>Estado de Envío</h4>
+    <table class="table-auto w-full border-collapse border border-gray-300">
+        <thead>
+            <tr class="bg-gray-200">
+                <th class="border border-gray-300 px-4 py-2">Correo</th>
+                <th class="border border-gray-300 px-4 py-2">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var status in statusList)
+            {
+                <tr>
+                    <td class="border border-gray-300 px-4 py-2">@status.Email</td>
+                    <td class="border border-gray-300 px-4 py-2">@status.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<br />
+<br />
+<br />
+<br />
+
+@code {
+
+    int cantidad;
+    public bool allowFiltering = false;
+    public RadzenDataGrid<SocioDTO>? grid;
+    int currentPage;
+    bool isLoading = false;
+    List<User> Users = new List<User>();
+
+    private List<string> correos = new()
+    {
+        "pruebamaximo@outlook.com.ar",
+        "maximocorsani@gmail.com",
+        "maximo@iantech.com.ar",
+        "maxcrafteano210@gmail.com",
+        "maxluzu3@gmail.com",
+        "puroregistrado@gmail.com"
+    };
+
+    private List<MailStatus> statusList = new();
+
+
+
+    public Respuesta<List<SocioDTO>> oRespuesta = new Respuesta<List<SocioDTO>>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Get();
+    }
+    async Task Get()
+    {
+        var c = await _socioServicio.CantidadTotal();
+        cantidad = c.List;
+        oRespuesta = await _socioServicio.LimitadosFiltradoTodos(0, 15);
+        StateHasChanged();
+
+    }
+
+
+
+
+
+    private async Task EnviarMails()
+    {
+        if (correos == null || !correos.Any())
+        {
+            statusList.Add(new MailStatus
+                {
+                    Email = "N/A",
+                    Status = "No hay correos para procesar"
+                });
+            return;
+        }
+
+        // foreach (var correo in correos)
+        // {
+        foreach (var socio in oRespuesta.List)
+        {
+
+            //     User.Phone = socio.Telefo1;
+            //     User.Names = socio.Nombre;
+            //     User.Dni = socio.Scod;
+            //     User.LastNames = socio.Mail;
+            // User.socioId = socio.Id
+            // var correo = "maximocorsani@gmail.com";
+            if (socio.Criador == "S")
+            {
+                
+            try
+            {
+
+                // Datos del usuario simulado
+                var usuario = new User
+                    {
+                        Phone = socio.Telefo1,
+                        Names = socio.Nombre,
+                        Dni = socio.Mail,
+                        Email = socio.Mail,
+                        LastNames = socio.Mail,
+                        Rol= "Socio",
+                        Status= "ACTIVO",
+                        Created= new DateTime(),
+                        SocioId = socio.Id
+                    };
+
+
+                Console.WriteLine($"Enviando usuario: {JsonSerializer.Serialize(usuario)}");
+
+                // Generar contraseña aleatoria
+                var pswd = GenerateRandomPassword(random.Next(7, 11));
+
+                // Enviar solicitudes HTTP
+                var result = await http.PostAsJsonAsync($"api/Account/CreateUser?password={pswd}", usuario);
+                var result2 = await http.PostAsJsonAsync($"api/Account/SendMail2025?password={pswd}", usuario);
+
+                // Agregar resultado al estado
+                statusList.Add(new MailStatus
+                    {
+                        Email = socio.Mail,
+                        Status = result.IsSuccessStatusCode && result2.IsSuccessStatusCode ? "Enviado" : $"Error ({result.StatusCode})"
+                    });
+            }
+            catch (Exception ex)
+            {
+                statusList.Add(new MailStatus
+                    {
+                        Email = socio.Mail,
+                        Status = $"Error ({ex.Message})"
+                    });
+            }
+
+            StateHasChanged();
+            }
+
+        }
+    }
+
+
+
+    private class MailStatus
+    {
+        public string Email { get; set; }
+        public string Status { get; set; }
+    }
+
+
+    private const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    Random random = new Random();
+    public string GenerateRandomPassword(int length)
+    {
+        StringBuilder sb = new StringBuilder();
+
+
+        for (int i = 0; i < length; i++)
+        {
+            int randomIndex = random.Next(validChars.Length);
+            sb.Append(validChars[randomIndex]);
+        }
+
+        return sb.ToString();
+    }
+    public void CambiarModoFiltro()
+    {
+        allowFiltering = !allowFiltering;
+        StateHasChanged();
+    }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        isLoading = true;
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            oRespuesta = await _socioServicio.LimitadosFiltradoTodos(args.Skip.Value, args.Top.Value, args.Filter);
+            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+        }
+        else
+        {
+            oRespuesta = await _socioServicio.LimitadosFiltradoTodos(args.Skip.Value, args.Top.Value);
+        }
+
+        isLoading = false;
+    }
+
+
+    async Task ImprimirStatus()
+    {
+        Console.WriteLine(statusList);
+    }
+}
