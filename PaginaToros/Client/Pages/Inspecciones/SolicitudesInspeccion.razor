@@ -167,8 +167,19 @@
                     <br />
                     <br />
                     <div class="custom-input-file">
+
+                        @if (cargando)
+                        {
+                            <span>
+                                <i class="fa fa-spinner fa-spin"></i> Cargando...
+                            </span>
+                        }
+                        else
+                        {
+                            
                         <span>Cargar excel</span>
                         <InputFile OnChange="HandleLoadExcel" accept=".xls,.xlsx" maxAllowedFiles="1" />
+                        }
                     </div>
                     <br />
                     <RadzenText>3. Cuando tenga la solicitud completa clickee sobre "Cargar excel" para subirla</RadzenText>
@@ -242,10 +253,12 @@
     public RadzenDataGrid<Solici1DTO>? grid;
     int currentPage;
     bool allowFiltering = false;
+    // bool isLoading = false;
     int socioId;
     Respuesta<List<Solici1DTO>> oRespuesta = new Respuesta<List<Solici1DTO>>();
     int cantidad;
     bool isLoading = false;
+    bool cargando = false;
     protected override async Task OnInitializedAsync()
     {
         await Get();
@@ -428,6 +441,7 @@
     async Task HandleLoadExcel(InputFileChangeEventArgs e)
     {
         var archivos = e.GetMultipleFiles(1);
+        cargando = true;
         var file = archivos.First();
         using (var content = new MultipartFormDataContent())
         {
@@ -443,13 +457,12 @@
             {
                 Title = "Exito",
                 Text = "La solicitud se ha enviado con éxito",
-                Icon = SweetAlertIcon.Warning,
                 ShowCancelButton = true,
                 ConfirmButtonText = "Aceptar",
 
             });
 
-
+            cargando = false;
 
         // MultipartFormDataContent content = new MultipartFormDataContent();
         // content.Add(new StreamContent(file.OpenReadStream()), "file", file.Name);
