@@ -14,6 +14,8 @@ using PaginaToros.Client.Pages.Socios;
 using System.Net.Mime;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Asn1.Ocsp;
+using PaginaToros.Client.Pages.Auth;
+using Org.BouncyCastle.Pqc.Crypto.Lms;
 namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
@@ -42,6 +44,63 @@ namespace PaginaToros.Server.Controllers
         }
 
         //Metodos dmuu kdke jobp bhgo
+
+        [HttpPost("EditUser")]
+        public async Task<ActionResult> EditUser([FromBody] User model, string? password)
+        {
+            Console.WriteLine("Entró a EditUser");
+            try
+            {
+                
+
+                Console.WriteLine("Entro 2");
+
+                var user = new IdentityUser
+                {
+                    UserName = model.Email,
+                    NormalizedUserName = model.Email,
+                    PhoneNumber = model.Phone,
+                    Email = model.Email,
+                    EmailConfirmed = true,
+                    SecurityStamp = Guid.NewGuid().ToString("D")
+                };
+                if (user.Email != null)
+                    user.NormalizedEmail = model.Email.ToUpper();
+
+                var result = await _userManager.UpdateAsync(user);
+
+                var dbUser = await db.User.FirstOrDefaultAsync(u => u.Id == model.Id);
+                if (dbUser != null)
+                {
+                    Console.WriteLine("Existe");
+                    Console.WriteLine(dbUser.Email);
+
+                    dbUser.Dni = model.Dni.ToUpper();
+                    dbUser.Names = model.Names;
+                    dbUser.LastNames = model.LastNames;
+                    dbUser.Rol = model.Rol.ToUpper();
+                    dbUser.Status = model.Status.ToUpper();
+                    dbUser.Created = DateTime.UtcNow;
+
+                    dbUser.Email = model.Email;
+
+                    Console.WriteLine(dbUser.Email);
+
+
+                    db.User.Update(dbUser);
+                    await db.SaveChangesAsync();
+                }
+                Console.WriteLine("Entro 3");
+
+                Console.WriteLine("Usuario actualizado correctamente.");
+                return Ok("Usuario actualizado correctamente.");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
 
         [HttpPost("CreateUser")]
         public async Task<ActionResult> CreateUser([FromBody] User model, string password)
@@ -432,30 +491,190 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
+                using (MailMessage mail = new MailMessage())
+                {
+                    Console.WriteLine("Entro por lo mens");
+
+                    mail.From = new MailAddress("planteles@hereford.org.ar");
+                    mail.To.Add(model.Email);
+                    mail.Subject = "Hereford - Restablecimiento de contraseña.";
+
+                    string projectRoot = Directory.GetCurrentDirectory();
+                    string imagePath = Path.Combine(projectRoot, "wwwroot", "images", "backgroundEnvio.jpg");
+                    string logoPath = Path.Combine(projectRoot, "wwwroot", "images", "LOGO.jpg");
+
+                    // Verifica si el email es de Outlook, en tal caso no carga las imágenes
+                    if (model.Email.Contains("outlook"))
+                    {
+                        logoPath = null;
+                        imagePath = null; // No cargamos la imagen de fondo
+                    }
+
+                    if (!string.IsNullOrEmpty(imagePath) && !System.IO.File.Exists(imagePath))
+                    {
+                        Console.WriteLine("Imagen de fondo no encontrada.");
+                        return BadRequest("Imagen de fondo no encontrada.");
+                    }
+
+                    if (!string.IsNullOrEmpty(logoPath) && !System.IO.File.Exists(logoPath))
+                    {
+                        Console.WriteLine("Logo no encontrado.");
+                        return BadRequest("Logo no encontrado.");
+                    }
+
+                    string logoHtml = string.IsNullOrEmpty(logoPath) ? "" : $"<img src='cid:logoImage' alt='Hereford Logo' style='width:150px; height:auto;' />";
+
+                    string body = $@"
+            <html>
+            <body style='margin:0;padding:0;'>
+                <table width='100%' border='0' cellspacing='0' cellpadding='0'>
+                    <tr>
+                        <td>
+                            <table width='600' border='0' cellspacing='0' cellpadding='0' align='center' style='background-repeat:no-repeat;background-image:url(cid:backgroundImage);background-size:cover;'>
+                                <tr>
+                                    <td style='padding: 20px; text-align: left;'>
+                                        {logoHtml}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 20px; padding-top: 10px; color: #000;'>
+                                        <h2>Buenos Aires, 26 de enero de 2025</h2>
+                                        <p>Señor Criador:</p>
+                                        <p>Tenemos el agrado de dirigirnos a usted con el objeto de enviarle la documentación relacionada con los controles de procreos y las nuevas tarifas vigentes a partir del 1 de enero de 2025.</p>
+                                        <p>Recuerde que, para una mejor organización de los controles, las <strong>SOLICITUDES DE INSPECCIÓN</strong> junto con el correspondiente <strong>ADELANTO</strong> deberán enviarse <strong>HASTA EL 15 DE MARZO PRÓXIMO</strong>, para evitar recargos por presentación fuera de término. Además, es importante regularizar cualquier saldo pendiente para evitar inconvenientes.</p>
+                                        <p>En la <strong>SOLICITUD DE INSPECCIÓN</strong> adjunta, el adelanto se calcula automáticamente, por lo que sólo se debe completar los campos requeridos en cantidad de animales solicitados y su año de nacimiento.</p>
+                                        <p>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar:1050/'>aquí</a>.</p>
+                                        <p><strong>Detalles de inicio de sesión:</strong></p>
+                                        <p>Correo electrónico registrado: {model.Email}<br>Contraseña: '{nuevaContraseña}'</p>
+                                        <p>Recuerde mantener segura esta información y no compartirla. Gracias por su tiempo y ante cualquier consulta no dude en comunicarse por mail a planteles@hereford.org.ar</p>
+                                        <p>Gracias por su comprensión y colaboración.</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 20px; padding-top: 25px; color: #777;'>
+                                        <p>Ing. Emilio Ortiz (Responsable Puro Registrado) - <a href='mailto:eortiz@hereford.org.ar'>eortiz@hereford.org.ar</a></p>
+                                        <p>Paz Hernández (Encargada Registros) - <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style='height: 200px;'></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>";
+
+                    AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, MediaTypeNames.Text.Html);
+
+                    if (!string.IsNullOrEmpty(imagePath))
+                    {
+                        LinkedResource background = new LinkedResource(imagePath, MediaTypeNames.Image.Jpeg)
+                        {
+                            ContentId = "backgroundImage",
+                            TransferEncoding = System.Net.Mime.TransferEncoding.Base64
+                        };
+                        htmlView.LinkedResources.Add(background);
+                    }
+
+                    if (!string.IsNullOrEmpty(logoPath))
+                    {
+                        LinkedResource logo = new LinkedResource(logoPath, MediaTypeNames.Image.Jpeg)
+                        {
+                            ContentId = "logoImage",
+                            TransferEncoding = System.Net.Mime.TransferEncoding.Base64
+                        };
+                        htmlView.LinkedResources.Add(logo);
+                    }
+
+                    mail.AlternateViews.Add(htmlView);
+                    mail.IsBodyHtml = true;
+
+                    string filePath = Path.Combine(projectRoot, "wwwroot", "images", "Tarifas Registros 2025.docx");
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        Attachment attachment = new Attachment(filePath);
+                        mail.Attachments.Add(attachment);
+                    }
+
+                    using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
+                    {
+                        smtp.UseDefaultCredentials = false;
+                        smtp.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033");
+                        smtp.EnableSsl = true;
+                        smtp.Send(mail);
+                    }
+                }
+
+                Console.WriteLine("Correo enviado correctamente.");
+                return Ok("Correo enviado correctamente.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error: {e.Message}");
+                Console.WriteLine(model.Email);
+                Console.WriteLine(nuevaContraseña);
+                return BadRequest($"Error al enviar el correo: {e.Message}");
+            }
+        }
+
+
+        [HttpPost("SendReinicioMail")]
+        public async Task<ActionResult> SendReinicioMail([FromBody] User model, string password)
+        {
+            try
+            {
                 Console.WriteLine(model.Email);
 
-                using (SmtpClient client = new SmtpClient("mail.hereford.org.ar", 587)) // Cambia esto al servidor SMTP de tu hosting
+                using (SmtpClient client = new SmtpClient("mail.hereford.org.ar", 587))
                 {
                     client.UseDefaultCredentials = false;
-                    client.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"); // Ingresa la contraseña correcta
-                    client.EnableSsl = true; // Cambia a false si tu hosting no soporta SSL/TLS en este puerto
+                    client.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033");
+                    client.EnableSsl = true;
+
+
+                    //Console.WriteLine("cAMBIO DE MAIL");
+                    //Console.Write(Usuario.PasswordHash);
+
+                    //var Usuario = _userManager.Users.FirstOrDefault(x => x.Email == model.Email);
+                    var user = db.Users.FirstOrDefault(x => x.Email == password);
+
+                    Console.WriteLine(model.Email);
+                    Console.WriteLine(user.Email);
+                    //Console.WriteLine(Usuario.PasswordHash);
+                    Console.WriteLine(password);
+                    Console.WriteLine("Cambio de mail y contra");
+
+
+
+                    //var result = await _userManager.ChangePasswordAsync(user, Usuario.PasswordHash, password);
+
+
+                    //if (!result.Succeeded)
+                    //{
+                    //    return BadRequest(result.Errors);
+                    //}
 
                     MailMessage mail = new MailMessage
                     {
                         From = new MailAddress("planteles@hereford.org.ar"),
-                        Subject = "Restablecimiento de contraseña para Hereford",
+                        Subject = "Restablecimiento de mail para Hereford",
                         Body = $"Estimado,\nHemos recibido una solicitud para restablecer su contraseña. Los detalles de su nueva contraseña son los siguientes:\n" +
-                               $"Correo electrónico registrado: {model.Email}\nNueva contraseña: {nuevaContraseña}\n" +
+                               $"Correo electrónico registrado: {model.Email}\n" +
                                "Recuerde mantener esta información segura y no compartirla con nadie más. Gracias por estar con nosotros y esperamos que continúe disfrutando de nuestros servicios.\n" +
                                "Saludos cordiales,\nHereford",
                         IsBodyHtml = false
                     };
                     mail.To.Add(new MailAddress(model.Email));
 
+
+                    Console.WriteLine("Fin envio de mail y contra");
+
+                    //\nNueva contraseña: { Usuario.PasswordHash}
                     client.Send(mail);
                 }
 
-                Console.WriteLine(nuevaContraseña);
                 return Ok("Correo enviado correctamente.");
             }
             catch (Exception e)
@@ -468,66 +687,68 @@ namespace PaginaToros.Server.Controllers
         //dmuu kdke jobp bhgo
 
 
-        [HttpPut("SaveUser")]
-        public async Task<ActionResult> SaveUser([FromBody] User model)
-        {
-            try
-            {
-                var Usuario = db.User.FirstOrDefault(x => x.Id == model.Id);
-                if (Usuario == null)
-                {
-                    return BadRequest("No se pudo encontrar un usuario");
-                }
-                string oldDni = Usuario.Dni;
+        //[HttpPut("SaveUser")]
+        //public async Task<ActionResult> SaveUser([FromBody] User model)
+        //{
+        //    try
+        //    {
+        //        var Usuario = db.User.FirstOrDefault(x => x.Id == model.Id);
+        //        if (Usuario == null)
+        //        {
+        //            return BadRequest("No se pudo encontrar un usuario");
+        //        }
+        //        string oldDni = Usuario.Dni;
 
-                Usuario.Dni = model.Dni.ToUpper();
-                Usuario.Names = model.Names.ToUpper();
-                Usuario.LastNames = model.LastNames.ToUpper();
-                Usuario.Rol = model.Rol.ToUpper();
-                Usuario.Status = model.Status.ToUpper();
-                Usuario.Phone = model.Phone;
-                Usuario.Email = model.Email;
+        //        Usuario.Dni = model.Dni.ToUpper();
+        //        Usuario.Names = model.Names.ToUpper();
+        //        Usuario.LastNames = model.LastNames.ToUpper();
+        //        Usuario.Rol = model.Rol.ToUpper();
+        //        Usuario.Status = model.Status.ToUpper();
+        //        Usuario.Phone = model.Phone.ToUpper(); ;
+        //        Usuario.Email = model.Email.ToUpper(); ;
 
-                var user = db.Users.FirstOrDefault(x => x.UserName == oldDni);
-                if (user == null)
-                {
-                    return BadRequest("No se pudo encontrar un usuario de acceso");
-                }
+        //        var user = db.Users.FirstOrDefault(x => x.UserName == oldDni);
+        //        if (user == null)
+        //        {
+        //            return BadRequest("No se pudo encontrar un usuario de acceso");
+        //        }
 
-                user.UserName = model.Dni;
-                user.NormalizedUserName = model.Dni;
-                user.PhoneNumber = model.Phone;
-                user.Email = model.Email;
-                if (user.Email != null)
-                    user.NormalizedEmail = Usuario.Email.ToUpper();
+        //        user.UserName = model.Email.ToUpper(); ;
+        //        user.NormalizedUserName = model.Email.ToUpper(); ;
+        //        user.PhoneNumber = model.Email.ToUpper(); ;
+        //        user.Email = model.Email.ToUpper(); ;
+        //        if (user.Email != null)
+        //            user.NormalizedEmail = Usuario.Email.ToUpper();
 
-                var result = await _userManager.UpdateAsync(user);
-                if (!result.Succeeded)
-                {
-                    return BadRequest(result.Errors);
-                }
+               
 
-                var resultRole = await _userManager.RemoveFromRoleAsync(user, Usuario.Rol);
-                if (!result.Succeeded)
-                {
-                    return BadRequest(result.Errors);
-                }
+        //        var result = await _userManager.UpdateAsync(user);
+        //        if (!result.Succeeded)
+        //        {
+        //            return BadRequest(result.Errors);
+        //        }
 
-                resultRole = await _userManager.AddToRoleAsync(user, model.Rol);
-                if (!resultRole.Succeeded)
-                {
-                    return BadRequest(resultRole.Errors);
-                }
+        //        var resultRole = await _userManager.RemoveFromRoleAsync(user, Usuario.Rol);
+        //        if (!result.Succeeded)
+        //        {
+        //            return BadRequest(result.Errors);
+        //        }
 
-                await db.SaveChangesAsync();
-                return Ok("ok");
-            }
-            catch (Exception e)
-            {
+        //        resultRole = await _userManager.AddToRoleAsync(user, model.Rol);
+        //        if (!resultRole.Succeeded)
+        //        {
+        //            return BadRequest(resultRole.Errors);
+        //        }
 
-                return BadRequest(e.Message);
-            }
-        }
+        //        await db.SaveChangesAsync();
+        //        return Ok("ok");
+        //    }
+        //    catch (Exception e)
+        //    {
+
+        //        return BadRequest(e.Message);
+        //    }
+        //}
 
         [HttpPut("ChangePassword")]
         public async Task<ActionResult> ChangePassword([FromBody] ChangePassModel model)

@@ -28,29 +28,31 @@
         <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Usuarios</h3>
         <br/>
         <div class="tablacontent" style="position:relative;width:80%;">
+            <button style="outline:none; float: right;height:100%;" class="btn btn-outline" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <br />
 
-            <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="true" FilterMode="FilterMode.Advanced"
+
+            <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAlternatingRows="true" FilterMode="FilterMode.Simple"
                             AllowSorting="true" PageSize="5" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                             Data="@Usuarios" TItem="User" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
                 <Columns>
-                    <RadzenDataGridColumn TItem="User" Property="Names" Filterable="false" Title="Nombre/s" Width="15%" />
-                    <RadzenDataGridColumn TItem="User" Property="LastNames" Filterable="false" Title="Apellido/s" Width="15%" />
-                    <RadzenDataGridColumn TItem="User" Property="Dni" Filterable="false" Title="Dni" Width="15%" />
-                    <RadzenDataGridColumn TItem="User" Property="Phone" Filterable="false" Title="Número" Width="15%" />
-                    <RadzenDataGridColumn TItem="User" Property="Rol" Filterable="false" Title="Rol" Width="15  %" />
-@*                     <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="8%">
-                        <Template Context="data">
-                            <button class="btn" title="Editar" @onclick="@(()=>nav.NavigateTo($"/ActualizarUsuario/{@data.Id}"))"><FeatherEdit3 Color="green" /></button>
-                        </Template>
-                    </RadzenDataGridColumn> *@
+                    <RadzenDataGridColumn TItem="User" Property="Names" Filterable="true" Title="Nombre/s" Width="15%" />
+                    <RadzenDataGridColumn TItem="User" Property="LastNames" Filterable="true" Title="Apellido/s" Width="15%" />
+                    <RadzenDataGridColumn TItem="User" Property="Dni" Filterable="true" Title="DNI" Width="15%" />
+                    <RadzenDataGridColumn TItem="User" Property="Phone" Filterable="true" Title="Número" Width="15%" />
+                    <RadzenDataGridColumn TItem="User" Property="Rol" Filterable="true" Title="Rol" Width="15%" />
                     <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="8%">
                         <Template Context="data">
-                            <button class="btn" title="Eliminar" @onclick="@(()=>nav.NavigateTo($"/EliminarUsuario/{data.Id}"))"><FeatherTrash2 Color="red" /></button>
+                            <button class="btn" title="Eliminar" @onclick="@(()=>nav.NavigateTo($"/EliminarUsuario/{data.Id}"))">
+                                <FeatherTrash2 Color="red" />
+                            </button>
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="8%">
                         <Template Context="data">
-                            <button class="btn" title="Info" @onclick="@(() => ShowDetails(data))"><FeatherInfo Color="blue" /></button>
+                            <button class="btn" title="Info" @onclick="@(() => ShowDetails(data))">
+                                <FeatherInfo Color="blue" />
+                            </button>
                         </Template>
                     </RadzenDataGridColumn>
                 </Columns>
@@ -103,6 +105,9 @@
     ResponseForList response = new ResponseForList() { AllRegisters = 0 };
     private IList<User> Usuarios;
 
+    bool allowFiltering = false;
+
+
     protected override async Task OnInitializedAsync()
     {
 
@@ -137,6 +142,12 @@
                 Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(result.Content.ReadAsStringAsync().Result, "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
                 break;
         }
+        StateHasChanged();
+    }
+
+    public void CambiarModoFiltro()
+    {
+        allowFiltering = !allowFiltering;
         StateHasChanged();
     }
 
