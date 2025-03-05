@@ -81,7 +81,7 @@
       "url": "images\/FileCompletion.png"
     },
     {
-      "hash": "sha256-Tw6nV3p3iqmZPsfaoyyuX23\/x3a56n0GliI83o8ce9U=",
+      "hash": "sha256-P2Un3tkrOL0aRlOz2cUxFC86BoFomSQj4n2c5UCMWR8=",
       "url": "images\/LOGO CIRCULO.png"
     },
     {
@@ -89,11 +89,11 @@
       "url": "images\/LOGO PRINCIPAL.png"
     },
     {
-      "hash": "sha256-ehV7Umo7GD4roHLgIzsbTfcvSQBYBWAvDwz4EfzGw\/Y=",
+      "hash": "sha256-P2Un3tkrOL0aRlOz2cUxFC86BoFomSQj4n2c5UCMWR8=",
       "url": "images\/logo.png"
     },
     {
-      "hash": "sha256-X+9ptNPRw7kWdKuyounQndZsvv23IYaCMeBSFRkmWhA=",
+      "hash": "sha256-P2Un3tkrOL0aRlOz2cUxFC86BoFomSQj4n2c5UCMWR8=",
       "url": "images\/logo_AACH.png"
     },
     {
@@ -137,7 +137,7 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-i974aOBqVTcLd6AEn9KDeppwr\/JrcL0\/MsQuMLt7GR8=",
+      "hash": "sha256-jaZfc9kpI3oB7ivcDesFuQe7LytoKZVBQhmfUKm4er4=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -325,7 +325,7 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-taYTqxuwGwqdBZboBv+4ZxpgcS3xG6v4o5UsKbsgYuc=",
+      "hash": "sha256-J81VZztBr1bVvFGxnSLsMc+1QLFwQ15iYwzHj9EodXQ=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
@@ -881,5 +881,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "bCJMj5F1"
+  "version": "txyrCC0r"
 };

@@ -94,14 +94,20 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Codigo de Zona</label>
-                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,zonas))" placeholder="Busca por nombre"  EnableDropDown="true" @bind-Value="CodZona">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Substring(0,2)
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
+                        <BlazoredTypeahead SearchMethod="@(text => SearchMethod(text, zonas))"
+                                           placeholder="Busca por nombre"
+                                           EnableDropDown="true"
+                                           @bind-Value="CodZona"
+                                           MaxItems="100"
+                                           MaximumSuggestions="100"
+                            >
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.Substring(0, 2)
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
                 </div>
                 <div class="col-sm">
                     <label>Fecha de Creacion</label><br/>
@@ -394,11 +400,12 @@ else
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
 
     }
-    private async Task<IEnumerable<string>> SearchMethod(string searchText,List<string> lista)
+    private async Task<IEnumerable<string>> SearchMethod(string searchText, List<string> lista)
     {
         var result = lista.Where(x => x.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-        return await Task.FromResult(result);
+        return await Task.FromResult(result); 
     }
+
 
     public async Task alertaCodigo()
     {
