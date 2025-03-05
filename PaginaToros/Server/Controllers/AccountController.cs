@@ -304,7 +304,7 @@ namespace PaginaToros.Server.Controllers
                                 </tr>
                                 <tr>
                                     <td style='padding: 20px; padding-top: 10px; color: #000;'>
-                                        <h2>Buenos Aires, 26 de enero de 2025</h2>
+                                        <h2>Buenos Aires, {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-ES"))}</h2>
                                         <p>Señor Criador:</p>
                                         <p>Tenemos el agrado de dirigirnos a usted con el objeto de enviarle la documentación relacionada con los controles de procreos y las nuevas tarifas vigentes a partir del 1 de enero de 2025.</p>
                                         <p>Recuerde que, para una mejor organización de los controles, las <strong>SOLICITUDES DE INSPECCIÓN</strong> junto con el correspondiente <strong>ADELANTO</strong> deberán enviarse <strong>HASTA EL 15 DE MARZO PRÓXIMO</strong>, para evitar recargos por presentación fuera de término. Además, es importante regularizar cualquier saldo pendiente para evitar inconvenientes.</p>
@@ -885,7 +885,26 @@ public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordModel mode
                 return BadRequest(e.Message);
             }
         }
+        [HttpGet("GetUserByMail/{email}")]
+        public ActionResult GetUserByMail(string email)
+        {
+            try
+            {
+                Console.WriteLine(email);
+                Console.WriteLine("Por lo menos entro");
+                var Usuario = db.User.FirstOrDefault(x => x.Email == email);
+                if (Usuario == null)
+                {
+                    return BadRequest("No se pudo encontrar un usuario");
+                }
+                return Ok(JsonSerializer.Serialize(Usuario));
+            }
+            catch (Exception e)
+            {
 
+                return BadRequest(e.Message);
+            }
+        }
         [HttpGet]
         public async Task<ActionResult> Get()
         {

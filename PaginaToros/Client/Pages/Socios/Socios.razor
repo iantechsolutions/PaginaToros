@@ -122,6 +122,7 @@ else
         var c = await _socioServicio.CantidadTotal();
         cantidad = c.List;
         oRespuesta = await _socioServicio.LimitadosFiltradoTodos(0, 15);
+        // oRespuesta = oRespuesta.List.ord
         StateHasChanged();
     }
     public void CambiarModoFiltro()

@@ -1,5 +1,8 @@
 ﻿@using Blazored.Typeahead
 @using PaginaToros.Client.Servicios.Contrato;
+@using System.Text
+@inject HttpClient http
+@inject NavigationManager uriHelper
 @inject ISocioServicio _socioServicio
 <style>
     .bm-title{
@@ -71,10 +74,17 @@
                     <InputText class="form-control" @bind-Value="@oSocio.Mail" placeholder="Mail"></InputText>
                     <ValidationMessage For="(()=> oSocio.Mail)" style="color:red;" />
                 </div>
-                <div class="col-sm">
-                    <label class="col-sm">Activo?</label><br/>
-                    <input type="checkbox" @bind="@activo">
+                 <div class="col-sm">
+                @if(Id != 0)
+                {
+                    <label></label>
+                    
+                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent
+                transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" 
+                @onclick="()=>ChangeEmail()">Enviar mail de inscripción</button>
+                }
                 </div>
+
             </div>
             <br />
             <div class="row" style="width=100%;">
@@ -87,7 +97,11 @@
                     <InputText class="form-control" @bind-Value="@oSocio.Placod" placeholder="Plantel"></InputText>
                     <ValidationMessage For="(()=> oSocio.Placod)" style="color:red;" /> 
                 </div>
-                <div class="col-sm"/>
+                <div class="col-sm">
+                    <label class="col-sm">Activo?</label><br/>
+                    <input type="checkbox" @bind="@activo">
+                </div>
+                @* <div class="col-sm"/> *@
             </div>
             <br />
             <br />
@@ -99,12 +113,25 @@
 @code {
     SocioDTO oSocio = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    Random random = new Random();
+    bool disabled = false;
+    User Usuario { get; set; } = new User() { Status = "ACTIVO" };
+    [CascadingParameter] public IModalService Modal { get; set; }
+    private const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+
+
+
     [Parameter] public int Id { get; set; }
     [Parameter] public string cod { get; set; }
     DateTime FechaTemp = DateTime.Now.Date;
     public string tempProvincia = "";
     List<SocioDTO> socios = new();
     bool activo = true;
+    bool logout = false;
+
+    string email = "";
+
+
     List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal","Catamarca","Chaco","Chubut","Cordoba","Corrientes","Entre Rios","Formosa",
     "Jujuy","La pampa","La rioja","Mendoza","Misiones","Neuquen","Rio negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Santiago Del Estero",
     "Tierra del fuego","Tucuman" };
@@ -206,11 +233,14 @@
             catch (Exception ex)
             {
             }
+
+            email = oSocio.Mail;
+
         }
         else
         {
             var codigo = Int32.Parse(socios.First().Scod);
-                oSocio.Scod= (codigo+1).ToString("D4");
+            oSocio.Scod= (codigo+1).ToString("D4");
         }
     }
     async Task Guardar()
@@ -267,12 +297,134 @@
 
         if (!string.IsNullOrEmpty(result.Value))
         {
-            
+
         }
         else if (result.Dismiss == DismissReason.Cancel)
         {
 
         }
     }
+
+
+
+
+
+
+
+    public class ResetPasswordModel
+    {
+        public int UserId { get; set; }
+        public string Password { get; set; }
+    }
+    public class ResetEmailModel
+    {
+        public int UserId { get; set; }
+        public string email { get; set; }
+    }
+    public string GenerateRandomPassword(int length)
+    {
+        StringBuilder sb = new StringBuilder();
+
+
+        for (int i = 0; i < length; i++)
+        {
+            int randomIndex = random.Next(validChars.Length);
+            sb.Append(validChars[randomIndex]);
+        }
+
+        return sb.ToString();
+    }
+
+    private async Task ChangeEmail()
+{
+    Console.WriteLine(Usuario.Email);
+    Console.WriteLine(email);
+
+    if (email == Usuario.Email)
+    {
+        await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Error",
+            Text = "Modifique el mail para poder realizar el cambio",
+            ShowCancelButton = true,
+            ConfirmButtonText = "Aceptar",
+        });
+    }
+    else
+    {
+        // Alerta de confirmación antes de enviar el mail
+        var confirmResult = await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Confirmación",
+            Text = "¿Está seguro de enviar el mail de inscripción?",
+            Icon = "warning",
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí, enviar",
+            CancelButtonText = "Cancelar"
+        });
+
+        // Si el usuario confirma, se procede con el envío
+        if (confirmResult.IsConfirmed)
+        {
+            Console.WriteLine("Entro");
+
+            await Guardar();
+
+            disabled = true;
+            var pswd = GenerateRandomPassword(random.Next(7, 11));
+
+            Usuario.Email = email;
+            Usuario.Phone = oSocio.Telefo1;
+            Usuario.Names = oSocio.Nombre;
+            Usuario.Dni = oSocio.Mail;
+            Usuario.LastNames = oSocio.Nombre;
+            Usuario.Rol = "Socio";
+            Usuario.SocioId = oSocio.Id;
+
+            Console.WriteLine($"Enviando usuario: {JsonSerializer.Serialize(Usuario)}");
+
+            var result = await http.PostAsJsonAsync<User>($"api/Account/CreateUser?password={pswd}", Usuario);
+            var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendMail2025?password={pswd}", Usuario);
+            var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
+
+            Console.WriteLine(5);
+            switch (result.StatusCode)
+            {
+                case System.Net.HttpStatusCode.OK:
+                    if (logout)
+                    {
+                        uriHelper.NavigateTo("/Logout");
+                    }
+                    else
+                    {
+                        modal.Close();
+                    }
+                    break;
+                case System.Net.HttpStatusCode.Unauthorized:
+                    uriHelper.NavigateTo("/Logout");
+                    break;
+                default:
+                    modal.Close();
+                    break;
+            }
+
+            await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Éxito",
+                Text = "El cambio de mail se realizó con éxito",
+                Icon = "success",
+                ConfirmButtonText = "Aceptar",
+            });
+        }
+    }
+}
+
+
+
+
+
+
+
+
 
 }

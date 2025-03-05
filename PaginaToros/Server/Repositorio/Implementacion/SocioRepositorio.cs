@@ -197,21 +197,34 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             try
             {
                 List<Socio> a;
+
                 if (filtro is not null)
                 {
-                    a = await _dbContext.Socios.Include(x => x.Provincia).OrderByDescending(t => t.Id).Where(filtro).Skip(skip).ToListAsync();
+                    a = await _dbContext.Socios
+                        .Include(x => x.Provincia)
+                        .Where(filtro)
+                        .OrderByDescending(s => s.Criador == "S") 
+                        .ThenByDescending(t => t.Id)     
+                        .Skip(skip)
+                        .ToListAsync();
                 }
                 else
                 {
-                    a = await _dbContext.Socios.Include(x => x.Provincia).OrderByDescending(t => t.Id).Skip(skip).ToListAsync();
+                    a = await _dbContext.Socios
+                        .Include(x => x.Provincia)
+                        .OrderByDescending(s => s.Criador == "S")
+                        .ThenByDescending(t => t.Id)
+                        .Skip(skip)
+                        .ToListAsync();
                 }
+
                 if (take == 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    return a; 
                 }
                 else
                 {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                    return a.Take(take).ToList(); 
                 }
             }
             catch
@@ -219,6 +232,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
 
     }
 }

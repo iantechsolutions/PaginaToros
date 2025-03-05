@@ -185,9 +185,13 @@ namespace PaginaToros.Server.Controllers
                 Inspect _Inspect = _mapper.Map<Inspect>(request);
                 Inspect _InspectParaEditar = await _InspectRepositorio.Obtener(u => u.Id == _Inspect.Id);
 
+                Console.WriteLine("Entro");
+                Console.WriteLine($"Request ID: {request.Id}, Nombre: {request.Nombre}");
+                Console.WriteLine($"Inspect encontrado: {_InspectParaEditar != null}, ID: {_Inspect.Id}");
+
                 if (_InspectParaEditar != null)
                 {
-                    _InspectParaEditar.Icod = _Inspect.Icod;
+                    //_InspectParaEditar.Icod = _Inspect.Icod;
                     _InspectParaEditar.Nombre = _Inspect.Nombre;
                     _InspectParaEditar.Direcc = _Inspect.Direcc;
                     _InspectParaEditar.Locali = _Inspect.Locali;
@@ -196,25 +200,33 @@ namespace PaginaToros.Server.Controllers
                     _InspectParaEditar.Telefo = _Inspect.Telefo;
                     _InspectParaEditar.Mail = _Inspect.Mail;
 
+                    Console.WriteLine("Antes de llamar a Editar");
                     bool respuesta = await _InspectRepositorio.Editar(_InspectParaEditar);
+                    Console.WriteLine("Después de llamar a Editar");
+
+                    Console.WriteLine($"Nombre actualizado: {_InspectParaEditar.Nombre}");
+                    Console.WriteLine($"Respuesta de editar: {respuesta}");
 
                     if (respuesta)
                         _Respuesta = new Respuesta<InspectDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<InspectDTO>(_InspectParaEditar) };
                     else
-                        _Respuesta = new Respuesta<InspectDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
+                        _Respuesta = new Respuesta<InspectDTO>() { Exito = 0, Mensaje = "No se pudo editar el identificador" };
                 }
                 else
                 {
-                    _Respuesta = new Respuesta<InspectDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                    _Respuesta = new Respuesta<InspectDTO>() { Exito = 0, Mensaje = "No se encontró el identificador" };
                 }
 
                 return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<InspectDTO>() { Exito = 1, Mensaje = ex.Message };
+                Console.WriteLine($"Error: {ex.Message}");
+                _Respuesta = new Respuesta<InspectDTO>() { Exito = 0, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
     }
+    
+
 }

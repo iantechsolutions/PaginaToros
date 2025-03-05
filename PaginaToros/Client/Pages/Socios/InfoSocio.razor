@@ -53,7 +53,9 @@
                             <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Nombre</RadzenText>
                             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H4" class="rz-display-flex rz-mt-0 rz-my-0">@(data.Nombre)</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Provincia</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H4" class="rz-display-flex rz-mt-0 rz-my-0">@(traductorProvincia[data.Codpro])</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H4" class="rz-display-flex rz-mt-0 rz-my-0">
+                                @traductorProvincia.ContainsKey(socio.Codpro1) ? traductorProvincia[socio.Codpro1] : "Provincia desconocida"
+                            </RadzenText>
                             </RadzenCard>
                         </RadzenColumn>
                     </Template>
@@ -89,7 +91,9 @@
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Codigo Postal</RadzenText>
                         <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Codpos1</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Provincia</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@traductorProvincia[socio.Codpro1]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">
+                        @traductorProvincia.ContainsKey(socio.Codpro1) ? traductorProvincia[socio.Codpro1] : "Provincia desconocida"
+                    </RadzenText>
                     </RadzenColumn>
                     
                 </RadzenRow>

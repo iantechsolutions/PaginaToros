@@ -101,20 +101,19 @@ namespace PaginaToros.Server.Controllers
         [Route("LimitadosFiltradoTodos")]
         public async Task<IActionResult> LimitadosFiltradosTodos(int skip, int take, string? expression = null)
         {
-
             Respuesta<List<SocioDTO>> _ResponseDTO = new Respuesta<List<SocioDTO>>();
 
             try
             {
                 var a = await _SocioRepositorio.LimitadosFiltradosTodos(skip, take, expression);
 
-                var listaFiltrada = _mapper.Map<List<SocioDTO>>(a);
+                var listaOrdenada = a.OrderByDescending(s => s.Criador == "S").ToList();
 
-                _ResponseDTO = new Respuesta<List<SocioDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+                var listaFiltrada = _mapper.Map<List<SocioDTO>>(listaOrdenada);
+
+                _ResponseDTO = new Respuesta<List<SocioDTO>>() { Exito = 1, Mensaje = "Éxito", List = listaFiltrada };
 
                 return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
-
-
             }
             catch (Exception ex)
             {
@@ -122,6 +121,7 @@ namespace PaginaToros.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
+
 
 
         [HttpDelete]
