@@ -194,15 +194,35 @@ namespace PaginaToros.Server.Controllers
             {
                 try
                 {
-                    // Aquí agregamos los correos destinatarios y validamos si son correctos.
+                    // Verificar si las direcciones de correo son válidas y agregarlas
                     if (IsValidEmail("planteles@hereford.org.ar"))
                     {
-                        mail.To.Add("planteles@hereford.org.ar"); // Correo de destino
+                        mail.To.Add("planteles@hereford.org.ar");
                     }
                     else
                     {
-                        Console.WriteLine("Correo de 'puroregistrado' no válido");
-                        return BadRequest("Correo de 'puroregistrado' no válido");
+                        Console.WriteLine("Correo de 'planteles' no válido");
+                        return BadRequest("Correo de 'planteles' no válido");
+                    }
+
+                    if (IsValidEmail(request.MailCompra)) // Verifica si el correo del comprador es válido
+                    {
+                        mail.To.Add(request.MailCompra);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Correo del comprador '{request.MailCompra}' no válido");
+                        return BadRequest($"Correo del comprador '{request.MailCompra}' no válido");
+                    }
+
+                    if (IsValidEmail(request.MailVendedor)) // Verifica si el correo del vendedor es válido
+                    {
+                        mail.To.Add(request.MailVendedor);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Correo del vendedor '{request.MailVendedor}' no válido");
+                        return BadRequest($"Correo del vendedor '{request.MailVendedor}' no válido");
                     }
 
                     // Configurar el mensaje
@@ -234,8 +254,8 @@ namespace PaginaToros.Server.Controllers
                         // Enviar el correo de forma asincrónica
                         await smtp.SendMailAsync(mail);
                     }
+
                     Console.WriteLine("Cambio realizado");
-                    
                 }
                 catch (Exception ex)
                 {
@@ -246,6 +266,7 @@ namespace PaginaToros.Server.Controllers
                 return Ok("Correo enviado correctamente.");
             }
         }
+
 
 
         private bool IsValidEmail(string email)
@@ -380,6 +401,10 @@ namespace PaginaToros.Server.Controllers
             public int Clase { get; set; }
             public string Mail { get; set; }
             public string? Nombre { get; set; }
+
+            public string? MailCompra {  get; set; }
+
+            public string MailVendedor { get; set; }
 
         }
         public class ContenidoMails

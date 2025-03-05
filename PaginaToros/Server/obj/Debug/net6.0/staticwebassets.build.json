@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "uCp0wWGtQZ9igqXkR5xkW6CFdyArg+X7Rpzbuu7DRZg=",
+  "Hash": "OA6cVQdewSa9Ln3p/yAF+WNIQr7clVxcChUkVWMZVHI=",
   "Source": "PaginaToros.Server",
   "BasePath": "_content/PaginaToros.Server",
   "Mode": "Default",
@@ -10579,6 +10579,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\FileCompletion.png"
+    },
+    {
+      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\images\\LOGO PRINCIPAL.png",
+      "SourceId": "PaginaToros.Client",
+      "SourceType": "Project",
+      "ContentRoot": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\",
+      "BasePath": "/",
+      "RelativePath": "images/LOGO PRINCIPAL.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\LOGO PRINCIPAL.png"
     },
     {
       "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\images\\logo.png",

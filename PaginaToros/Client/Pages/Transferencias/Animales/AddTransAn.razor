@@ -240,9 +240,13 @@ else
         Console.WriteLine(IdSocio);
         var rta = await _sociosServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
+
+
         var result = await http.GetAsync($"api/Account/GetUsers/TODO/TODO/1");
+
         var response = JsonSerializer.Deserialize<ResponseForList>(result.Content.ReadAsStringAsync().Result);
         Usuarios = JsonSerializer.Deserialize<IList<User>>(response.EntitiesPricipal);
+
         var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
         Planteles = rt.List;
         if(IdSocio != null || IdSocio !=0){
@@ -310,7 +314,9 @@ else
                 Tipo = socioVendedor.Id,
                 Clase = socioComprador.Id,
                 Mail = mail,
-                Nombre = socioVendedor.Nombre
+                Nombre = socioVendedor.Nombre,
+                MailCompra= socioVendedor.Mail,
+                MailVendedor = socioComprador.Mail
             };
             HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
 
@@ -325,7 +331,9 @@ else
                 Tipo = socioVendedor.Id,
                 Clase = socioComprador.Id,
                 Mail = mail,
-                Nombre = socioVendedor.Nombre
+                Nombre = socioVendedor.Nombre,
+                MailCompra = socioVendedor.Mail,
+                MailVendedor = socioComprador.Mail
             };
             await _transanServicio.Editar(oTransan);
 
@@ -370,7 +378,9 @@ else
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.Criador=="S" &&  x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var result = socios.Where(x => 
+            // x.Criador=="S" &&
+            x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
     }
 
