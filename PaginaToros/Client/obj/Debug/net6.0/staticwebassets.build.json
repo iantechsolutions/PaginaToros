@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "d5fuo9ARpdhhqJkP1EsCHsQEy5sXm3/n34ZbP7vRmRQ=",
+  "Hash": "7domPPe2xdBED8Q+AVFNb4tTvMNZu9O8xi2vH1jtISE=",
   "Source": "PaginaToros.Client",
   "BasePath": "/",
   "Mode": "Root",
@@ -10617,6 +10617,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\FileCompletion.png"
+    },
+    {
+      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\images\\LOGO CIRCULO.png",
+      "SourceId": "PaginaToros.Client",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\",
+      "BasePath": "/",
+      "RelativePath": "images/LOGO CIRCULO.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\LOGO CIRCULO.png"
     },
     {
       "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\images\\LOGO PRINCIPAL.png",

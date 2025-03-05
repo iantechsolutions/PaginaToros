@@ -120,7 +120,6 @@
     private const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 
 
-
     [Parameter] public int Id { get; set; }
     [Parameter] public string cod { get; set; }
     DateTime FechaTemp = DateTime.Now.Date;
@@ -198,6 +197,9 @@
         Console.WriteLine(Id);
         var rta = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
+
+        Console.WriteLine(Id);
+
         try
         {
             socios = socios.Where(x=>x.Id!=Id).ToList();

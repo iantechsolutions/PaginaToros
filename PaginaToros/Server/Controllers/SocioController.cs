@@ -110,9 +110,9 @@ namespace PaginaToros.Server.Controllers
             {
                 var a = await _SocioRepositorio.LimitadosFiltradosTodos(skip, take, expression);
 
-                var listaOrdenada = a.OrderByDescending(s => s.Criador == "S").ToList();
+                //var listaOrdenada = a.OrderByDescending(s => s.Criador == "S").ToList();
 
-                var listaFiltrada = _mapper.Map<List<SocioDTO>>(listaOrdenada);
+                var listaFiltrada = _mapper.Map<List<SocioDTO>>(a);
 
                 _ResponseDTO = new Respuesta<List<SocioDTO>>() { Exito = 1, Mensaje = "Éxito", List = listaFiltrada };
 

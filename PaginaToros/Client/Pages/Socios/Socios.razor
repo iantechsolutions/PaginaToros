@@ -2,6 +2,7 @@
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ISocioServicio _socioServicio
 @using Blazored.Typeahead
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Socios</h3>
@@ -30,6 +31,9 @@
     }
 </style>
 
+
+  <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+                             <Authorized> 
 @if (oRespuesta.List != null)
 {
     <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
@@ -77,6 +81,7 @@
                     <button class="btn" position="absolute" title="Editar Socio" @onclick="() => add(data.Id,data.Scod)"><FeatherEdit Size="16" Color="green" /></button>
                 </Template>
             </RadzenDataGridColumn>
+           
             <RadzenDataGridColumn TItem="SocioDTO" Property="" Title="" Filterable="false" Width="3%">
                 <Template Context="data">
                     <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id,data.Scod)"><FeatherTrash2 Size="16" Color="red" /></button>
@@ -85,12 +90,16 @@
             <RadzenDataGridColumn TItem="SocioDTO" Property="" Title="" Filterable="false" Width="3%">
                 <Template Context="data">
                     <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id,data.Scod)"><FeatherInfo Size="16" Color="blue" /></button>
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
+                        </Template>
+
+                    </RadzenDataGridColumn>
+
+
+                </Columns>
 
     </RadzenDataGrid>
     <br />
+
 }
 else
 {
@@ -102,6 +111,95 @@ else
         </div>
     </center>
 }
+     
+    </Authorized>
+      </AuthorizeView>
+
+<AuthorizeView Roles="Socio">
+
+                             <Authorized> 
+
+
+
+
+
+<div>
+
+            @if (oRespuesta.List != null)
+{
+    <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+    <br />
+    <br />
+    <RadzenDataGrid class="tablacontent" IsLoading="isLoading" style="position:relative;width:93.5%;left:3.33%" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                                Density="Density.Compact" Count="cantidad" Data="@oRespuesta.List" TItem="SocioDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+        <Columns>
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Scod" Title="Nro Socio" Width="3.6%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Placod" Title="Plantel" Width="3%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Criador" Title="Activo?" Width="3.33%">
+                <Template Context="data">
+                    @if (data.Criador=="S")
+                    {
+                        <a style="color:green">Si</a>
+                    }
+                    else
+                    {
+                        <a style="color:red">No</a>
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Nombre" Title="Nombre" Width="9.3%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Direcc1" Title="Domicilio" Width="5.6%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Locali1" Title="Localidad" Width="6.6%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Codpos1" Title="Cod. Postal" Width="4.3%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Provincia.Nombre" Title="Provincia" Width="5%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Telefo1" Title="Telefono" Width="5%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="Mail" Title="Mail" Width="6.6%" />
+            <RadzenDataGridColumn TItem="SocioDTO" Property="FechaExistencia" Title="Fecha de Creacion" Width="6.6%">
+                <Template Context="data">
+                    @if(data.Fecing.HasValue){
+                        @data.Fecing.Value.ToString("dd/MM/yyyy")
+                    }
+                    else{
+
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+
+
+            <RadzenDataGridColumn TItem="SocioDTO" Property="" Title="" Filterable="false" Width="3%">
+                <Template Context="data">
+                    <button class="btn" position="absolute" title="Editar Socio" @onclick="() => add(data.Id,data.Scod)"><FeatherEdit Size="16" Color="green" /></button>
+                </Template>
+            </RadzenDataGridColumn>
+           
+            
+               
+              
+        </Columns>
+
+    </RadzenDataGrid>
+    <br />
+
+}
+else
+{
+    <br />
+    <center>
+        <div class="mb-2">
+            <br />
+            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </center>
+}
+
+        </div>
+
+
+        </Authorized>
+            </AuthorizeView>
+
+
 @code {
 
 
@@ -109,8 +207,11 @@ else
     public RadzenDataGrid<SocioDTO>? grid;
     int currentPage;
     bool isLoading = false;
+    bool esSocio = false;
     int cantidad;
     public bool allowFiltering = false;
+
+    List<SocioDTO> socio = new();
 
     public Respuesta<List<SocioDTO>> oRespuesta = new Respuesta<List<SocioDTO>>();
     protected override async Task OnInitializedAsync()
@@ -119,16 +220,56 @@ else
     }
     async Task Get()
     {
-        var c = await _socioServicio.CantidadTotal();
-        cantidad = c.List;
-        oRespuesta = await _socioServicio.LimitadosFiltradoTodos(0, 15);
-        // oRespuesta = oRespuesta.List.ord
+        esSocio = await UserHasRole("Socio");
+
+        if (!esSocio)
+        {
+            var c = await _socioServicio.CantidadTotal();
+            cantidad = c.List;
+            oRespuesta = await _socioServicio.LimitadosFiltradoTodos(0, 15);
+        }
+        else
+        {
+            var usuarioId = 0;
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            foreach (var claim in user.Claims)
+            {
+                if (claim.Type == "SocioId" && int.TryParse(claim.Value, out int parsedId))
+                {
+                    usuarioId = parsedId;
+                    break;
+                }
+            }
+
+            Console.WriteLine(usuarioId);
+            var todosLosSocios = await _socioServicio.LimitadosFiltradoTodos(0, 15);
+            oRespuesta.List = todosLosSocios.List.Where(x=>x.Id == usuarioId).ToList();
+            cantidad = oRespuesta.List.Count();
+            Console.WriteLine(oRespuesta.List.FirstOrDefault().Nombre);
+
+
+            // Asegurar que la tabla recibe los datos
+        }
+
         StateHasChanged();
     }
+
+
+
+
+
     public void CambiarModoFiltro()
     {
         allowFiltering = !allowFiltering;
         StateHasChanged();
+    }
+
+    private async Task<bool> UserHasRole(string role)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authenticationState.User.IsInRole(role);
     }
 
     async Task delete(int id, string cod)

@@ -56,13 +56,13 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 List<Socio> a;
                 if(filtro is not null) { 
                     a = await _dbContext.Socios
-                        //.Where(x => x.Criador == "S")
+                        .Where(x => x.Criador == "S")
                         .Include(x=>x.Provincia).Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
                 {
                     a = await _dbContext.Socios
-                        //.Where(x => x.Criador == "S")
+                        .Where(x => x.Criador == "S")
                         .Include(x => x.Provincia).Skip(skip).ToListAsync();
                 }
                 if (take == 0)
