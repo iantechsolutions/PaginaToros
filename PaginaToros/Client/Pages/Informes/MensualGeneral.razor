@@ -6,6 +6,11 @@
 @inject IInspectServicio _inspectServicio;
 @inject IJSRuntime _js
 
+@using OfficeOpenXml
+@using OfficeOpenXml.Style
+@using System.Drawing
+
+
 <style>
     @@page {
         margin: 0;
@@ -18,6 +23,11 @@
         .no-print{
             display:none;
         }
+    }
+
+    .col-sm {
+        display: block;
+        min-height: 100px; /* Ajusta según sea necesario */
     }
 </style>
 
@@ -89,11 +99,25 @@
     <div class="col-sm-1"/>
     <div class="col-sm">
         <label>Selecciona Inspectores a cubrir</label>
+
+        <div class="flex">
+            <button class="no-print  px-2 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition 
+ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
+                    @onclick="SeleccionarTodos">
+                Seleccionar Todos
+            </button>
+            <button class="no-print  px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform 
+hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
+                    @onclick="DeseleccionarTodos">
+                Deseleccionar Todos
+            </button>
+        </div>
+
         <BlazoredTypeahead SearchMethod="BuscarInspector" @ref="selectIns"
-        @bind-Values="inspectoresSeleccionados"
-                            EnableDropDown="true"
+                           @bind-Values="inspectoresSeleccionados"
+                           EnableDropDown="true"
                            Disabled="terminado && confirmado"
-                            placeholder="Busque por Nombre">
+                           placeholder="Busque por Nombre">
             <SelectedTemplate Context="data">
                 @data.Nombre
             </SelectedTemplate>
@@ -105,8 +129,21 @@
     <div class="col-sm-2"/>
     <div class="col-sm">
         <label>Selecciona Provincias a cubrir</label>
-        <BlazoredTypeahead SearchMethod="BuscarProvincia" @ref="selectProv" Disabled="terminado && confirmado"
-        @bind-Values="provinciasSeleccionadas" 
+
+        <div class="flex">
+            <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform
+hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2" @onclick="SeleccionarTodasProvincias">
+                Seleccionar Todas
+            </button>
+            <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform
+hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2" @onclick="DeseleccionarTodasProvincias">
+                Deseleccionar Todas
+            </button>
+        </div>
+
+        <BlazoredTypeahead SearchMethod="BuscarProvincia" @ref="selectProv"
+                           Disabled="terminado && confirmado"
+                           @bind-Values="provinciasSeleccionadas"
                            EnableDropDown="true"
                            placeholder="Busque por Nombre">
             <SelectedTemplate Context="data">
@@ -120,7 +157,22 @@
     <div class="col-sm-1" />
 </div>
 <br class="no-print" />
-<button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;width:100%; margin-bottom:5pxpa" @onclick="()=>ConfirmarDatos()" disabled="@(!terminado || confirmado)">Generar Reporte</button>
+<button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
+        style="position:relative;width:20%; margin-bottom:5px;"
+        @onclick="()=>ConfirmarDatos()"
+        disabled="@(!terminado || confirmado)">
+
+    @if (loading)
+    {
+        <span>
+            <i class="fa fa-spinner fa-spin"></i> Cargando...
+        </span>
+    }
+    Generar Reporte
+</button>
+<button @onclick="() =>DescargarExcel()">
+    Exporter
+</button>
 
 <br class="no-print"/>
 <br class="no-print"/>
@@ -479,7 +531,8 @@ else if (confirmado && terminado)
         Resumen del periodo
     </RadzenText>
     <RadzenDataGrid PageSize="25" Density="Density.Compact" Data='new [] {("aa")}'
-                    TItem="string" SelectionMode="DataGridSelectionMode.Single" LogicalFilterOperator="LogicalFilterOperator.Or" Style="margin-bottom:18px" PagerHorizontalAlign="HorizontalAlign.Center">
+                    TItem="string" SelectionMode="DataGridSelectionMode.Single"
+                    LogicalFilterOperator="LogicalFilterOperator.Or" Style="margin-bottom:18px" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
             <RadzenDataGridColumn TItem="string" Property="" Title="Vaq PR Presentadas">
                 <Template Context="data">
@@ -604,6 +657,7 @@ else if (confirmado && terminado)
     public DateTime FechaInicial { get; set; } = DateTime.Now.AddDays(-700);
     public DateTime FechaFinal { get; set; } = DateTime.Now;
     bool terminado = false;
+    bool loading = false;
     string seleccion = "";
     List<string> opciones = new List<string> { "Inspectores", "Provincias" };
     List<Resin1DTO> reportes = new();
@@ -652,8 +706,7 @@ else if (confirmado && terminado)
             var rtaa = await _inspectServicio.LimitadosFiltrados(0, 0);
             Inspects = rtaa.List;
             terminado = true;
-            provinciasSeleccionadas = provincias;
-            inspectoresSeleccionados = Inspects;
+
 
             Console.WriteLine(7);
         }
@@ -677,12 +730,39 @@ else if (confirmado && terminado)
     {
         return await Task.FromResult(Inspects.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
+
+    private void SeleccionarTodos()
+    {
+        inspectoresSeleccionados = Inspects.ToList();
+    }
+
+    private void DeseleccionarTodos()
+    {
+        inspectoresSeleccionados.Clear(); 
+    }
+
+
+
     private async Task<IEnumerable<string>> BuscarProvincia(string searchText)
     {
         return await Task.FromResult(provincias.Where(x => traductorProvinciaInverso[x].Contains(searchText.ToLower())).ToList());
     }
+
+    private void SeleccionarTodasProvincias()
+    {
+        provinciasSeleccionadas = provincias.ToList(); 
+    }
+
+    private void DeseleccionarTodasProvincias()
+    {
+        provinciasSeleccionadas.Clear(); 
+    }
+
+
+
     public void ConfirmarDatos()
     {
+        loading = true;
         try{
             if(seleccion == "Inspectores"){
                 foreach (var provincia in provinciasSeleccionadas)
@@ -705,7 +785,128 @@ else if (confirmado && terminado)
         {
             Console.WriteLine(ex.Message);
         }
+        loading = false;
     }
+
+
+
+
+   private async Task DescargarExcel()
+{
+    var elements = datos;
+
+    if (!elements.Any())
+    {
+        Console.WriteLine($"No se encontraron elementos para el tipo.");
+        return;
+    }
+
+    Console.WriteLine("Generando Excel...");
+
+    Stream stream = new MemoryStream();
+    using (var excelPackage = new ExcelPackage())
+    {
+        var worksheet1 = excelPackage.Workbook.Worksheets.Add("Reporte Vaq PR");
+
+        string[] headers1 = { "Vaq PR Presentadas", "Vaq PR Marcadas", "Vaq PR Astadas" };
+        for (int col = 0; col < headers1.Length; col++)
+        {
+            worksheet1.Cells[1, col + 1].Value = headers1[col];
+            worksheet1.Cells[1, col + 1].Style.Font.Bold = true;
+            worksheet1.Cells[1, col + 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            worksheet1.Cells[1, col + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet1.Cells[1, col + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+        }
+
+        int row = 2;
+        foreach (var dato in elements)
+        {
+            worksheet1.Cells[row, 1].Value = dato.Hdp;
+            worksheet1.Cells[row, 2].Value = dato.HdpM;
+            worksheet1.Cells[row, 3].Value = dato.HdpAs;
+            row++;
+        }
+
+        var worksheet2 = excelPackage.Workbook.Worksheets.Add("Reporte Vacas VIP");
+
+        string[] headers2 = { "Vacas VIP Presentadas", "Vacas VIP Total", "Vaq VIP Presentadas", "Vaq VIP Total" };
+        for (int col = 0; col < headers2.Length; col++)
+        {
+            worksheet2.Cells[1, col + 1].Value = headers2[col];
+            worksheet2.Cells[1, col + 1].Style.Font.Bold = true;
+            worksheet2.Cells[1, col + 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            worksheet2.Cells[1, col + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet2.Cells[1, col + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+        }
+
+        row = 2;
+        foreach (var dato in elements)
+        {
+            worksheet2.Cells[row, 1].Value = dato.Hgvp;
+            worksheet2.Cells[row, 2].Value = dato.Hgvb;
+            worksheet2.Cells[row, 3].Value = dato.Hgqp;
+            worksheet2.Cells[row, 4].Value = dato.Hgqb;
+            row++;
+        }
+
+        var worksheet3 = excelPackage.Workbook.Worksheets.Add("Reporte SCP & CP");
+
+        string[] headers3 = { "SCP Presentados", "SCP Mochos", "SCP Astados", "CP Presentados", "CP Mochos", "CP Astados", "CP Control S" };
+        for (int col = 0; col < headers3.Length; col++)
+        {
+            worksheet3.Cells[1, col + 1].Value = headers3[col];
+            worksheet3.Cells[1, col + 1].Style.Font.Bold = true;
+            worksheet3.Cells[1, col + 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            worksheet3.Cells[1, col + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet3.Cells[1, col + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+        }
+
+        row = 2;
+        foreach (var dato in elements)
+        {
+            worksheet3.Cells[row, 1].Value = dato.Mcp;
+            worksheet3.Cells[row, 2].Value = dato.McpM;
+            worksheet3.Cells[row, 3].Value = dato.McpAs;
+            worksheet3.Cells[row, 4].Value = dato.Msp;
+            worksheet3.Cells[row, 5].Value = dato.MspM;
+            worksheet3.Cells[row, 6].Value = dato.MspAs;
+            worksheet3.Cells[row, 7].Value = dato.Mspsb;
+            row++;
+        }
+
+        foreach (var worksheet in new[] { worksheet1, worksheet2, worksheet3 })
+        {
+            using (var range = worksheet.Cells[1, 1, row - 1, headers1.Length])
+            {
+                range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+            }
+        }
+
+        worksheet1.Cells.AutoFitColumns();
+        worksheet2.Cells.AutoFitColumns();
+        worksheet3.Cells.AutoFitColumns();
+
+        var fileContents = excelPackage.GetAsByteArray();
+        DateTime fechaHoy = DateTime.Now;
+        var fileName = $"Reporte_{fechaHoy:dd_MM}.xlsx";
+        var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        string url = $"data:{contentType};base64,{Convert.ToBase64String(fileContents)}";
+
+        await _js.InvokeVoidAsync("saveAsFile", fileName, url);
+    }
+}
+
+
+
+
+
+
+
+
+
 
     private async Task Print()
         => await _js.InvokeVoidAsync("window.print");

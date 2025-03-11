@@ -109,10 +109,10 @@
                             </ResultTemplate>
                         </BlazoredTypeahead>
                 </div>
-                <div class="col-sm">
+               @*  <div class="col-sm">
                     <label>Fecha de Creacion</label><br/>
                     <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                </div>
+                </div> *@
                 <div class="col-sm">
                     <label class="col-sm">Activo?</label><br/>
                     <input type="checkbox" @bind="@activo">
@@ -313,7 +313,7 @@ else
         }
         else{
             oEstablecimiento.Codsoc = socioSeleccionado.Scod;
-            oEstablecimiento.Fecing = FechaTemp.ToString("yyyy/MM/dd");
+            oEstablecimiento.Fecing = (socioSeleccionado.Fecing ?? DateTime.Now).ToString("yyyy/MM/dd");
             oEstablecimiento.Fechacreacion = FechaTemp.ToString("yyyy");
             oEstablecimiento.Codzon = CodZona.Substring(0,2);
             oEstablecimiento.Codpro = traductorProvincia[provinciaTemp];
