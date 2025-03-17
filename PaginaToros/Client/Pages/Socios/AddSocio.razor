@@ -343,6 +343,7 @@
     {
         public int UserId { get; set; }
         public string Password { get; set; }
+        public string Email { get; set; }
     }
     public class ResetEmailModel
     {
@@ -412,7 +413,57 @@
             Console.WriteLine($"Enviando usuario: {JsonSerializer.Serialize(Usuario)}");
 
             var result = await http.PostAsJsonAsync<User>($"api/Account/CreateUser?password={pswd}", Usuario);
-            var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendMail2025?password={pswd}", Usuario);
+
+              if (result.IsSuccessStatusCode)
+            {
+                var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendMail2025?password={pswd}", Usuario);
+            }
+           else
+            {
+                Console.WriteLine("Error al crear usuario. No se enviará el correo.");
+
+                var errorMail = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Mail registrado!",
+                    Text = "Desea cambiar la contraseña y enviar un mail de restablecimiento?",
+                    Icon = "warning",
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Sí, enviar",
+                    CancelButtonText = "Cancelar"
+                });
+
+                if (errorMail.IsConfirmed)
+                {
+
+
+                        var payload = new ResetPasswordModel { UserId = Usuario.Id, Password = pswd, Email= Usuario.Email };
+                    Console.WriteLine(3);
+                    var resultReset = await http.PutAsJsonAsync<ResetPasswordModel>("api/Account/ResetPassword", payload);
+                    var resetResult = await http.PostAsJsonAsync<User>($"api/Account/SendResetMail?nuevaContraseña={pswd}", Usuario);
+
+                    if (resetResult.IsSuccessStatusCode)
+                    {
+                        await Swal.FireAsync(new SweetAlertOptions
+                        {
+                            Title = "Éxito",
+                            Text = "El mail de restablecimiento ha sido enviado.",
+                            Icon = "success",
+                            ConfirmButtonText = "Aceptar",
+                        });
+                    }
+                    else
+                    {
+                        await Swal.FireAsync(new SweetAlertOptions
+                        {
+                            Title = "Error",
+                            Text = "No se pudo enviar el mail de restablecimiento.",
+                            Icon = "error",
+                            ConfirmButtonText = "Aceptar",
+                        });
+                    }
+                }
+}
+            // var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendMail2025?password={pswd}", Usuario);
             var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
 
             Console.WriteLine(5);

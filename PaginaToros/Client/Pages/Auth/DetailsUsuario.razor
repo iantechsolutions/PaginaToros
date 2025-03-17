@@ -81,6 +81,7 @@ transition ease-in duration-100 transform hover:-translate-y-1 active:translate-
     {
         public int UserId { get; set; }
         public string Password { get; set; }
+        public string Email { get; set; }
     }
     public class ResetEmailModel
     {
@@ -135,7 +136,7 @@ transition ease-in duration-100 transform hover:-translate-y-1 active:translate-
 
             var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
             Console.WriteLine(2);
-            var payload = new ResetPasswordModel { UserId = Usuario.Id, Password = pswd };
+            var payload = new ResetPasswordModel { UserId = Usuario.Id, Password = pswd, Email= Usuario.Email };
             Console.WriteLine(3);
             var result3 = await http.PutAsJsonAsync<ResetPasswordModel>("api/Account/ResetPassword", payload);
             Console.WriteLine(4);

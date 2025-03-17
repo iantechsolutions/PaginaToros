@@ -143,7 +143,7 @@ namespace PaginaToros.Server.Controllers
                 await db.User.AddAsync(model);
                 await db.SaveChangesAsync();
 
-                return Ok("ok");
+                return Ok(user.Id);
             }
             catch (Exception e)
             {
@@ -784,44 +784,58 @@ namespace PaginaToros.Server.Controllers
         public class ResetPasswordModel
             {
                 public int UserId { get; set; }
+
+                public string Email { get; set; }
                 public string Password { get; set; }
             }
 
-[HttpPut("ResetPassword")]
-public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordModel model)
-{
-    try
-    {
-        var Usuario = db.User.FirstOrDefault(x => x.Id == model.UserId);
-        if (Usuario == null)
+        [HttpPut("ResetPassword")]
+        public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordModel model)
         {
-            return BadRequest("No se pudo encontrar un usuario");
+            Console.WriteLine("Entro al cambio");
+
+            try
+            {
+                var usuario = db.User.FirstOrDefault(x => x.Id == model.UserId);
+
+                if (usuario == null)
+                {
+                    usuario = db.User.FirstOrDefault(x => x.Email == model.Email);
+                }
+
+                if (usuario == null)
+                {
+                    Console.WriteLine("Usuario no encontrado");
+                    return BadRequest("No se pudo encontrar un usuario");
+                }
+
+                var user = db.Users.FirstOrDefault(x => x.UserName == usuario.Email);
+                if (user == null)
+                {
+                    return BadRequest("No se pudo encontrar un usuario de acceso");
+                }
+
+                var removeResult = await _userManager.RemovePasswordAsync(user);
+                if (!removeResult.Succeeded)
+                {
+                    return BadRequest(removeResult.Errors);
+                }
+
+                var addResult = await _userManager.AddPasswordAsync(user, model.Password);
+                if (!addResult.Succeeded)
+                {
+                    return BadRequest(addResult.Errors);
+                }
+
+                return Ok("ok");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error: {e.Message}");
+                return StatusCode(500, "Error interno del servidor");
+            }
         }
 
-        var user = db.Users.FirstOrDefault(x => x.UserName == Usuario.Email);
-        if (user == null)
-        {
-            return BadRequest("No se pudo encontrar un usuario de acceso");
-        }
-
-        var result = await _userManager.RemovePasswordAsync(user);
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Errors);
-        }
-
-        result = await _userManager.AddPasswordAsync(user, model.Password);
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Errors);
-        }
-        return Ok("ok");
-    }
-    catch (Exception e)
-    {
-        return BadRequest(e.Message);
-    }
-}
 
         [HttpGet("GetUsers/{search}/{status}/{actualPage}")]
         public async Task<ActionResult> GetUsers(string search, string status, int actualPage)
