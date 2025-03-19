@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "B6J9jpq0EB7xGwnTWuKRjyIEOkqmPNbZ5wz8YqfycvA=",
+  "Hash": "JMJheR0KdIyx8KHDnBxcVzmcF8ZpKboCuZBLuao6zwc=",
   "Source": "PaginaToros.Client",
   "BasePath": "/",
   "Mode": "Root",
@@ -739,25 +739,6 @@
       "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\currietechnologies.razor.sweetalert2\\5.5.0\\staticwebassets\\wordpressAdminTheme.min.js"
     },
     {
-      "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\dark-base.css",
-      "SourceId": "Radzen.Blazor",
-      "SourceType": "Package",
-      "ContentRoot": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\",
-      "BasePath": "_content/Radzen.Blazor",
-      "RelativePath": "css/dark-base.css",
-      "AssetKind": "All",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "AssetMergeBehavior": "",
-      "AssetMergeSource": "",
-      "RelatedAsset": "",
-      "AssetTraitName": "",
-      "AssetTraitValue": "",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\dark-base.css"
-    },
-    {
       "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\dark.css",
       "SourceId": "Radzen.Blazor",
       "SourceType": "Package",
@@ -777,12 +758,12 @@
       "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\dark.css"
     },
     {
-      "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\default-base.css",
+      "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\dark-base.css",
       "SourceId": "Radzen.Blazor",
       "SourceType": "Package",
       "ContentRoot": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\",
       "BasePath": "_content/Radzen.Blazor",
-      "RelativePath": "css/default-base.css",
+      "RelativePath": "css/dark-base.css",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -793,7 +774,7 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\default-base.css"
+      "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\dark-base.css"
     },
     {
       "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\default.css",
@@ -815,12 +796,12 @@
       "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\default.css"
     },
     {
-      "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\humanistic-base.css",
+      "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\default-base.css",
       "SourceId": "Radzen.Blazor",
       "SourceType": "Package",
       "ContentRoot": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\",
       "BasePath": "_content/Radzen.Blazor",
-      "RelativePath": "css/humanistic-base.css",
+      "RelativePath": "css/default-base.css",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -831,7 +812,7 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\humanistic-base.css"
+      "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\default-base.css"
     },
     {
       "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\humanistic.css",
@@ -853,12 +834,12 @@
       "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\humanistic.css"
     },
     {
-      "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\material-base.css",
+      "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\humanistic-base.css",
       "SourceId": "Radzen.Blazor",
       "SourceType": "Package",
       "ContentRoot": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\",
       "BasePath": "_content/Radzen.Blazor",
-      "RelativePath": "css/material-base.css",
+      "RelativePath": "css/humanistic-base.css",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -869,7 +850,7 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\material-base.css"
+      "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\humanistic-base.css"
     },
     {
       "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\material.css",
@@ -891,12 +872,12 @@
       "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\material.css"
     },
     {
-      "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\software-base.css",
+      "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\material-base.css",
       "SourceId": "Radzen.Blazor",
       "SourceType": "Package",
       "ContentRoot": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\",
       "BasePath": "_content/Radzen.Blazor",
-      "RelativePath": "css/software-base.css",
+      "RelativePath": "css/material-base.css",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -907,7 +888,7 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\software-base.css"
+      "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\material-base.css"
     },
     {
       "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\software.css",
@@ -929,12 +910,12 @@
       "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\software.css"
     },
     {
-      "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\standard-base.css",
+      "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\software-base.css",
       "SourceId": "Radzen.Blazor",
       "SourceType": "Package",
       "ContentRoot": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\",
       "BasePath": "_content/Radzen.Blazor",
-      "RelativePath": "css/standard-base.css",
+      "RelativePath": "css/software-base.css",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -945,7 +926,7 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\standard-base.css"
+      "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\software-base.css"
     },
     {
       "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\standard.css",
@@ -965,6 +946,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\standard.css"
+    },
+    {
+      "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\standard-base.css",
+      "SourceId": "Radzen.Blazor",
+      "SourceType": "Package",
+      "ContentRoot": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\",
+      "BasePath": "_content/Radzen.Blazor",
+      "RelativePath": "css/standard-base.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\css\\standard-base.css"
     },
     {
       "Identity": "C:\\Users\\Maxim\\.nuget\\packages\\radzen.blazor\\4.11.1\\staticwebassets\\fonts\\MaterialIcons-Regular.woff",
@@ -10752,44 +10752,6 @@
       "OriginalItemSpec": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\obj\\Debug\\net6.0\\scopedcss\\projectbundle\\PaginaToros.Client.bundle.scp.css"
     },
     {
-      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\obj\\Debug\\net6.0\\service-worker-assets.js",
-      "SourceId": "PaginaToros.Client",
-      "SourceType": "Computed",
-      "ContentRoot": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\bin\\Debug\\net6.0\\wwwroot\\",
-      "BasePath": "/",
-      "RelativePath": "service-worker-assets.js",
-      "AssetKind": "Publish",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "AssetMergeBehavior": "",
-      "AssetMergeSource": "",
-      "RelatedAsset": "",
-      "AssetTraitName": "BlazorServiceWorker",
-      "AssetTraitValue": "ServiceWorkerManifest",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "obj\\Debug\\net6.0\\service-worker-assets.js"
-    },
-    {
-      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\obj\\Debug\\net6.0\\service-worker-assets.js.build",
-      "SourceId": "PaginaToros.Client",
-      "SourceType": "Computed",
-      "ContentRoot": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\bin\\Debug\\net6.0\\wwwroot\\",
-      "BasePath": "/",
-      "RelativePath": "service-worker-assets.js",
-      "AssetKind": "Build",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "AssetMergeBehavior": "",
-      "AssetMergeSource": "",
-      "RelatedAsset": "",
-      "AssetTraitName": "BlazorServiceWorker",
-      "AssetTraitValue": "ServiceWorkerManifest",
-      "CopyToOutputDirectory": "PreserveNewest",
-      "CopyToPublishDirectory": "Never",
-      "OriginalItemSpec": "obj\\Debug\\net6.0\\service-worker-assets.js.build"
-    },
-    {
       "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\obj\\Debug\\net6.0\\service-worker\\service-worker.js",
       "SourceId": "PaginaToros.Client",
       "SourceType": "Computed",
@@ -10826,6 +10788,44 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\service-worker.published.js"
+    },
+    {
+      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\obj\\Debug\\net6.0\\service-worker-assets.js",
+      "SourceId": "PaginaToros.Client",
+      "SourceType": "Computed",
+      "ContentRoot": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\bin\\Debug\\net6.0\\wwwroot\\",
+      "BasePath": "/",
+      "RelativePath": "service-worker-assets.js",
+      "AssetKind": "Publish",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "BlazorServiceWorker",
+      "AssetTraitValue": "ServiceWorkerManifest",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "obj\\Debug\\net6.0\\service-worker-assets.js"
+    },
+    {
+      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\obj\\Debug\\net6.0\\service-worker-assets.js.build",
+      "SourceId": "PaginaToros.Client",
+      "SourceType": "Computed",
+      "ContentRoot": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\bin\\Debug\\net6.0\\wwwroot\\",
+      "BasePath": "/",
+      "RelativePath": "service-worker-assets.js",
+      "AssetKind": "Build",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "BlazorServiceWorker",
+      "AssetTraitValue": "ServiceWorkerManifest",
+      "CopyToOutputDirectory": "PreserveNewest",
+      "CopyToPublishDirectory": "Never",
+      "OriginalItemSpec": "obj\\Debug\\net6.0\\service-worker-assets.js.build"
     },
     {
       "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\css\\app.css",
@@ -10883,25 +10883,6 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\bootstrap\\bootstrap.min.css.map"
-    },
-    {
-      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\css\\open-iconic\\FONT-LICENSE",
-      "SourceId": "PaginaToros.Client",
-      "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\",
-      "BasePath": "/",
-      "RelativePath": "css/open-iconic/FONT-LICENSE",
-      "AssetKind": "All",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
-      "AssetMergeSource": "",
-      "RelatedAsset": "",
-      "AssetTraitName": "",
-      "AssetTraitValue": "",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\css\\open-iconic\\FONT-LICENSE"
     },
     {
       "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\css\\open-iconic\\font\\css\\open-iconic-bootstrap.min.css",
@@ -11016,6 +10997,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.woff"
+    },
+    {
+      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\css\\open-iconic\\FONT-LICENSE",
+      "SourceId": "PaginaToros.Client",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\",
+      "BasePath": "/",
+      "RelativePath": "css/open-iconic/FONT-LICENSE",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\open-iconic\\FONT-LICENSE"
     },
     {
       "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\css\\open-iconic\\ICON-LICENSE",
@@ -11227,25 +11227,6 @@
       "OriginalItemSpec": "wwwroot\\images\\LOGO PRINCIPAL.png"
     },
     {
-      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\images\\logo_AACH.png",
-      "SourceId": "PaginaToros.Client",
-      "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\",
-      "BasePath": "/",
-      "RelativePath": "images/logo_AACH.png",
-      "AssetKind": "All",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
-      "AssetMergeSource": "",
-      "RelatedAsset": "",
-      "AssetTraitName": "",
-      "AssetTraitValue": "",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\images\\logo_AACH.png"
-    },
-    {
       "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\images\\logo.png",
       "SourceId": "PaginaToros.Client",
       "SourceType": "Discovered",
@@ -11263,6 +11244,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\logo.png"
+    },
+    {
+      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\images\\logo_AACH.png",
+      "SourceId": "PaginaToros.Client",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\",
+      "BasePath": "/",
+      "RelativePath": "images/logo_AACH.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\logo_AACH.png"
     },
     {
       "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\images\\mantenimiento.png",
