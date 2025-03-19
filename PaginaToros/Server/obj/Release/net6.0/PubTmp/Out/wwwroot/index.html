@@ -30,6 +30,16 @@
     </div>
 
     <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        saveAsFile = (fileName, contentBase64) => {
+            var link = document.createElement('a');
+            link.download = fileName;
+            link.href = contentBase64;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
     <script>navigator.serviceWorker.register('service-worker.js');</script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
     <script src="_content/CurrieTechnologies.Razor.SweetAlert2/sweetAlert2.min.js"></script>

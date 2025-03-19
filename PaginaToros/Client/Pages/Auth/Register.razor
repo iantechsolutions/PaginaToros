@@ -20,20 +20,23 @@
 
     private async Task CreateUser()
     {
-
         Console.WriteLine($"Enviando usuario: {JsonSerializer.Serialize(User)}");
 
         User.Phone = User.Email;
         User.Names = User.Email;
         User.Dni = User.Email;
         User.LastNames = User.Email;
+
         var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
         var pswd = GenerateRandomPassword(random.Next(7, 11));
+
         var result = await http.PostAsJsonAsync<User>($"api/Account/CreateUser?password={pswd}", User);
-        var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendMail2025?password={pswd}", User);
+
         switch (result.StatusCode)
         {
             case System.Net.HttpStatusCode.OK:
+                // Si la creación fue exitosa, recién enviamos el mail
+                var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendMail2025?password={pswd}", User);
                 uriHelper.NavigateTo("/Usuarios");
                 break;
             case System.Net.HttpStatusCode.Unauthorized:
@@ -41,10 +44,11 @@
                 break;
             default:
                 modal.Close();
-                Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(result.Content.ReadAsStringAsync().Result, "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
+                Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(await result.Content.ReadAsStringAsync(), "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
                 break;
         }
     }
+
 
     public string GenerateRandomPassword(int length)
     {
