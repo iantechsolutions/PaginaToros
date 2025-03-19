@@ -105,10 +105,10 @@ transition ease-in duration-100 transform hover:-translate-y-1 active:translate-
 
     private async Task ChangeEmail()
     {
-        Console.WriteLine($"Email anterior: {Usuario.Email}");
-        Console.WriteLine($"Nuevo email: {email}");
+        Console.WriteLine(Usuario.Email);
+        Console.WriteLine(email);
 
-        if (email == Usuario.Email)
+        if(email == Usuario.Email)
         {
             await Swal.FireAsync(new SweetAlertOptions
                 {
@@ -116,87 +116,67 @@ transition ease-in duration-100 transform hover:-translate-y-1 active:translate-
                     Text = "Modifique el mail para poder realizar el cambio",
                     ShowCancelButton = true,
                     ConfirmButtonText = "Aceptar",
-                });
-            return; // Salimos si no se cambió el email
-        }
 
-        // Confirmación antes de continuar
-        var confirmResult = await Swal.FireAsync(new SweetAlertOptions
+                });
+        }
+        else
+        {
+            Console.WriteLine("Entro");
+            disabled = true;
+
+
+            disabled = true;
+            var pswd = GenerateRandomPassword(random.Next(7, 11));
+
+
+            Usuario.Email = email;
+            Console.WriteLine($"Enviando usuario: {JsonSerializer.Serialize(Usuario)}");
+            var result = await http.PostAsJsonAsync($"api/Account/EditUser?password={pswd}", Usuario);
+
+
+            var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
+            Console.WriteLine(2);
+            var payload = new ResetPasswordModel { UserId = Usuario.Id, Password = pswd, Email= Usuario.Email };
+            Console.WriteLine(3);
+            var result3 = await http.PutAsJsonAsync<ResetPasswordModel>("api/Account/ResetPassword", payload);
+            Console.WriteLine(4);
+            var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendResetMail?nuevaContraseña={pswd}", Usuario);
+            Console.WriteLine(5);
+            switch (result3.StatusCode)
             {
-                Title = "Confirmación",
-                Text = "¿Está seguro de realizar el cambio y enviar el mail?",
-                Icon = "warning",
-                ShowCancelButton = true,
-                ConfirmButtonText = "Sí, enviar",
-                CancelButtonText = "Cancelar"
-            });
+                case System.Net.HttpStatusCode.OK:
+                    if (logout)
+                    {
+                        uriHelper.NavigateTo("/Logout");
+                    }
+                    else
+                    {
+                        modal.Close();
+                        Modal.Show<ModalInfo>("Operación Exitosa", SharedModalOptions.SetParameterModalInfo(Utilities.MSGSUCCESS, "alert alert-success"), SharedModalOptions.modalOptionsInfo);
+                    }
+                    break;
+                case System.Net.HttpStatusCode.Unauthorized:
+                    uriHelper.NavigateTo("/Logout");
+                    break;
+                default:
+                    modal.Close();
+                    Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(result3.Content.ReadAsStringAsync().Result, "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
+                    break;
+            }
 
-        if (!confirmResult.IsConfirmed) return;
 
-        disabled = true;
-        var pswd = GenerateRandomPassword(random.Next(7, 11));
-        Usuario.Email = email;
-
-        Console.WriteLine($"Editando usuario: {JsonSerializer.Serialize(Usuario)}");
-
-        // Editar el usuario
-        var editResult = await http.PostAsJsonAsync($"api/Account/EditUser?password={pswd}", Usuario);
-        if (!editResult.IsSuccessStatusCode)
-        {
-            await Swal.FireAsync(new SweetAlertOptions
-                {
-                    Title = "Error",
-                    Text = "Error al editar el usuario.",
-                    Icon = "error",
-                    ConfirmButtonText = "Aceptar"
-                });
-            return;
-        }
-
-        // Resetear contraseña
-        var payload = new ResetPasswordModel { UserId = Usuario.Id, Password = pswd, Email = Usuario.Email };
-        var resetResult = await http.PutAsJsonAsync("api/Account/ResetPassword", payload);
-        if (!resetResult.IsSuccessStatusCode)
-        {
-            await Swal.FireAsync(new SweetAlertOptions
-                {
-                    Title = "Error",
-                    Text = "No se pudo resetear la contraseña.",
-                    Icon = "error",
-                    ConfirmButtonText = "Aceptar"
-                });
-            return;
-        }
-
-        // Enviar mail de restablecimiento
-        var sendMailResult = await http.PostAsJsonAsync<User>($"api/Account/SendResetMail?nuevaContraseña={pswd}", Usuario);
-        if (!sendMailResult.IsSuccessStatusCode)
-        {
-            await Swal.FireAsync(new SweetAlertOptions
-                {
-                    Title = "Error",
-                    Text = "No se pudo enviar el mail de restablecimiento.",
-                    Icon = "error",
-                    ConfirmButtonText = "Aceptar"
-                });
-            return;
-        }
-
-        // Si todo fue exitoso
-        var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
-        modal.Close();
-
-        Modal.Show<ModalInfo>("Operación Exitosa", SharedModalOptions.SetParameterModalInfo("El cambio de email y el envío del mail fueron exitosos.", "alert alert-success"), SharedModalOptions.modalOptionsInfo);
 
         await Swal.FireAsync(new SweetAlertOptions
             {
-                Title = "Éxito",
-                Text = "El cambio de mail se realizó con éxito.",
-                Icon = "success",
+                Title = "Exito",
+                Text = "El cambio de mail se realizo con éxito",
+                ShowCancelButton = true,
                 ConfirmButtonText = "Aceptar",
-            });
-    }
 
+            });
+
+        }
+    }
 
     private async Task ResetPass()
     {
