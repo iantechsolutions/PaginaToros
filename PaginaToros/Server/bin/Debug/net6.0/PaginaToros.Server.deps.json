@@ -1285,10 +1285,7 @@
           "Radzen.Blazor": "4.11.1"
         },
         "runtime": {
-          "PaginaToros.Client.dll": {
-            "assemblyVersion": "1.0.0",
-            "fileVersion": "1.0.0.0"
-          }
+          "PaginaToros.Client.dll": {}
         }
       },
       "PaginaToros.Shared/1.0.0": {
@@ -1296,10 +1293,7 @@
           "Microsoft.AspNetCore.Authentication": "2.2.0"
         },
         "runtime": {
-          "PaginaToros.Shared.dll": {
-            "assemblyVersion": "1.0.0",
-            "fileVersion": "1.0.0.0"
-          }
+          "PaginaToros.Shared.dll": {}
         }
       }
     }
