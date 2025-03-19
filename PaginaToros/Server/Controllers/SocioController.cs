@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
-using PaginaToros.Client.Pages.Socios;
 using PaginaToros.Server.Context;
 using AutoMapper;
 using PaginaToros.Server.Repositorio.Contrato;

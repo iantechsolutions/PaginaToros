@@ -10,7 +10,6 @@ using PaginaToros.Server.Context;
 using PaginaToros.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Mail;
-using PaginaToros.Client.Pages.Socios;
 using System.Net.Mime;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Asn1.Ocsp;
