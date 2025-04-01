@@ -1280,15 +1280,13 @@
           "Microsoft.AspNetCore.Components.Authorization": "6.0.23",
           "Microsoft.AspNetCore.Components.WebAssembly": "6.0.15",
           "Microsoft.Extensions.Http": "8.0.0-preview.4.23259.5",
+          "Microsoft.Extensions.Primitives": "9.0.1",
           "Newtonsoft.Json": "13.0.3",
           "PaginaToros.Shared": "1.0.0",
           "Radzen.Blazor": "4.11.1"
         },
         "runtime": {
-          "PaginaToros.Client.dll": {
-            "assemblyVersion": "1.0.0",
-            "fileVersion": "1.0.0.0"
-          }
+          "PaginaToros.Client.dll": {}
         }
       },
       "PaginaToros.Shared/1.0.0": {
@@ -1296,10 +1294,7 @@
           "Microsoft.AspNetCore.Authentication": "2.2.0"
         },
         "runtime": {
-          "PaginaToros.Shared.dll": {
-            "assemblyVersion": "1.0.0",
-            "fileVersion": "1.0.0.0"
-          }
+          "PaginaToros.Shared.dll": {}
         }
       }
     }

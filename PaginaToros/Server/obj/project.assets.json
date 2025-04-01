@@ -2170,6 +2170,7 @@
           "Microsoft.AspNetCore.Components.Authorization": "6.0.23",
           "Microsoft.AspNetCore.Components.WebAssembly": "6.0.15",
           "Microsoft.Extensions.Http": "8.0.0-preview.4.23259.5",
+          "Microsoft.Extensions.Primitives": "9.0.1",
           "Newtonsoft.Json": "13.0.3",
           "PaginaToros.Shared": "1.0.0",
           "Radzen.Blazor": "4.11.1"
@@ -5584,24 +5585,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[6.0.36, 6.0.36]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Host.win-x64",
-            "version": "[6.0.36, 6.0.36]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[6.0.36, 6.0.36]"
-          },
-          {
-            "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[6.0.36, 6.0.36]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -5610,7 +5593,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.407\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.300\\RuntimeIdentifierGraph.json"
       }
     }
   },

@@ -1031,7 +1031,7 @@
           "build/Microsoft.NET.ILLink.Tasks.props": {}
         }
       },
-      "Microsoft.NET.Sdk.WebAssembly.Pack/8.0.14": {
+      "Microsoft.NET.Sdk.WebAssembly.Pack/8.0.5": {
         "type": "package",
         "build": {
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.props": {},
@@ -2506,7 +2506,7 @@
           "build/Microsoft.NET.ILLink.Tasks.props": {}
         }
       },
-      "Microsoft.NET.Sdk.WebAssembly.Pack/8.0.14": {
+      "Microsoft.NET.Sdk.WebAssembly.Pack/8.0.5": {
         "type": "package",
         "build": {
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.props": {},
@@ -4329,10 +4329,10 @@
         "tools/net7.0/illink.runtimeconfig.json"
       ]
     },
-    "Microsoft.NET.Sdk.WebAssembly.Pack/8.0.14": {
-      "sha512": "PVKBB7RYzYzCMnKKHjG/sVUhTHtToCO0ewuZvrRuATsmxYiG1e01m1p7Mbg9CTkbj72KPnrMuq9pBiypA7sOyg==",
+    "Microsoft.NET.Sdk.WebAssembly.Pack/8.0.5": {
+      "sha512": "CABBOqZZEDgiVSjkwUr+pJEGEtQbrT+6dltzJnBDap7mOSvfn53+zwb112hRGB7ynm9ikAocGZTUp+GizbH7XQ==",
       "type": "package",
-      "path": "microsoft.net.sdk.webassembly.pack/8.0.14",
+      "path": "microsoft.net.sdk.webassembly.pack/8.0.5",
       "hasTools": true,
       "files": [
         ".nupkg.metadata",
@@ -4360,7 +4360,7 @@
         "build/Microsoft.NET.Sdk.WebAssembly.Pack.props",
         "build/Microsoft.NET.Sdk.WebAssembly.Pack.targets",
         "build/Wasm.web.config",
-        "microsoft.net.sdk.webassembly.pack.8.0.14.nupkg.sha512",
+        "microsoft.net.sdk.webassembly.pack.8.0.5.nupkg.sha512",
         "microsoft.net.sdk.webassembly.pack.nuspec",
         "tools/net472/Microsoft.Bcl.AsyncInterfaces.dll",
         "tools/net472/Microsoft.Build.dll",
@@ -5369,9 +5369,10 @@
       "Microsoft.AspNetCore.Components.WebAssembly >= 6.0.15",
       "Microsoft.AspNetCore.Components.WebAssembly.DevServer >= 6.0.15",
       "Microsoft.Extensions.Http >= 8.0.0-preview.4.23259.5",
+      "Microsoft.Extensions.Primitives >= 9.0.1",
       "Microsoft.NET.ILLink.Analyzers >= 7.0.100-1.23401.1",
       "Microsoft.NET.ILLink.Tasks >= 7.0.100-1.23401.1",
-      "Microsoft.NET.Sdk.WebAssembly.Pack >= 8.0.14",
+      "Microsoft.NET.Sdk.WebAssembly.Pack >= 8.0.5",
       "Newtonsoft.Json >= 13.0.3",
       "PaginaToros.Shared >= 1.0.0",
       "Radzen.Blazor >= 4.11.1"
@@ -5484,6 +5485,10 @@
             "target": "Package",
             "version": "[8.0.0-preview.4.23259.5, )"
           },
+          "Microsoft.Extensions.Primitives": {
+            "target": "Package",
+            "version": "[9.0.1, )"
+          },
           "Microsoft.NET.ILLink.Analyzers": {
             "suppressParent": "All",
             "target": "Package",
@@ -5499,7 +5504,7 @@
           "Microsoft.NET.Sdk.WebAssembly.Pack": {
             "suppressParent": "All",
             "target": "Package",
-            "version": "[8.0.14, )",
+            "version": "[8.0.5, )",
             "autoReferenced": true
           },
           "Newtonsoft.Json": {
@@ -5524,20 +5529,8 @@
         "warn": true,
         "downloadDependencies": [
           {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[6.0.36, 6.0.36]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[6.0.36, 6.0.36]"
-          },
-          {
             "name": "Microsoft.NETCore.App.Runtime.Mono.browser-wasm",
-            "version": "[6.0.36, 6.0.36]"
-          },
-          {
-            "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[6.0.36, 6.0.36]"
+            "version": "[6.0.30, 6.0.30]"
           }
         ],
         "frameworkReferences": {
@@ -5545,7 +5538,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.407\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.300\\RuntimeIdentifierGraph.json"
       }
     },
     "runtimes": {

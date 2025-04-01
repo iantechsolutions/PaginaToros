@@ -49,8 +49,8 @@
       "url": "css\/open-iconic\/README.md"
     },
     {
-      "hash": "sha256-xQToZ3plQ0hgk408dAicAvwARiyPoMbk1n4yAgf\/ruQ=",
-      "url": "Excel_Solicitud.xls"
+      "hash": "sha256-5Ubwm8g5HH7iAETvggesU6SCSDsS8aRP2FUUZIE6cno=",
+      "url": "Excel_Solicitud.xlsx"
     },
     {
       "hash": "sha256-X+9ptNPRw7kWdKuyounQndZsvv23IYaCMeBSFRkmWhA=",
@@ -1049,8 +1049,8 @@
       "url": "_framework\/System.Private.CoreLib.dll"
     },
     {
-      "hash": "sha256-pu7MO47B6So4jcW6iY2UI11lBZYz2EQnJKiYNsOpNJg=",
-      "url": "_framework\/dotnet.6.0.36.fcuc6s01ip.js"
+      "hash": "sha256-45+wyMAt9YjYwF4PikeWhYvv\/KKuYEMhwoXqAPu6iQM=",
+      "url": "_framework\/dotnet.6.0.30.ya1fxxfwsd.js"
     },
     {
       "hash": "sha256-vrFYQt55a4tGoDGoyRfjjGa1nSecx646RK78iTzPWCM=",
@@ -1073,23 +1073,23 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-GkUJCRXF36huZOwnb5U1Ru7NSa3j0CeD\/IVbEt4aZbY=",
+      "hash": "sha256-3PEoglJ8gzyRTpwif\/gg7bKC0VJI9KTIndTkzkQJsL8=",
       "url": "_framework\/PaginaToros.Shared.dll"
     },
     {
-      "hash": "sha256-qZ39NRCERp6If4XIjywV12ygOvogJhhqI4xvitiFLik=",
+      "hash": "sha256-WpVwwI50Myvhci+cXumOtwufA56olGI2Jnf\/NBzctF8=",
       "url": "_framework\/PaginaToros.Shared.pdb"
     },
     {
-      "hash": "sha256-1CpTDW9cTVRh0eLO1iKBbrWzbzEXLP+eiX7TaUpNTXw=",
+      "hash": "sha256-fDs1xzXzzSWtAXfyjLp8rz0uNQqTZOLs+Wq7kRlcKIk=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-TZxIYBRhbnDPbuRVSsdYtoQz8eBHvjnWxNF+04InhhE=",
+      "hash": "sha256-RCXIiRmd3sEmHkEfZ5alY4C1KIKjwuqDov4xo92DgDg=",
       "url": "_framework\/PaginaToros.Client.pdb"
     },
     {
-      "hash": "sha256-maBKQxGSdEpToLV4snnu8smLr6L8bVcO4JB2s+RRT8g=",
+      "hash": "sha256-iV40VpJONRhTxwBPuX9SDnMHXpZIzqknk27DklhGoQ0=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -1377,5 +1377,5 @@
       "url": "_content\/Blazored.Modal\/Blazored.Modal.bundle.scp.css"
     }
   ],
-  "version": "tWbbIWuW"
+  "version": "3Oz5I1Hi"
 };

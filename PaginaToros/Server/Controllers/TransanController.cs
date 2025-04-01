@@ -227,7 +227,7 @@ namespace PaginaToros.Server.Controllers
 
                     // Configurar el mensaje
                     mail.From = new MailAddress("planteles@hereford.org.ar");
-                    mail.Subject = "El socio " + request.Nombre + " ha realizado un cambio";
+                    mail.Subject = "El socio " + request.Nombre + " ha realizado una transferencia";
                     mail.Body = request.Mail;
 
                     // Configurar SMTP (Aquí debes cambiar por el servidor y las credenciales adecuadas)
