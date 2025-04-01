@@ -53,8 +53,8 @@
       "url": "css\/open-iconic\/README.md"
     },
     {
-      "hash": "sha256-xQToZ3plQ0hgk408dAicAvwARiyPoMbk1n4yAgf\/ruQ=",
-      "url": "Excel_Solicitud.xls"
+      "hash": "sha256-5Ubwm8g5HH7iAETvggesU6SCSDsS8aRP2FUUZIE6cno=",
+      "url": "Excel_Solicitud.xlsx"
     },
     {
       "hash": "sha256-X+9ptNPRw7kWdKuyounQndZsvv23IYaCMeBSFRkmWhA=",
@@ -137,7 +137,7 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-Yyi6kQjdr6scgovpFYknp5qbfIOxtwadPKAjsQkbu\/A=",
+      "hash": "sha256-FoztJISyzd2UYOyv8gnTTthFpi7jB+u22OPYkV4lOfA=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -377,7 +377,7 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-u7pCgMBuUWDxZUHH3mAK96iNRLiym7gGYVnACxh4H6Y=",
+      "hash": "sha256-HSeKhNhM01r8W4zKyXIdwpQyaNRtZwr6yUFs030Cz+M=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
@@ -633,7 +633,7 @@
       "url": "_framework\/System.Security.AccessControl.dll"
     },
     {
-      "hash": "sha256-FSKMCVcb2U\/Bm7aycAgCUgSUireIg\/fl7sqKToWyQh8=",
+      "hash": "sha256-X80QLli1w2YipMnn2+FaZJdWe8n1J3LESmmYx3I3wOE=",
       "url": "_framework\/System.Security.Claims.dll"
     },
     {
@@ -997,5 +997,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "AFERTGLw"
+  "version": "CNpG1scj"
 };

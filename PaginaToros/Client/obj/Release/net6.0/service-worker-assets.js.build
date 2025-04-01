@@ -49,8 +49,8 @@
       "url": "css\/open-iconic\/README.md"
     },
     {
-      "hash": "sha256-xQToZ3plQ0hgk408dAicAvwARiyPoMbk1n4yAgf\/ruQ=",
-      "url": "Excel_Solicitud.xls"
+      "hash": "sha256-5Ubwm8g5HH7iAETvggesU6SCSDsS8aRP2FUUZIE6cno=",
+      "url": "Excel_Solicitud.xlsx"
     },
     {
       "hash": "sha256-X+9ptNPRw7kWdKuyounQndZsvv23IYaCMeBSFRkmWhA=",
@@ -1073,23 +1073,23 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-ddOdDoYBYvssfTDIS3vvyBBnVDM02YN0BPgBHSu8QDU=",
+      "hash": "sha256-a1N6tZrigrKdYAv\/z4z7hnnktfYux3JkVmvSbqE51w8=",
       "url": "_framework\/PaginaToros.Shared.dll"
     },
     {
-      "hash": "sha256-W4xJuZ9uG93qgDcLSt14at7u3b4YD1sOaYS2Bvft0aE=",
+      "hash": "sha256-K0aR5GLucjCchiB4T8ZW5CNpB3pBUFPD2E7qAfJnou4=",
       "url": "_framework\/PaginaToros.Shared.pdb"
     },
     {
-      "hash": "sha256-bjq4b5dAaAP4ind8HXb20ezMjZnNRkaF\/lV\/hXFDRSc=",
+      "hash": "sha256-u7pCgMBuUWDxZUHH3mAK96iNRLiym7gGYVnACxh4H6Y=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-vTKRCRYQdVUo3B1foWDidfAgKyWw+way3\/KbodBBr3k=",
+      "hash": "sha256-c0sNm3BbCmng9C5c6K9n7M0IfDLj378+k6aPL4RTCEc=",
       "url": "_framework\/PaginaToros.Client.pdb"
     },
     {
-      "hash": "sha256-JJ+iSNYJTPEK9yOj0EX+OOXh9\/OMmKGlv1NEESAbjNs=",
+      "hash": "sha256-5p5OXG5hrw\/xdE0gNZl35Mmt7Y3XcPoC5NUZDd4e4rg=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -1377,5 +1377,5 @@
       "url": "_content\/Blazored.Modal\/Blazored.Modal.bundle.scp.css"
     }
   ],
-  "version": "c6UuS0KX"
+  "version": "Dmrv+r4n"
 };
