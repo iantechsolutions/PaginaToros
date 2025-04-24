@@ -107,30 +107,37 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
         public async Task<bool> Eliminar(Resin1 entidad)
         {
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
-            try
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
             {
-                _dbContext.Resin2s.RemoveRange(_dbContext.Resin2s.Where(x => x.Nrores == entidad.Nrores));
-                _dbContext.Resin3s.RemoveRange(_dbContext.Resin3s.Where(x => x.Nrores == entidad.Nrores));
-                _dbContext.Resin4s.RemoveRange(_dbContext.Resin4s.Where(x => x.Nrores == entidad.Nrores));
-                _dbContext.Resin6s.RemoveRange(_dbContext.Resin6s.Where(x => x.Nrores == entidad.Nrores));
-                _dbContext.Resin8s.RemoveRange(_dbContext.Resin8s.Where(x => x.Nrores == entidad.Nrores));
+                using var transaction = await _dbContext.Database.BeginTransactionAsync();
+                try
+                {
+                    Console.WriteLine("Entro perfectop");
 
-                _dbContext.Resin1s.Remove(entidad);
+                    _dbContext.Resin2s.RemoveRange(_dbContext.Resin2s.Where(x => x.Nrores == entidad.Nrores));
+                    _dbContext.Resin3s.RemoveRange(_dbContext.Resin3s.Where(x => x.Nrores == entidad.Nrores));
+                    _dbContext.Resin4s.RemoveRange(_dbContext.Resin4s.Where(x => x.Nrores == entidad.Nrores));
+                    _dbContext.Resin6s.RemoveRange(_dbContext.Resin6s.Where(x => x.Nrores == entidad.Nrores));
+                    _dbContext.Resin8s.RemoveRange(_dbContext.Resin8s.Where(x => x.Nrores == entidad.Nrores));
 
-                await _dbContext.SaveChangesAsync();
+                    _dbContext.Resin1s.Remove(entidad);
 
-                await transaction.CommitAsync();
+                    await _dbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
 
-                return true;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                Console.Error.WriteLine($"Error eliminando registros: {ex.Message}");
-                throw;
-            }
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    Console.Error.WriteLine($"Error eliminando registros: {ex.Message}");
+                    throw;
+                }
+            });
         }
+
 
 
         public async Task<Resin1> Crear(Resin1 entidad)
@@ -149,6 +156,9 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
         public async Task<bool> Editar(Resin1 entidad)
         {
+
+            Console.WriteLine("Entro al editar");
+
             try
             {
                 _dbContext.Update(entidad);

@@ -10,7 +10,7 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Numero de Plantel</label>
-                    <InputText class="form-control" disabled="@esSocio" @bind-Value="@oPlantel.Placod"
+                    <InputText class="form-control" disabled="@(esSocio || Id != 0)" @bind-Value="@oPlantel.Placod"
                                placeholder="Numero"></InputText>
                     <ValidationMessage For="(()=> oPlantel.Placod)" style="color:red;" />
                 </div>
@@ -20,7 +20,7 @@
                 </div>
                 <div class="col-sm">
                     <label>Socio</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" Disabled="esSocio" ValueExpression="@(()=>socioSeleccionado)"  EnableDropDown="true" ValueChanged="@( (SocioDTO c) => HandleSocioSeleccion(c) )" Value="socioSeleccionado" TValue="SocioDTO?" TItem="SocioDTO?">
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" Disabled="esSocio" ValueExpression="@(()=>socioSeleccionado)"  EnableDropDown="true" ValueChanged="@( (SocioDTO c) => HandleSocioSeleccion(c) )" Value="socioSeleccionado" TValue="SocioDTO" TItem="SocioDTO">
                                 <SelectedTemplate Context="eleccion">
                                     @eleccion.Nombre
                                 </SelectedTemplate>
@@ -53,7 +53,7 @@
                 
             </div>
             <br />
-            <a style="margin:auto;">PURO REGISTRADO</a>
+            <div class="text-center font-weight-bold mb-2">PURO REGISTRADO</div>
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Vacas</label>
@@ -72,7 +72,7 @@
                 </div>
             </div>
             <br />
-            <a style="margin:auto;">VIP</a>
+            <div class="text-center font-weight-bold mb-2">VIP</div>
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Vacas</label>
@@ -143,6 +143,10 @@
     async Task Guardar()
     {
         oPlantel.Nrocri = socioSeleccionado.Scod;
+
+
+        Console.WriteLine(oPlantel.Placod);
+
         if(FechaTempCreacion.HasValue){
             oPlantel.Anioex = FechaTempCreacion.Value.ToString("yyyy");
         }
@@ -154,7 +158,7 @@
         {
             oPlantel.Estado = "N";
         }
-        if (Id == 0)
+        if (Id == 0 || Id == null)
         {
             if(oPlantel.Fecing==null){
                 oPlantel.Fecing = "";
@@ -187,23 +191,20 @@
     {
         socioSeleccionado = socio;
         var planteles = await _plantelServicio.GetBySocioId(socio.Id);
-        foreach (var plan in planteles.List)
+
+        if (oPlantel.Placod == null)
         {
-            if(oPlantel.Placod==null){
-                try{
-                    var numero = plan.Placod[0];
-                    oPlantel.Placod = (char.GetNumericValue(numero) + 1).ToString() + plan.Placod.Substring(1);
-                
-                }
-                catch(Exception  ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-        }
-        if(oPlantel.Placod==null){
-            oPlantel.Placod = "1" + planteles.List.First().Placod.Substring(1);
+            var codigosValidos = planteles.List
+                .Select(p => int.TryParse(p.Placod, out var num) ? num : (int?)null)
+                .Where(num => num != null)
+                .Select(num => num.Value)
+                .ToList();
+
+            int nuevoCodigo = codigosValidos.Any() ? codigosValidos.Max() + 1 : 1;
+
+            oPlantel.Placod = nuevoCodigo.ToString("D4");
         }
     }
+
 }
 

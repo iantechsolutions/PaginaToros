@@ -2,6 +2,7 @@
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
 using System.Net.Http.Json;
+using System.Text;
 
 namespace PaginaToros.Client.Servicios.Implementacion
 {
@@ -57,10 +58,31 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return result!;
         }
 
-        public async Task<Respuesta<List<SocioDTO>>> LimitadosFiltradoTodos(int skip, int take, string filter)
+        public async Task<Respuesta<List<SocioDTO>>> LimitadosFiltradoTodos(int skip, int take, string expression)
         {
-            var result = await _http.GetFromJsonAsync<Respuesta<List<SocioDTO>>>($"api/Socio/LimitadosFiltradoTodos?skip={skip}&take={take}&expression={filter}");
-            return result;
+            var url = new StringBuilder($"api/Socio/LimitadosFiltradoTodos?skip={skip}&take={take}");
+            if (!string.IsNullOrEmpty(expression))
+            {
+                url.Append($"&expression={Uri.EscapeDataString(expression)}");
+            }
+
+
+            Console.WriteLine(url);
+
+
+            var response = await _http.GetAsync(url.ToString());
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException(
+                    $"Llamada a {url} devolvió {(int)response.StatusCode}:\n{text}");
+            }
+
+            var dto = await response.Content
+                                    .ReadFromJsonAsync<Respuesta<List<SocioDTO>>>();
+            return dto!;
         }
+
     }
 }

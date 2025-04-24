@@ -27,145 +27,99 @@
 
     .col-sm {
         display: block;
-        min-height: 100px; /* Ajusta según sea necesario */
+        min-height: 100px; 
     }
 </style>
 
-@* <style>
-    .rz-datagrid {
-        border: 1px solid #ccc; /* Add a light border around the grid */
-        border-radius: 8px; /* Rounded corners */
-        overflow: hidden; /* Prevent content overflow */
-    }
 
-    /* Header styles */
-    .rz-header {
-        background-color: #007BFF; /* Bootstrap primary color */
-        color: #fff; /* White text for better contrast */
-        font-weight: bold; /* Bold header text */
-    }
-
-    /* Header column styles */
-    .rz-header-cell {
-        padding: 12px; /* Add padding for better spacing */
-        text-align: center; /* Center align text */
-    }
-
-    /* Row styles */
-    .rz-row {
-        transition: background-color 0.3s; /* Smooth transition on hover */
-    }
-
-        .rz-row:hover {
-            background-color: #f1f1f1; /* Light gray background on hover */
-        }
-
-    /* Cell styles */
-    .rz-cell {
-        padding: 10px; /* Add padding for better spacing */
-        text-align: center; /* Center align text in cells */
-        border-bottom: 1px solid #eee; /* Add a bottom border to cells */
-    }
-
-    /* Footer styles */
-    .rz-footer {
-        background-color: #f8f9fa; /* Light gray for footer */
-        text-align: right; /* Right align footer text */
-        padding: 10px; /* Add padding to footer */
-    }
-
-    /* Additional styles for the inspector name column */
-    .rz-column-name {
-        font-weight: bold; /* Bold text for inspector names */
-        color: #007BFF; /* Use a distinct color */
-    }
-</style> *@
 <div class="row no-print">
     <div class="col-sm">
         <label>Seleccionar Forma de agrupacion</label>
         <br />
-        <RadzenDropDown @bind-Value=@seleccion Data=@opciones Disabled="terminado && confirmado" Style="width: 100%; max-width: 400px;" />
+        <RadzenDropDown @bind-Value=@seleccion Data=@opciones Disabled="terminado && confirmado" Style="width: 100%; max-width: 400px;" Change="OnSeleccionChange" />
     </div>
+
+    <!-- Fecha Inicial y Final a la misma altura -->
     <div class="col-sm">
         <label>Seleccionar Fecha Inicial</label>
         <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaInicial Disabled="terminado && confirmado" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
     </div>
     <div class="col-sm">
         <label>Seleccionar Fecha Final</label>
-        <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaFinal  Disabled="terminado && confirmado" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+        <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaFinal Disabled="terminado && confirmado" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
     </div>
 </div>
 
-
 <div class="row no-print">
-    <div class="col-sm">
-        <label>Selecciona Inspectores a cubrir</label>
+    <!-- Condición para mostrar inspectores o provincias -->
+    @if (seleccion == "Inspectores" && !confirmado)
+    {
+        <div class="col-sm">
+            <label>Selecciona Inspectores a cubrir</label>
 
-        <div class="flex items-center gap-2">
-            <BlazoredTypeahead SearchMethod="BuscarInspector" @ref="selectIns"
-                               @bind-Values="inspectoresSeleccionados"
-                               EnableDropDown="true"
-                               Disabled="terminado && confirmado"
-                               placeholder="Busque por Nombre">
-                <SelectedTemplate Context="data">
-                    @data.Nombre
-                </SelectedTemplate>
-                <ResultTemplate Context="data">
-                    @data.Nombre
-                </ResultTemplate>
-            </BlazoredTypeahead>
+            <div class="flex items-center gap-2">
+                <BlazoredTypeahead SearchMethod="BuscarInspector" @ref="selectIns"
+                                   @bind-Values="inspectoresSeleccionados"
+                                   EnableDropDown="true"
+                                   Disabled="terminado && confirmado"
+                                   placeholder="Busque por Nombre">
+                    <SelectedTemplate Context="data">
+                        @data.Nombre
+                    </SelectedTemplate>
+                    <ResultTemplate Context="data">
+                        @data.Nombre
+                    </ResultTemplate>
+                </BlazoredTypeahead>
 
-            <div class="flex items-center gap-2 ml-2">
-                <button class="no-print p-1 rounded-full bg-transparent hover:bg-gray-300 transition ease-in duration-100
-                        transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center"
-                        @onclick="SeleccionarTodos"
-                       >
-                    <FeatherCheck Color="green" Width="18" Height="18"></FeatherCheck>
-                </button>
-                <button class="no-print p-1 rounded-full bg-transparent hover:bg-gray-300 transition ease-in duration-100
-                        transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center"
-                        @onclick="DeseleccionarTodos"
-                       >
-                    <FeatherX Color="red" Width="18" Height="18"></FeatherX>
-                </button>
+                <div class="flex items-center gap-2 ml-2">
+                    <button class="no-print p-1 rounded-full bg-transparent hover:bg-gray-300 transition ease-in duration-100
+                            transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center"
+                            @onclick="SeleccionarTodos">
+                        <FeatherCheck Color="green" Width="18" Height="18"></FeatherCheck>
+                    </button>
+                    <button class="no-print p-1 rounded-full bg-transparent hover:bg-gray-300 transition ease-in duration-100
+                            transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center"
+                            @onclick="DeseleccionarTodos">
+                        <FeatherX Color="red" Width="18" Height="18"></FeatherX>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
+    }
+    else if (seleccion == "Provincias" && !confirmado)
+    {
+        <div class="col-sm">
+            <label>Selecciona Provincias a cubrir</label>
 
-    <div class="col-sm-2"></div>
+            <div class="flex items-center gap-2">
+                <BlazoredTypeahead SearchMethod="BuscarProvincia" @ref="selectProv"
+                                   Disabled="terminado && confirmado"
+                                   @bind-Values="provinciasSeleccionadas"
+                                   EnableDropDown="true"
+                                   placeholder="Busque por Nombre">
+                    <SelectedTemplate Context="data">
+                        @traductorProvinciaInverso[data]
+                    </SelectedTemplate>
+                    <ResultTemplate Context="data">
+                        @traductorProvinciaInverso[data]
+                    </ResultTemplate>
+                </BlazoredTypeahead>
 
-    <div class="col-sm">
-        <label>Selecciona Provincias a cubrir</label>
-
-        <div class="flex items-center gap-2">
-            <BlazoredTypeahead SearchMethod="BuscarProvincia" @ref="selectProv"
-                               Disabled="terminado && confirmado"
-                               @bind-Values="provinciasSeleccionadas"
-                               EnableDropDown="true"
-                               placeholder="Busque por Nombre">
-                <SelectedTemplate Context="data">
-                    @traductorProvinciaInverso[data]
-                </SelectedTemplate>
-                <ResultTemplate Context="data">
-                    @traductorProvinciaInverso[data]
-                </ResultTemplate>
-            </BlazoredTypeahead>
-
-            <div class="flex items-center gap-2 ml-2">
-                <button class="no-print p-1 rounded-full bg-transparent hover:bg-gray-300 transition ease-in duration-100
-                        transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center"
-                        @onclick="SeleccionarTodasProvincias">
-                    <FeatherCheck Color="green" Width="18" Height="18"></FeatherCheck>
-                </button>
-                <button class="no-print p-1 rounded-full bg-transparent hover:bg-gray-300 transition ease-in duration-100
-                        transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center"
-                        @onclick="DeseleccionarTodasProvincias">
-                    <FeatherX Color="red" Width="18" Height="18"></FeatherX>
-                </button>
+                <div class="flex items-center gap-2 ml-2">
+                    <button class="no-print p-1 rounded-full bg-transparent hover:bg-gray-300 transition ease-in duration-100
+                            transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center"
+                            @onclick="SeleccionarTodasProvincias">
+                        <FeatherCheck Color="green" Width="18" Height="18"></FeatherCheck>
+                    </button>
+                    <button class="no-print p-1 rounded-full bg-transparent hover:bg-gray-300 transition ease-in duration-100
+                            transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center"
+                            @onclick="DeseleccionarTodasProvincias">
+                        <FeatherX Color="red" Width="18" Height="18"></FeatherX>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-
+    }
 </div>
 
 
@@ -203,473 +157,132 @@
 
 
 
-@if (terminado && confirmado && seleccion == "Inspectores")
+@if (confirmado)
 {
-    <div class="row">
-        <div class="col-sm-7">
-            <RadzenText TextStyle="Radzen.Blazor.TextStyle.H5">
-                Reporte del @FechaInicial.ToString("dd/MM/yyyy") al @FechaFinal.ToString("dd/MM/yyyy")
-            </RadzenText>
-        </div>
-        <div class="col-sm-1" />
-        <div class="col-sm-4">
-            <button class="btn no-print" style="float:right" title="Imprimir" @onclick="() => Print()"><FeatherPrinter Color="Black" Size="24" /></button>
-        </div>
-    </div>
-    <br/>
-    <div class="row">
-        @foreach (var provincia in provinciasSeleccionadas)
+    <div class="mt-4">
+
+        @if (listaDatos != null)
         {
-            // Check if there's any activity for the current province across all categories
-            bool hasHdpActivity = inspectoresSeleccionados.Where(i => listaDatos[provincia].Where(x => x.Resin1.Icod == i.Icod).Sum(t => t.Hdp) != 0).Any();
-            bool hasHgvpActivity = inspectoresSeleccionados.Where(i => listaDatos[provincia].Where(x => x.Resin1.Icod == i.Icod).Sum(t => t.Hgvp) != 0).Any();
-            bool hasMcpActivity = inspectoresSeleccionados.Where(i => listaDatos[provincia].Where(x => x.Resin1.Icod == i.Icod).Sum(t => t.Mcp) + listaDatos[provincia].Where(x => x.Resin1.Icod == i.Icod).Sum(t => t.Msp) != 0).Any();
+            
+        double? vaqPRPresentadasTotal = 0;
+        double? vaqPRMarcadasTotal = 0;
+        double? vaqPRAstadasTotal = 0;
+        double? vacasVIPPresentadasTotal = 0;
+        double? vacasVIPTotal = 0;
+        double? vaqVIPPresentadasTotal = 0;
+        double? vaqVIPTotal = 0;
+        double? scpPresentadosTotal = 0;
+        double? scpMochosTotal = 0;
+        double? scpAstadosTotal = 0;
+        double? cpPresentadosTotal = 0;
+        double? cpMochosTotal = 0;
+        double? cpAstadosTotal = 0;
+        double? cpControlSTotal = 0;
 
-            // Render the province name only if there's activity
-            if (hasHdpActivity || hasHgvpActivity || hasMcpActivity)
-            {
-                <RadzenText TextStyle="TextStyle.H5">-@traductorProvinciaInverso[provincia]</RadzenText>
-                <br />
-            }
-
-            // Render first DataGrid for 'Vaq PR Presentadas', 'Vaq PR Marcadas', 'Vaq PR Astadas' if there is Hdp activity
-            if (hasHdpActivity)
-            {
-                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@inspectoresSeleccionados.Where(i => listaDatos[provincia].Where(x => x.Resin1.Icod == i.Icod).Sum(t => t.Hdp) != 0)"
-                                TItem="InspectDTO" SelectionMode="DataGridSelectionMode.Single" LogicalFilterOperator="LogicalFilterOperator.Or" Style="margin-bottom:18px" PagerHorizontalAlign="HorizontalAlign.Center">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="Nombre" Title="Nombre del Inspector" />
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="Vaq PR Presentadas">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.Hdp)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="Vaq PR Marcadas">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.HdpM)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="Vaq PR Astadas">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.HdpAs)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title=""/>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title=""/>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="" />
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="" />
-                    </Columns>
-                </RadzenDataGrid>
-                <br />
-
-                <br />
-            }
-
-            // Render second DataGrid for 'Vacas VIP Presentadas', 'Vacas VIP Total', etc. if there is Hgvp activity
-            if (hasHgvpActivity)
-            {
-                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@inspectoresSeleccionados.Where(i => listaDatos[provincia].Where(x => x.Resin1.Icod == i.Icod).Sum(t => t.Hgvp) != 0)"
-                                TItem="InspectDTO" SelectionMode="DataGridSelectionMode.Single" Style="margin-bottom:18px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="Nombre" Title="Nombre del Inspector" />
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="Vacas VIP Presentadas" Filterable="false">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.Hgvp)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="Vacas VIP Total" Filterable="false">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.Hgvb)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="Vaq VIP Presentadas" Filterable="false">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.Hgqp)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="Vaq VIP Total" Filterable="false">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.Hgqb)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title=""/>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="" />
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title=""/>
-                    </Columns>
-                </RadzenDataGrid>
-                <br />
-
-                <br />
-            }
-
-            // Render third DataGrid for 'SCP Presentados', 'SCP Mochos', etc. if there is Mcp activity
-            if (hasMcpActivity)
-            {
-                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@inspectoresSeleccionados.Where(i => listaDatos[provincia].Where(x => x.Resin1.Icod == i.Icod).Sum(t => t.Mcp) + listaDatos[provincia].Where(x => x.Resin1.Icod == i.Icod).Sum(t => t.Msp) != 0)"
-                                TItem="InspectDTO" SelectionMode="DataGridSelectionMode.Single" Style="margin-bottom:18px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="Nombre" Title="Nombre del Inspector" />
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="SCP Presentados" Filterable="false">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.Mcp)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="SCP Mochos" Filterable="false">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.McpM)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="SCP Astados" Filterable="false">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.McpAs)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="CP Presentados" Filterable="false">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.Msp)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="CP Mochos" Filterable="false">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.MspM)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="CP Astados" Filterable="false">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.MspAs)
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="InspectDTO" Property="" Title="CP Control S" Filterable="false">
-                            <Template Context="data">
-                                @listaDatos[provincia].Where(x => x.Resin1.Icod == data.Icod).Sum(t => t.Mspsb)
-                            </Template>
-                        </RadzenDataGridColumn>
-                    </Columns>
-                </RadzenDataGrid>
-                <br />
-
-                <br />
-            }
-            <br />
-        }
-    </div>
-
-    <br/>
-}
-else if (confirmado && terminado && seleccion == "Provincias")
-{
-    <div class="row">
-        <div class="col-sm-6">
-            <RadzenText TextStyle="Radzen.Blazor.TextStyle.H4">
-                Reporte del @FechaInicial.ToString("dd/MM/yyyy") al @FechaFinal.ToString("dd/MM/yyyy")
-            </RadzenText>
-        </div>
-        <div class="col-sm-2"/>
-        <div class="col-sm-4">
-            <button class="btn no-print" style="float:right" title="Imprimir" @onclick="() => Print()"><FeatherPrinter Color="Black" Size="24" /></button>
-        </div>
-    </div>
-    <br/>
-    <div class="row">
-        @foreach (var ins in inspectoresSeleccionados)
+        @foreach (var grupo in listaDatos)
         {
-            // Activity check for each section
-            var actividadPR = provinciasSeleccionadas.Where(i => listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == i).Sum(t => t.Hdp + t.Hpp) != 0).Count() > 0;
-            var actividadVIP = provinciasSeleccionadas.Where(i => listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == i).Sum(t => t.Hgvp + t.Hgqp) != 0).Count() > 0;
-            var actividadSCP = provinciasSeleccionadas.Where(i => listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == i).Sum(t => t.Mcp + t.Msp) != 0).Count() > 0;
+            var datosFiltrados = grupo.Value;
 
-            if (actividadPR || actividadVIP || actividadSCP)
-            {
-                <RadzenText TextStyle="TextStyle.H5">-@ins.Nombre</RadzenText>
-                <br />
+            vaqPRPresentadasTotal += datosFiltrados.Sum(x => x.Hdp);
+            vaqPRMarcadasTotal += datosFiltrados.Sum(x => x.HdpM);
+            vaqPRAstadasTotal += datosFiltrados.Sum(x => x.HdpAs);
 
-                @* DataGrid for PR activity *@
-                if (actividadPR)
-                {
-                    <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@provinciasSeleccionadas.Where(i => listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == i).Sum(t => t.Hdp + t.Hpp) != 0)"
-                                    TItem="string" SelectionMode="DataGridSelectionMode.Single" LogicalFilterOperator="LogicalFilterOperator.Or" Style="margin-bottom:18px" PagerHorizontalAlign="HorizontalAlign.Center">
-                        <Columns>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="Provincia">
-                                <Template Context="data">
-                                    @traductorProvinciaInverso[data]
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="Vaq PR Presentadas">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.Hdp)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="Vaq PR Marcadas">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.HdpM)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="Vaq PR Astadas">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.HdpAs)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                                <Template Context="data">
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                                <Template Context="data">
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                                <Template Context="data">
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                                <Template Context="data">
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Columns>
-                    </RadzenDataGrid>
-                    <br />
-                    <br />
-                }
+            vacasVIPPresentadasTotal += datosFiltrados.Sum(x => x.Hgvp);
+            vacasVIPTotal += datosFiltrados.Sum(x => x.Hgvb);
+            vaqVIPPresentadasTotal += datosFiltrados.Sum(x => x.Hgqp);
+            vaqVIPTotal += datosFiltrados.Sum(x => x.Hgqb);
 
-                @* DataGrid for VIP activity *@
-                if (actividadVIP)
-                {
-                    <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@provinciasSeleccionadas.Where(i => listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == i).Sum(t => t.Hgvp + t.Hgqp) != 0)"
-                                    TItem="string" SelectionMode="DataGridSelectionMode.Single" Style="margin-bottom:18px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-                        <Columns>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="Provincia">
-                                <Template Context="data">
-                                    @traductorProvinciaInverso[data]
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="Vacas VIP Presentadas" Filterable="false">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.Hgvp)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="Vacas VIP Total" Filterable="false">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.Hgvb)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="Vaq VIP Presentadas" Filterable="false">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.Hgqp)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="Vaq VIP Total" Filterable="false">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.Hgqb)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                                <Template Context="data">
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                                <Template Context="data">
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                                <Template Context="data">
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Columns>
-                    </RadzenDataGrid>
-                    <br />
-                    <br />
-                }
+            scpPresentadosTotal += datosFiltrados.Sum(x => x.Mcp);
+            scpMochosTotal += datosFiltrados.Sum(x => x.McpM);
+            scpAstadosTotal += datosFiltrados.Sum(x => x.McpAs);
+            cpPresentadosTotal += datosFiltrados.Sum(x => x.Msp);
+            cpMochosTotal += datosFiltrados.Sum(x => x.MspM);
+            cpAstadosTotal += datosFiltrados.Sum(x => x.MspAs);
+            cpControlSTotal += datosFiltrados.Sum(x => x.Mspsb);
 
-                @* DataGrid for SCP activity *@
-                if (actividadSCP)
-                {
-                    <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@provinciasSeleccionadas.Where(i => listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == i).Sum(t => t.Mcp + t.Msp) != 0)"
-                                    TItem="string" SelectionMode="DataGridSelectionMode.Single" Style="margin-bottom:18px" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-                        <Columns>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="Provincia">
-                                <Template Context="data">
-                                    @traductorProvinciaInverso[data]
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="SCP Presentados" Filterable="false">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.Mcp)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="SCP Mochos" Filterable="false">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.McpM)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="SCP Astados" Filterable="false">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.McpAs)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="CP Presentados" Filterable="false">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.Msp)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="CP Mochos" Filterable="false">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.MspM)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="CP Astados" Filterable="false">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.MspAs)
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="string" Property="" Title="CP Control S" Filterable="false">
-                                <Template Context="data">
-                                    @listaDatos[ins.Icod].Where(x => x.Resin1.Establecimiento.Codpro == data).Sum(t => t.Mspsb)
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Columns>
-                    </RadzenDataGrid>
-                    <br />
-                    <br />
-                }
-            }
-            <br />
         }
-    </div>
+        <div class="mt-4">
+                <h3 class="font-bold text-xl mb-3">Resumen General Agrupado por @seleccion</h3>
 
-    <br/>
-}
-@if(confirmado && !terminado)
-{
-    <br />
-    <center>
-        <div class="mb-2">
-            <br />
-            <RadzenProgressBar style="position:relative;" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+            <!-- Tabla general: Vaquillas PR -->
+            <h5 class="font-semibold text-sm mt-2 mb-1">Vaquillas PR</h5>
+            <table class="table-auto w-full text-xs border mb-2">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border px-2 py-1">Presentadas</th>
+                        <th class="border px-2 py-1">Marcadas</th>
+                        <th class="border px-2 py-1">Astadas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="border px-2 py-1">@vaqPRPresentadasTotal</td>
+                        <td class="border px-2 py-1">@vaqPRMarcadasTotal</td>
+                        <td class="border px-2 py-1">@vaqPRAstadasTotal</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Tabla general: VIP -->
+            <h5 class="font-semibold text-sm mt-2 mb-1">Vacas VIP</h5>
+            <table class="table-auto w-full text-xs border mb-2">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border px-2 py-1">Vacas Presentadas</th>
+                        <th class="border px-2 py-1">Vacas Total</th>
+                        <th class="border px-2 py-1">Vaquillonas Presentadas</th>
+                        <th class="border px-2 py-1">Vaquillonas Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="border px-2 py-1">@vacasVIPPresentadasTotal</td>
+                        <td class="border px-2 py-1">@vacasVIPTotal</td>
+                        <td class="border px-2 py-1">@vaqVIPPresentadasTotal</td>
+                        <td class="border px-2 py-1">@vaqVIPTotal</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Tabla general: SCP / CP -->
+            <h5 class="font-semibold text-sm mt-2 mb-1">SCP / CP</h5>
+            <table class="table-auto w-full text-xs border mb-6">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border px-2 py-1">SCP Presentados</th>
+                        <th class="border px-2 py-1">SCP Mochos</th>
+                        <th class="border px-2 py-1">SCP Astados</th>
+                        <th class="border px-2 py-1">CP Presentados</th>
+                        <th class="border px-2 py-1">CP Mochos</th>
+                        <th class="border px-2 py-1">CP Astados</th>
+                        <th class="border px-2 py-1">CP Control S</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="border px-2 py-1">@scpPresentadosTotal</td>
+                        <td class="border px-2 py-1">@scpMochosTotal</td>
+                        <td class="border px-2 py-1">@scpAstadosTotal</td>
+                        <td class="border px-2 py-1">@cpPresentadosTotal</td>
+                        <td class="border px-2 py-1">@cpMochosTotal</td>
+                        <td class="border px-2 py-1">@cpAstadosTotal</td>
+                        <td class="border px-2 py-1">@cpControlSTotal</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-    </center>
-}
-else if (confirmado && terminado)
-{
-    <br/>
-    <RadzenText TextStyle="Radzen.Blazor.TextStyle.H5">
-        Resumen del periodo
-    </RadzenText>
-    <RadzenDataGrid PageSize="25" Density="Density.Compact" Data='new [] {("aa")}'
-                    TItem="string" SelectionMode="DataGridSelectionMode.Single"
-                    LogicalFilterOperator="LogicalFilterOperator.Or" Style="margin-bottom:18px" PagerHorizontalAlign="HorizontalAlign.Center">
-        <Columns>
-            <RadzenDataGridColumn TItem="string" Property="" Title="Vaq PR Presentadas">
-                <Template Context="data">
-                    @datos.Sum(t => t.Hdp)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="Vaq PR Marcadas">
-                <Template Context="data">
-                    @datos.Sum(t => t.HdpM)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="Vaq PR Astadas">
-                <Template Context="data">
-                    @datos.Sum(t => t.HdpAs)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                <Template Context="data">
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                <Template Context="data">
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                <Template Context="data">
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                <Template Context="data">
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
-    <RadzenDataGrid PageSize="25" Density="Density.Compact" Data='new [] {("aa")}'
-                    TItem="string" SelectionMode="DataGridSelectionMode.Single" LogicalFilterOperator="LogicalFilterOperator.Or" Style="margin-bottom:18px" PagerHorizontalAlign="HorizontalAlign.Center">
-        <Columns>
-            <RadzenDataGridColumn TItem="string" Property="" Title="Vacas VIP Presentadas" Filterable="false">
-                <Template Context="data">
-                    @datos.Sum(t => t.Hgvp)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="Vacas VIP Total" Filterable="false">
-                <Template Context="data">
-                    @datos.Sum(t => t.Hgvb)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="Vaq VIP Presentadas" Filterable="false">
-                <Template Context="data">
-                    @datos.Sum(t => t.Hgqp)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="Vaq VIP Total" Filterable="false">
-                <Template Context="data">
-                    @datos.Sum(t => t.Hgqb)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                <Template Context="data">
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                <Template Context="data">
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="" Filterable="false">
-                <Template Context="data">
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
-    <RadzenDataGrid PageSize="25" Density="Density.Compact" Data='new [] {("aa")}'
-                    TItem="string" SelectionMode="DataGridSelectionMode.Single" LogicalFilterOperator="LogicalFilterOperator.Or" Style="margin-bottom:18px" PagerHorizontalAlign="HorizontalAlign.Center">
-        <Columns>
-            <RadzenDataGridColumn TItem="string" Property="" Title="SCP Presentados" Filterable="false">
-                <Template Context="data">
-                    @datos.Sum(t => t.Mcp)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="SCP Mochos" Filterable="false">
-                <Template Context="data">
-                    @datos.Sum(t => t.McpM)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="SCP Astados" Filterable="false">
-                <Template Context="data">
-                    @datos.Sum(t => t.McpAs)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="CP Presentados" Filterable="false">
-                <Template Context="data">
-                    @datos.Sum(t => t.Msp)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="CP Mochos" Filterable="false">
-                <Template Context="data">
-                    @datos.Sum(t => t.MspM)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="CP Astados" Filterable="false">
-                <Template Context="data">
-                    @datos.Sum(t => t.MspAs)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="string" Property="" Title="CP Control S" Filterable="false">
-                <Template Context="data">
-                    @datos.Sum(t => t.Mspsb)
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
 
+
+        }
+
+
+     
+    </div>
 }
+
+
+
+
 
 
 
@@ -742,15 +355,7 @@ else if (confirmado && terminado)
         }
     }
 
-    // protected override Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     // if(firstRender)
-    //     // {
-    //     //     selectProv.Values.Concat(provincias);
-    //     //     selectIns.Values.Concat(Inspects);
-    //     // }
-    //     // return base.OnAfterRenderAsync(firstRender);
-    // }
+   
 
     private async Task<IEnumerable<InspectDTO>> BuscarInspector(string searchText)
     {
@@ -789,239 +394,160 @@ else if (confirmado && terminado)
     public void ConfirmarDatos()
     {
         loading = true;
-        try{
+        try
+        {
 
-            Console.WriteLine("Chequear");
-            Console.WriteLine(listaDatos.Values);
+            // Paso 1: Filtrar por fecha
+            var datosFiltradosPorFecha = datos
+                .Where(x => x.Resin1.Freali >= FechaInicial.Date && x.Resin1.Freali <= FechaFinal.Date)
+                .ToList();
 
+            Console.WriteLine($"Datos luego de filtrar por fechas entre {FechaInicial:dd/MM/yyyy} y {FechaFinal:dd/MM/yyyy}");
 
-
-            if(seleccion == "Inspectores"){
+            if (seleccion == "Provincias")
+            {
                 foreach (var provincia in provinciasSeleccionadas)
                 {
-                    var data = datos.Where(x => x.Resin1.Establecimiento.Codpro == provincia).ToList();
-                    listaDatos.Add(provincia,data);
-                    Console.WriteLine(listaDatos.Values);
-
+                    var data = datosFiltradosPorFecha
+                        .Where(x => x.Resin1.Establecimiento.Codpro == provincia)
+                        .ToList();
+                    listaDatos[provincia] = data;
                 }
-
-                Console.WriteLine(listaDatos.Values);
-
             }
-            else{
+            else
+            {
                 foreach (var ins in inspectoresSeleccionados)
                 {
-                    var data = datos.Where(x => x.Resin1.Icod == ins.Icod).ToList();
-                    listaDatos.Add(ins.Icod, data);
-                    Console.WriteLine(listaDatos.Values);
-
+                    var data = datosFiltradosPorFecha
+                        .Where(x => x.Resin1.Icod == ins.Icod)
+                        .ToList();
+                    listaDatos[ins.Icod] = data;
                 }
-
-                Console.WriteLine(listaDatos.Values);
-
             }
+
             confirmado = true;
-            var coso = listaDatos;
 
-            Console.WriteLine(listaDatos.Values);
-            Console.WriteLine(coso);
-
-
+            Console.WriteLine("Datos confirmados:");
+            foreach (var kvp in listaDatos)
+            {
+                Console.WriteLine($"Clave: {kvp.Key}, Cantidad: {kvp.Value.Count}");
+            }
         }
-
-        catch(Exception ex )
+        catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine($"Error al confirmar los datos: {ex.Message}");
         }
+
         loading = false;
     }
 
+
+    private void OnSeleccionChange(object value)
+    {
+        if (seleccion == "Inspectores")
+        {
+            provinciasSeleccionadas.Clear(); 
+        }
+        else if (seleccion == "Provincias")
+        {
+            inspectoresSeleccionados.Clear(); 
+        }
+    }
 
 
 
     private async Task DescargarExcel()
     {
-        var elements = datos;
+        var elements = listaDatos.Values;
 
         if (!elements.Any())
         {
-            Console.WriteLine($"No se encontraron elementos para el tipo.");
+            Console.WriteLine("No se encontraron elementos.");
             return;
         }
 
         Console.WriteLine("Generando Excel...");
 
-        Stream stream = new MemoryStream();
-        using (var excelPackage = new ExcelPackage())
+        using var stream = new MemoryStream();
+        using var excelPackage = new ExcelPackage();
+        var ws = excelPackage.Workbook.Worksheets.Add("Reporte");
+
+        // Acumuladores
+        double? hdp = 0, hdpM = 0, hdpAs = 0;
+        double? hgvp = 0, hgvb = 0, hgqp = 0, hgqb = 0;
+        double? mcp = 0, mcpM = 0, mcpAs = 0;
+        double? msp = 0, mspM = 0, mspAs = 0, mspsb = 0;
+
+        foreach (var dato in elements)
         {
-            // Crear primera tabla con encabezados: "Vaq PR"
-            var worksheet1 = excelPackage.Workbook.Worksheets.Add("Reporte Vaq PR");
+            hdp += dato.Sum(x => x.Hdp);
+            hdpM += dato.Sum(x => x.HdpM);
+            hdpAs += dato.Sum(x => x.HdpAs);
 
-            string[] headers1 = { "Vaq PR Presentadas", "Vaq PR Marcadas", "Vaq PR Astadas" };
-            for (int col = 0; col < headers1.Length; col++)
-            {
-                worksheet1.Cells[1, col + 1].Value = headers1[col];
-                worksheet1.Cells[1, col + 1].Style.Font.Bold = true;
-                worksheet1.Cells[1, col + 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                worksheet1.Cells[1, col + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                worksheet1.Cells[1, col + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
-            }
+            hgvp += dato.Sum(x => x.Hgvp);
+            hgvb += dato.Sum(x => x.Hgvb);
+            hgqp += dato.Sum(x => x.Hgqp);
+            hgqb += dato.Sum(x => x.Hgqb);
 
-            int row = 2;
-            double? total1 = 0, total2 = 0, total3 = 0;
-            foreach (var dato in elements)
-            {
-                worksheet1.Cells[row, 1].Value = dato.Hdp;
-                worksheet1.Cells[row, 2].Value = dato.HdpM;
-                worksheet1.Cells[row, 3].Value = dato.HdpAs;
+            mcp += dato.Sum(x => x.Mcp);
+            mcpM += dato.Sum(x => x.McpM);
+            mcpAs += dato.Sum(x => x.McpAs);
 
-                total1 += dato.Hdp;
-                total2 += dato.HdpM;
-                total3 += dato.HdpAs;
-
-                row++;
-            }
-
-            // Mostrar los totales en la fila 2
-            worksheet1.Cells[2, 4].Value = "Totales";
-            worksheet1.Cells[2, 4].Style.Font.Bold = true;
-            worksheet1.Cells[2, 4].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-            worksheet1.Cells[2, 4].Style.Fill.PatternType = ExcelFillStyle.Solid;
-            worksheet1.Cells[2, 4].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
-
-            worksheet1.Cells[2, 1].Value = total1;
-            worksheet1.Cells[2, 2].Value = total2;
-            worksheet1.Cells[2, 3].Value = total3;
-
-            // Crear segunda tabla con encabezados: "Vacas VIP"
-            var worksheet2 = excelPackage.Workbook.Worksheets.Add("Reporte Vacas VIP");
-
-            string[] headers2 = { "Vacas VIP Presentadas", "Vacas VIP Total", "Vaq VIP Presentadas", "Vaq VIP Total" };
-            for (int col = 0; col < headers2.Length; col++)
-            {
-                worksheet2.Cells[1, col + 1].Value = headers2[col];
-                worksheet2.Cells[1, col + 1].Style.Font.Bold = true;
-                worksheet2.Cells[1, col + 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                worksheet2.Cells[1, col + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                worksheet2.Cells[1, col + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
-            }
-
-            row = 2;
-            double? totalVacasVIP1 = 0, totalVacasVIP2 = 0, totalVaqVIP1 = 0, totalVaqVIP2 = 0;
-            foreach (var dato in elements)
-            {
-                worksheet2.Cells[row, 1].Value = dato.Hgvp;
-                worksheet2.Cells[row, 2].Value = dato.Hgvb;
-                worksheet2.Cells[row, 3].Value = dato.Hgqp;
-                worksheet2.Cells[row, 4].Value = dato.Hgqb;
-
-                totalVacasVIP1 += dato.Hgvp;
-                totalVacasVIP2 += dato.Hgvb;
-                totalVaqVIP1 += dato.Hgqp;
-                totalVaqVIP2 += dato.Hgqb;
-
-                row++;
-            }
-
-            // Mostrar los totales en la fila 2
-            worksheet2.Cells[2, 5].Value = "Totales";
-            worksheet2.Cells[2, 5].Style.Font.Bold = true;
-            worksheet2.Cells[2, 5].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-            worksheet2.Cells[2, 5].Style.Fill.PatternType = ExcelFillStyle.Solid;
-            worksheet2.Cells[2, 5].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
-
-            worksheet2.Cells[2, 1].Value = totalVacasVIP1;
-            worksheet2.Cells[2, 2].Value = totalVacasVIP2;
-            worksheet2.Cells[2, 3].Value = totalVaqVIP1;
-            worksheet2.Cells[2, 4].Value = totalVaqVIP2;
-
-            // Crear tercera tabla con encabezados: "SCP & CP"
-            var worksheet3 = excelPackage.Workbook.Worksheets.Add("Reporte SCP & CP");
-
-            string[] headers3 = { "SCP Presentados", "SCP Mochos", "SCP Astados", "CP Presentados", "CP Mochos", "CP Astados", "CP Control S" };
-            for (int col = 0; col < headers3.Length; col++)
-            {
-                worksheet3.Cells[1, col + 1].Value = headers3[col];
-                worksheet3.Cells[1, col + 1].Style.Font.Bold = true;
-                worksheet3.Cells[1, col + 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                worksheet3.Cells[1, col + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                worksheet3.Cells[1, col + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
-            }
-
-            row = 2;
-            double? totalSCP1 = 0, totalSCP2 = 0, totalSCP3 = 0, totalCP1 = 0, totalCP2 = 0, totalCP3 = 0, totalCPControlS = 0;
-            foreach (var dato in elements)
-            {
-                worksheet3.Cells[row, 1].Value = dato.Mcp;
-                worksheet3.Cells[row, 2].Value = dato.McpM;
-                worksheet3.Cells[row, 3].Value = dato.McpAs;
-                worksheet3.Cells[row, 4].Value = dato.Msp;
-                worksheet3.Cells[row, 5].Value = dato.MspM;
-                worksheet3.Cells[row, 6].Value = dato.MspAs;
-                worksheet3.Cells[row, 7].Value = dato.Mspsb;
-
-                totalSCP1 += dato.Mcp;
-                totalSCP2 += dato.McpM;
-                totalSCP3 += dato.McpAs;
-                totalCP1 += dato.Msp;
-                totalCP2 += dato.MspM;
-                totalCP3 += dato.MspAs;
-                totalCPControlS += dato.Mspsb;
-
-                row++;
-            }
-
-            // Mostrar los totales en la fila 2
-            worksheet3.Cells[2, 8].Value = "Totales";
-            worksheet3.Cells[2, 8].Style.Font.Bold = true;
-            worksheet3.Cells[2, 8].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-            worksheet3.Cells[2, 8].Style.Fill.PatternType = ExcelFillStyle.Solid;
-            worksheet3.Cells[2, 8].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
-
-            worksheet3.Cells[2, 1].Value = totalSCP1;
-            worksheet3.Cells[2, 2].Value = totalSCP2;
-            worksheet3.Cells[2, 3].Value = totalSCP3;
-            worksheet3.Cells[2, 4].Value = totalCP1;
-            worksheet3.Cells[2, 5].Value = totalCP2;
-            worksheet3.Cells[2, 6].Value = totalCP3;
-            worksheet3.Cells[2, 7].Value = totalCPControlS;
-
-            // Aplicar bordes a todas las celdas de cada hoja
-            foreach (var worksheet in new[] { worksheet1, worksheet2, worksheet3 })
-            {
-                int colCount = worksheet.Dimension.End.Column;
-                using (var range = worksheet.Cells[1, 1, row - 1, colCount])
-                {
-                    range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                    range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                    range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                    range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
-                }
-            }
-
-            // Ajustar automáticamente el tamaño de las columnas
-            worksheet1.Cells.AutoFitColumns();
-            worksheet2.Cells.AutoFitColumns();
-            worksheet3.Cells.AutoFitColumns();
-
-            // Guardar y descargar
-            var fileContents = excelPackage.GetAsByteArray();
-            DateTime fechaHoy = DateTime.Now;
-            var fileName = $"Reporte_{fechaHoy:dd_MM}.xlsx";
-            var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            string url = $"data:{contentType};base64,{Convert.ToBase64String(fileContents)}";
-
-            await _js.InvokeVoidAsync("saveAsFile", fileName, url);
+            msp += dato.Sum(x => x.Msp);
+            mspM += dato.Sum(x => x.MspM);
+            mspAs += dato.Sum(x => x.MspAs);
+            mspsb += dato.Sum(x => x.Mspsb);
         }
+
+        int row = 1;
+
+        void AddSection(string title, string[] headers, object?[] values)
+        {
+            ws.Cells[row, 1].Value = title;
+            ws.Cells[row, 1, row, headers.Length].Merge = true;
+            ws.Cells[row, 1].Style.Font.Bold = true;
+            ws.Cells[row, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            row++;
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cells[row, i + 1].Value = headers[i];
+                ws.Cells[row, i + 1].Style.Font.Bold = true;
+                ws.Cells[row, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[row, i + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+                ws.Cells[row, i + 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            }
+            row++;
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                ws.Cells[row, i + 1].Value = values[i] ?? "-";
+            }
+
+            row += 2; // Espacio entre secciones
+        }
+
+        AddSection("Vaquillas PR",
+            new[] { "Presentadas", "Marcadas", "Astadas" },
+            new object?[] { hdp, hdpM, hdpAs });
+
+        AddSection("Vacas y Vaquillonas VIP",
+            new[] { "Vacas Presentadas", "Vacas Total", "Vaquillonas Presentadas", "Vaquillonas Total" },
+            new object?[] { hgvp, hgvb, hgqp, hgqb });
+
+        AddSection("SCP / CP",
+            new[] { "SCP Presentados", "SCP Mochos", "SCP Astados", "CP Presentados", "CP Mochos", "CP Astados", "CP Control S" },
+            new object?[] { mcp, mcpM, mcpAs, msp, mspM, mspAs, mspsb });
+
+        ws.Cells[1, 1, row - 1, 10].AutoFitColumns();
+
+        var fileContents = excelPackage.GetAsByteArray();
+        var fileName = $"Reporte_{DateTime.Now:dd_MM}.xlsx";
+        var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        var url = $"data:{contentType};base64,{Convert.ToBase64String(fileContents)}";
+
+        await _js.InvokeVoidAsync("saveAsFile", fileName, url);
     }
-
-
-
-
-
-
-
-
 
 
 
@@ -1029,4 +555,5 @@ else if (confirmado && terminado)
 
     private async Task Print()
         => await _js.InvokeVoidAsync("window.print");
+
 }

@@ -222,6 +222,16 @@
                                         @data.original.Hardb
                                     </Template>    
                                 </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tipo" Width="4.6%">
+                                            <Template Context="data">
+                                                @data.original.Tipo
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cantv" Width="4.6%">
+                                            <Template Context="data">
+                                                @data.original.Cantv
+                                            </Template>
+                                        </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tatuaje" Width="4.6%">
                                     <Template Context="data">
                                         @data.original.Tatpart
@@ -291,22 +301,22 @@
                             <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@torosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
                                             LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridToro2">
                             <Columns>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hba" Width="7.34%">
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="3%">
                                     <Template Context="data">
                                         @data.original.Hardb
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="4.6%">
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="7%">
                                     <Template Context="data">
                                         <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Desde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="4.6%">
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="7%">
                                     <Template Context="data">
                                             <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cant Vientres" Width="7.34%">
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cant Vientres" Width="3%">
                                     <Template Context="data">
                                         <RadzenNumeric @bind-Value="data.original.Cantv" class="w-100"></RadzenNumeric>
                                     </Template>
@@ -339,7 +349,7 @@
                         <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificadosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
                                             LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridCertif">
                             <Columns>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hba" Width="7.34%">
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="7.34%">
                                     <Template Context="data">
                                         @data.original.Hardb
                                     </Template>

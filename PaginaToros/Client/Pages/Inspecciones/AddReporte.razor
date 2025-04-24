@@ -824,13 +824,28 @@ else
         oResin1.Id = Id;
         Console.WriteLine(1);
         Console.WriteLine(Id);
-        oResin1.Nrores = solicitudSeleccionada.FirstOrDefault().Nrosol;
+
+        if (!string.IsNullOrWhiteSpace(solicitudSeleccionada?.FirstOrDefault()?.Nrosol))
+        {
+
+            oResin1.Nrores = solicitudSeleccionada?.FirstOrDefault()?.Nrosol ?? "";
+        }
         Console.WriteLine("2");
         oResin1.Icod = inspectorSeleccionado.Icod;
         Console.WriteLine("3");
         oResin1.Scod = socioSeleccionado.Scod;
         Console.WriteLine("4");
-        oResin1.Estcod = solicitudSeleccionada.FirstOrDefault().Codest;
+        if (!string.IsNullOrWhiteSpace(solicitudSeleccionada?.FirstOrDefault()?.Codest))
+        {
+            try{
+
+                oResin1.Estcod = solicitudSeleccionada.FirstOrDefault().Codest ?? "";
+            }
+            catch
+            {
+                Console.WriteLine("Otro error aca");
+            }
+        }
         Console.WriteLine("5");
         if (Id == 0)
         {
@@ -842,8 +857,17 @@ else
         }
         else
         {
+
+            Console.WriteLine("Entro bien al editar antes del error");
             await _resin1Servicio.Editar(oResin1);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            if (ModalInstance != null)
+            {
+                await ModalInstance.CloseAsync(ModalResult.Ok("Form was submitted successfully."));
+            }
+            else
+            {
+                Console.WriteLine("ModalInstance es null");
+            }
         }
     }
 
@@ -863,6 +887,8 @@ else
         temp.Ea6 = Convert.ToInt32(Plantelseleccionado.Vqssrp);
         temp.Nrores = nrores;
         estadoAnterior = temp;
+
+        Console.WriteLine("crearhistorico");
         await _resin2Servicio.Crear(temp);
     }
 
@@ -986,23 +1012,43 @@ else
     {
 
         confirmado = true;
-        string nrores = solicitudSeleccionada.FirstOrDefault().Nrosol;
+
+        Console.WriteLine("eNTRO AL CONFIRMNAR");
+        Console.WriteLine("Entró a guardarReporte");
+        Console.WriteLine($"Plantelseleccionado: {Plantelseleccionado}");
+        Console.WriteLine($"socioSeleccionado: {socioSeleccionado}");
+        Console.WriteLine($"solicitudSeleccionada: {solicitudSeleccionada?.Count()}");
+
         if(Plantelseleccionado==null){
-            Plantelseleccionado = Planteles.OrderByDescending(x => Int32.Parse(x.Anioex)).Where(x => x.Nrocri == socioSeleccionado.Scod).First();
+            try{
+
+                Plantelseleccionado = Planteles.OrderByDescending(x => Int32.Parse(x.Anioex)).Where(x => x.Nrocri == socioSeleccionado?.Scod).First();
+            }
+            catch
+            {
+                Console.WriteLine("Era aca");
+            }
         }
-        guardarReporte();
 
-        await updatePromedios(nrores);
+        await guardarReporte();
 
-        await updateRechazos(nrores);
+        Console.WriteLine("Termno el guardar");
+        if (!string.IsNullOrWhiteSpace(solicitudSeleccionada?.FirstOrDefault()?.Nrosol))
+        {
+        string nrores =   solicitudSeleccionada?.FirstOrDefault()?.Nrosol ?? "";
 
-        await updateMovimientos(nrores, "no");
+            await updatePromedios(nrores);
 
-        await updateHembrasMachos(nrores);
+            await updateRechazos(nrores);
+
+            await updateMovimientos(nrores, "no");
+
+            await updateHembrasMachos(nrores);
 
 
-        await updateEstadoHistorico(nrores);
+            await updateEstadoHistorico(nrores);
 
+        }
         NavigationManager.NavigateTo("/reportes");
 
 
@@ -1013,8 +1059,14 @@ else
     {
         bool shouldRedirect = (Id != 0);
         Console.WriteLine(1);
-        crearHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
+        Console.WriteLine("eNTRO AL EDITAR");
+        if (!string.IsNullOrWhiteSpace(solicitudSeleccionada.FirstOrDefault()?.Nrosol))
+        {
+            Console.WriteLine(solicitudSeleccionada.FirstOrDefault().Nrosol);
+            crearHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
+        }
         Console.WriteLine(2);
+        Console.WriteLine(solicitudSeleccionada?.FirstOrDefault()?.Nrosol);
         await confirmar();
         // if(shouldRedirect){
             //send back to /reportes

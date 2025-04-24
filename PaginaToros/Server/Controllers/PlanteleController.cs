@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
+using System.Text.Json;
 
 namespace PaginaPlantels.Server.Cont{
     [Route("api/[controller]")]
@@ -203,6 +204,8 @@ namespace PaginaPlantels.Server.Cont{
             Respuesta<PlantelDTO> _Respuesta = new Respuesta<PlantelDTO>();
             try
             {
+                Console.WriteLine(JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true }));
+
                 Plantel _Plantel = _mapper.Map<Plantel>(request);
                 Plantel _PlantelParaEditar = await _plantelRepositorio.Obtener(u => u.Id == _Plantel.Id);
 
@@ -244,7 +247,7 @@ namespace PaginaPlantels.Server.Cont{
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<PlantelDTO>() { Exito = 1, Mensaje = ex.Message };
+                _Respuesta = new Respuesta<PlantelDTO>() { Exito = 0, Mensaje = ex.ToString() };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }

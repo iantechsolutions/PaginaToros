@@ -15,6 +15,6 @@ namespace PaginaToros.Server.Repositorio.Contrato
         Task<bool> Editar(Socio entidad);
         Task<IQueryable<Socio>> Consultar(Expression<Func<Socio, bool>> filtro = null);
         Task<int> CantidadTotal();
-        Task<List<Socio>> LimitadosFiltradosTodos(int skip, int take, string filtro = null);
+        Task<List<Socio>> LimitadosFiltradosTodos(int skip, int take, string expression = null);
     }
 }

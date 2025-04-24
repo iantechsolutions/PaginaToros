@@ -7,6 +7,7 @@ using PaginaToros.Server.Context;
 using AutoMapper;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Server.Repositorio.Implementacion;
+using System.Linq.Expressions;
 
 namespace PaginaToros.Server.Controllers
 {

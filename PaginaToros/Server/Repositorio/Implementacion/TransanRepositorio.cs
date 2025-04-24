@@ -4,6 +4,7 @@ using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
+using System.Text.Json;
 
 namespace PaginaToros.Server.Repositorio.Implementacion
 {
@@ -91,12 +92,18 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
+                Console.WriteLine("Entrar entro");
+                Console.WriteLine(JsonSerializer.Serialize(entidad, new JsonSerializerOptions { WriteIndented = true }));
+
                 _dbContext.Set<Transan>().Add(entidad);
                 await _dbContext.SaveChangesAsync();
                 return entidad;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine("Error al guardar en base de datos:");
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.InnerException?.Message); // si hay error interno
                 throw;
             }
         }

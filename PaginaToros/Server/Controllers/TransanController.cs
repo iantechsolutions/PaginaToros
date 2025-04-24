@@ -106,6 +106,9 @@ namespace PaginaToros.Server.Controllers
         {
             using (MailMessage mail = new MailMessage())
             {
+
+                Console.Write("Envio de mail");
+
                 try
                 {
                     // Obtener correo del socio vendedor
@@ -171,7 +174,7 @@ namespace PaginaToros.Server.Controllers
                         smtp.Send(mail);
                     }
 
-                    Console.WriteLine("Se envio");
+                    Console.WriteLine("Transferencia Enviada");
                 }
                 catch (Exception ex)
                 {
@@ -212,7 +215,6 @@ namespace PaginaToros.Server.Controllers
                     else
                     {
                         Console.WriteLine($"Correo del comprador '{request.MailCompra}' no válido");
-                        return BadRequest($"Correo del comprador '{request.MailCompra}' no válido");
                     }
 
                     if (IsValidEmail(request.MailVendedor)) // Verifica si el correo del vendedor es válido
@@ -227,7 +229,7 @@ namespace PaginaToros.Server.Controllers
 
                     // Configurar el mensaje
                     mail.From = new MailAddress("planteles@hereford.org.ar");
-                    mail.Subject = "El socio " + request.Nombre + " ha realizado una transferencia";
+                    mail.Subject = "El socio " + request.Nombre + " ha modificado una transferencia";
                     mail.Body = request.Mail;
 
                     // Configurar SMTP (Aquí debes cambiar por el servidor y las credenciales adecuadas)
@@ -255,7 +257,7 @@ namespace PaginaToros.Server.Controllers
                         await smtp.SendMailAsync(mail);
                     }
 
-                    Console.WriteLine("Cambio realizado");
+                    Console.WriteLine("Transferencia modificada");
                 }
                 catch (Exception ex)
                 {

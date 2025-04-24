@@ -191,7 +191,7 @@ namespace PaginaToros.Server.Controllers
 
                 if (_InspectParaEditar != null)
                 {
-                    //_InspectParaEditar.Icod = _Inspect.Icod;
+                    _InspectParaEditar.Icod = _Inspect.Icod;
                     _InspectParaEditar.Nombre = _Inspect.Nombre;
                     _InspectParaEditar.Direcc = _Inspect.Direcc;
                     _InspectParaEditar.Locali = _Inspect.Locali;

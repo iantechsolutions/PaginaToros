@@ -128,6 +128,7 @@ namespace PaginaToros.Server.Controllers
         public async Task<IActionResult> Guardar([FromBody] Resin2DTO request)
         {
             Respuesta<Resin2DTO> _Respuesta = new Respuesta<Resin2DTO>();
+                Console.WriteLine("Entro a aca o no? estado historico");
             try
             {
                 Resin2 _Resin2 = _mapper.Map<Resin2>(request);
@@ -152,6 +153,9 @@ namespace PaginaToros.Server.Controllers
         [Route("Editar")]
         public async Task<IActionResult> Editar([FromBody] Resin2DTO request)
         {
+
+            Console.WriteLine("Entro a aca o no? estado historico");
+
             Respuesta<Resin2DTO> _Respuesta = new Respuesta<Resin2DTO>();
             try
             {

@@ -178,6 +178,8 @@ namespace PaginaToros.Server.Controllers
         public async Task<IActionResult> Editar([FromBody] Resin1DTO request)
         {
             Respuesta<Resin1DTO> _Respuesta = new Respuesta<Resin1DTO>();
+
+            Console.WriteLine("Colo colo");
             try
             {
                 Resin1 _Resin1 = _mapper.Map<Resin1>(request);

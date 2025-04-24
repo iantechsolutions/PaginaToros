@@ -252,7 +252,7 @@ else
         if(IdSocio != null || IdSocio !=0){
             socioVendedor = socios.Where(x=>x.Id==IdSocio).FirstOrDefault();
         }
-        
+
         if (Id != 0)
         {
             try
@@ -260,6 +260,7 @@ else
                 string filtro = $"Id = {Id}";
                 var r = await _transanServicio.LimitadosFiltrados(0,1,filtro);
                 oTransan = r.List.FirstOrDefault();
+                oTransan.Fecvta = DateTime.Now;
                 socioComprador = socios.Where(x => x.Scod == oTransan.Scom).First();
                 socioVendedor = socios.Where(x => x.Scod == oTransan.Sven).First();
                 plantelOrigen = Planteles.Where(x => x.Placod == oTransan.Plant).First();
@@ -287,6 +288,10 @@ else
         oTransan.Plant = plantelOrigen.Placod;
         oTransan.NvoPla = plantelDestino.Placod;
 
+
+
+        Console.WriteLine(oTransan);
+
         if (Id == 0)
         {
 
@@ -294,21 +299,12 @@ else
 
 
             await _transanServicio.Crear(oTransan);
-            // var changeNotification = new
-            //     {
-            //         Names = user?.Claims?.FirstOrDefault(c => c.Type == "userNM")?.Value,
-            //         Apellido = user?.Claims?.FirstOrDefault(c => c.Type == "userLN")?.Value,
-            //         Email = user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value,
-            //         Tipo = "Creado",  // El tipo de la acción que estás realizando
-            //         Clase = "Transferencia",  // La clase de la acción
-            //         Detalle = "El usuario ha creado una nueva transferencia."  // Detalles adicionales sobre la acción
-            //     };
+          
+          
+            // await _plantelServicio.Editar(plantelOrigen);
+            // await _plantelServicio.Editar(plantelDestino);
 
-            // // Enviar el objeto completo al backend
-            // var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
-
-
-            var mail = $"Aviso de nueva transferencia animal  \nSocio Vendedor: {socioVendedor.Nombre} Plantel: {oTransan.Plant} \nSocio Comprador: {socioComprador.Nombre} plantel: {oTransan.NvoPla} \n Cantidad total de animales: {(oTransan.CantHem + oTransan.CantMach + oTransan.CantChem + oTransan.CantCmach)} \n Estado de las hembras: {(oTransan.Hemsta)} \n Fecha de venta: {(oTransan.Fecvta)} \n Animales incorporados: {(incorporar)}";
+            var mail = $"Aviso de nueva transferencia animal  \nSocio Vendedor: {socioVendedor.Nombre} Plantel: {oTransan.Plant} \nSocio Comprador: {socioComprador.Nombre} plantel: {oTransan.NvoPla} \nCantidad total de animales: {(oTransan.CantHem + oTransan.CantMach + oTransan.CantChem + oTransan.CantCmach)} \nEstado de las hembras: {(oTransan.Hemsta)} \nTipo de hembra: {(oTransan.Tipohem)} \nFecha de venta: {oTransan.Fecvta?.ToString("dd/MM/yyyy")} \nAnimales incorporados: {(string.Join(", ", incorporar))}";
             var request = new
             {
                 Tipo = socioVendedor.Id,
@@ -320,12 +316,18 @@ else
             };
             HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
 
+
+            //Edita los planteles
+
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
 
-            var mail = $"Aviso de edición transferencia animal \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Cantidad total de animales: {(oTransan.CantHem + oTransan.CantMach + oTransan.CantChem + oTransan.CantCmach)} \n Estado de las hembras: {(oTransan.Hemsta)} \n Fecha de venta: {(oTransan.Fecvta)} \n Animales incorporados: {(incorporar)}";
+           
+
+
+            var mail = $"Aviso de edición transferencia animal \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \nCantidad total de animales: {(oTransan.CantHem + oTransan.CantMach + oTransan.CantChem + oTransan.CantCmach)} \nEstado de las hembras: {(oTransan.Hemsta)} \nTipo de hembra: {(oTransan.Tipohem)}  \nFecha de venta: {oTransan.Fecvta?.ToString("dd/MM/yyyy")} \nAnimales incorporados: {(string.Join(", ", incorporar))}";
             var request = new
             {
                 Tipo = socioVendedor.Id,
@@ -337,7 +339,13 @@ else
             };
             await _transanServicio.Editar(oTransan);
 
+
+
+
             HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
+
+
+
 
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
@@ -372,16 +380,34 @@ else
     protected async Task updateComprador(SocioDTO socio)
     {
         socioComprador = socio;
-        var usuarioComprador = Usuarios.Where(x => x.SocioId == socio.Id).ToList().First();
-        direccionCompra = usuarioComprador.Email;
+
+        Console.WriteLine(socio.Mail);
+
+        var usuarioComprador = Usuarios.FirstOrDefault(x => x.SocioId == socio.Id);
+        if (usuarioComprador != null)
+        {
+            direccionCompra = usuarioComprador.Email;
+        }
+        else if (socio.Mail != null)
+        {
+            direccionCompra = socio.Mail;
+        }
+        else
+        {
+            direccionCompra = string.Empty;
+        }
+
+        StateHasChanged();
     }
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
+
         var result = socios.Where(x => 
             // x.Criador=="S" &&
             x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
+
     }
 
     private async Task<IEnumerable<PlantelDTO>> BusquedaPlantelesComprador(string searchText)

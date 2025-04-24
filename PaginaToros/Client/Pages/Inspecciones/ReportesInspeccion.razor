@@ -218,6 +218,8 @@ else
 
     async Task delete(int id)
     {
+
+        Console.WriteLine("Entro al eliminar");
         currentPage = grid.CurrentPage;
         var response = await _resin1Servicio.Eliminar(id);
         await grid.Reload();

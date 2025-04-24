@@ -44,6 +44,8 @@
                     Density="Density.Compact" Count="cantidad" Data="@oRespuesta.List" TItem="SocioDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
             <RadzenDataGridColumn TItem="SocioDTO" Property="Scod" Title="Nro Socio" Width="3.6%" />
+                    <RadzenDataGridColumn TItem="SocioDTO" Property="Id" Title="Nro Socio" Width="3.6%" />
+
             <RadzenDataGridColumn TItem="SocioDTO" Property="Placod" Title="Plantel" Width="3%" />
             <RadzenDataGridColumn TItem="SocioDTO" Property="Criador" Title="Activo?" Width="3.33%">
                 <Template Context="data">
@@ -234,8 +236,17 @@ else
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
+
+           
+
             foreach (var claim in user.Claims)
             {
+                Console.WriteLine($"{claim.Type}: {claim.Value}");
+            }
+
+            foreach (var claim in user.Claims)
+            {
+
                 if (claim.Type == "SocioId" && int.TryParse(claim.Value, out int parsedId))
                 {
                     usuarioId = parsedId;
@@ -243,9 +254,16 @@ else
                 }
             }
 
+            Console.WriteLine("BOLABOLA");
+
             Console.WriteLine(usuarioId);
-            var todosLosSocios = await _socioServicio.LimitadosFiltradoTodos(0, 15);
-            oRespuesta.List = todosLosSocios.List.Where(x=>x.Id == usuarioId).ToList();
+            var todosLosSocios = await _socioServicio.LimitadosFiltradoTodos(
+            skip: 0,
+            take: 15,
+            expression: $"Id == {usuarioId}");
+
+
+            oRespuesta.List = todosLosSocios.List;
             cantidad = oRespuesta.List.Count();
             Console.WriteLine(oRespuesta.List.FirstOrDefault().Nombre);
 

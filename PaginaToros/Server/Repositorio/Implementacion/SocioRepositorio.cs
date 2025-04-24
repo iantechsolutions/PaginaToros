@@ -196,17 +196,17 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             }
         }
 
-        public async Task<List<Socio>> LimitadosFiltradosTodos(int skip, int take, string filtro = null)
+        public async Task<List<Socio>> LimitadosFiltradosTodos(int skip, int take, string expression = null)
         {
             try
             {
                 List<Socio> a;
 
-                if (filtro is not null)
+                if (expression is not null)
                 {
                     a = await _dbContext.Socios
                         .Include(x => x.Provincia)
-                        .Where(filtro)
+                        .Where(expression)
                         .OrderByDescending(s => s.Criador == "S") 
                         .ThenByDescending(t => t.Id)     
                         .Skip(skip)

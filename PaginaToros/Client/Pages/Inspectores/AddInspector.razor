@@ -17,9 +17,6 @@
                     <InputText @bind-Value="@oInspector.Icod" class="form-control" placeholder="Codigo"></InputText>
                     <ValidationMessage For="(()=> oInspector.Icod)" style="color:red;" />
                 </div>
-            </div>
-            <br />
-            <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Nombre del inspector</label>
                     <InputText @bind-Value="@oInspector.Nombre" class="form-control" placeholder="Nombre"></InputText>
@@ -30,14 +27,16 @@
                     <InputText @bind-Value="@oInspector.Direcc" class="form-control" placeholder="Direccion"></InputText>
                     <ValidationMessage For="(()=> oInspector.Direcc)" style="color:red;" />
                 </div>
+            </div>
+            <br />
+            
+
+            <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Localidad</label>
                     <InputText @bind-Value="@oInspector.Locali" class="form-control" placeholder="Direccion"></InputText>
                     <ValidationMessage For="(()=> oInspector.Locali)" style="color:red;" />
                 </div>
-            </div>
-            <br />
-            <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Codigo Postal</label>
                     <InputText @bind-Value="@oInspector.Codpos" class="form-control" placeholder="Cod Postal"></InputText>
@@ -54,14 +53,18 @@
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
+
                 <div class="col-sm">
-                    <label class="col-sm">Localidad</label>
-                    <InputText @bind-Value="@oInspector.Telefo" class="form-control" placeholder="Telefono"></InputText>
+                    <label class="col-sm">Telefono del inspector</label>
+                    <InputText @bind-Value="@oInspector.Telefo" class="form-control" placeholder="Nombre"></InputText>
                     <ValidationMessage For="(()=> oInspector.Telefo)" style="color:red;" />
                 </div>
             </div>
             <br />
-
+            <div class="row" style="width=100%;">
+              
+            </div>
+            <br />
             <br />
 
             <button type="submit" class="btn btn-primary mr-2">Aceptar</button>

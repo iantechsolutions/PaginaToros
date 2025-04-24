@@ -103,6 +103,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
         public async Task<bool> Editar(Resin2 entidad)
         {
+
+            Console.WriteLine("Entro aca bien?");
             try
             {
                 _dbContext.Update(entidad);

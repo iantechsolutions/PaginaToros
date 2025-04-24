@@ -283,7 +283,8 @@ else
                 parameters.Add(nameof(AddPlantele.esSocio), esSocio);
                 var options = new ModalOptions()
                     {
-                        Size = ModalSize.ExtraLarge
+                        Size = ModalSize.ExtraLarge,
+                        DisableBackgroundCancel = true
                     };
                 var formModal = Modal.Show<AddPlantele>("Editar Plantel", parameters, options);
                 var result = await formModal.Result;

@@ -138,11 +138,13 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 await _dbContext.SaveChangesAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error en Editar: {ex.Message}");
                 throw;
             }
         }
+
         public async Task<IQueryable<Plantel>> Consultar(Expression<Func<Plantel, bool>> filtro = null)
         {
             IQueryable<Plantel> queryEntidad = filtro == null
