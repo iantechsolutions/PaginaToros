@@ -127,21 +127,31 @@
                 </div>
             </div>
             <br />
-            <div class="row" style="width=100%">
-                <div class="col-sm-2"/>
-                <div class="col-sm-8">
+            <div class="row" style="width=100%; flex">
+                <div class="col-sm">
+                    <label>Total de Vientres Seleccionados</label>
+                    <div class="card">
+                          <div class="card-body">
+                          <a>  @(@oDeclaracion.Cantv + @oDeclaracion.Cantb)</a>
+                        </div>
+                 </div>
+
+                </div>
+                <div class="col-sm">
                     <label>Tipo de servicio</label>
+                            <div >
                         <RadzenDropDown @bind-Value=@tipoTemp Data=@tipos Change="@(args => CleanSelected())" Style="width: 100%; max-width: 400px;" />
-                    </div>
-                <div class="col-sm-2"/>
-            </div>
-            <br />
-            <label>Total de Vientres Utilizados</label>
-            <div class="card">
-                <div class="card-body">
-                    <a>@(torosSeleccionados.Sum(x=>x.original.Cantv)+certificadosSeleccionados.Sum(x=>x.original.Cantv))</a>
+                            </div>
+
                 </div>
             </div>
+            <br />
+                    <label>Total de Vientres Utilizados</label>
+                    <div class="card">
+                        <div class="card-body">
+                                    <a>@(torosSeleccionados.Sum(x=>x.original.Cantv)+certificadosSeleccionados.Sum(x=>x.original.Cantv))</a>
+                        </div>
+                    </div>
             <br />
             if(tipoTemp=="Natural"){
                 <label style="text-align:center">Periodo de servicio</label>
@@ -194,6 +204,7 @@
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo" Width="7.34%" />
                                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="7.34%" />
                                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4.6%"/>
                                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hasta" Title="Fecha Nac." Width="4.6%">
@@ -237,6 +248,13 @@
                                         @data.original.Tatpart
                                     </Template>
                                 </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="3%">
+                                            <Template Context="data">
+                                                
+                                                <button class="btn" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
+
+                                            </Template>
+                                        </RadzenDataGridColumn>
                             </Columns>
                         </RadzenDataGrid>
                     </div>
@@ -296,7 +314,7 @@
                     </RadzenDataGrid>
                     </div>
                     <div class="col-sm">
-                        <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
+                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
                     <br/>
                             <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@torosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
                                             LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridToro2">
@@ -316,11 +334,17 @@
                                             <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cant Vientres" Width="3%">
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cant Vientres" Width="5%">
                                     <Template Context="data">
-                                        <RadzenNumeric @bind-Value="data.original.Cantv" class="w-100"></RadzenNumeric>
+                                        <RadzenNumeric @bind-Value="data.original.Cantv" Min="0" class="w-100"></RadzenNumeric>
                                     </Template>
                                 </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="4%">
+                                            <Template Context="data">
+                                            <button class="btn" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
+
+                                            </Template>
+                                        </RadzenDataGridColumn>
                             </Columns>
                         </RadzenDataGrid>
                     </div>
@@ -471,9 +495,14 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-
+        torosSeleccionados.Clear();
+        certificadosSeleccionados.Clear();
+        seleccionFinal.Clear();
+        deseplasViejos.Clear();
         var authState1 = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         user = authState1.User;
+
+        Console.WriteLine(Id);
 
         var r = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = r.List;
@@ -503,11 +532,13 @@ else
         }
         if (Id != 0)
         {
+
             string filtro = $"Id = {Id}";
             Console.WriteLine(1);
             var rtaD = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 1,filtro);
             Console.WriteLine(2);
             oDeclaracion = rtaD.List.FirstOrDefault();
+            var nrodecLower = oDeclaracion.Nrodec.ToLower();
             Console.WriteLine(3);
             tipoTemp = traductor[oDeclaracion.Tipse];
             Console.WriteLine(4);
@@ -519,7 +550,8 @@ else
             Console.WriteLine(7);
             Plantelseleccionado = rta.List.FirstOrDefault();
             Console.WriteLine(8);
-            filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower().Contains(\"{oDeclaracion.Nrodec}\".ToLower())";
+            filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecLower}\"";
+
             Console.WriteLine(9);
             var rt = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
             Console.WriteLine(10);
@@ -527,9 +559,12 @@ else
             filtro = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
             var torosrta = await _torosServicio.LimitadosFiltrados(0, 0, filtro);
             toros = torosrta.List.ToList();
-            filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
+            filtro = $"(Nrocert == null ? \"\" : Nrocert).ToLower() == \"{nrodecLower}\"";
+
             var certrta = await _certifsemanServicio.LimitadosFiltrados(0, 0, filtro);
             certificados = certrta.List.ToList();
+
+            Console.WriteLine(certificados);
             Console.WriteLine(11);
             if (deseplasViejos != null && deseplasViejos.Count() > 0)
             {
@@ -543,7 +578,7 @@ else
                         };
                     try
                     {
-                        desde = DateTime.ParseExact(desepla.Desde, "yyy-MM-dd", null);
+                        desde = DateTime.ParseExact(desepla.Desde, "yyyy-MM-dd", null);
                         if (desde.HasValue)
                         {
                             deseplaData.Desde = desde.Value;
@@ -552,7 +587,7 @@ else
                     catch { }
                     try
                     {
-                        hasta = DateTime.ParseExact(desepla.Hasta, "yyy-MM-dd", null);
+                        hasta = DateTime.ParseExact(desepla.Hasta, "yyyy-MM-dd", null);
                         if (hasta.HasValue)
                         {
                             deseplaData.Hasta = hasta.Value;
@@ -565,7 +600,10 @@ else
                     }
                     else
                     {
-                        torosSeleccionados.Add(deseplaData);
+                        if (!torosSeleccionados.Any(x => x.original.Id == desepla.Id))
+                        {
+                            torosSeleccionados.Add(deseplaData);
+                        }
                     }
                 }
             }
@@ -575,24 +613,29 @@ else
         {
             var resp = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 0);
             var nroDecAnterior = resp.List.OrderByDescending(x => x.Id).First().Nrodec;
-            nrodec = Int32.Parse(nroDecAnterior)+1.ToString();
+            nrodec = (Int32.Parse(nroDecAnterior)+1).ToString();
             oDeclaracion.Fecdecl = DateTime.Now;
             oDeclaracion.Nrodec = nrodec;
             oDeclaracion.Desde = DateTime.Now;
             oDeclaracion.Hasta = DateTime.Now;
             oDeclaracion.Tipse = "NA";
 
-            
+
 
         }
     }
 
     async Task Guardar()
     {
+        Console.WriteLine("1");
+        seleccionFinal.Clear();
+
         oDeclaracion.Nrocri = socioSeleccionado.Scod;
         oDeclaracion.Nroplan = Plantelseleccionado.Placod;
         oDeclaracion.Tipse = traductor[tipoTemp];
         double multiplicador = 0;
+
+        Console.WriteLine("2");
         @switch (tipoTemp)
         {
             case "Inseminacion c/celo":
@@ -609,10 +652,12 @@ else
         }
         List<CertifsemanDTO> certificadosAlterados = new();
 
+        Console.WriteLine("3");
+
         foreach(var adaptacion in torosSeleccionados)
         {
-            adaptacion.original.Desde = adaptacion.Desde.ToString("yyy-MM-dd");
-            adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyy-MM-dd");
+            adaptacion.original.Desde = adaptacion.Desde.ToString("yyyy-MM-dd");
+            adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyyy-MM-dd");
             seleccionFinal.Add(adaptacion.original);
             if(tipoTemp!="Natural"){
                 if(adaptacion.Desde<oDeclaracion.Desde){
@@ -623,10 +668,15 @@ else
                 }
             }
         }
+
+        Console.WriteLine("4");
+
         foreach (var adaptacion in certificadosSeleccionados)
         {
-            adaptacion.original.Desde = adaptacion.Desde.ToString("yyy-MM-dd");
-            adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyy-MM-dd");
+
+            Console.WriteLine("Cuantos se crean?");
+            adaptacion.original.Desde = adaptacion.Desde.ToString("yyyy-MM-dd");
+            adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyyy-MM-dd");
             seleccionFinal.Add(adaptacion.original);
             var cert = certificados.Where(x => x.Hba == adaptacion.original.Hardb).First();
             cert.NrDosi = cert.NrDosi - Convert.ToInt32(Math.Round((decimal)(adaptacion.original.Cantv * multiplicador)));
@@ -634,24 +684,41 @@ else
             oDeclaracion.Desde = adaptacion.Desde;
             oDeclaracion.Hasta = adaptacion.Hasta;
         }
+        Console.WriteLine("5");
+
         if (Id == 0)
         {
+
+            Console.WriteLine("5 id == 0");
+
             foreach(var cert in certificadosAlterados)
             {
-                await _certifsemanServicio.Editar(cert);
+                Console.WriteLine("LOOP");
+                await _certifsemanServicio.Crear(cert);
             }
-            if (oDeclaracion.Nrodec == null)
+            if (!string.IsNullOrEmpty(oDeclaracion.Nrodec) && oDeclaracion.Nrodec.Length > 10)
+            {
+                oDeclaracion.Nrodec = oDeclaracion.Nrodec.Substring(0, 15);
+            }
+
+
+            else if (string.IsNullOrEmpty(oDeclaracion.Nrodec))
             {
                 oDeclaracion.Nrodec = "0";
             }
             foreach(var dese in seleccionFinal)
             {
+                Console.WriteLine($"NRODEC: {dese.Nrodec} (Length: {dese.Nrodec?.Length})");
+
                 await _desepla3Servicio.Crear(dese);
             }
+
+            Console.WriteLine("6");
+
             await _desepla1Servicio.Crear(oDeclaracion);
 
 
-           
+
 
 
             // var mail = $"Aviso de creación de declaración S/ \n -Nro de folio: {oDeclaracion.NrFolio} \n -Tipo: {tipoTemp} \n -Servicio de Vientres PR: {oDeclaracion.Plantel} \n-Servicio de Vientres VIP: {oDeclaracion.Cantb} \n- plantel: {oDeclaracion.Plantel}";
@@ -668,34 +735,64 @@ else
         }
         else
         {
+            foreach (var cert in certificadosAlterados)
+            {
+                Console.WriteLine("LOOP");
+                await _certifsemanServicio.Crear(cert);
+            }
+
+
+            Console.WriteLine("ID !== 0 6");
+
+            var nrodecLower = oDeclaracion.Nrodec.ToLower();
+            var filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecLower}\"";
+            var certificadosExistentes = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
+
+            if (certificadosExistentes?.List != null)
+            {
+                foreach (var cert in certificadosExistentes.List)
+                {
+                    await _desepla3Servicio.Eliminar(cert.Id);
+                }
+            }
+
+            // Luego los creás nuevamente
+
+
             foreach (var dese in seleccionFinal)
             {
-                await _desepla3Servicio.Editar(dese);
+                dese.Nrodec = oDeclaracion.Nrodec;
+                await _desepla3Servicio.Crear(dese);
             }
-            
-             await _desepla1Servicio.Editar(oDeclaracion);
-            
+
+            await _desepla1Servicio.Editar(oDeclaracion);
+            Console.WriteLine("7");
+
 
             Console.WriteLine("BOSSS");
 
             Console.WriteLine(user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value);
 
-            var changeNotification = new
-            {
-                Id = user?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value,
-                // Email = user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value,
-                Tipo = "Creacion",  // El tipo de la acción que estás realizando
-                Clase = "Declaracion",  // La clase de la acción
-                Detalle = "El usuario ha creado una declaracion."  // Detalles adicionales sobre la acción
-            };
+            // var changeNotification = new
+            // {
+            //     Id = user?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value,
+            //     // Email = user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value,
+            //     Tipo = "Creacion",  // El tipo de la acción que estás realizando
+            //     Clase = "Declaracion",  // La clase de la acción
+            //     Detalle = "El usuario ha creado una declaracion."  // Detalles adicionales sobre la acción
+            // };
 
-            // Enviar el objeto completo al backend
-            var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
-            
-            
-            
+
+
+            // // Enviar el objeto completo al backend
+            // var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
+
+
+
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
+
+
     }
 
 
@@ -729,28 +826,66 @@ else
     protected async Task AddToSelectedToros(DataGridRowMouseEventArgs<TorosuniDTO> args)
     {
         var toro = args.Data;
+
+        bool yaExiste = torosSeleccionados.Any(t => t.original.Hardb == toro.Hba);
+
+        if (yaExiste)
+            return; 
+
         torosSeleccionados.Add(
-        new Desepla3Data
-        {
-            original = new Desepla3DTO
-            {
-                Hardb = toro.Hba,
-                Nrodec = nrodec,
-                Tatpart = toro.Tatpart,
-                Tipo = "toro"
-            }
-        }
+            new Desepla3Data
+                {
+                    original = new Desepla3DTO
+                    {
+                        Hardb = toro.Hba,
+                        Nrodec = nrodec,
+                        Tatpart = toro.Tatpart,
+                        Tipo = "toro"
+                    }
+                }
         );
-        try{
+
+        try
+        {
             await InvokeAsync(gridToro1.Reload);
         }
-        catch
+        catch { }
+
+        try
         {
-        }
-        try{
             await InvokeAsync(gridToro2.Reload);
         }
-        catch{}
+        catch { }
+    }
+    private async Task RemoveToro(Desepla3Data data)
+    {
+        torosSeleccionados = torosSeleccionados
+            .Where(t => t.original.Hardb != data.original.Hardb)
+            .ToList();
+
+            if(Id != 0){
+                Console.WriteLine("ENTRO");
+                    try{
+                        // await _certifsemanServicio.Eliminar(data.Id);
+                await _desepla3Servicio.Eliminar(data.Id);
+                    }
+                    catch{
+                Console.WriteLine("error");
+
+                    }
+            }
+
+        try
+        {
+            await InvokeAsync(gridToro1.Reload);
+        }
+        catch {}
+
+        try
+        {
+            await InvokeAsync(gridToro2.Reload);
+        }
+        catch {}
     }
 
     protected void AddToSelectedCertif(DataGridRowMouseEventArgs<CertifsemanDTO> args)
@@ -796,6 +931,7 @@ else
         public Desepla3DTO original {get;set;}
         public DateTime Desde { get; set; } = DateTime.Now;
         public DateTime Hasta { get; set; } = DateTime.Now;
+        public int Id { get; set;}
     }
 
 }

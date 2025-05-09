@@ -5,6 +5,7 @@ using PaginaToros.Shared.Models;
 using PaginaToros.Server.Context;
 using AutoMapper;
 using PaginaToros.Server.Repositorio.Contrato;
+using Newtonsoft.Json;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -155,7 +156,12 @@ namespace PaginaToros.Server.Controllers
             Respuesta<Desepla1DTO> _Respuesta = new Respuesta<Desepla1DTO>();
             try
             {
+                Console.WriteLine("Request recibido:");
+                Console.WriteLine(JsonConvert.SerializeObject(request));
                 Desepla1 _Desepla1 = _mapper.Map<Desepla1>(request);
+
+
+                Console.WriteLine("Entro aca?");
 
                 Desepla1 _Desepla1Creado = await _Desepla1Repositorio.Crear(_Desepla1);
 
@@ -168,7 +174,8 @@ namespace PaginaToros.Server.Controllers
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = ex.Message };
+                Console.WriteLine("ERROR: " + ex.ToString());
+                _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 0, Mensaje = ex.ToString() };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }

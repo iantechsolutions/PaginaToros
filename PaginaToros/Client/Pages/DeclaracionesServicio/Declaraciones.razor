@@ -4,6 +4,10 @@
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
 @inject IDesepla1Servicio _desepla1Servicio
+@inject ICertifsemanServicio _certifsemanServicio
+@inject IDesepla3Servicio _desepla3Servicio
+
+
 <style>
 
     .rz-cell-data,
@@ -260,11 +264,40 @@ else
     async Task delete(int id)
     {
         currentPage = grid.CurrentPage;
+
+        var deseplaSeleccionado = oRespuesta.List.FirstOrDefault(x => x.Id == id);
+        if (deseplaSeleccionado == null)
+        {
+            return;
+        }
+
+
+
+        // Obtener los certificados filtrados
+        var nrodecLower = deseplaSeleccionado.Nrodec.ToLower();
+        var filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecLower}\"";
+
+        var certificados = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
+
+        Console.WriteLine(certificados.List.Count());
+
+        if (certificados != null && certificados.List != null && certificados.List.Any())
+        {
+            foreach (var certificado in certificados.List.Where(x => x.Nrodec == deseplaSeleccionado.Nrodec))
+            {
+                await _desepla3Servicio.Eliminar(certificado.Id);
+            }
+        }
+
         var response = await _desepla1Servicio.Eliminar(id);
-        await grid.Reload();
+
         if (response)
         {
-            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
+            var eliminado = oRespuesta.List.FirstOrDefault(x => x.Id == id);
+            if (eliminado != null)
+            {
+                oRespuesta.List.Remove(eliminado);
+            }
 
             if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
             {
@@ -274,16 +307,19 @@ else
             {
                 await grid.GoToPage(currentPage);
             }
+
+            await grid.Reload();
             StateHasChanged();
         }
     }
+
 
     public async Task alertaDelete(int id)
     {
         SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
             {
                 Title = "¿Está seguro?",
-                Text = "Se eliminará este inspector",
+                Text = "Se eliminará esta declaración",
                 Icon = SweetAlertIcon.Warning,
                 ShowCancelButton = true,
                 ConfirmButtonText = "Eliminar",
@@ -315,7 +351,8 @@ else
 
                 var options = new ModalOptions()
                     {
-                        Size = ModalSize.ExtraLarge
+                        Size = ModalSize.ExtraLarge,
+                        DisableBackgroundCancel= true
                     };
                 var formModal = Modal.Show<AddDeclaracion>("Editar Declaracion", parameters, options);
                 var result = await formModal.Result;
@@ -340,7 +377,8 @@ else
         {
             var options = new ModalOptions()
                 {
-                    Size = ModalSize.ExtraLarge
+                    Size = ModalSize.ExtraLarge,
+                    DisableBackgroundCancel=true
                 };
             var parameters = new ModalParameters();
             parameters.Add(nameof(AddDeclaracion.Id), Id);

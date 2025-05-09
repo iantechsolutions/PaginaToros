@@ -137,7 +137,7 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-FoztJISyzd2UYOyv8gnTTthFpi7jB+u22OPYkV4lOfA=",
+      "hash": "sha256-dUV29UGRbLOQzRcnvy0NL18AQ086VtqXpNW4UVadmdU=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -377,7 +377,7 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-HSeKhNhM01r8W4zKyXIdwpQyaNRtZwr6yUFs030Cz+M=",
+      "hash": "sha256-f0Em3U0AyxptjG1Jbq8tkTpRgwL5hOajVspgBPR2plk=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
@@ -405,7 +405,7 @@
       "url": "_framework\/System.Collections.Concurrent.dll"
     },
     {
-      "hash": "sha256-po+Jl4asqE7aYEajZqOjFncxNi5WOcPdaKZ\/i6lL85Y=",
+      "hash": "sha256-57pRrS2cStSwXcB5qGoVZkTIIdut4aAdULmTn\/Txcp4=",
       "url": "_framework\/System.Collections.dll"
     },
     {
@@ -601,7 +601,7 @@
       "url": "_framework\/System.Runtime.CompilerServices.Unsafe.dll"
     },
     {
-      "hash": "sha256-6jaekBrswPzC\/WG3u+yD6+1oBaA1SfKjhq1HvUscrwY=",
+      "hash": "sha256-MJa0DMl7idS8egtyAIrTfL\/vzoz9egMh+AZN675Aw9c=",
       "url": "_framework\/System.Runtime.dll"
     },
     {
@@ -997,5 +997,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "CNpG1scj"
+  "version": "3p9K5P\/6"
 };

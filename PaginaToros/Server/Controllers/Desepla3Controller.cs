@@ -132,6 +132,8 @@ namespace PaginaToros.Server.Controllers
             {
                 Desepla3 _Desepla3 = _mapper.Map<Desepla3>(request);
 
+                Console.WriteLine("O entro aca??");
+
                 Desepla3 _Desepla3Creado = await _Desepla3Repositorio.Crear(_Desepla3);
 
                 if (_Desepla3Creado.Id != 0)

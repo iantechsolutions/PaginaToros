@@ -128,6 +128,8 @@ namespace PaginaToros.Server.Controllers
             Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
+
+                Console.WriteLine("ENTRO ACA");
                 Certifseman _CertifsemanEliminar = await _CertifsemanRepositorio.Obtener(u => u.Id == id);
                 if (_CertifsemanEliminar != null)
                 {

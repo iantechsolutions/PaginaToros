@@ -314,6 +314,8 @@ else
     };
     protected override async Task OnInitializedAsync()
     {
+
+        Console.WriteLine("Que es esot?");
         try{
             var r = await _inspectServicio.LimitadosFiltradosIncludeZonas(0, 0);
             Inspectores = r.List;
@@ -324,26 +326,35 @@ else
                 var list = await _solici1Servicio.LimitadosFiltrados(0, 1, filtro);
                 oSolicitud = list.List.FirstOrDefault();
 
+
+                Console.WriteLine(id);
                 var auxs = await _solici1AuxServicio.GetBySolId(id);
                 ListaSoliAux = auxs.List;
 
                 filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{oSolicitud.Nrosol}\".ToLower())";
                 var rt = await _resin1Servicio.LimitadosFiltrados(0, 1, filtro);
-
+                Console.WriteLine("ver");
                 var socioId = oSolicitud.Establecimiento.Socio.Id;
 
                 filtro = $"Id == {socioId}";
                 var sociorta = await _socioServicio.LimitadosFiltrados(0,0,filtro);
                 socio = sociorta.List.First();
 
+                Console.WriteLine("Varr");
                 foreach(var aux in ListaSoliAux){
                     aniosSoli.Add(aux.Anio);
                 }
                 var rta = await _desepla1Servicio.GetBySocioId(socioId);
                 Declaraciones = rta.List;
-                Declaraciones = Declaraciones.Where(x => x.Desde.HasValue && aniosSoli.Contains(x.Desde.Value.Year.ToString()) || x.Hasta.HasValue && aniosSoli.Contains(x.Hasta.Value.Year.ToString())).ToList();
-                Declaraciones = Declaraciones.GroupBy(x => x.Id).Select(x => x.First()).ToList();
+                Declaraciones = Declaraciones.Where(x => x.Desde.HasValue && aniosSoli.Contains(x.Desde.Value.Year.ToString())
+                || x.Hasta.HasValue && aniosSoli.Contains(x.Hasta.Value.Year.ToString())).ToList();
+
+                Declaraciones = Declaraciones.GroupBy(x => x.Id).Select(x => x.FirstOrDefault()).Where(x => x != null).ToList();
+
+
                 disponibles = Math.Round(Declaraciones.Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0));
+
+                Console.WriteLine(rt.List.Count());
                 if (rt.List.Count > 0)
                 {  
                     var inspecId = rt.List.FirstOrDefault().Icod;
@@ -355,21 +366,17 @@ else
                     Estable? est = oSolicitud.Establecimiento;
                     if (est != null)
                     {
-                        Console.WriteLine(Inspectores);
-                        foreach( var ins in Inspectores){
-                            Console.WriteLine("Zonas");
-                            Console.WriteLine(JsonSerializer.Serialize(ins));
-                        }
-                        InspectDTO inspec = Inspectores.Where(inspector => inspector.Zonas.Any(zona => zona.Zcod == est.Codzon)).First();
+                        
+                        var inspec = Inspectores.FirstOrDefault(inspector => inspector.Zonas.Any(zona => zona.Zcod == est.Codzon));
                         if (inspec != null)
                         {
                             Inspector = inspec;
                         }
                         else
                         {
-                            if (Inspectores.Where(x => x.Provincia.Pcod == socio.Provincia.Pcod).Count() > 0)
+                            if (Inspectores.Any(x => x.Provincia.Pcod == socio.Provincia.Pcod))
                             {
-                                Inspector = Inspectores.Where(x => x.Provincia.Pcod == socio.Provincia.Pcod).First();
+                                Inspector = Inspectores.First(x => x.Provincia.Pcod == socio.Provincia.Pcod);
                             }
                             else
                             {
@@ -379,7 +386,7 @@ else
                     }
                     else{
 
-                        if (Inspectores.Where(x=> x.Provincia.Pcod == socio.Provincia.Pcod).Count() > 0)
+                        if (Inspectores.Any(x => x.Provincia.Pcod == socio.Provincia.Pcod))
                         {
                             Inspector = Inspectores.Where(x => x.Provincia.Pcod == socio.Provincia.Pcod).First();
                         }

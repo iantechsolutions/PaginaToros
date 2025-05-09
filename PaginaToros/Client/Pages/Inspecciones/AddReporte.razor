@@ -47,8 +47,8 @@
             <label>Solicitudes</label>
             @if (socioSeleccionado != null)
             {
-                    if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
-                    {
+                if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
+                {
 
                  <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Nrosol" class="w-100"></RadzenNumeric>
                  }else{
@@ -757,12 +757,11 @@ else
                 var rt = await _socioServicio.LimitadosFiltrados(0,1,filtro);
                 socioSeleccionado = rt.List.Where(x => x.Scod == oResin1.Scod).FirstOrDefault() ?? new SocioDTO();
 
-                filtro = $"(Nrosol == null ? \"\" : Nrosol).ToLower().Contains(\"{oResin1.Nrores}\".ToLower())";
+                string nrores = oResin1.Nrores?.ToLower() ?? "";
+                 filtro = $"(Nrosol == null ? \"\" : Nrosol).ToLower().Contains(\"{nrores}\")";
 
-                // var sol = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-                // solicitudSeleccionada = sol.List.Where(x=>x.Nrosol==oResin1.Nrores).ToList();
                 var sol = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-                solicitudSeleccionada = sol.List.Where(x => x.Nrosol == oResin1.Nrores).ToList();
+                solicitudSeleccionada = sol.List;
 
 
                 filtro = $"(Ecod == null ? \"\" : Ecod).ToLower().Contains(\"{oResin1.Estcod}\".ToLower())";
@@ -1060,10 +1059,11 @@ else
         bool shouldRedirect = (Id != 0);
         Console.WriteLine(1);
         Console.WriteLine("eNTRO AL EDITAR");
-        if (!string.IsNullOrWhiteSpace(solicitudSeleccionada.FirstOrDefault()?.Nrosol))
+        if (solicitudSeleccionada != null && solicitudSeleccionada.Any() &&
+            !string.IsNullOrWhiteSpace(solicitudSeleccionada.First().Nrosol))
         {
-            Console.WriteLine(solicitudSeleccionada.FirstOrDefault().Nrosol);
-            crearHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
+            Console.WriteLine(solicitudSeleccionada.First().Nrosol);
+            crearHistorico(solicitudSeleccionada.First().Nrosol);
         }
         Console.WriteLine(2);
         Console.WriteLine(solicitudSeleccionada?.FirstOrDefault()?.Nrosol);
