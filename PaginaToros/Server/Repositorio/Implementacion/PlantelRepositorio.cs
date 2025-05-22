@@ -167,13 +167,28 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         }
         public async Task<List<Plantel>> ObtenerPorAnios(int anio1, int anio2)
         {
-            try { 
-            return await _dbContext.Planteles.OrderByDescending(t => t.Id).Include(p=>p.Socio).Where(x => !string.IsNullOrEmpty(x.Anioex) && Convert.ToInt32(x.Anioex) >= anio1 && Convert.ToInt32(x.Anioex) <= anio2).ToListAsync();
+            try
+            {
+                var todos = await _dbContext.Planteles
+                    .Include(p => p.Socio)
+                    .OrderByDescending(t => t.Id)
+                    .ToListAsync();
+
+                var filtrados = todos
+                    .Where(x =>
+                        !string.IsNullOrEmpty(x.Anioex) &&
+                        int.TryParse(x.Anioex, out var anio) &&
+                        anio >= anio1 && anio <= anio2)
+                    .ToList();
+
+                return filtrados;
             }
             catch
             {
                 throw;
             }
         }
+
+
     }
 }

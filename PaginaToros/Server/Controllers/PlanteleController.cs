@@ -124,25 +124,34 @@ namespace PaginaPlantels.Server.Cont{
         [Route("ObtenerPorAnios")]
         public async Task<IActionResult> ObtenerPorAnios(int anio1, int anio2)
         {
+            var _ResponseDTO = new Respuesta<List<PlantelDTO>>();
 
-            Respuesta<List<PlantelDTO>> _ResponseDTO = new Respuesta<List<PlantelDTO>>();
+            if (anio1 > anio2)
+            {
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>()
+                {
+                    Exito = 0,
+                    Mensaje = "El primer año debe ser menor o igual al segundo.",
+                    List = null
+                };
+                return BadRequest(_ResponseDTO);
+            }
 
             try
             {
                 var a = await _plantelRepositorio.ObtenerPorAnios(anio1, anio2);
-
                 var listaFiltrada = _mapper.Map<List<PlantelDTO>>(a);
 
-                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
-
-                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Éxito", List = listaFiltrada };
+                return Ok(_ResponseDTO);
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 0, Mensaje = ex.Message, List = null };
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
+
 
         [HttpDelete]
         [Route("Eliminar/{id:int}")]

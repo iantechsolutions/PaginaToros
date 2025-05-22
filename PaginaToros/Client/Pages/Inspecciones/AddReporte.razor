@@ -24,6 +24,8 @@
 
 @if(!cargando){
 <div>
+        <button class="bm-title" @onclick="ComeBack"><FeatherArrowLeft Color="Black"></FeatherArrowLeft></button>
+
     <div class="row" style="width=100%;">
         <div class="col-md-1" />
         <div class="col-md-3">
@@ -45,19 +47,19 @@
 
         <div class="row">
             <label>Solicitudes</label>
-            @if (socioSeleccionado != null)
-            {
-                if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
+               @*  if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
                 {
 
-                 <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Nrosol" class="w-100"></RadzenNumeric>
-                 }else{
+                    <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Nrosol" class="w-100"></RadzenNumeric>
+                    }else{
                     <RadzenText  Disabled="true"  class="w-100">
-                    Sin solicitudes
+                    Sin solicitudes22
                     </RadzenText>  
-                 }
+                    }
             }
             else
+            { *@
+            @if (solicitudSeleccionada == null)
             {
             <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@solicitudes.Where(x=>establecimientos.Where(t => t.Codsoc == socioSeleccionado.Scod).Any(t => t.Ecod == x.Codest) && !resultados.Any(r=>r.Nrores==x.Nrosol)).ToList()" TItem="Solici1DTO"
                     LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" SelectionMode="DataGridSelectionMode.Single" ValueChanged="(e)=>onSolicitudChange(e)" >
@@ -92,7 +94,7 @@
                     </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
-            }
+
             <br/>
             <div class="row">
                 <div class="col-sm-9"/>
@@ -100,8 +102,14 @@
                     <br/>
                         <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick="()=>{ResultWithoutSolicitud();}" disabled=@(solicitudSeleccionada != null)>Resultado sin solicitud</button>
                 </div>
+                    </div>
+                }
+                else
+                {
+                    <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Nrosol" class="w-100"></RadzenNumeric>
+
+                }
             </div>
-        </div>
     }
         @if (socioSeleccionado != null)
         {
@@ -442,7 +450,7 @@
                                                 <td>@(hemyma.HppAs + hemyma.HdpAs)</td>
                                                 <td>@((hemyma.HdpM + hemyma.HdpAs) + (hemyma.HppM + hemyma.HppAs))</td>
                                                 <td>@(hemyma.Hgvb + hemyma.Hgqb)</td>
-                                                <td>@((hemyma.Hdp - hemyma.HdpM - hemyma.HdpAs) + (hemyma.Hpp - hemyma.HppM - hemyma.HppAs) + (hemyma.Hgvb - hemyma.Hgvp) + (hemyma.Hgqb - hemyma.Hgqp))</td>
+                                                <td>@((-hemyma.Hdp - hemyma.HdpM - hemyma.HdpAs) + (hemyma.Hpp - hemyma.HppM - hemyma.HppAs) + (hemyma.Hgvb - hemyma.Hgvp) + (hemyma.Hgqb - hemyma.Hgqp))</td>
                                                 <td style="background-color: #fff;"></td>
                                             </tr>
                                         </tbody>
@@ -1053,7 +1061,10 @@ else
 
         //cambiar todos los gets a unicos por nrosol
     }
-
+    async Task ComeBack()
+    {
+        nav.NavigateTo("/reportes");
+    }
     async Task confirmarNuevo()
     {
         bool shouldRedirect = (Id != 0);
