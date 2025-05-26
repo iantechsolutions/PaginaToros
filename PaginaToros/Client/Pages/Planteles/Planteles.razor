@@ -33,30 +33,44 @@
 
 
 <button style="position:relative;left:3.33%" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="()=>add(0,false)">Agregar Plantel</button>
-
+    <br />
+        <br />
+        
 @if (oRespuesta.List != null)
 {
-     <div class="row">
-        <div class="col-3"/>
-        <div class="col-4">
-          @*   <BlazoredTypeahead SearchMethod="BusquedaSocios" class="max-w-sm" placeholder="Buscar por socio" EnableDropDown="true" @bind-Value="socioSeleccionado">
-                <SelectedTemplate Context="eleccion">
-                    @eleccion.Nombre
-                </SelectedTemplate>
-                <ResultTemplate Context="eleccion">
-                    @eleccion.Nombre
-                </ResultTemplate>
-            </BlazoredTypeahead>
-           <button style="outline:none; float: right;margin-right:3%;height:100%;" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-           *@  
-        </div>
-        <div class="col-5">
+            <div class="row mb-3">
+                <div class="col-2"></div>
+                <div class="col-10">
+                    <div class="d-flex align-items-center gap-3">
+                        <BlazoredTypeahead SearchMethod="BusquedaSocios"
+                                           class="form-control"
+                                           placeholder="Buscar por socio"
+                                           EnableDropDown="true"
+                                           Value="socioSeleccionado"
+                                           ValueChanged="EventCallback.Factory.Create<SocioDTO>(this, OnSocioSeleccionadoChanged)"
+                                           ValueExpression="(() => socioSeleccionado)">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
 
-            <button class="font-bold px-8 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="outline:none; float: right;margin-right:3%;height:100%;" @onclick="()=>BuscarPorSocio()">Buscar</button>
+                        <button class="font-bold px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
+                                @onclick="()=>BuscarPorSocio()">
+                            Buscar
+                        </button>
 
-        </div>
-     </div>
-    <br />
+                        <button class="font-bold px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
+                                @onclick="() => CambiarModoFiltro()">
+                            <FeatherFilter Color="Black"></FeatherFilter>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
     <br />
     <RadzenDataGrid class="tablacontent" style="position:relative;width:93.5%;left:3.33%" IsLoading="isLoading" LoadData="LoadData" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                     AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
@@ -367,6 +381,12 @@ else
             await grid.GoToPage(currentPage);
         }
     }
+    private async Task OnSocioSeleccionadoChanged(SocioDTO value)
+    {
+        socioSeleccionado = value;
+        await BuscarPorSocio();
+    }
+
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;

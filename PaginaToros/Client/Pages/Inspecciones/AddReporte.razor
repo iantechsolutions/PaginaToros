@@ -100,13 +100,16 @@
                 <div class="col-sm-9"/>
                 <div class="col-sm-3">
                     <br/>
-                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick="()=>{ResultWithoutSolicitud();}" disabled=@(solicitudSeleccionada != null)>Resultado sin solicitud</button>
                 </div>
                     </div>
                 }
                 else
                 {
+                    if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
+                    {
+                        
                     <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Nrosol" class="w-100"></RadzenNumeric>
+                    }
 
                 }
             </div>
@@ -243,8 +246,16 @@
            
         </div>
         <br />
-        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">@(Id == 0 ? "Guardar Datos" : "Actualizar datos")</button>
-        <br />
+            @if(solicitudSeleccionada != null){
+
+                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">@(Id == 0 ? "Guardar Datos" : "Actualizar datos")</button>
+            }
+            else
+            {
+                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick="()=>{ResultWithoutSolicitud();}" disabled=@(solicitudSeleccionada != null)>Resultado sin solicitud</button>
+
+            }
+            <br />
         <br />
          @if (confirmado){
             <RadzenTabs Class="w-100 mx-auto" RenderMode="TabRenderMode.Server">
@@ -275,7 +286,6 @@
                                                 <th style="background-color: #FFFFFF;">VACAS</th>
                                                 <th style="background-color: #FFFFFF;">VAQ c/Servicio o preñadas</th>
                                                 <th style="background-color: #FFFFFF;">VAQ s/Servicio</th>
-                                                <th/>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -289,7 +299,6 @@
                                                 <td>@estadoAnterior.Ea4</td>
                                                 <td>@estadoAnterior.Ea5</td>
                                                 <td>@estadoAnterior.Ea6</td>
-                                                <td/>
                                             </tr>
                                             @foreach (var mov in mtos)
                                             {
@@ -385,7 +394,7 @@
                                                     <td/>
                                                 }
                                                 else{
-                                                        <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqpr"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                        <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqpr"))'><FeatherEdit Color="green" /></button></td>
                                                 }
                                             </tr>
                                             <!-- Otros PR -->
@@ -403,7 +412,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <td><button class="btn" title="Ver info @hemyma.Id" @onclick='() => (agregarHembraMacho("otrospr"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                    <td><button class="btn" title="Ver info @hemyma.Id" @onclick='() => (agregarHembraMacho("otrospr"))'><FeatherEdit Color="green" /></button></td>
                                                 }
                                             </tr>
                                             <!-- Vacas VIP -->
@@ -421,7 +430,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vacvip"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                    <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vacvip"))'><FeatherEdit Color="green" /></button></td>
                                                 }
                                             </tr>
                                             <!-- Vaq VIP -->
@@ -439,7 +448,7 @@
                                                 }
                                                 else
                                                 {
-                                                        <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqvip"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                        <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqvip"))'><FeatherEdit Color="green" /></button></td>
                                                     }
                                             </tr>
                                             <!-- TOTALES -->
@@ -492,7 +501,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <td style="background-color: #fff;"><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("scp"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                    <td style="background-color: #fff;"><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("scp"))'><FeatherEdit Color="green" /></button></td>
                                                 }
                                                 
                                             </tr>
@@ -511,7 +520,7 @@
                                                 }
                                                 else
                                                 {
-                                                        <td style="background-color: #fff;"><button disabled="@esSocio" class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("cp"))'><FeatherInfo Size="16" Color="blue" /></button></td>
+                                                        <td style="background-color: #fff;"><button disabled="@esSocio" class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("cp"))'><FeatherEdit Color="green" /></button></td>
                                                     }
                                             </tr>
                                                 <tr style="background-color: #FF9966;">
@@ -766,10 +775,21 @@ else
                 socioSeleccionado = rt.List.Where(x => x.Scod == oResin1.Scod).FirstOrDefault() ?? new SocioDTO();
 
                 string nrores = oResin1.Nrores?.ToLower() ?? "";
-                 filtro = $"(Nrosol == null ? \"\" : Nrosol).ToLower().Contains(\"{nrores}\")";
+                filtro = $"(Nrosol == null ? \"\" : Nrosol).ToLower().Contains(\"{nrores}\")";
 
                 var sol = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-                solicitudSeleccionada = sol.List;
+                if ((solicitudSeleccionada == null || solicitudSeleccionada.Count == 0) && !string.IsNullOrEmpty(oResin1.Nrores))
+                {
+                    solicitudSeleccionada = new List<Solici1DTO?>
+                    {
+                        new Solici1DTO
+                        {
+                            Nrosol = oResin1.Nrores,
+                            Codest = oResin1.Estcod,
+                            Fecsol = oResin1.Freali
+                        }
+                    };
+                }
 
 
                 filtro = $"(Ecod == null ? \"\" : Ecod).ToLower().Contains(\"{oResin1.Estcod}\".ToLower())";
@@ -779,15 +799,18 @@ else
                 inspectorSeleccionado = Inspects.Where(x => x.Icod == oResin1.Icod).FirstOrDefault();
 
 
+                if (solicitudSeleccionada?.FirstOrDefault() != null)
+                {
                 await updateEstadoHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
 
                 await updatePromedios(solicitudSeleccionada.FirstOrDefault().Nrosol);
 
-                await updateRechazos(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                    await updateRechazos(solicitudSeleccionada.First().Nrosol);
 
                 await updateMovimientos(solicitudSeleccionada.FirstOrDefault().Nrosol, "no");
 
                 await updateHembrasMachos(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                }
 
                 confirmado = true;
                 try
@@ -822,6 +845,8 @@ else
             oRespuesta.Mensaje = ex.Message;
         }
         cargando = false;
+        Console.WriteLine("LOLOLO");
+        Console.WriteLine(confirmado);
 
     }
 
@@ -1056,7 +1081,6 @@ else
             await updateEstadoHistorico(nrores);
 
         }
-        NavigationManager.NavigateTo("/reportes");
 
 
         //cambiar todos los gets a unicos por nrosol
@@ -1081,7 +1105,6 @@ else
         await confirmar();
         // if(shouldRedirect){
             //send back to /reportes
-            NavigationManager.NavigateTo("/reportes");
         // }
     }
 
@@ -1295,7 +1318,7 @@ else
 
     async Task deleteRechazo(int id)
     {
-        await Http.DeleteAsync($"/api/Resin8/{id}");
+        await Http.DeleteAsync($"/api/Resin8/Eliminar/{id}");
         await updateRechazos(solicitudSeleccionada.FirstOrDefault().Nrosol);
     }
 

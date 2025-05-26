@@ -14,9 +14,24 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Codigo de Inspector</label>
-                    <InputText @bind-Value="@oInspector.Icod" class="form-control" placeholder="Codigo"></InputText>
-                    <ValidationMessage For="(()=> oInspector.Icod)" style="color:red;" />
+
+                    @if (oInspector.Id != 0)
+                    {
+                        <input value="@oInspector.Icod"
+                               class="form-control"
+                               placeholder="Codigo"
+                               disabled
+                               style="background-color: #e9ecef;" />
+                    }
+                    else
+                    {
+                        <InputText @bind-Value="@oInspector.Icod"
+                                   class="form-control"
+                                   placeholder="Codigo" />
+                        <ValidationMessage For="(() => oInspector.Icod)" style="color:red;" />
+                    }
                 </div>
+
                 <div class="col-sm">
                     <label class="col-sm">Nombre del inspector</label>
                     <InputText @bind-Value="@oInspector.Nombre" class="form-control" placeholder="Nombre"></InputText>
