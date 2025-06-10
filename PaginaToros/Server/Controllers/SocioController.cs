@@ -164,9 +164,7 @@ namespace PaginaToros.Server.Controllers
             try
             {
                 Socio _Socio = _mapper.Map<Socio>(request);
-                //var SocL = await _SocioRepositorio.Lista(0, 1);
-                //Socio _SocioViejo = SocL.FirstOrDefault();
-                //_Socio.Scod = (Int32.Parse(_SocioViejo.Scod) + 1).ToString("D4");
+                
                 Socio _SocioCreado = await _SocioRepositorio.Crear(_Socio);
 
                 if (_SocioCreado.Id != 0)
@@ -178,9 +176,18 @@ namespace PaginaToros.Server.Controllers
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = ex.Message };
+                var errorMessage = ex.Message;
+                if (ex.InnerException != null)
+                    errorMessage += " | Inner: " + ex.InnerException.Message;
+
+                _Respuesta = new Respuesta<SocioDTO>()
+                {
+                    Exito = 1,
+                    Mensaje = errorMessage
+                };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
+
         }
 
         [HttpPut]

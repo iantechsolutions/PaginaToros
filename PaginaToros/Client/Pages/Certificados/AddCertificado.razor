@@ -207,41 +207,39 @@ else
     }
     async Task Guardar()
     {
-        Console.WriteLine("Se envia");
+        if (socioSeleccionado == null || centroSeleccionado == null)
+        {
+            Console.WriteLine("ERROR: Socio o Centro no seleccionado.");
+            return;
+        }
+
         oCertifseman.Nrocri = socioSeleccionado.Scod;
         oCertifseman.Nrocen = centroSeleccionado.Nrocen;
         oCertifseman.Apodo = tipoToro;
 
         if (Id == 0)
         {
-            try{
+            try
+            {
                 oCertifseman.NrDosi = Int32.Parse(oCertifseman.NrDosiOr);
-
             }
             catch
             {
                 oCertifseman.NrDosi = 0;
-
             }
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(oCertifseman));
 
             await _certifsemanServicio.Crear(oCertifseman);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
-
             await _certifsemanServicio.Editar(oCertifseman);
 
-
-            Console.WriteLine("cAMBIO CERTIFICADO");
-            Console.WriteLine("cAMBIO CERTIFICADO");
-
-
             var mail = $"Aviso de edición a un certificado\n" +
-          $"certificado: {oCertifseman.Nrocri}\n" +
-          $"Socio: {oCertifseman.Socio}\n" +
-          $"Tipo: Edición\n";
-
+                       $"certificado: {oCertifseman.Nrocri}\n" +
+                       $"Socio: {oCertifseman.Socio}\n" +
+                       $"Tipo: Edición\n";
 
             var request = new
             {
@@ -250,11 +248,12 @@ else
                 Mail = mail,
                 Direccion = oCertifseman.Apodo
             };
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
 
+            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
             await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
+
     async Task cancel()
     {
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));

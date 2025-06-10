@@ -1,4 +1,7 @@
-﻿@using Blazored.Typeahead
+﻿@page "/declaraciones/{Id:int}"
+
+
+@using Blazored.Typeahead
 @using PaginaToros.Client.Servicios.Contrato;
 @inject IDesepla1Servicio _desepla1Servicio
 @inject IDesepla3Servicio _desepla3Servicio
@@ -28,25 +31,40 @@
 }
 
 </style>
+        <button class="bm-title" @onclick="ComeBack"><FeatherArrowLeft Color="Black"></FeatherArrowLeft></button>
 @if(socios.Count>0){
 <div class="card">
     <div class="card-body">
         <EditForm Model="@oDeclaracion" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
             <div class="row" style="width=100%;">
-                <div class="col-sm"/>
                 <div class="col-sm">
-                    <label>Socio</label>
-                        <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioSeleccionado" ValueChanged="UpdateValores" ValueExpression="@(() => socioSeleccionado)" Disabled="esSocio">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
+                    <label>Socio @(socioSeleccionado?.Nombre)</label>
+                        @if (!esSocio)
+                        {
+                            <BlazoredTypeahead SearchMethod="BusquedaSocios"
+                                               placeholder="Busque socio por nombre"
+                                               EnableDropDown="true"
+                                               TItem="SocioDTO"
+                                               TValue="SocioDTO"
+                                               Value="socioSeleccionado"
+                                               ValueChanged="UpdateValores"
+                                               ValueExpression="@(() => socioSeleccionado)">
+                                <SelectedTemplate Context="eleccion">
+                                    @eleccion.Nombre
+                                </SelectedTemplate>
+                                <ResultTemplate Context="eleccion">
+                                    @eleccion.Nombre
+                                </ResultTemplate>
+                            </BlazoredTypeahead>
+                        }
                 </div>
-                <div class="col-sm"/>
+
+                    <div class="col-sm text-end">
+                        <button type="button" @onclick="GenerarOtra" class="btn btn-light">Generar otra declaración</button>
+
+                        <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+                    </div>
             </div>
             <br />
             @if(socioSeleccionado!=null){
@@ -84,7 +102,7 @@
                         </div>
                     </div>
                     <div class="col-sm">
-                        <label>Cantidad de Vientres PR</label>
+                        <label>Cantidad de Vientres VIP</label>
                         <div class="card">
                             <div class="card-body">
                                 <a>@((Plantelseleccionado.Varepr ?? 0) + (Plantelseleccionado.Vqcsrp ?? 0) + (Plantelseleccionado.Vqssrp ?? 0))</a>
@@ -127,31 +145,32 @@
                 </div>
             </div>
             <br />
-            <div class="row" style="width=100%; flex">
-                <div class="col-sm">
-                    <label>Total de Vientres Seleccionados</label>
-                    <div class="card">
-                          <div class="card-body">
-                          <a>  @(@oDeclaracion.Cantv + @oDeclaracion.Cantb)</a>
-                        </div>
-                 </div>
-
-                </div>
-                <div class="col-sm">
-                    <label>Tipo de servicio</label>
-                            <div >
-                        <RadzenDropDown @bind-Value=@tipoTemp Data=@tipos Change="@(args => CleanSelected())" Style="width: 100%; max-width: 400px;" />
+                    <div class="row" style="width=100%">
+                        <div class="col-sm">
+                            <label>Total de Vientres Seleccionados</label>
+                            <div class="card">
+                                <div class="card-body">
+                                    <a>@(@oDeclaracion.Cantv + @oDeclaracion.Cantb)</a>
+                                </div>
                             </div>
-
-                </div>
-            </div>
-            <br />
-                    <label>Total de Vientres Utilizados</label>
-                    <div class="card">
-                        <div class="card-body">
-                                    <a>@(torosSeleccionados.Sum(x=>x.original.Cantv)+certificadosSeleccionados.Sum(x=>x.original.Cantv))</a>
+                        </div>
+                        <div class="col-sm">
+                            <label>Total de Vientres Utilizados</label>
+                            <div class="card">
+                                <div class="card-body">
+                                    <a>@(torosSeleccionados.Sum(x => x.original.Cantv) + certificadosSeleccionados.Sum(x => x.original.Cantv))</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm">
+                            <label>Tipo de servicio</label>
+                            <RadzenDropDown @bind-Value=@tipoTemp
+                                            Data=@tipos
+                                            Change="@(args => CleanSelected())"
+                                            Style="width: 100%; max-width: 400px;" />
                         </div>
                     </div>
+
             <br />
             if(tipoTemp=="Natural"){
                 <label style="text-align:center">Periodo de servicio</label>
@@ -430,8 +449,7 @@
             }
             <br />
             
-            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
-            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+            
             }
         </EditForm>
     </div>
@@ -439,13 +457,27 @@
 }
 else
 {
-    <br />
-    <center>
-        <div class="mb-2">
-            <br />
-            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+    if (esSocio && socioSeleccionado == null)
+    {
+        <div class="alert alert-danger text-center mt-4">
+            <h4>No se encontró un socio asociado a esta cuenta.</h4>
+            <p>Por favor, cree un socio para poder continuar.</p>
         </div>
-    </center>
+    }
+    else
+    {
+        <br />
+        <center>
+            <div class="mb-2">
+                <br />
+                <RadzenProgressBar style="position:relative;width:93.5%"
+                                   Value="100"
+                                   ShowValue="false"
+                                   ProgressBarStyle="ProgressBarStyle.Primary"
+                                   Mode="ProgressBarMode.Indeterminate" />
+            </div>
+        </center>
+    }
 }
 
 @code {
@@ -457,9 +489,12 @@ else
     RadzenDataGrid<Desepla3Data> gridToro2;
     RadzenDataGrid<Desepla3Data> gridCertif;
 
-    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
-    [Parameter] public bool esSocio { get; set; }
+    
+    
+    bool esSocio = false;
+
+
     public string nrodec = "";
     SocioDTO? socioSeleccionado = null;
     PlantelDTO? Plantelseleccionado = null;
@@ -499,37 +534,40 @@ else
         certificadosSeleccionados.Clear();
         seleccionFinal.Clear();
         deseplasViejos.Clear();
-        var authState1 = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        user = authState1.User;
-
-        Console.WriteLine(Id);
+      
 
         var r = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = r.List;
-        Console.WriteLine(esSocio);
-        if (esSocio)
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState.User;
+         esSocio = await UserHasRole("Socio");
+
+       if (esSocio) 
         {
-            var usuarioId = 0;
-            var authState = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
-            var user = authState.User;
-            foreach (var claim in user.Claims)
+            var socioIdClaim = user.Claims.FirstOrDefault(c => c.Type == "SocioId")?.Value;
+            if (int.TryParse(socioIdClaim, out int socioId))
             {
-                if (claim.Type == "SocioId")
+                string filtro = $"Id = {socioId}";
+                var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
+                socioSeleccionado = socio.List.FirstOrDefault();
+
+                if (socioSeleccionado != null)
                 {
-                    usuarioId = Int32.Parse(claim.Value);
-                    Console.WriteLine(usuarioId);
+                    await UpdateValores(socioSeleccionado);
                 }
-
+                else
+                {
+                    Console.WriteLine("No se encontró un socio para el usuario actual.");
+                }
             }
-            string filtro = $"Id = {usuarioId}";
-            var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
-
-            socioSeleccionado = socio.List.First();
-            UpdateValores(socioSeleccionado);
-            StateHasChanged();
-            Console.WriteLine("se setea");
         }
+        else
+        {
+            var res = await _socioServicio.LimitadosFiltrados(0, 0);
+            socios = res.List;
+        }
+
+
         if (Id != 0)
         {
 
@@ -624,6 +662,17 @@ else
 
         }
     }
+    private async Task<bool> UserHasRole(string role)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authenticationState.User.IsInRole(role);
+    }
+    async Task GenerarOtra()
+    {
+        await Guardar(); 
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+    }
+
 
     async Task Guardar()
     {
@@ -731,7 +780,7 @@ else
             // };
             // HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
 
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            Navigation.NavigateTo("/declaraciones"); // Volvé al listado si cancela
         }
         else
         {
@@ -789,7 +838,7 @@ else
 
 
 
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            Navigation.NavigateTo("/declaraciones"); // Volvé al listado si cancela
         }
 
 
@@ -798,7 +847,10 @@ else
 
 
 
-
+    async Task ComeBack()
+    {
+        nav.NavigateTo("/declaraciones");
+    }
 
     public class ChangeNotificationModel
     {
@@ -811,7 +863,8 @@ else
 
     async Task cancel()
     {
-        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+        Navigation.NavigateTo("/declaraciones"); 
+
 
     }
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)

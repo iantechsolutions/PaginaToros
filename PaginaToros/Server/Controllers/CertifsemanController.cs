@@ -152,29 +152,48 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPost]
-        [Route("Guardar")]
+        [HttpPost("Guardar")]
         public async Task<IActionResult> Guardar([FromBody] CertifsemanDTO request)
         {
-            Respuesta<CertifsemanDTO> _Respuesta = new Respuesta<CertifsemanDTO>();
+            if (request == null)
+            {
+                return BadRequest(new Respuesta<CertifsemanDTO>() { Exito = 0, Mensaje = "Request vacío." });
+            }
+
+            Respuesta<CertifsemanDTO> _Respuesta = new();
             try
             {
-                Certifseman _Certifseman = _mapper.Map<Certifseman>(request);
+                var _Certifseman = _mapper.Map<Certifseman>(request);
 
-                Certifseman _CertifsemanCreado = await _CertifsemanRepositorio.Crear(_Certifseman);
-                Console.WriteLine("Llega aca");
+                var _CertifsemanCreado = await _CertifsemanRepositorio.Crear(_Certifseman);
+
                 if (_CertifsemanCreado.Id != 0)
-                    _Respuesta = new Respuesta<CertifsemanDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<CertifsemanDTO>(_CertifsemanCreado) };
+                {
+                    _Respuesta = new Respuesta<CertifsemanDTO>()
+                    {
+                        Exito = 1,
+                        Mensaje = "ok",
+                        List = _mapper.Map<CertifsemanDTO>(_CertifsemanCreado)
+                    };
+                }
                 else
-                    _Respuesta = new Respuesta<CertifsemanDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+                {
+                    _Respuesta = new Respuesta<CertifsemanDTO>() { Exito = 0, Mensaje = "No se pudo crear el certificado." };
+                }
 
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                return Ok(_Respuesta);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<CertifsemanDTO>() { Exito = 1, Mensaje = ex.Message };
+                _Respuesta = new Respuesta<CertifsemanDTO>()
+                {
+                    Exito = 0,
+                    Mensaje = ex.InnerException?.Message ?? ex.Message
+                };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
+
 
         [HttpPut]
         [Route("Editar")]

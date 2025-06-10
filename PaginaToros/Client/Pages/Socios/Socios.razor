@@ -44,7 +44,6 @@
                     Density="Density.Compact" Count="cantidad" Data="@oRespuesta.List" TItem="SocioDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
             <RadzenDataGridColumn TItem="SocioDTO" Property="Scod" Title="Nro Socio" Width="3.6%" />
-                    <RadzenDataGridColumn TItem="SocioDTO" Property="Id" Title="Nro Socio" Width="3.6%" />
 
             <RadzenDataGridColumn TItem="SocioDTO" Property="Placod" Title="Plantel" Width="3%" />
             <RadzenDataGridColumn TItem="SocioDTO" Property="Criador" Title="Activo?" Width="3.33%">
@@ -254,9 +253,7 @@ else
                 }
             }
 
-            Console.WriteLine("BOLABOLA");
 
-            Console.WriteLine(usuarioId);
             var todosLosSocios = await _socioServicio.LimitadosFiltradoTodos(
             skip: 0,
             take: 15,

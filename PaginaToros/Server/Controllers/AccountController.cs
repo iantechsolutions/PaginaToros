@@ -203,19 +203,19 @@ namespace PaginaToros.Server.Controllers
                     Console.WriteLine(model.Email);
                     Console.WriteLine(password);
 
-                    string filePath = Path.Combine("wwwroot", "images", "Tarifas Registros 2025.docx");
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        Attachment attachment = new Attachment(filePath);
-                        mail.Attachments.Add(attachment);
+                    //string filePath = Path.Combine("wwwroot", "images", "Tarifas Registros 2025.docx");
+                    //if (System.IO.File.Exists(filePath))
+                    //{
+                    //    Attachment attachment = new Attachment(filePath);
+                    //    mail.Attachments.Add(attachment);
 
-                        Console.WriteLine("Adjunto añadido.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("El archivo no se encuentra en la ruta especificada.");
-                        return BadRequest("Archivo no encontrado.");
-                    }
+                    //    Console.WriteLine("Adjunto añadido.");
+                    //}
+                    //else
+                    //{
+                    //    Console.WriteLine("El archivo no se encuentra en la ruta especificada.");
+                    //    return BadRequest("Archivo no encontrado.");
+                    //}
 
 
 
@@ -357,12 +357,12 @@ namespace PaginaToros.Server.Controllers
                     mail.AlternateViews.Add(htmlView);
                     mail.IsBodyHtml = true;
 
-                    string filePath = Path.Combine(projectRoot, "wwwroot", "images", "Tarifas Registros 2025.docx");
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        Attachment attachment = new Attachment(filePath);
-                        mail.Attachments.Add(attachment);
-                    }
+                    //string filePath = Path.Combine(projectRoot, "wwwroot", "images", "Tarifas Registros 2025.docx");
+                    //if (System.IO.File.Exists(filePath))
+                    //{
+                    //    Attachment attachment = new Attachment(filePath);
+                    //    mail.Attachments.Add(attachment);
+                    //}
 
                     using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
                     {
@@ -591,12 +591,12 @@ namespace PaginaToros.Server.Controllers
                     mail.AlternateViews.Add(htmlView);
                     mail.IsBodyHtml = true;
 
-                    string filePath = Path.Combine(projectRoot, "wwwroot", "images", "Tarifas Registros 2025.docx");
-                    if (System.IO.File.Exists(filePath))
-                    {
-                        Attachment attachment = new Attachment(filePath);
-                        mail.Attachments.Add(attachment);
-                    }
+                    //string filePath = Path.Combine(projectRoot, "wwwroot", "images", "Tarifas Registros 2025.docx");
+                    //if (System.IO.File.Exists(filePath))
+                    //{
+                    //    Attachment attachment = new Attachment(filePath);
+                    //    mail.Attachments.Add(attachment);
+                    //}
 
                     using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
                     {

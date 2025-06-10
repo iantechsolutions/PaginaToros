@@ -226,10 +226,15 @@ else
             var c = await _desepla1Servicio.CantidadTotal();
             cantidad = c.List;
             oRespuesta = await _desepla1Servicio.Lista(0, 15);
+
+            oRespuesta.List = oRespuesta.List
+                .GroupBy(x => x.Id)
+                .Select(g => g.First())
+                .ToList();
+
             StateHasChanged();
         }
         else{
-            //CAMBIAR ID
             var usuarioId = 0;
             var authState = await AuthenticationStateProvider
             .GetAuthenticationStateAsync();
@@ -339,64 +344,8 @@ else
 
     async Task add(int Id,bool esSocio)
     {
-        int numero = Id;
-        if (numero != 0)
-        {
-            currentPage = grid.CurrentPage;
-            try
-            {
-                var parameters = new ModalParameters();
-                parameters.Add(nameof(AddDeclaracion.Id), Id);
-                parameters.Add(nameof(AddDeclaracion.esSocio), esSocio);
+        nav.NavigateTo($"/declaraciones/{Id}");
 
-                var options = new ModalOptions()
-                    {
-                        Size = ModalSize.ExtraLarge,
-                        DisableBackgroundCancel= true
-                    };
-                var formModal = Modal.Show<AddDeclaracion>("Editar Declaracion", parameters, options);
-                var result = await formModal.Result;
-                if (result.Cancelled)
-                {
-                    Console.WriteLine("Modal was cancelled");
-                    await Get();
-                    await grid.GoToPage(currentPage);
-                }
-                else
-                {
-                    await Get();
-                    await grid.GoToPage(currentPage);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-        else
-        {
-            var options = new ModalOptions()
-                {
-                    Size = ModalSize.ExtraLarge,
-                    DisableBackgroundCancel=true
-                };
-            var parameters = new ModalParameters();
-            parameters.Add(nameof(AddDeclaracion.Id), Id);
-            parameters.Add(nameof(AddDeclaracion.esSocio), esSocio);
-            var formModal = Modal.Show<AddDeclaracion>("Agregar Declaracion",parameters, options);
-            var result = await formModal.Result;
-
-            if (result.Cancelled)
-            {
-                Console.WriteLine("Modal was cancelled");
-                await grid.GoToPage(currentPage);
-            }
-            else
-            {
-                await Get();
-                await grid.GoToPage(currentPage);
-            }
-        }
     }
     async Task LoadData(LoadDataArgs args)
     {
@@ -404,40 +353,21 @@ else
         if (!string.IsNullOrEmpty(args.Filter))
         {
             oRespuesta = await _desepla1Servicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
-            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
         }
         else
         {
             oRespuesta = await _desepla1Servicio.Lista(args.Skip.Value, args.Top.Value);
         }
 
+        oRespuesta.List = oRespuesta.List
+            .GroupBy(x => x.Id)
+            .Select(g => g.First())
+            .ToList();
+
         isLoading = false;
     }
-    // async Task gotoinfo(int id)
-    // {
-    //     currentPage = grid.CurrentPage;
-    //     var parameters = new ModalParameters();
-    //     var options = new ModalOptions()
-    //         {
-    //             HideHeader = true,
-    //             HideCloseButton = true,
-    //             Size = ModalSize.ExtraLarge
-    //         };
-    //     parameters.Add(nameof(InfoInspector.id), id);
-    //     var formModal = Modal.Show<InfoInspector>("", parameters, options);
-    //     var result = await formModal.Result;
 
-    //     if (result.Cancelled)
-    //     {
-    //         Console.WriteLine("Modal was cancelled");
-    //         await grid.GoToPage(currentPage);
-    //     }
-    //     else
-    //     {
-    //         await Get();
-    //         await grid.GoToPage(currentPage);
-    //     }
-    // }
+  
 
 
 }

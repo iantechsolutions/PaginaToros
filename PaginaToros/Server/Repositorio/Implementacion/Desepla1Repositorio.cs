@@ -17,23 +17,29 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         }
         public async Task<List<Desepla1>> Lista(int skip, int take)
         {
-
             try
             {
-                var a = _dbContext.Desepla1s.Include(x => x.Plantel);
-                var b = a.Include(s => s.Socio);
-                var c = b.OrderByDescending(t => t.Id);
-                var d = c.Skip(skip);
-                var e = d.Take(take);
-                var f = await e.ToListAsync();
-                // Use Skip and Take for paging, and include Socio
-                return f;
+                var ids = await _dbContext.Desepla1s
+                    .OrderByDescending(t => t.Id)
+                    .Select(x => x.Id)
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
+
+                var result = await _dbContext.Desepla1s
+                    .Where(x => ids.Contains(x.Id))
+                    .Include(x => x.Plantel)
+                    .Include(x => x.Socio)
+                    .ToListAsync();
+
+                return result;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw;
             }
         }
+
 
 
         public async Task<Desepla1> Obtener(Expression<Func<Desepla1, bool>> filtro = null)
@@ -149,7 +155,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         public async Task<IQueryable<Desepla1>> Consultar(Expression<Func<Desepla1, bool>> filtro = null)
         {
             IQueryable<Desepla1> queryEntidad = filtro == null
-                    ? _dbContext.Desepla1s.Take(30)  // Apply Take(30) before filtering
+                    ? _dbContext.Desepla1s.Take(30) 
                     : _dbContext.Desepla1s.Where(filtro);
 
             return queryEntidad;
