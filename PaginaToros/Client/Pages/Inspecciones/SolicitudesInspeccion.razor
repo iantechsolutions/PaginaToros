@@ -104,7 +104,9 @@
                                 @data.Fecins.Value.ToString("dd/MM/yyyy")
                         }
                         else{
-
+                           <p>
+                           No autorizada
+                           </p> 
                         }
                     </Template>
                 </RadzenDataGridColumn>
@@ -443,12 +445,16 @@
         var archivos = e.GetMultipleFiles(1);
         cargando = true;
         var file = archivos.First();
+
+        Console.WriteLine("PASO 1");
         using (var content = new MultipartFormDataContent())
         {
             content.Add(new StreamContent(file.OpenReadStream()), "file", file.Name);
 
             HttpResponseMessage response = await http.PostAsync($"api/Solici1/SendExcel/{socioId}", content);
         }
+
+        Console.WriteLine("PASO 2");
 
         await OnInitializedAsync();
 

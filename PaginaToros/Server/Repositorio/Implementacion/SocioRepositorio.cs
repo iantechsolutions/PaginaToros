@@ -37,6 +37,17 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         }
 
 
+        public async Task<Socio> ObtenerPorId(int id)
+        {
+            try
+            {
+                return await _dbContext.Socios.FirstOrDefaultAsync(s => s.Id == id);
+            }
+            catch
+            {
+                throw;
+            }
+        }
 
         public async Task<Socio> Obtener(Expression<Func<Socio, bool>> filtro = null)
         {

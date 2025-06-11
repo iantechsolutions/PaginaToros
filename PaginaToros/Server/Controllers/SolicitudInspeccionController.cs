@@ -9,6 +9,11 @@ using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Server.Repositorio.Implementacion;
 using System.Net.Mail;
 using System.Net.Mime;
+using ClosedXML.Excel;
+using System.Text;
+using System.Globalization;
+using System.Net;
+using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -169,6 +174,8 @@ namespace PaginaToros.Server.Controllers
                 var SolL = await _solicitudRepositorio.Lista(0, 1);
                 Solici1 _SolicitudVieja = SolL.FirstOrDefault();
                 _Solicitud.Nrosol = (Int32.Parse(_SolicitudVieja.Nrosol) + 1).ToString("D6");
+
+                Console.WriteLine(_Solicitud.Nrosol);
                 Solici1 _SolicitudCreado = await _solicitudRepositorio.Crear(_Solicitud);
 
                 if (_SolicitudCreado.Id != 0)
@@ -434,41 +441,191 @@ namespace PaginaToros.Server.Controllers
         [HttpPost("SendExcel/{socioId}")]
         public async Task<IActionResult> SendExcel(int socioId, [FromForm] IFormFile file)
         {
-            try {
-                var tempFilePath = Path.Combine(Path.GetTempPath(), $"Excel_Solicitud_{DateTime.Now.ToString("dd_MM_yyyy")}.xls");
+            try
+            {
+
+
+               
+
+                var tempFilePath = Path.Combine(Path.GetTempPath(), $"Excel_Solicitud_{DateTime.Now:dd_MM_yyyy_HH_mm_ss}.xlsx");
                 using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
                 {
                     await file.CopyToAsync(fileStream);
                 }
-                string filtro = $"Id = {socioId}";
-            var rta = await _socioRepositorio.LimitadosFiltrados(0, 1, filtro);
-            Socio socio = rta.FirstOrDefault();
-            using (MailMessage mail = new MailMessage())
-            {
-                MemoryStream memoryStream = new MemoryStream();
-                await file.CopyToAsync(memoryStream);
-                mail.From = new MailAddress("planteles@hereford.org.ar");
-                mail.To.Add("puroregistradohereford@gmail.com");
-                    mail.To.Add("planteles@hereford.org.ar");
-                mail.Subject = $"Solicitud de Inspeccion de: {socio.Nombre}";
-                mail.Body = $"Nueva solicitud de inspeccion\nSocio: {socio.Nombre}";
-                mail.Attachments.Add(new Attachment(tempFilePath, MediaTypeNames.Application.Octet));
-                using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
+
+                using var workbook = new XLWorkbook(tempFilePath);
+                var worksheet = workbook.Worksheet(1);
+
+                var codestRaw = worksheet.Cell("E12").GetString();
+                string codestNormalizado = codestRaw.All(char.IsDigit) ? codestRaw.PadLeft(6, '0') : codestRaw.Trim();
+
+                var razonSocial = worksheet.Cell("E10").GetString();
+                var localidad = worksheet.Cell("H12").GetString();
+                var producto = worksheet.Cell("B29").GetString();
+                var provincia = worksheet.Cell("K12").GetString();
+
+
+                var fechaRaw = worksheet.Cell("J4").GetString();
+                DateTime.TryParse(fechaRaw.Replace("FECHA: ", "").Trim(), out var fechaSolicitud);
+                fechaSolicitud = fechaSolicitud == default ? DateTime.Now : fechaSolicitud;
+
+                using var db = new hereford_prContext();
+                var establecimientos = await db.Estables.ToListAsync();
+                var est = establecimientos.FirstOrDefault(e =>
+                    e.Ecod == codestNormalizado || NormalizeString(e.Nombre) == NormalizeString(codestRaw));
+
+                if (est == null)
+                    return BadRequest($"No se encontró ningún establecimiento con código o nombre '{codestRaw}'.");
+
+                var solicitud = new Solici1
                 {
-                    smtp.UseDefaultCredentials = false;
-                    smtp.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033");
-                    smtp.EnableSsl = true;
-                    smtp.Send(mail);
+                    Fecsol = fechaSolicitud,
+                    Lugar = localidad,
+                    Produc = "N",
+                    Reinsp = "N",
+                    Anio = DateTime.Now.Year.ToString(),
+                    FchUsu = DateTime.Now,
+                    CodUsu = socioId,
+                    Codest = est.Ecod
+                };
+
+                var ultimaSolicitud = await db.Solici1s
+                .Where(s => !string.IsNullOrEmpty(s.Nrosol))
+                .OrderByDescending(s => s.Nrosol)
+                .FirstOrDefaultAsync();
+
+                string nuevoNumeroSolicitud = "000001";
+                if (ultimaSolicitud != null && int.TryParse(ultimaSolicitud.Nrosol, out int nro))
+                {
+                    nuevoNumeroSolicitud = (nro + 1).ToString("D6");
                 }
+
+                solicitud.Nrosol = nuevoNumeroSolicitud;
+                Console.WriteLine($"Número de solicitud asignado: {solicitud.Nrosol}");
+
+                db.Solici1s.Add(solicitud);
+                await db.SaveChangesAsync();
+                Console.WriteLine($"Se creó Solici1 ID={solicitud.Id}");
+
+                string anio1 = worksheet.Cell("E17").GetString();
+                double.TryParse(worksheet.Cell("E19").GetString(), out var vacasPR1);
+                double.TryParse(worksheet.Cell("E20").GetString(), out var machosPR1);
+
+                int solicitudesAgregadas = 0;
+
+
+                if ((vacasPR1 + machosPR1) > 0)
+                {
+                    db.Solici1Auxs.Add(new Solici1Aux
+                    {
+                        IdSoli = solicitud.Id,
+                        Anio = anio1,
+                        Cantor = machosPR1,
+                        Cantvq = vacasPR1
+                    });
+                    solicitudesAgregadas++;
+                }
+
+                // 2do bloque PR extra
+                string anio2 = worksheet.Cell("E23").GetString();
+                double.TryParse(worksheet.Cell("E25").GetString(), out var vacasPR2);
+                double.TryParse(worksheet.Cell("E26").GetString(), out var machosPR2);
+
+                if ((vacasPR2 + machosPR2) > 0)
+                {
+                    db.Solici1Auxs.Add(new Solici1Aux
+                    {
+                        IdSoli = solicitud.Id,
+                        Anio = anio2,
+                        Cantor = machosPR2,
+                        Cantvq = vacasPR2
+                    });
+                    solicitudesAgregadas++;
+                }
+
+                // Bloque VIP (todos mismo año actual)
+                string anioVIP = DateTime.Now.Year.ToString();
+                double.TryParse(worksheet.Cell("E30").GetString(), out var vacasVIP);
+                double.TryParse(worksheet.Cell("E31").GetString(), out var machosVIP);
+
+                if ((vacasVIP + machosVIP) > 0)
+                {
+                    db.Solici1Auxs.Add(new Solici1Aux
+                    {
+                        IdSoli = solicitud.Id,
+                        Anio = anioVIP,
+                        Canvac = vacasVIP,
+                        Cantor = 0
+                    });
+                    solicitudesAgregadas++;
+                }
+
+                if (solicitudesAgregadas == 0)
+                {
+                    return BadRequest("El Excel no contiene animales registrados en ningún año.");
+                }
+
+                await db.SaveChangesAsync();
+                Console.WriteLine($"Se cargaron {solicitudesAgregadas} Solici1Aux para Solici1 ID={solicitud.Id}");
+
+                // Enviar el correo
+                var socio = (await _socioRepositorio.LimitadosFiltrados(0, 1, $"Id = {socioId}")).FirstOrDefault();
+                if (socio == null)
+                    return BadRequest("No se encontró el socio.");
+
+                using var mail = new MailMessage
+                {
+                    From = new MailAddress("planteles@hereford.org.ar"),
+                    Subject = $"Solicitud de Inspección de: {socio.Nombre}",
+                    Body = $"Nueva solicitud de inspección\nSocio: {socio.Nombre}"
+                };
+
+                mail.To.Add("puroregistradohereford@gmail.com");
+                mail.To.Add("planteles@hereford.org.ar");
+                mail.Attachments.Add(new Attachment(tempFilePath, MediaTypeNames.Application.Octet));
+
+                using var smtp = new SmtpClient("mail.hereford.org.ar", 587)
+                {
+                    UseDefaultCredentials = false,
+                    Credentials = new NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"),
+                    EnableSsl = true
+                };
+                smtp.Send(mail);
+
+                Console.WriteLine("Correo enviado con solicitud adjunta.");
+
+                System.IO.File.Delete(tempFilePath);
+                return Ok("Solicitud registrada y correo enviado.");
             }
-            }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine($"ERROR general en SendExcel: {ex.Message}");
+                return BadRequest($"Error: {ex.Message}");
+            }
+        }
+
+
+        /// <summary>
+        /// Normaliza cadenas eliminando tildes, convirtiendo a minúsculas y quitando espacios extras.
+        /// </summary>
+        private static string NormalizeString(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+
+            var normalized = input.Normalize(NormalizationForm.FormD);
+            var builder = new System.Text.StringBuilder();
+
+            foreach (var c in normalized)
+            {
+                var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                    builder.Append(c);
             }
 
-            return Ok(); // Return 200 OK if email sent successfully
+            return builder.ToString().ToLowerInvariant().Trim();
         }
+
+
 
 
     }

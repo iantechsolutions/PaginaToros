@@ -47,18 +47,7 @@
 
         <div class="row">
             <label>Solicitudes</label>
-               @*  if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
-                {
-
-                    <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Nrosol" class="w-100"></RadzenNumeric>
-                    }else{
-                    <RadzenText  Disabled="true"  class="w-100">
-                    Sin solicitudes22
-                    </RadzenText>  
-                    }
-            }
-            else
-            { *@
+             
             @if (solicitudSeleccionada == null)
             {
             <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@solicitudes.Where(x=>establecimientos.Where(t => t.Codsoc == socioSeleccionado.Scod).Any(t => t.Ecod == x.Codest) && !resultados.Any(r=>r.Nrores==x.Nrosol)).ToList()" TItem="Solici1DTO"
