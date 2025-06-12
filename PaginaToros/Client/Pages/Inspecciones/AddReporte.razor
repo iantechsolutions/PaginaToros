@@ -845,62 +845,82 @@ else
     async Task guardarReporte()
     {
         Console.WriteLine("guardarReporte");
-        oResin1.Id = Id;
 
-        if (socioSeleccionado == null)
+        try
         {
-            await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
-            return;
-        }
+            oResin1.Id = Id;
 
-        if (solicitudSeleccionada == null || solicitudSeleccionada.FirstOrDefault() == null)
-        {
-            await Swal.FireAsync("Error", "Debe seleccionar o generar una solicitud válida.", SweetAlertIcon.Error);
-            return;
-        }
-
-        if (inspectorSeleccionado == null)
-        {
-            await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
-            return;
-        }
-
-        if (Plantelseleccionado == null)
-        {
-            await Swal.FireAsync("Error", "Debe seleccionar un plantel válido.", SweetAlertIcon.Error);
-            return;
-        }
-        oResin1.Icod = inspectorSeleccionado.Icod;
-        oResin1.Icod = inspectorSeleccionado.Icod;
-        oResin1.Scod = socioSeleccionado.Scod;
-        if (!string.IsNullOrWhiteSpace(solicitudSeleccionada?.FirstOrDefault()?.Codest))
-        {
-            try{
-
-                oResin1.Estcod = solicitudSeleccionada.FirstOrDefault().Codest ?? "";
-            }
-            catch
+            if (socioSeleccionado == null)
             {
-                Console.WriteLine("Otro error aca");
+                await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
+                return;
+            }
+
+            if (solicitudSeleccionada == null || solicitudSeleccionada.FirstOrDefault() == null)
+            {
+                await Swal.FireAsync("Error", "Debe seleccionar o generar una solicitud válida.", SweetAlertIcon.Error);
+                return;
+            }
+
+            if (inspectorSeleccionado == null)
+            {
+                await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
+                return;
+            }
+
+            if (Plantelseleccionado == null)
+            {
+                await Swal.FireAsync("Error", "Debe seleccionar un plantel válido.", SweetAlertIcon.Error);
+                return;
+            }
+           
+            oResin1.Icod = inspectorSeleccionado.Icod;
+            oResin1.Scod = socioSeleccionado.Scod;
+
+            var soli = solicitudSeleccionada.FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(soli?.Codest))
+            {
+                try
+                {
+                    oResin1.Estcod = soli.Codest;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("❌ Error al asignar Estcod: " + ex.Message);
+                }
+            }
+
+            if (Id == 0)
+            {
+                oResin1.Nropla = socioSeleccionado.Placod;
+                oResin1.Freali = fechaTemp;
+
+                var result = await _resin1Servicio.Crear(oResin1);
+
+                if (result?.List == null)
+                {
+                    await Swal.FireAsync("Error", "La respuesta del servidor al crear el reporte fue inválida.", SweetAlertIcon.Error);
+                    return;
+                }
+
+                Id = result.List.Id;
+                nav.NavigateTo("/reportes");
+            }
+            else
+            {
+                Console.WriteLine("Entro bien al editar antes del error");
+
+                await _resin1Servicio.Editar(oResin1);
+                nav.NavigateTo("/reportes");
             }
         }
-        if (Id == 0)
+        catch (Exception ex)
         {
-            oResin1.Nropla = socioSeleccionado.Placod;
-            oResin1.Freali = fechaTemp;
-            var result  = await _resin1Servicio.Crear(oResin1);
-            Id = result.List.Id;
-            nav.NavigateTo("/reportes");
-        }
-        else
-        {
-
-            Console.WriteLine("Entro bien al editar antes del error");
-            await _resin1Servicio.Editar(oResin1);
-            nav.NavigateTo("/reportes");
-           
+            Console.WriteLine("❌ Excepción al guardar reporte: " + ex.Message);
+            await Swal.FireAsync("Error", "Ocurrió un error al guardar el reporte: " + ex.Message, SweetAlertIcon.Error);
         }
     }
+
 
     async Task cancel()
     {
@@ -1027,16 +1047,37 @@ else
         solicitudSeleccionada = lista;
         Console.WriteLine(JsonSerializer.Serialize(solicitudSeleccionada));
         Console.WriteLine("aca");
-        Console.WriteLine(Plantelseleccionado);
-        Plantelseleccionado = Planteles.Where(x => x.Nrocri == socioSeleccionado.Scod).OrderByDescending(x => x.Id).First();
+        var plantel = Planteles
+        .Where(x => x.Nrocri == socioSeleccionado?.Scod)
+        .OrderByDescending(x => x.Id)
+        .FirstOrDefault();
+
+        if (plantel != null)
+        {
+            Plantelseleccionado = plantel;
+            Console.WriteLine("Plantel seleccionado: " + JsonSerializer.Serialize(Plantelseleccionado));
+        }
+        else
+        {
+            Console.WriteLine("No se encontró plantel para el socio seleccionado.");
+        }
+        // Plantelseleccionado = Planteles.Where(x => x.Nrocri == socioSeleccionado.Scod).OrderByDescending(x => x.Id).First();
         Console.WriteLine(Plantelseleccionado);
         // oResinAnterior = repor
-        Resin1DTO oResinAnterior = resultados.OrderByDescending(x => x.Id).Where(x => x.Establecimiento.Ecod == establecimientoSeleccionado.Ecod && x.Scod == socioSeleccionado.Scod).FirstOrDefault();
+        var oResinAnterior = resultados
+    .Where(x => x.Establecimiento != null && x.Establecimiento.Ecod == establecimientoSeleccionado?.Ecod && x.Scod == socioSeleccionado?.Scod)
+    .OrderByDescending(x => x.Id)
+    .FirstOrDefault();
 
         if (oResinAnterior != null)
         {
-            inspectorSeleccionado = Inspects.Where(x => x.Icod == oResinAnterior.Icod).FirstOrDefault();
+            inspectorSeleccionado = Inspects.FirstOrDefault(x => x.Icod == oResinAnterior.Icod);
         }
+        else
+        {
+            Console.WriteLine(" No se encontró resultado anterior para esa combinación de establecimiento y socio.");
+        }
+        
 
     }
     async Task confirmar()

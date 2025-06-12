@@ -9,6 +9,7 @@ namespace PaginaToros.Server.Repositorio.Contrato
     {
         Task<List<Resin1>> Lista(int page, int count);
         Task<Resin1> Obtener(Expression<Func<Resin1, bool>> filtro = null);
+        Task<int?> ObtenerUltimoNrores();
         Task<List<Resin1>> LimitadosFiltrados(int skip, int take, string filtro = null);
         Task<List<Resin1>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null);
         Task<bool> Eliminar(Resin1 entidad);

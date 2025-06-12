@@ -152,26 +152,83 @@ namespace PaginaToros.Server.Controllers
         [Route("Guardar")]
         public async Task<IActionResult> Guardar([FromBody] Resin1DTO request)
         {
-            Respuesta<Resin1DTO> _Respuesta = new Respuesta<Resin1DTO>();
+            var _Respuesta = new Respuesta<Resin1DTO>();
+
             try
             {
-                Resin1 _Resin1 = _mapper.Map<Resin1>(request);
+                if (request == null)
+                {
+                    _Respuesta = new Respuesta<Resin1DTO>
+                    {
+                        Exito = 0,
+                        Mensaje = "La solicitud está vacía."
+                    };
+                    return BadRequest(_Respuesta);
+                }
 
-                Resin1 _Resin1Creado = await _Resin1Repositorio.Crear(_Resin1);
+                if (string.IsNullOrWhiteSpace(request.Scod))
+                {
+                    _Respuesta = new Respuesta<Resin1DTO>
+                    {
+                        Exito = 0,
+                        Mensaje = "El campo 'Scod' (código de socio) es obligatorio."
+                    };
+                    return BadRequest(_Respuesta);
+                }
 
-                if (_Resin1Creado.Id != 0)
-                    _Respuesta = new Respuesta<Resin1DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Resin1DTO>(_Resin1Creado) };
+                if (request.Icod == "0")
+                {
+                    _Respuesta = new Respuesta<Resin1DTO>
+                    {
+                        Exito = 0,
+                        Mensaje = "El campo 'Icod' (inspector) es obligatorio."
+                    };
+                    return BadRequest(_Respuesta);
+                }
+                if (string.IsNullOrWhiteSpace(request.Nrores))
+                {
+                    var ultimo = await _Resin1Repositorio.ObtenerUltimoNrores();
+                    var nuevoNro = (ultimo ?? 0) + 1;
+                    request.Nrores = nuevoNro.ToString();
+                }
+                var _Resin1 = _mapper.Map<Resin1>(request);
+
+                var _Resin1Creado = await _Resin1Repositorio.Crear(_Resin1);
+
+                if (_Resin1Creado?.Id > 0)
+                {
+                    _Respuesta = new Respuesta<Resin1DTO>
+                    {
+                        Exito = 1,
+                        Mensaje = "ok",
+                        List = _mapper.Map<Resin1DTO>(_Resin1Creado)
+                    };
+                }
                 else
-                    _Respuesta = new Respuesta<Resin1DTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+                {
+                    _Respuesta = new Respuesta<Resin1DTO>
+                    {
+                        Exito = 0,
+                        Mensaje = "No se pudo crear el identificador del resultado de inspección."
+                    };
+                }
 
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                return Ok(_Respuesta);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<Resin1DTO>() { Exito = 1, Mensaje = ex.Message };
+                Console.WriteLine($"❌ Error al guardar Resin1: {ex}");
+
+                _Respuesta = new Respuesta<Resin1DTO>
+                {
+                    Exito = 0,
+                    Mensaje = $"Error interno del servidor: {ex.Message}"
+                };
+
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
+
 
         [HttpPut]
         [Route("Editar")]

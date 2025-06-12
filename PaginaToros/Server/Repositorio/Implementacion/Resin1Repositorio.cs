@@ -153,6 +153,22 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+        public async Task<int?> ObtenerUltimoNrores()
+        {
+            try
+            {
+                return await _dbContext.Resin1s
+                    .Where(r => r.Nrores != null)
+                    .OrderByDescending(r => Convert.ToInt32(r.Nrores))
+                    .Select(r => (int?)Convert.ToInt32(r.Nrores))
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error en ObtenerUltimoNrores: {ex.Message}");
+                throw;
+            }
+        }
 
         public async Task<bool> Editar(Resin1 entidad)
         {
