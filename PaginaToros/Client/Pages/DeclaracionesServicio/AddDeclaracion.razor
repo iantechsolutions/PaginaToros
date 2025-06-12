@@ -16,10 +16,10 @@
 
 
 <style>
-    .td
-    {
+    .td {
         font-size: 11px !important;
     }
+
     .bm-title {
         font-size: 25px;
         font-weight: bold;
@@ -28,18 +28,19 @@
     table span.rz-calendar input {
         color: yourDesiredColor;
     }
-}
 
+    }
 </style>
-        <button class="bm-title" @onclick="ComeBack"><FeatherArrowLeft Color="Black"></FeatherArrowLeft></button>
-@if(socios.Count>0){
-<div class="card">
-    <div class="card-body">
-        <EditForm Model="@oDeclaracion" OnValidSubmit="Guardar">
-            <DataAnnotationsValidator />
-            <div class="row" style="width=100%;">
-                <div class="col-sm">
-                    <label>Socio @(socioSeleccionado?.Nombre)</label>
+<button class="bm-title" @onclick="ComeBack"><FeatherArrowLeft Color="Black"></FeatherArrowLeft></button>
+@if (socios.Count > 0)
+{
+    <div class="card">
+        <div class="card-body">
+            <EditForm Model="@oDeclaracion" OnValidSubmit="Guardar">
+                <DataAnnotationsValidator />
+                <div class="row" style="width=100%;">
+                    <div class="col-sm">
+                        <label>Socio @(socioSeleccionado?.Nombre)</label>
                         @if (!esSocio)
                         {
                             <BlazoredTypeahead SearchMethod="BusquedaSocios"
@@ -58,198 +59,196 @@
                                 </ResultTemplate>
                             </BlazoredTypeahead>
                         }
-                </div>
+                    </div>
 
                     <div class="col-sm text-end">
-                        @* <button type="button"
+                        <button type="button"
                                 class="btn btn-primary mr-2"
-                            @onclick="GenerarOtra">Generar otra declaración</button> *@
+                                @onclick="GenerarOtra">
+                            Generar otra declaración
+                        </button>
 
-                        <RadzenButton Icon="save" Text="Guardar Declaración"
-                                      Click="Guardar"
-                                      Disabled="@(!tiposSeleccionados.Any())"
-                                      Style="margin-top: 20px; background-color: seagreen; color: white" />
-                    </div>
-            </div>
-            <br />
-            @if(socioSeleccionado!=null){
-            <div class="row" style="width=100%;">
-                <div class="col-sm">
-                    <label>Numero de Folio</label>    
-                    <InputNumber class="form-control" @bind-Value="@oDeclaracion.NrFolio" placeholder="Folio"></InputNumber>
-                    <ValidationMessage For="(()=> oDeclaracion.NrFolio)" style="color:red;" />
-                </div>
-                <div class="col-sm">
-                    <label class="col-sm">Fecha de declaracion</label>
-                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oDeclaracion.Fchrecepcion" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                </div>
-                <div class="col-sm">
-                    <label class="col-sm">Plantel</label>
-                    <BlazoredTypeahead @bind-Value="@Plantelseleccionado" SearchMethod="BusquedaPlanteles" placeholder="Plantel - Año" EnableDropDown="true"  >
-                        <SelectedTemplate Context="eleccion">
-                            @(@eleccion.Placod + " - " + @eleccion.Anioex)
-                            </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @(@eleccion.Placod + " - " + @eleccion.Anioex)
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
-                </div>
-            </div>
-            <br />
-            @if(Plantelseleccionado!=null){
-                <div class="row" style="width=100%">
-                    <div class="col-sm">
-                        <label>Cantidad de Vientres PR</label>
-                        <div class="card">
-                            <div class="card-body">
-                                <a>@((Plantelseleccionado.Varede ?? 0) + (Plantelseleccionado.Vqssrd ?? 0) + (Plantelseleccionado.Vqcsrd ?? 0))</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm">
-                        <label>Cantidad de Vientres VIP</label>
-                        <div class="card">
-                            <div class="card-body">
-                                <a>@((Plantelseleccionado.Varepr ?? 0) + (Plantelseleccionado.Vqcsrp ?? 0) + (Plantelseleccionado.Vqssrp ?? 0))</a>
-                            </div>
-                        </div>
+                        <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
                     </div>
                 </div>
                 <br />
-            }
-            else
-            {
-                <div class="row" style="width=100%">
-                    <div class="col-sm">
-                        <label>Cantidad de Vientres PR</label>
-                        <div class="card">
-                            <div class="card-body">
-                                <h5></h5>    
-                            </div>
+                @if (socioSeleccionado != null)
+                {
+                    <div class="row" style="width=100%;">
+                        <div class="col-sm">
+                            <label>Numero de Folio</label>
+                            <InputNumber class="form-control" @bind-Value="@oDeclaracion.NrFolio" placeholder="Folio"></InputNumber>
+                            <ValidationMessage For="(()=> oDeclaracion.NrFolio)" style="color:red;" />
+                        </div>
+                        <div class="col-sm">
+                            <label class="col-sm">Fecha de declaracion</label>
+                            <RadzenDatePicker TValue="DateTime?" @bind-Value="@oDeclaracion.Fchrecepcion" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        </div>
+                        <div class="col-sm">
+                            <label class="col-sm">Plantel</label>
+                            <BlazoredTypeahead @bind-Value="@Plantelseleccionado" SearchMethod="BusquedaPlanteles" placeholder="Plantel - Año" EnableDropDown="true">
+                                <SelectedTemplate Context="eleccion">
+                                    @(@eleccion.Placod + " - " + @eleccion.Anioex)
+                                </SelectedTemplate>
+                                <ResultTemplate Context="eleccion">
+                                    @(@eleccion.Placod + " - " + @eleccion.Anioex)
+                                </ResultTemplate>
+                            </BlazoredTypeahead>
                         </div>
                     </div>
-                    <div class="col-sm">
-                        <label>Cantidad de Vientres VIP</label>
-                        <div class="card">
-                            <div class="card-body">
-                                <h5></h5>
+                    <br />
+                    @if (Plantelseleccionado != null)
+                    {
+                        <div class="row" style="width=100%">
+                            <div class="col-sm">
+                                <label>Cantidad de Vientres PR</label>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <a>@((Plantelseleccionado.Varede ?? 0) + (Plantelseleccionado.Vqssrd ?? 0) + (Plantelseleccionado.Vqcsrd ?? 0))</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <label>Cantidad de Vientres VIP</label>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <a>@((Plantelseleccionado.Varepr ?? 0) + (Plantelseleccionado.Vqcsrp ?? 0) + (Plantelseleccionado.Vqssrp ?? 0))</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <br />
-            }
-            <div class="row" style="width=100%">
-                <div class="col-sm">
-                    <label>Vientres de Servicio PR</label>
-                    <RadzenNumeric @bind-Value="oDeclaracion.Cantv" class="w-100"></RadzenNumeric>
-                </div>
-                <div class="col-sm">
-                    <label>Vientres de Servicio VIP</label>
-                    <RadzenNumeric @bind-Value="oDeclaracion.Cantb" class="w-100"></RadzenNumeric>
-                </div>
-            </div>
-            <br />
+                        <br />
+                    }
+                    else
+                    {
+                        <div class="row" style="width=100%">
+                            <div class="col-sm">
+                                <label>Cantidad de Vientres PR</label>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5></h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <label>Cantidad de Vientres VIP</label>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5></h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                    }
                     <div class="row" style="width=100%">
-                       
+                        <div class="col-sm">
+                            <label>Vientres de Servicio PR</label>
+                            <RadzenNumeric @bind-Value="oDeclaracion.Cantv" class="w-100"></RadzenNumeric>
+                        </div>
+                        <div class="col-sm">
+                            <label>Vientres de Servicio VIP</label>
+                            <RadzenNumeric @bind-Value="oDeclaracion.Cantb" class="w-100"></RadzenNumeric>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row" style="width=100%">
+
                         <div class="col-sm">
                         </div>
                         <div class="col-sm">
                         </div>
                         <div class="col-sm">
                             <label>Tipo de servicio</label>
-                            <RadzenDropDown Data="@tipos"
-                                            @bind-Value="@tiposSeleccionados"
-                                            Multiple="true"
-                                            Placeholder="Seleccionar tipos de servicio"
-                                            Style="width: 100%; max-width: 400px"
-                                            Change="OnTiposChange"
-                                            AllowClear="true" />
+                            <RadzenDropDown @bind-Value=@tipoTemp
+                                            Data=@tipos
+                                            Change="@(args => CleanSelected())"
+                                            Style="width: 100%; max-width: 400px;" />
                         </div>
                     </div>
 
-            <br />
-                    @if (tiposSeleccionados.Contains("Natural") || tiposSeleccionados.Contains("Natural a Corral"))
+                    <br />
+                    if (tipoTemp == "Natural")
                     {
-                <label style="text-align:center">Periodo de servicio</label>
-                <div class="row">
-                    <div class="col-sm">
-                        <label>Desde</label>
-                        <br/>
-                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oDeclaracion.Desde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                    </div>
-                    <div class="col-sm">
-                        <label>Hasta</label>
+                        <label style="text-align:center">Periodo de servicio</label>
+                        <div class="row">
+                            <div class="col-sm">
+                                <label>Desde</label>
+                                <br />
+                                <RadzenDatePicker TValue="DateTime?" @bind-Value="@oDeclaracion.Desde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                            </div>
+                            <div class="col-sm">
+                                <label>Hasta</label>
+                                <br />
+                                <RadzenDatePicker TValue="DateTime?" @bind-Value="@oDeclaracion.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                            </div>
+                        </div>
                         <br />
-                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oDeclaracion.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                    </div>
-                </div>
-                <br/>
-                <div class="row">
-                    <div class="col-sm">
-                            <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros</RadzenText>
-                            <br />
+                        <div class="row">
+                            <div class="col-sm">
+                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros</RadzenText>
+                                <br />
 
 
 
                                 <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod).Where(x=>x.CodEstado=="1")" TItem="TorosuniDTO" SelectionMode="DataGridSelectionMode.Single"
                                                 RowClick="@((args) => AddToSelectedToros(args))" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-                            <Columns>
-                                <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="Estado" Width="3.6%">
-                                    <Template Context="data">
-                                        @switch (data.CodEstado)
-                                        {
-                                            case "1":
-                                                <a style="color:darkgreen">Activo</a>
-                                                break;
-                                            case "2":
-                                                <a style="color:red">Inexistente</a>
-                                                break;
-                                            case "3":
-                                                <a style="color:red">Inactivo</a>
-                                                break;
-                                            case "4":
-                                                <a style="color:black">Muerto</a>
-                                                break;
-                                            case "5":
-                                                <a style="color:red">Vendido</a>
-                                                break;
-                                            default:
-                                                // Handle the default case if needed
-                                                break;
-                                        }
-                                    </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="Estado" Width="3.6%">
+                                            <Template Context="data">
+                                                @switch (data.CodEstado)
+                                                {
+                                                    case "1":
+                                                        <a style="color:darkgreen">Activo</a>
+                                                        break;
+                                                    case "2":
+                                                        <a style="color:red">Inexistente</a>
+                                                        break;
+                                                    case "3":
+                                                        <a style="color:red">Inactivo</a>
+                                                        break;
+                                                    case "4":
+                                                        <a style="color:black">Muerto</a>
+                                                        break;
+                                                    case "5":
+                                                        <a style="color:red">Vendido</a>
+                                                        break;
+                                                    default:
+                                                        // Handle the default case if needed
+                                                        break;
+                                                }
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo" Width="7.34%" />
-                                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="7.34%" />
-                                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4.6%"/>
-                                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hasta" Title="Fecha Nac." Width="4.6%">
-                                    <Template Context="data">
-                                        @if (data.Nacido.HasValue)
-                                        {
-                                                <a>@data.Nacido.Value.ToString("dd/MM/yyyy")</a>
-                                        }
-                                        else
-                                        {
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="7.34%" />
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4.6%" />
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hasta" Title="Fecha Nac." Width="4.6%">
+                                            <Template Context="data">
+                                                @if (data.Nacido.HasValue)
+                                                {
+                                                    <a>@data.Nacido.Value.ToString("dd/MM/yyyy")</a>
+                                                }
+                                                else
+                                                {
 
-                                        }
-                                    </Template>
-                                </RadzenDataGridColumn>
-                            </Columns>
-                        </RadzenDataGrid>
-                    </div>
-                    <div class="col-sm">
-                        <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
-                        <br />
-                        <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@torosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%" 
-                        LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridToro1">
-                            <Columns>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="4.6%">
-                                    <Template Context="data">
-                                        @data.original.Hardb
-                                    </Template>    
-                                </RadzenDataGridColumn>
+                                                }
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </div>
+                            <div class="col-sm">
+                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
+                                <br />
+                                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@torosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
+                                                LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridToro1">
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="4.6%">
+                                            <Template Context="data">
+                                                @data.original.Hardb
+                                            </Template>
+                                        </RadzenDataGridColumn>
                                         <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tipo" Width="4.6%">
                                             <Template Context="data">
                                                 @data.original.Tipo
@@ -260,201 +259,199 @@
                                                 @data.original.Cantv
                                             </Template>
                                         </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tatuaje" Width="4.6%">
-                                    <Template Context="data">
-                                        @data.original.Tatpart
-                                    </Template>
-                                </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tatuaje" Width="4.6%">
+                                            <Template Context="data">
+                                                @data.original.Tatpart
+                                            </Template>
+                                        </RadzenDataGridColumn>
                                         <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="3%">
                                             <Template Context="data">
-                                                
+
                                                 <button class="btn" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
 
                                             </Template>
                                         </RadzenDataGridColumn>
-                            </Columns>
-                        </RadzenDataGrid>
-                    </div>
-                </div>
-            }
-                    @if (tiposSeleccionados.Any(t => t.Contains("Inseminacion") || t.Contains("IATF")))
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </div>
+                        </div>
+                    }
+                    if (tipoTemp == "Natural a Corral" || tipoTemp == "Inseminacion c/celo y rep" || tipoTemp == "Inseminacion c/p y rep" || tipoTemp == "IATF c/rep")
+                    {
 
-
-            {
-                
-                <div class="row">
-                    <div class="col-sm">
-                    <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros</RadzenText>
-                    <br/>
+                        <div class="row">
+                            <div class="col-sm">
+                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros</RadzenText>
+                                <br />
                                 <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod).Where(x=>x.CodEstado=="1")" TItem="TorosuniDTO" ColumnWidth="3.33%" SelectionMode="DataGridSelectionMode.Single"
-                                            RowClick="@((args) => AddToSelectedToros(args))" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-                        <Columns>
-                            <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="Estado" Width="3.6%">
-                                <Template Context="data">
-                                    @switch (data.CodEstado)
-                                    {
-                                        case "1":
-                                            <a style="color:darkgreen">Activo</a>
-                                            break;
-                                        case "2":
-                                            <a style="color:red">Inexistente</a>
-                                            break;
-                                        case "3":
-                                            <a style="color:red">Inactivo</a>
-                                            break;
-                                        case "4":
-                                            <a style="color:black">Muerto</a>
-                                            break;
-                                        case "5":
-                                            <a style="color:red">Vendido</a>
-                                            break;
-                                        default:
-                                            // Handle the default case if needed
-                                            break;
-                                    }
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
-                            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="7.34%" />
-                            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4.6%" />
-                            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hasta" Title="Fecha Nac." Width="4.6%">
-                                <Template Context="data">
-                                    @if (data.Nacido.HasValue)
-                                    {
-                                                <a>@data.Nacido.Value.ToString("dd/MM/yyyy")</a>
-                                    }
-                                    else
-                                    {
+                                                RowClick="@((args) => AddToSelectedToros(args))" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="Estado" Width="3.6%">
+                                            <Template Context="data">
+                                                @switch (data.CodEstado)
+                                                {
+                                                    case "1":
+                                                        <a style="color:darkgreen">Activo</a>
+                                                        break;
+                                                    case "2":
+                                                        <a style="color:red">Inexistente</a>
+                                                        break;
+                                                    case "3":
+                                                        <a style="color:red">Inactivo</a>
+                                                        break;
+                                                    case "4":
+                                                        <a style="color:black">Muerto</a>
+                                                        break;
+                                                    case "5":
+                                                        <a style="color:red">Vendido</a>
+                                                        break;
+                                                    default:
+                                                        // Handle the default case if needed
+                                                        break;
+                                                }
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="7.34%" />
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4.6%" />
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hasta" Title="Fecha Nac." Width="4.6%">
+                                            <Template Context="data">
+                                                @if (data.Nacido.HasValue)
+                                                {
+                                                    <a>@data.Nacido.Value.ToString("dd/MM/yyyy")</a>
+                                                }
+                                                else
+                                                {
 
-                                    }
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Columns>
-                    </RadzenDataGrid>
-                    </div>
-                    <div class="col-sm">
+                                                }
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </div>
+                            <div class="col-sm">
                                 <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
-                    <br/>
-                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@torosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
-                                            LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridToro2">
-                            <Columns>
+                                <br />
+                                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@torosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
+                                                LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridToro2">
+                                    <Columns>
                                         <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="3%">
-                                    <Template Context="data">
-                                        @data.original.Hardb
-                                    </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="7%">
-                                    <Template Context="data">
-                                        <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Desde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                                    </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="7%">
-                                    <Template Context="data">
-                                            <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                                    </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cant Vientres" Width="5%">
-                                    <Template Context="data">
-                                        <RadzenNumeric @bind-Value="data.original.Cantv" Min="0" class="w-100"></RadzenNumeric>
-                                    </Template>
-                                </RadzenDataGridColumn>
+                                            <Template Context="data">
+                                                @data.original.Hardb
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="7%">
+                                            <Template Context="data">
+                                                <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Desde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="7%">
+                                            <Template Context="data">
+                                                <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cant Vientres" Width="5%">
+                                            <Template Context="data">
+                                                <RadzenNumeric @bind-Value="data.original.Cantv" Min="0" class="w-100"></RadzenNumeric>
+                                            </Template>
+                                        </RadzenDataGridColumn>
                                         <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="4%">
                                             <Template Context="data">
-                                            <button class="btn" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
+                                                <button class="btn" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
 
                                             </Template>
                                         </RadzenDataGridColumn>
-                            </Columns>
-                        </RadzenDataGrid>
-                    </div>
-                </div>
-                <br/>
-            }
-                @if (tiposSeleccionados.Any(x => x.Contains("Inseminacion") || x.Contains("IATF")))
-
-            {
-                <div class="row">
-                    <div class="col-sm">
-                            <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado dosis de semen</RadzenText>
-                            <br />
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </div>
+                        </div>
+                        <br />
+                    }
+                    if (tipoTemp == "Inseminacion c/celo" || tipoTemp == "Inseminacion c/celo y rep" || tipoTemp == "Inseminacion c/p y rep" || tipoTemp == "IATF c/rep")
+                    {
+                        <div class="row">
+                            <div class="col-sm">
+                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado dosis de semen</RadzenText>
+                                <br />
                                 <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificados.Where(x=>x.Nrocri==socioSeleccionado.Scod).Where(x=>x.NrDosi>0)" SelectionMode="DataGridSelectionMode.Single" RowClick="@((args) => AddToSelectedCertif(args))"
-                                            TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" >
-                            <Columns>
-                                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
-                                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="7.34%" />
-                                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="7%" />
-                                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosi" Title="Dosis Reman Totales" Width="7.34%" />
-                            </Columns>
-                        </RadzenDataGrid>
-                    </div>
-                    <div class="col-sm">
-                            <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
-                            <br />
-                        <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificadosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
-                                            LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridCertif">
-                            <Columns>
+                                                TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
+                                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="7.34%" />
+                                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="7%" />
+                                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosi" Title="Dosis Reman Totales" Width="7.34%" />
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </div>
+                            <div class="col-sm">
+                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
+                                <br />
+                                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificadosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
+                                                LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridCertif">
+                                    <Columns>
                                         <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="7.34%">
-                                    <Template Context="data">
-                                        @data.original.Hardb
-                                    </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Dosis Reman" Width="7%" >
-                                    <Template Context="data">
-                                        @certificados.Where(x=>x.Hba == data.original.Hardb).First().NrDosi
-                                    </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Vientres" Width="6%">
-                                    <Template Context="data">
-                                        <RadzenNumeric @bind-Value="data.original.Cantv" class="w-100"></RadzenNumeric>
-                                    </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Dosis Necesaria" Width="7%">
-                                    <Template Context="data">
-                                        @if(data.original.Cantv!=null){
-                                            @switch (tipoTemp)
-                                            {
-                                                case "Inseminacion c/celo":
-                                                    <a>@Math.Round((decimal)(data.original.Cantv*1.5))</a>
-                                                    break;
-                                                case "Inseminacion c/celo y rep":
+                                            <Template Context="data">
+                                                @data.original.Hardb
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Dosis Reman" Width="7%">
+                                            <Template Context="data">
+                                                @certificados.Where(x => x.Hba == data.original.Hardb).First().NrDosi
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Vientres" Width="6%">
+                                            <Template Context="data">
+                                                <RadzenNumeric @bind-Value="data.original.Cantv" class="w-100"></RadzenNumeric>
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Dosis Necesaria" Width="7%">
+                                            <Template Context="data">
+                                                @if (data.original.Cantv != null)
+                                                {
+                                                    @switch (tipoTemp)
+                                                    {
+                                                        case "Inseminacion c/celo":
+                                                            <a>@Math.Round((decimal)(data.original.Cantv * 1.5))</a>
+                                                            break;
+                                                        case "Inseminacion c/celo y rep":
 
-                                                case "IATF c/rep":
-                                                    <a>@data.original.Cantv</a>
-                                                    break;
-                                                case "Inseminacion c/p y rep":
-                                                    <a>@Math.Round((decimal)(data.original.Cantv*0.8))</a>
-                                                    break;
+                                                        case "IATF c/rep":
+                                                            <a>@data.original.Cantv</a>
+                                                            break;
+                                                        case "Inseminacion c/p y rep":
+                                                            <a>@Math.Round((decimal)(data.original.Cantv * 0.8))</a>
+                                                            break;
                                                     }
                                                 }
-                                        else
-                                        {
-                                            <a>0</a>    
-                                        }
-                                        </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="5%">
-                                    <Template Context="data">
-                                        <RadzenDatePicker Style="max-width:auto;color:white" @bind-Value="data.Desde" TValue="DateTime" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                                    </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="5%">
-                                    <Template Context="data">
-                                            <RadzenDatePicker Style="max-width:auto;color:white" @bind-Value="data.Hasta" TValue="DateTime" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                                    </Template>
-                                </RadzenDataGridColumn>
-                            </Columns>
-                        </RadzenDataGrid>
-                    </div>
-                </div>
-                <br />
-            }
-            <br />
-            
-            
-            }
-        </EditForm>
+                                                else
+                                                {
+                                                    <a>0</a>
+                                                }
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="5%">
+                                            <Template Context="data">
+                                                <RadzenDatePicker Style="max-width:auto;color:white" @bind-Value="data.Desde" TValue="DateTime" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="5%">
+                                            <Template Context="data">
+                                                <RadzenDatePicker Style="max-width:auto;color:white" @bind-Value="data.Hasta" TValue="DateTime" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </div>
+                        </div>
+                        <br />
+                    }
+                    <br />
+
+
+                }
+            </EditForm>
+        </div>
     </div>
-</div>
 }
 else
 {
@@ -491,15 +488,15 @@ else
     RadzenDataGrid<Desepla3Data> gridCertif;
 
     [Parameter] public int Id { get; set; }
-    
-    
+
+
     bool esSocio = false;
 
 
     public string nrodec = "";
     SocioDTO? socioSeleccionado = null;
     PlantelDTO? Plantelseleccionado = null;
-    List<string> tipos = new List<string> { "IATF c/rep", "Natural", "Natural a Corral", "Inseminacion c/celo", "Inseminacion c/celo y rep", "Inseminacion c/p y rep" };
+    List<string> tipos = new List<string> { "Natural", "Natural a Corral", "Inseminacion c/celo", "Inseminacion c/celo y rep", "Inseminacion c/p y rep", "IATF c/rep" };
     DateTime FechaTemp = DateTime.Now;
     List<TorosuniDTO> toros = new();
     List<Desepla3Data> torosSeleccionados = new();
@@ -507,8 +504,6 @@ else
     List<Desepla3Data> certificadosSeleccionados = new();
     List<Desepla3DTO> deseplasViejos = new();
     string tipoTemp = "";
-    List<string> tiposSeleccionados = new();    
-
     Dictionary<string, string> traductor = new Dictionary<string, string>
     {
         {"Natural","NA"},
@@ -537,15 +532,15 @@ else
         certificadosSeleccionados.Clear();
         seleccionFinal.Clear();
         deseplasViejos.Clear();
-      
+
 
         var r = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = r.List;
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         user = authState.User;
-         esSocio = await UserHasRole("Socio");
+        esSocio = await UserHasRole("Socio");
 
-       if (esSocio) 
+        if (esSocio)
         {
             var socioIdClaim = user.Claims.FirstOrDefault(c => c.Type == "SocioId")?.Value;
             if (int.TryParse(socioIdClaim, out int socioId))
@@ -576,14 +571,14 @@ else
 
             string filtro = $"Id = {Id}";
             Console.WriteLine(1);
-            var rtaD = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 1,filtro);
+            var rtaD = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
             Console.WriteLine(2);
             oDeclaracion = rtaD.List.FirstOrDefault();
             var nrodecLower = oDeclaracion.Nrodec.ToLower();
             Console.WriteLine(3);
             tipoTemp = traductor[oDeclaracion.Tipse];
             Console.WriteLine(4);
-            socioSeleccionado = socios.Where(x=>x.Scod==oDeclaracion.Nrocri).FirstOrDefault();
+            socioSeleccionado = socios.Where(x => x.Scod == oDeclaracion.Nrocri).FirstOrDefault();
             Console.WriteLine(5);
             filtro = $"(Placod == null ? \"\" : Placod).ToLower().Contains(\"{oDeclaracion.Nroplan}\".ToLower())";
             Console.WriteLine(6);
@@ -654,7 +649,7 @@ else
         {
             var resp = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 0);
             var nroDecAnterior = resp.List.OrderByDescending(x => x.Id).First().Nrodec;
-            nrodec = (Int32.Parse(nroDecAnterior)+1).ToString();
+            nrodec = (Int32.Parse(nroDecAnterior) + 1).ToString();
             oDeclaracion.Fecdecl = DateTime.Now;
             oDeclaracion.Nrodec = nrodec;
             oDeclaracion.Desde = DateTime.Now;
@@ -672,19 +667,13 @@ else
     }
     async Task GenerarOtra()
     {
-        await Guardar(); 
+        await Guardar();
         Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
     }
 
 
     async Task Guardar()
     {
-
-        if (!tiposSeleccionados.Any())
-        {
-            await Swal.FireAsync("Error", "Debes seleccionar al menos un tipo de servicio.", "error");
-            return;
-        }
         Console.WriteLine("1");
         seleccionFinal.Clear();
 
@@ -712,16 +701,19 @@ else
 
         Console.WriteLine("3");
 
-        foreach(var adaptacion in torosSeleccionados)
+        foreach (var adaptacion in torosSeleccionados)
         {
             adaptacion.original.Desde = adaptacion.Desde.ToString("yyyy-MM-dd");
             adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyyy-MM-dd");
             seleccionFinal.Add(adaptacion.original);
-            if(tipoTemp!="Natural"){
-                if(adaptacion.Desde<oDeclaracion.Desde){
+            if (tipoTemp != "Natural")
+            {
+                if (adaptacion.Desde < oDeclaracion.Desde)
+                {
                     oDeclaracion.Desde = adaptacion.Desde;
                 }
-                if(adaptacion.Hasta>oDeclaracion.Hasta){
+                if (adaptacion.Hasta > oDeclaracion.Hasta)
+                {
                     oDeclaracion.Hasta = adaptacion.Hasta;
                 }
             }
@@ -749,7 +741,7 @@ else
 
             Console.WriteLine("5 id == 0");
 
-            foreach(var cert in certificadosAlterados)
+            foreach (var cert in certificadosAlterados)
             {
                 Console.WriteLine("LOOP");
                 await _certifsemanServicio.Crear(cert);
@@ -764,7 +756,7 @@ else
             {
                 oDeclaracion.Nrodec = "0";
             }
-            foreach(var dese in seleccionFinal)
+            foreach (var dese in seleccionFinal)
             {
                 Console.WriteLine($"NRODEC: {dese.Nrodec} (Length: {dese.Nrodec?.Length})");
 
@@ -872,17 +864,17 @@ else
 
     async Task cancel()
     {
-        Navigation.NavigateTo("/declaraciones"); 
+        Navigation.NavigateTo("/declaraciones");
 
 
     }
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        return await Task.FromResult(socios.Where(x => x.Criador=="S" &&  x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+        return await Task.FromResult(socios.Where(x => x.Criador == "S" && x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
     private async Task<IEnumerable<PlantelDTO>> BusquedaPlanteles(string searchText)
     {
-        return await Task.FromResult(Planteles.Where(x => x.Nrocri==socioSeleccionado.Scod && x.Placod.ToLower().Contains(searchText.ToLower())).ToList());
+        return await Task.FromResult(Planteles.Where(x => x.Nrocri == socioSeleccionado.Scod && x.Placod.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
     protected async Task AddToSelectedToros(DataGridRowMouseEventArgs<TorosuniDTO> args)
@@ -892,7 +884,7 @@ else
         bool yaExiste = torosSeleccionados.Any(t => t.original.Hardb == toro.Hba);
 
         if (yaExiste)
-            return; 
+            return;
 
         torosSeleccionados.Add(
             new Desepla3Data
@@ -925,29 +917,32 @@ else
             .Where(t => t.original.Hardb != data.original.Hardb)
             .ToList();
 
-            if(Id != 0){
-                Console.WriteLine("ENTRO");
-                    try{
-                        // await _certifsemanServicio.Eliminar(data.Id);
+        if (Id != 0)
+        {
+            Console.WriteLine("ENTRO");
+            try
+            {
+                // await _certifsemanServicio.Eliminar(data.Id);
                 await _desepla3Servicio.Eliminar(data.Id);
-                    }
-                    catch{
+            }
+            catch
+            {
                 Console.WriteLine("error");
 
-                    }
             }
+        }
 
         try
         {
             await InvokeAsync(gridToro1.Reload);
         }
-        catch {}
+        catch { }
 
         try
         {
             await InvokeAsync(gridToro2.Reload);
         }
-        catch {}
+        catch { }
     }
 
     protected void AddToSelectedCertif(DataGridRowMouseEventArgs<CertifsemanDTO> args)
@@ -962,8 +957,8 @@ else
                     Nrodec = nrodec,
                     Tatpart = certif.Tatpart,
                     Tipo = "insem"
-    }
-        }
+                }
+            }
         );
         InvokeAsync(gridCertif.Reload);
     }
@@ -978,36 +973,24 @@ else
     {
         socioSeleccionado = socio;
         string filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socio.Scod}\".ToLower())";
-        var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0,filtro);
+        var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         Planteles = rt.List;
         filtro = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{socio.Scod}\".ToLower())";
-        var rta = await _torosServicio.LimitadosFiltradosNoInclude(0, 0,filtro);
+        var rta = await _torosServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         toros = rta.List;
         filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socio.Scod}\".ToLower())";
-        var rtaa = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0,filtro);
+        var rtaa = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         certificados = rtaa.List;
     }
 
     public class Desepla3Data
     {
-        public Desepla3DTO original {get;set;}
+        public Desepla3DTO original { get; set; }
         public DateTime Desde { get; set; } = DateTime.Now;
         public DateTime Hasta { get; set; } = DateTime.Now;
-        public int Id { get; set;}
+        public int Id { get; set; }
     }
-    void OnTiposChange(object value)
-    {
-        tiposSeleccionados = value as List<string> ?? new();
 
-        if (tiposSeleccionados.Any(t => t.StartsWith("Inseminacion") || t.StartsWith("IATF")))
-        {
-            tiposSeleccionados.RemoveAll(t => t == "Natural" || t == "Natural a Corral");
-        }
-        else if (tiposSeleccionados.Any(t => t == "Natural" || t == "Natural a Corral"))
-        {
-            tiposSeleccionados.RemoveAll(t => t.StartsWith("Inseminacion") || t.StartsWith("IATF"));
-        }
-    }
 }
 
          @* <div class="col-sm">

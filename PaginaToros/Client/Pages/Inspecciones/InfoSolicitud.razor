@@ -108,93 +108,107 @@
     <br/>
     @if (Declaraciones.Count()>0)
     {
-        @foreach(var soliAux in ListaSoliAux){
-        if ((Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio).GroupBy(x => x.Id).Select(x => x.First())).Count()>0){
+        @foreach(var soliAux in ListaSoliAux)
+{
+    var declaracionesPorAnio = Declaraciones
+        .Where(x =>
+            (x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio) ||
+            (x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio)
+        )
+        .GroupBy(x => x.Id)
+        .Select(x => x.First())
+        .ToList();
+
+    if (declaracionesPorAnio.Count > 0)
+    {
         <center>
-        
             <h3 style="font-weight:bold">Año de nacimiento: @soliAux.Anio</h3>
             <br/>
         </center>
-        <br class="no-print"/>
-            <table class="table table-bordered text-center" bottom="middle" border="1" align="center">
-                <tbody>
-                    <tr style="background-color: #82D682;font-size:12px">
-                        <th width="58">Nro Declaracion</th>
-                        <th width="58">Nro Plantel</th>
-                        <th width="100">Tipo Servicio</th>
-                        <th width="100">DESDE</th>
-                        <th width="100">HASTA</th>
-                        <th width="48">Vtres PR</th>
-                        <th width="48">Vtres VIP (Base)</th>
-                        <th width="48">Toros PR</th>
-                        <th width="48">Vq PR</th>
-                    </tr>
-                    @foreach (var decla in Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio).GroupBy(x => x.Id).Select(x => x.First()))
-                    {
-                        <tr class="oddClassStyle" style="background-color:#FFFFFF;width:95%">
-                            <td>@decla.Nrodec</td>
-                            <td>@decla.Nroplan</td>
-                            <td>@(traductor.ContainsKey(decla.Tipse) ? @traductor[decla.Tipse] : "") </td>
-                            <td>@(decla.Desde.HasValue ? @decla.Desde.Value.ToString("dd/MM/yyyy") : "") </td>
-                            <td>@(decla.Hasta.HasValue ? @decla.Hasta.Value.ToString("dd/MM/yyyy") : "") </td>
-                            <td>@decla.Cantv</td>
-                            <td>@decla.Cantb</td>
-                            <td>@(decla.Cantv.HasValue ? (decla.Tipse == "IR" ? Math.Round((double)(decla.Cantv * 0.8) / 2) : Math.Round((double)(decla.Cantv * 0.85) / 2)) : 0)</td>
-                            <td>@(decla.Cantv.HasValue ? (decla.Tipse == "IR" ? Math.Round((double)(decla.Cantv * 0.8) / 2) : Math.Round((double)(decla.Cantv * 0.85) / 2)) : 0)</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            <br/>
-        <table class="table table-bordered text-center" id="tabla2" bottom="middle" width="334" bgcolor="#FFFFFF" align="center">
+
+        <table class="table table-bordered text-center" bottom="middle" border="1" align="center">
             <tbody>
-                @* <tr style="background-color:#FFFFFF">
-                    <td colspan="4" height="21"></td>
+                <tr style="background-color: #82D682;font-size:12px">
+                    <th>Nro Declaracion</th>
+                    <th>Nro Plantel</th>
+                    <th>Tipo Servicio</th>
+                    <th>DESDE</th>
+                    <th>HASTA</th>
+                    <th>Vtres PR</th>
+                    <th>Vtres VIP</th>
+                    <th>Toros PR</th>
+                    <th>Vq PR</th>
                 </tr>
-                <tr style="background-color:#FFFFFF">
-                    <td width="85">&nbsp;</td>
-                    <td colspan="3">&nbsp;</td>
-                </tr> *@
+                @foreach (var decla in declaracionesPorAnio)
+                {
+                    var calculoToroVq = decla.Cantv.HasValue
+                        ? (decla.Tipse == "IR" ? Math.Round((double)(decla.Cantv * 0.8) / 2) : Math.Round((double)(decla.Cantv * 0.85) / 2))
+                        : 0;
+
+                    <tr>
+                        <td>@decla.Nrodec</td>
+                        <td>@decla.Nroplan</td>
+                        <td>@(traductor.ContainsKey(decla.Tipse) ? traductor[decla.Tipse] : "")</td>
+                        <td>@(decla.Desde?.ToString("dd/MM/yyyy"))</td>
+                        <td>@(decla.Hasta?.ToString("dd/MM/yyyy"))</td>
+                        <td>@decla.Cantv</td>
+                        <td>@decla.Cantb</td>
+                        <td>@calculoToroVq</td>
+                        <td>@calculoToroVq</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+            var disponibles = Math.Round(declaracionesPorAnio.Sum(x =>
+                x.Cantv.HasValue
+                    ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2))
+                    : 0));
+
+            var autorizadosToro = Math.Round(Math.Min((float)soliAux.Cantor, (float)disponibles));
+            var autorizadosVq = Math.Round(Math.Min((float)soliAux.Cantvq, (float)disponibles));
+            var remanenteToro = disponibles - autorizadosToro;
+            var remanenteVq = disponibles - autorizadosVq;
+
+        <table class="table table-bordered text-center" width="334" align="center">
+            <tbody>
                 <tr style="background-color:#CCCCCC">
-                    <td width="85" style="background-color:#FFFFFF">&nbsp;</td>
-                    <td width="75"><strong style="font-size:12px">Toros PR</strong></td>
-                    <td width="62"><strong style="font-size:12px">Vq PR</strong></td>
-                    <td width="92"><strong style="font-size:12px">Hembras VIP</strong></td>
+                    <td style="background-color:#FFFFFF"></td>
+                    <td><strong>Toros PR</strong></td>
+                    <td><strong>Vq PR</strong></td>
+                    <td><strong>Hembras VIP</strong></td>
                 </tr>
                 <tr>
-                    <td style="font-size:12px"><strong>Disponibles</strong></td>
-                    <td>@Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0))</td>
-                    <td>@Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0))</td>
+                    <td><strong>Disponibles</strong></td>
+                    <td>@disponibles</td>
+                    <td>@disponibles</td>
                     <td>0</td>
                 </tr>
-                <tr>
-                    <td style="font-size:12px;background-color:#999999" ><strong>Pedidos</strong></td>
-                    <td style="background-color:#999999">@soliAux.Cantor</td>
-                    <td style="background-color:#999999">@soliAux.Cantvq</td>
-                    <td style="background-color:#999999">@(soliAux.Canvac + soliAux.Canvaq)</td>
+                <tr style="background-color:#999999">
+                    <td><strong>Pedidos</strong></td>
+                    <td>@soliAux.Cantor</td>
+                    <td>@soliAux.Cantvq</td>
+                    <td>@(soliAux.Canvac + soliAux.Canvaq)</td>
                 </tr>
                 <tr>
-                    <td style="font-size:12px"><strong>Autorizados</strong></td>
-                    <td>@Math.Round(Math.Min((float)soliAux.Cantor, (float)Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0))))</td>
-                    <td>@Math.Round(Math.Min((float)soliAux.Cantvq, (float)Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0))))</td>
+                    <td><strong>Autorizados</strong></td>
+                    <td>@autorizadosToro</td>
+                    <td>@autorizadosVq</td>
                     <td>0</td>
                 </tr>
-                <tr>
-                    <td style="font-size:12px" bgcolor="#999999"><strong>Remanentes</strong></td>
-                    <td bgcolor="#999999"><p>@(Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0)) - Math.Round(Math.Min((float)soliAux.Cantor, (float)Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0)))))</p></td>
-                    <td bgcolor="#999999"><p>@(Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0)) - Math.Round(Math.Min((float)soliAux.Cantvq, (float)Math.Round(Declaraciones.Where(x => x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio || x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio ).GroupBy(x => x.Id).Select(x => x.First()).Sum(x => x.Cantv.HasValue ? (x.Tipse == "IR" ? Math.Round((double)(x.Cantv * 0.8) / 2) : Math.Round((double)(x.Cantv * 0.85) / 2)) : 0)))))</p></td>
-                    <td bgcolor="#999999"><p>0</p></td>
-                </tr>
-                <tr>
-                    <td colspan="4" style="font-size:12px" bgcolor="#FFFFFF">
-                    </td>
+                <tr style="background-color:#999999">
+                    <td><strong>Remanentes</strong></td>
+                    <td>@remanenteToro</td>
+                    <td>@remanenteVq</td>
+                    <td>0</td>
                 </tr>
             </tbody>
         </table>
-                    <br class="no-print" />
-                    <br class="no-print" />
-        }
-        }
+
+        <br class="no-print" />
+        <br class="no-print" />
+    }
+}
     } 
     else
     {
@@ -214,14 +228,14 @@
                 </tr>
                 <tr>
                     <td style="font-size:12px"><strong>Autorizados</strong></td>
-                    <td></td>
-                    <td></td>
+                    <td>0</td>
+                    <td>0</td>
                     <td>0</td>
                 </tr>
                     <tr>
                         <td style="font-size:12px" bgcolor="#999999"><strong>Remanentes</strong></td>
-                        <td bgcolor="#999999"><p></p></td>
-                        <td bgcolor="#999999"><p></p></td>
+                        <td bgcolor="#999999"><p>0</p></td>
+                        <td bgcolor="#999999"><p>0</p></td>
                         <td bgcolor="#999999"><p>0</p></td>
                     </tr>
             </tbody>
@@ -317,6 +331,9 @@ else
 
         Console.WriteLine("Que es esot?");
         try{
+
+
+
             var r = await _inspectServicio.LimitadosFiltradosIncludeZonas(0, 0);
             Inspectores = r.List;
 
