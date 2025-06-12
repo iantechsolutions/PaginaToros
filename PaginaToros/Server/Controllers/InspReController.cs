@@ -189,7 +189,7 @@ namespace PaginaToros.Server.Controllers
                 {
                     var ultimo = await _Resin1Repositorio.ObtenerUltimoNrores();
                     var nuevoNro = (ultimo ?? 0) + 1;
-                    request.Nrores = nuevoNro.ToString();
+                    request.Nrores = nuevoNro.ToString("D6");
                 }
                 var _Resin1 = _mapper.Map<Resin1>(request);
 
