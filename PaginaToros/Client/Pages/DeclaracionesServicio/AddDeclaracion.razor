@@ -61,9 +61,14 @@
                 </div>
 
                     <div class="col-sm text-end">
-                        <button type="button" @onclick="GenerarOtra" class="btn btn-light">Generar otra declaración</button>
+                        @* <button type="button"
+                                class="btn btn-primary mr-2"
+                            @onclick="GenerarOtra">Generar otra declaración</button> *@
 
-                        <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+                        <RadzenButton Icon="save" Text="Guardar Declaración"
+                                      Click="Guardar"
+                                      Disabled="@(!tiposSeleccionados.Any())"
+                                      Style="margin-top: 20px; background-color: seagreen; color: white" />
                     </div>
             </div>
             <br />
@@ -146,33 +151,26 @@
             </div>
             <br />
                     <div class="row" style="width=100%">
+                       
                         <div class="col-sm">
-                            <label>Total de Vientres Seleccionados</label>
-                            <div class="card">
-                                <div class="card-body">
-                                    <a>@(@oDeclaracion.Cantv + @oDeclaracion.Cantb)</a>
-                                </div>
-                            </div>
                         </div>
                         <div class="col-sm">
-                            <label>Total de Vientres Utilizados</label>
-                            <div class="card">
-                                <div class="card-body">
-                                    <a>@(torosSeleccionados.Sum(x => x.original.Cantv) + certificadosSeleccionados.Sum(x => x.original.Cantv))</a>
-                                </div>
-                            </div>
                         </div>
                         <div class="col-sm">
                             <label>Tipo de servicio</label>
-                            <RadzenDropDown @bind-Value=@tipoTemp
-                                            Data=@tipos
-                                            Change="@(args => CleanSelected())"
-                                            Style="width: 100%; max-width: 400px;" />
+                            <RadzenDropDown Data="@tipos"
+                                            @bind-Value="@tiposSeleccionados"
+                                            Multiple="true"
+                                            Placeholder="Seleccionar tipos de servicio"
+                                            Style="width: 100%; max-width: 400px"
+                                            Change="OnTiposChange"
+                                            AllowClear="true" />
                         </div>
                     </div>
 
             <br />
-            if(tipoTemp=="Natural"){
+                    @if (tiposSeleccionados.Contains("Natural") || tiposSeleccionados.Contains("Natural a Corral"))
+                    {
                 <label style="text-align:center">Periodo de servicio</label>
                 <div class="row">
                     <div class="col-sm">
@@ -279,7 +277,9 @@
                     </div>
                 </div>
             }
-                if (tipoTemp == "Natural a Corral" || tipoTemp == "Inseminacion c/celo y rep" || tipoTemp == "Inseminacion c/p y rep" || tipoTemp=="IATF c/rep")
+                    @if (tiposSeleccionados.Any(t => t.Contains("Inseminacion") || t.Contains("IATF")))
+
+
             {
                 
                 <div class="row">
@@ -370,7 +370,8 @@
                 </div>
                 <br/>
             }
-                if (tipoTemp == "Inseminacion c/celo" || tipoTemp == "Inseminacion c/celo y rep" || tipoTemp == "Inseminacion c/p y rep" || tipoTemp == "IATF c/rep")
+                @if (tiposSeleccionados.Any(x => x.Contains("Inseminacion") || x.Contains("IATF")))
+
             {
                 <div class="row">
                     <div class="col-sm">
@@ -498,7 +499,7 @@ else
     public string nrodec = "";
     SocioDTO? socioSeleccionado = null;
     PlantelDTO? Plantelseleccionado = null;
-    List<string> tipos = new List<string> { "Natural", "Natural a Corral", "Inseminacion c/celo", "Inseminacion c/celo y rep", "Inseminacion c/p y rep", "IATF c/rep" };
+    List<string> tipos = new List<string> { "IATF c/rep", "Natural", "Natural a Corral", "Inseminacion c/celo", "Inseminacion c/celo y rep", "Inseminacion c/p y rep" };
     DateTime FechaTemp = DateTime.Now;
     List<TorosuniDTO> toros = new();
     List<Desepla3Data> torosSeleccionados = new();
@@ -506,6 +507,8 @@ else
     List<Desepla3Data> certificadosSeleccionados = new();
     List<Desepla3DTO> deseplasViejos = new();
     string tipoTemp = "";
+    List<string> tiposSeleccionados = new();    
+
     Dictionary<string, string> traductor = new Dictionary<string, string>
     {
         {"Natural","NA"},
@@ -676,6 +679,12 @@ else
 
     async Task Guardar()
     {
+
+        if (!tiposSeleccionados.Any())
+        {
+            await Swal.FireAsync("Error", "Debes seleccionar al menos un tipo de servicio.", "error");
+            return;
+        }
         Console.WriteLine("1");
         seleccionFinal.Clear();
 
@@ -986,6 +995,34 @@ else
         public DateTime Hasta { get; set; } = DateTime.Now;
         public int Id { get; set;}
     }
+    void OnTiposChange(object value)
+    {
+        tiposSeleccionados = value as List<string> ?? new();
 
+        if (tiposSeleccionados.Any(t => t.StartsWith("Inseminacion") || t.StartsWith("IATF")))
+        {
+            tiposSeleccionados.RemoveAll(t => t == "Natural" || t == "Natural a Corral");
+        }
+        else if (tiposSeleccionados.Any(t => t == "Natural" || t == "Natural a Corral"))
+        {
+            tiposSeleccionados.RemoveAll(t => t.StartsWith("Inseminacion") || t.StartsWith("IATF"));
+        }
+    }
 }
 
+         @* <div class="col-sm">
+                            <label>Total de Vientres Seleccionados</label>
+                            <div class="card">
+                                <div class="card-body">
+                                    <a>@(@oDeclaracion.Cantv + @oDeclaracion.Cantb)</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm">
+                            <label>Total de Vientres Utilizados</label>
+                            <div class="card">
+                                <div class="card-body">
+                                    <a>@(torosSeleccionados.Sum(x => x.original.Cantv) + certificadosSeleccionados.Sum(x => x.original.Cantv))</a>
+                                </div>
+                            </div>
+                        </div> *@

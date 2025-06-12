@@ -40,7 +40,18 @@
             </BlazoredTypeahead>
         </div>
         <div class="col-md-3" />
-        <div class="col-md-2" />
+        <div class="col-md-2">
+            @if (solicitudSeleccionada != null)
+            {
+
+                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">@(Id == 0 ? "Guardar Datos" : "Actualizar datos")</button>
+            }
+                else  if (socioSeleccionado != null)
+            {
+                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick="()=>{ResultWithoutSolicitud();}" disabled=@(solicitudSeleccionada != null)>Resultado sin solicitud</button>
+
+            }
+            </div>
     </div>
         @if (socioSeleccionado != null)
         {
@@ -67,7 +78,7 @@
                             }
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Fecha de Autorizacion">
+                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Fecha de Autorización">
                         <Template Context="data">
                             @if(data.Fecins.HasValue){
                                 <a>@data.Fecins.Value.ToString("dd/MM/yyyy")</a>
@@ -235,15 +246,7 @@
            
         </div>
         <br />
-            @if(solicitudSeleccionada != null){
-
-                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">@(Id == 0 ? "Guardar Datos" : "Actualizar datos")</button>
-            }
-            else
-            {
-                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick="()=>{ResultWithoutSolicitud();}" disabled=@(solicitudSeleccionada != null)>Resultado sin solicitud</button>
-
-            }
+          
             <br />
         <br />
          @if (confirmado){
@@ -790,15 +793,15 @@ else
 
                 if (solicitudSeleccionada?.FirstOrDefault() != null)
                 {
-                await updateEstadoHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                    await updateEstadoHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
 
-                await updatePromedios(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                    await updatePromedios(solicitudSeleccionada.FirstOrDefault().Nrosol);
 
                     await updateRechazos(solicitudSeleccionada.First().Nrosol);
 
-                await updateMovimientos(solicitudSeleccionada.FirstOrDefault().Nrosol, "no");
+                    await updateMovimientos(solicitudSeleccionada.FirstOrDefault().Nrosol, "no");
 
-                await updateHembrasMachos(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                    await updateHembrasMachos(solicitudSeleccionada.FirstOrDefault().Nrosol);
                 }
 
                 confirmado = true;
@@ -843,19 +846,33 @@ else
     {
         Console.WriteLine("guardarReporte");
         oResin1.Id = Id;
-        Console.WriteLine(1);
-        Console.WriteLine(Id);
 
-        if (!string.IsNullOrWhiteSpace(solicitudSeleccionada?.FirstOrDefault()?.Nrosol))
+        if (socioSeleccionado == null)
         {
-
-            oResin1.Nrores = solicitudSeleccionada?.FirstOrDefault()?.Nrosol ?? "";
+            await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
+            return;
         }
-        Console.WriteLine("2");
+
+        if (solicitudSeleccionada == null || solicitudSeleccionada.FirstOrDefault() == null)
+        {
+            await Swal.FireAsync("Error", "Debe seleccionar o generar una solicitud válida.", SweetAlertIcon.Error);
+            return;
+        }
+
+        if (inspectorSeleccionado == null)
+        {
+            await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
+            return;
+        }
+
+        if (Plantelseleccionado == null)
+        {
+            await Swal.FireAsync("Error", "Debe seleccionar un plantel válido.", SweetAlertIcon.Error);
+            return;
+        }
         oResin1.Icod = inspectorSeleccionado.Icod;
-        Console.WriteLine("3");
+        oResin1.Icod = inspectorSeleccionado.Icod;
         oResin1.Scod = socioSeleccionado.Scod;
-        Console.WriteLine("4");
         if (!string.IsNullOrWhiteSpace(solicitudSeleccionada?.FirstOrDefault()?.Codest))
         {
             try{
@@ -867,28 +884,21 @@ else
                 Console.WriteLine("Otro error aca");
             }
         }
-        Console.WriteLine("5");
         if (Id == 0)
         {
             oResin1.Nropla = socioSeleccionado.Placod;
             oResin1.Freali = fechaTemp;
             var result  = await _resin1Servicio.Crear(oResin1);
             Id = result.List.Id;
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            nav.NavigateTo("/reportes");
         }
         else
         {
 
             Console.WriteLine("Entro bien al editar antes del error");
             await _resin1Servicio.Editar(oResin1);
-            if (ModalInstance != null)
-            {
-                await ModalInstance.CloseAsync(ModalResult.Ok("Form was submitted successfully."));
-            }
-            else
-            {
-                Console.WriteLine("ModalInstance es null");
-            }
+            nav.NavigateTo("/reportes");
+           
         }
     }
 
@@ -1056,7 +1066,7 @@ else
         Console.WriteLine("Termno el guardar");
         if (!string.IsNullOrWhiteSpace(solicitudSeleccionada?.FirstOrDefault()?.Nrosol))
         {
-        string nrores =   solicitudSeleccionada?.FirstOrDefault()?.Nrosol ?? "";
+            string nrores =   solicitudSeleccionada?.FirstOrDefault()?.Nrosol ?? "";
 
             await updatePromedios(nrores);
 
@@ -1071,7 +1081,8 @@ else
 
         }
 
-
+        Console.WriteLine("Redirigiendo a reportes");
+        await ComeBack();
         //cambiar todos los gets a unicos por nrosol
     }
     async Task ComeBack()
@@ -1081,17 +1092,15 @@ else
     async Task confirmarNuevo()
     {
         bool shouldRedirect = (Id != 0);
-        Console.WriteLine(1);
-        Console.WriteLine("eNTRO AL EDITAR");
         if (solicitudSeleccionada != null && solicitudSeleccionada.Any() &&
             !string.IsNullOrWhiteSpace(solicitudSeleccionada.First().Nrosol))
         {
             Console.WriteLine(solicitudSeleccionada.First().Nrosol);
             crearHistorico(solicitudSeleccionada.First().Nrosol);
         }
-        Console.WriteLine(2);
-        Console.WriteLine(solicitudSeleccionada?.FirstOrDefault()?.Nrosol);
         await confirmar();
+
+     
         // if(shouldRedirect){
             //send back to /reportes
         // }
