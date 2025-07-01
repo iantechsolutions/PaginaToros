@@ -192,6 +192,7 @@ namespace PaginaToros.Server.Controllers
                     request.Nrores = nuevoNro.ToString("D6");
                 }
                 var _Resin1 = _mapper.Map<Resin1>(request);
+                _Resin1.Nrores = request.Nrores;
 
                 var _Resin1Creado = await _Resin1Repositorio.Crear(_Resin1);
 
