@@ -346,9 +346,9 @@ else
             {
                 if (socioSeleccionado == null)
                 {
-                    await Get();
-                    await grid.Reload();
+                    await RecargarDatos();
                     await grid.GoToPage(currentPage);
+
                 }
                 else
                 {
@@ -422,6 +422,27 @@ else
             coso.Top = 15;
             await LoadData(coso);
         }
+    }
+
+
+    public async Task RecargarDatos()
+    {
+        isLoading = true;
+        if (socioSeleccionado != null)
+        {
+            string filtro = $"Socio.Id={socioSeleccionado.Id}";
+            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 60, filtro);
+        }
+        else
+        {
+            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 15);
+            var rt = await _certifsemanServicio.CantidadTotal();
+            cantotal = rt.List;
+        }
+
+        oRespuesta.List = RemoveDuplicates(oRespuesta.List);
+        isLoading = false;
+        await grid.Reload();
     }
 
 }

@@ -20,7 +20,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             try
             {
                 var ids = await _dbContext.Desepla1s
-                    .OrderByDescending(t => t.Id)
+                    .OrderByDescending(t => t.Nrodec)
                     .Select(x => x.Id)
                     .Skip(skip)
                     .Take(take)
@@ -69,11 +69,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 }
                 if (take == 0)
                 {
-                    return b.OrderByDescending(t => t.Id).ToList();
+                    return b.OrderByDescending(t => t.Nrodec).ToList();
                 }
                 else
                 {
-                    return b.Take(take).OrderByDescending(t => t.Id).ToList();
+                    return b.Take(take).OrderByDescending(t => t.Nrodec).ToList();
                 }
             }
             catch
@@ -98,11 +98,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 }
                 if (take == 0)
                 {
-                    return b.OrderByDescending(t => t.Id).ToList();
+                    return b.OrderByDescending(t => t.Nrodec).ToList();
                 }
                 else
                 {
-                    return b.Take(take).OrderByDescending(t => t.Id).ToList();
+                    return b.Take(take).OrderByDescending(t => t.Nrodec).ToList();
                 }
             }
             catch

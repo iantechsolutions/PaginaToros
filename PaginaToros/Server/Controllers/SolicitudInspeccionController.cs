@@ -33,7 +33,7 @@ namespace PaginaToros.Server.Controllers
             _socioRepositorio = socioRepositorio;
         }
 
-        [HttpGet]
+        [HttpGet]   
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
         {
@@ -285,7 +285,9 @@ namespace PaginaToros.Server.Controllers
             {
                 using (hereford_prContext db = new hereford_prContext())
                 {
-                    var lst = db.Solici1s.ToList();
+                    var lst = db.Solici1s
+                    .OrderByDescending(s => s.Nrosol)
+                    .ToList();
                     oRespuesta.Exito = 1;
                     oRespuesta.List = lst;
                 }

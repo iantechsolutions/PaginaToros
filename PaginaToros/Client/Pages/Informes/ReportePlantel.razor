@@ -9,45 +9,46 @@
 
 
 <center><RadzenText TextStyle="TextStyle.H4">Informe de planteles</RadzenText></center>
-<EditForm OnValidSubmit="Generate" Model="anioini">
-<DataAnnotationsValidator />
-<div class="row">
-    <div class="col">
-        <label> Escriba el año inicial</label>
-        <br/>
-        <InputNumber @bind-Value="@anioini" class="form-control" placeholder=""></InputNumber>
-    </div>
-    <div class="col">
-        <label> Escriba el año final </label>
-            <br />
-            <InputNumber @bind-Value="@aniofin" class="form-control" placeholder=""></InputNumber>
-    </div>
-    <div class="col">
-        <label> Seleccione el estado de los planteles</label>
-        <br />
-        <RadzenDropDown @bind-Value=@seleccion Data=@opciones Style="width: 100%; max-width: 400px;" />
-    </div>
+<div>
+    <DataAnnotationsValidator />
+        <div class="row">
+            <div class="col-sm">
+                <label>Seleccionar Fecha Inicial</label>
+            <RadzenDatePicker TValue="DateTime?" @bind-Value="@fechaInicial" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+            </div>
+            <div class="col-sm">
+                <label>Seleccionar Fecha Final</label>
+            <RadzenDatePicker TValue="DateTime?" @bind-Value="@fechaFinal" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+            </div>
+            <div class="col-sm">
+                <label>Seleccione el estado de los planteles</label>
+                <RadzenDropDown @bind-Value="@seleccion" Data="@opciones" Style="width: 100%; max-width: 400px;" />
+            </div>
+        </div>
 </div>
-</EditForm>
-<br/>
+<br />
 @if(terminado){
-    <div class="row">
-        <div class="col-sm-3"></div>
-        <div class="col-sm-3"></div>
-        <div class="col-sm-1">
-            <button class="no-print font-bold px-6 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
-                    style="width:120px; margin-bottom:5px;" @onclick="() => DescargarExcel()">
-                Descargar Excel
-            </button>
-        </div>
-        <div class="col-sm-1">
-            <button style="outline:none; float: right; margin-right:3%; height:auto; width:100px;"
-                    class="no-print px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                    @onclick="() => Print()">
-                <FeatherPrinter Color="Black"></FeatherPrinter>
-            </button>
-        </div>
+    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+
+        <button class="no-print font-bold px-6 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
+                style="width: 150px;" @onclick="DescargarExcel">
+            Descargar Excel
+        </button>
+
+        <button class="no-print px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center"
+                style="width: 100px;" @onclick="Print">
+            <FeatherPrinter Color="Black"></FeatherPrinter>
+        </button>
+
+        <button @onclick="ReiniciarFiltros"
+                class="font-bold px-4 py-2 rounded-2xl bg-gray-100 hover:bg-gray-300 transition ease-in duration-100"
+                style="width: 150px;">
+            Reiniciar Filtros
+        </button>
+
     </div>
+
+
 
 
     
@@ -215,14 +216,16 @@ else
 
 }
 @code {
-    public int anioini = 2000;
-    public int aniofin = 2000;
+    public DateTime? fechaInicial { get; set; } = new DateTime(2020, 1, 1);
+    public DateTime? fechaFinal { get; set; } = DateTime.Now;
     public List<PlantelDTO> planteles = new();
     List<string> opciones = new() { "Activos", "Inactivos", "Todos" };
     List<int> anios = new();
     bool terminado = false;
     bool isLoading = false;
     string seleccion = "Activos";
+
+
 
     private async Task Generate()
     {
@@ -233,12 +236,14 @@ else
 
         try
         {
-            for (int i = anioini; i <= aniofin; i++)
+            if (fechaInicial == null || fechaFinal == null)
             {
-                anios.Add(i);
+                Console.WriteLine("Fechas inválidas");
+                return;
             }
 
-            var rtaa = await _plantelServicio.ObtenerPorAnios(anioini, aniofin);
+            var rtaa = await _plantelServicio.ObtenerPorRangoFechas(fechaInicial.Value, fechaFinal.Value);
+
             switch (seleccion)
             {
                 case "Activos":
@@ -251,6 +256,14 @@ else
                     planteles = rtaa.List;
                     break;
             }
+
+            anios = planteles
+                .Where(x => !string.IsNullOrEmpty(x.Anioex) && int.TryParse(x.Anioex, out _))
+                .Select(x => int.Parse(x.Anioex))
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList();
+
             terminado = true;
         }
         catch (Exception ex)
@@ -263,6 +276,7 @@ else
             StateHasChanged();
         }
     }
+
 
 
 
@@ -363,6 +377,18 @@ else
 
 
 
+    private void ReiniciarFiltros()
+    {
+        fechaInicial = null;
+        fechaFinal = new DateTime(2022, 1, 1); 
+        seleccion = "Activos";
+
+        planteles.Clear();
+        anios.Clear();
+        terminado = false;
+
+        StateHasChanged();
+    }
 
 
 

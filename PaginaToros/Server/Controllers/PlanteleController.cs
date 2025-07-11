@@ -151,6 +151,49 @@ namespace PaginaPlantels.Server.Cont{
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
+        [HttpGet]
+        [Route("ObtenerPorRangoFechas")]
+        public async Task<IActionResult> ObtenerPorRangoFechas(DateTime desde, DateTime hasta)
+        {
+            var _ResponseDTO = new Respuesta<List<PlantelDTO>>();
+
+            if (desde > hasta)
+            {
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>()
+                {
+                    Exito = 0,
+                    Mensaje = "La fecha inicial no puede ser posterior a la fecha final.",
+                    List = null
+                };
+                return BadRequest(_ResponseDTO);
+            }
+
+            try
+            {
+                var lista = await _plantelRepositorio.ObtenerPorRangoFechas(desde, hasta); 
+                var listaDTO = _mapper.Map<List<PlantelDTO>>(lista);
+
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>()
+                {
+                    Exito = 1,
+                    Mensaje = "Éxito",
+                    List = listaDTO
+                };
+
+                return Ok(_ResponseDTO);
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>()
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = null
+                };
+
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
 
 
         [HttpDelete]

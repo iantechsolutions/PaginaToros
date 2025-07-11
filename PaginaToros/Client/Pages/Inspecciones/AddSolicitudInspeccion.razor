@@ -1,349 +1,383 @@
-﻿@using Blazored.Typeahead
-@using PaginaToros.Client.Servicios.Contrato;
-@inject ISolici1Servicio _solici1Servicio
-@inject ISolici1AuxServicio _solici1AuxServicio
-@inject IEstableServicio _estableServicio
-@inject ISocioServicio _socioServicio
-@inject HttpClient http
-@inject NavigationManager Navigation
-@inject AuthenticationStateProvider AuthenticationStateProvider
-@using System.Security.Claims
+﻿    @using Blazored.Typeahead
+    @using PaginaToros.Client.Servicios.Contrato;
+    @inject ISolici1Servicio _solici1Servicio
+    @inject ISolici1AuxServicio _solici1AuxServicio
+    @inject IEstableServicio _estableServicio
+    @inject ISocioServicio _socioServicio
+    @inject HttpClient http
+    @inject NavigationManager Navigation
+    @inject AuthenticationStateProvider AuthenticationStateProvider
+    @using System.Security.Claims
 
-@if(establecimientos.Count>0){
-<div class="card" >
-    <div class="card-body">
-        <EditForm Model="@oSolici1" OnValidSubmit="Guardar">
-            <DataAnnotationsValidator />
-            <div class="row" style="width=100%;">
-                <div class="col-sm"/>
-                    <div class="col-md-6">
-                        <label>Socio</label>
-                            <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" Disabled="esSocio" EnableDropDown="true" @bind-Value="socioSeleccionado">
-                                <SelectedTemplate Context="eleccion">
-                                    @eleccion.Nombre
-                                </SelectedTemplate>
-                                <ResultTemplate Context="eleccion">
-                                    @eleccion.Nombre
-                                </ResultTemplate>
-                            </BlazoredTypeahead>
-                    </div>  
-                <div class="col-sm"/>
-            </div>
-            <br/>
-            @if(socioSeleccionado!=null){
+    @if(establecimientos.Count>0){
+    <div class="card" >
+        <div class="card-body">
+            <EditForm Model="@oSolici1" OnValidSubmit="Guardar">
+                <DataAnnotationsValidator />
                 <div class="row" style="width=100%;">
-                    <div class="col-sm">
-                        <label class="col-sm">Establecimiento</label>
-                            <BlazoredTypeahead SearchMethod="BusquedaEstablecimientos" placeholder="Busque establecimiento por nombre" Disabled="esSocio" EnableDropDown="true" @bind-Value="establecimientoSeleccionado">
-                                <SelectedTemplate Context="eleccion">
-                                    @eleccion.Nombre
-                                </SelectedTemplate>
-                                <ResultTemplate Context="eleccion">
-                                    @eleccion.Nombre
-                                </ResultTemplate>
-                            </BlazoredTypeahead>
-                    </div>
-                    <div class="col-sm">
-                        <label>Fecha de Solicitud</label><br/>
-                            <RadzenDatePicker TValue="DateTime?" @bind-Value="@oSolici1.Fecsol" ShowTime="false" Disabled="esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                    </div>
-                    <div class="col-sm">
-                            <label>Fecha de Autorización</label><br />
-                            <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTemp" ShowTime="false" ShowSeconds="false" Disabled="esSocio" DateFormat="dd/MM/yyyy" Class="w-75" />
-                    </div>
+                    <div class="col-sm"/>
+                        <div class="col-md-6">
+                            <label>Socio</label>
+                                <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" Disabled="esSocio" EnableDropDown="true" @bind-Value="socioSeleccionado">
+                                    <SelectedTemplate Context="eleccion">
+                                        @eleccion.Nombre
+                                    </SelectedTemplate>
+                                    <ResultTemplate Context="eleccion">
+                                        @eleccion.Nombre
+                                    </ResultTemplate>
+                                </BlazoredTypeahead>
+                        </div>  
+                    <div class="col-sm"/>
                 </div>
-
-                    @foreach(var soli in listadoSolicitudes)
-                    {
-
-                        <br />
-                        <div class="row" style="width=100%;">
-                            <div class="col-sm">
-                                <label class="col-sm">Toros PR</label><br />
-                                <InputNumber @bind-Value="@soli.Cantor" class="form-control" placeholder="Cantidad" disabled="@esSocio"></InputNumber>
-                                <ValidationMessage For="(()=> soli.Cantor)" style="color:red;" />
-                            </div>
-                            <div class="col-sm">
-                                <label class="col-sm">Vacas PR</label><br />
-                                <InputNumber @bind-Value="@soli.Cantvq" class="form-control" placeholder="Cantidad" disabled="@esSocio"></InputNumber>
-                                <ValidationMessage For="(()=> soli.Cantvq)" style="color:red;" />
-                            </div>
-                            <div class="col-sm">
-                                <label class="col-sm">Vacas Vip</label><br />
-                                <InputNumber @bind-Value="@soli.Canvac" class="form-control" placeholder="Cantidad" disabled="@esSocio"></InputNumber>
-                                <ValidationMessage For="(()=> soli.Canvac)" style="color:red;" />
-                            </div>
-                            <div class="col-sm">
-                                <label class="col-sm">Vaquillonas Vip</label><br />
-                                <InputNumber @bind-Value="@soli.Canvaq" class="form-control" placeholder="Cantidad" disabled="@esSocio"></InputNumber>
-                                <ValidationMessage For="(()=> soli.Canvaq)" style="color:red;" />
-                            </div>
-                            <div class="col-sm">
-                                <label>Año</label><br />
-                                <InputText @bind-Value="@soli.Anio" class="form-control" placeholder="Año" disabled="@esSocio"></InputText>
-                            </div>
-                            <div class="col-sm">
-                                <br/>
-                                <button style="padding-top:15px ;" type="button" title="Eliminar" disabled="@esSocio" @onclick="() => deleteSolAux(soli.Id, listadoSolicitudes.IndexOf(soli))"><FeatherXCircle Size="16" Color="red" /></button>
-                            </div>
+                <br/>
+                @if(socioSeleccionado!=null){
+                    <div class="row" style="width=100%;">
+                        <div class="col-sm">
+                            <label class="col-sm">Establecimiento</label>
+                                <BlazoredTypeahead SearchMethod="BusquedaEstablecimientos" placeholder="Busque establecimiento por nombre" Disabled="esSocio" EnableDropDown="true" @bind-Value="establecimientoSeleccionado">
+                                    <SelectedTemplate Context="eleccion">
+                                        @eleccion.Nombre
+                                    </SelectedTemplate>
+                                    <ResultTemplate Context="eleccion">
+                                        @eleccion.Nombre
+                                    </ResultTemplate>
+                                </BlazoredTypeahead>
                         </div>
-                    }
+                        <div class="col-sm">
+                            <label>Fecha de Solicitud</label><br/>
+                                <RadzenDatePicker TValue="DateTime?" @bind-Value="@oSolici1.Fecsol" ShowTime="false" Disabled="esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        </div>
+                        <div class="col-sm">
+                                <label>Fecha de Autorización</label><br />
+                                <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTemp" ShowTime="false" ShowSeconds="false" Disabled="esSocio" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        </div>
+                    </div>
 
-                    <br/>
-                @if(!esSocio){
-                <center style="padding-right:20px">
-                    <button type="button" disabled="@esSocio" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>addElement()"><FeatherPlus Size="24" Color="Black" /></button>
-                </center>
-                    }
-                <br />
-                <div class="row" style="width=100%;">
-                    <div class="col-sm">
-                            @if (Id == 0)
-                            {
-                                <label class="col-sm">Reinspeccion?</label>
-                                <br />
-                                <input type="checkbox" @bind="@activoReInspeccion" disabled="@esSocio">
-                            }
+                        @foreach(var soli in listadoSolicitudes)
+                        {
+
+                            <br />
+                            <div class="row" style="width=100%;">
+                                <div class="col-sm">
+                                    <label class="col-sm">Toros PR</label><br />
+                                    <InputNumber @bind-Value="@soli.Cantor" class="form-control" placeholder="Cantidad" disabled="@esSocio"></InputNumber>
+                                    <ValidationMessage For="(()=> soli.Cantor)" style="color:red;" />
+                                </div>
+                                <div class="col-sm">
+                                    <label class="col-sm">Vacas PR</label><br />
+                                    <InputNumber @bind-Value="@soli.Cantvq" class="form-control" placeholder="Cantidad" disabled="@esSocio"></InputNumber>
+                                    <ValidationMessage For="(()=> soli.Cantvq)" style="color:red;" />
+                                </div>
+                                <div class="col-sm">
+                                    <label class="col-sm">Vacas Vip</label><br />
+                                    <InputNumber @bind-Value="@soli.Canvac" class="form-control" placeholder="Cantidad" disabled="@esSocio"></InputNumber>
+                                    <ValidationMessage For="(()=> soli.Canvac)" style="color:red;" />
+                                </div>
+                                <div class="col-sm">
+                                    <label class="col-sm">Vaquillonas Vip</label><br />
+                                    <InputNumber @bind-Value="@soli.Canvaq" class="form-control" placeholder="Cantidad" disabled="@esSocio"></InputNumber>
+                                    <ValidationMessage For="(()=> soli.Canvaq)" style="color:red;" />
+                                </div>
+                                <div class="col-sm">
+                                    <label>Año</label><br />
+                                    <InputText @bind-Value="@soli.Anio" class="form-control" placeholder="Año" disabled="@esSocio"></InputText>
+                                </div>
+                                <div class="col-sm">
+                                    <br/>
+                                    <button style="padding-top:15px ;" type="button" title="Eliminar" disabled="@esSocio" @onclick="() => deleteSolAux(soli.Id, listadoSolicitudes.IndexOf(soli))"><FeatherXCircle Size="16" Color="red" /></button>
+                                </div>
+                            </div>
+                        }
+
+                        <br/>
+                    @if(!esSocio){
+                    <center style="padding-right:20px">
+                        <button type="button" disabled="@esSocio" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>addElement()"><FeatherPlus Size="24" Color="Black" /></button>
+                    </center>
+                        }
+                    <br />
+                    <div class="row" style="width=100%;">
+                        <div class="col-sm">
+                                @if (Id == 0)
+                                {
+                                    <label class="col-sm">Reinspeccion?</label>
+                                    <br />
+                                    <input type="checkbox" @bind="@activoReInspeccion" disabled="@esSocio">
+                                }
+                        </div>
+                        <div class="col-sm">
+                            <label class="col-sm">Control de Produccion?</label><br/>
+                                <input type="checkbox" @bind="@activoControl" disabled="@esSocio">
+                        </div>
+                        <div class="col-sm">
+                        </div>
                     </div>
-                    <div class="col-sm">
-                        <label class="col-sm">Control de Produccion?</label><br/>
-                            <input type="checkbox" @bind="@activoControl" disabled="@esSocio">
-                    </div>
-                    <div class="col-sm">
-                    </div>
-                </div>
                 
-                <br />
-                <br />   
-            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
-            }
-            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
-        </EditForm>
+                    <br />
+                    <br />
+                    <button type="submit" class="btn btn-primary mr-2" disabled="@cargando">
+                        @(cargando ? "Guardando..." : "Aceptar")
+                    </button>
+                }
+                <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+            </EditForm>
+        </div>
     </div>
-</div>
-}
-else
-    {
-        <br />
-        <center>
-            <div class="mb-2">
-                <br />
-                <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-            </div>
-        </center>
     }
-
-
-
-@code {
-    Solici1DTO oSolici1 = new();
-    List<SocioDTO> socios = new();
-    List<EstableDTO> establecimientos = new();
-    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
-    [Parameter] public int Id { get; set; }
-    [Parameter] public bool esSocio { get; set; }
-
-
-    List<Solici1DTO> listadoSolicitudes = new ();
-    List<Solici1AuxDTO> listadoSolicitudesAuxOriginal = new();
-    DateTime FechaTemp = DateTime.Now.Date;
-    bool activoReInspeccion = false;
-    bool activoControl = false;
-    SocioDTO? socioSeleccionado = null;
-    EstableDTO establecimientoSeleccionado = new();
-
-
-    private ClaimsPrincipal? user;
-
-    protected async Task addElement()
-    {
-        Console.WriteLine("Agregando elemento");
-        listadoSolicitudes.Add(new Solici1DTO());
-        Console.WriteLine(listadoSolicitudes.Count());
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        user = authState.User;
-
-
-        var rta = await _socioServicio.LimitadosFiltrados(0,0);
-        socios = rta.List;
-        var respuesta = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
-        establecimientos = respuesta.List;
-        if (Id != 0)
+    else
         {
-            try
-            {
-                string filtro = $"Id = {Id}";
-                var coso = await _solici1Servicio.LimitadosFiltradosNoInclude(0,1,filtro);
-                oSolici1 = coso.List.FirstOrDefault();
-                var rtaAux = await _solici1AuxServicio.GetBySolId(oSolici1.Id);
-                listadoSolicitudesAuxOriginal = rtaAux.List;
-                foreach(var solAux in listadoSolicitudesAuxOriginal){
-                    Solici1DTO soli = new();
-                    soli.Id = solAux.Id;
-                    soli.Cantor = solAux.Cantor;
-                    soli.Cantvq = solAux.Cantvq;
-                    soli.Canvac = solAux.Canvac;
-                    soli.Canvaq = solAux.Canvaq;
-                    soli.Anio = solAux.Anio;
-                    listadoSolicitudes.Add(soli);
-                }
-                establecimientoSeleccionado = establecimientos.Where(x => x.Ecod == oSolici1.Codest).FirstOrDefault();
-                socioSeleccionado = socios.Where(x => x.Scod == establecimientoSeleccionado.Codsoc).FirstOrDefault();
-                if (oSolici1.Reinsp=="S")
-                {
-                    activoReInspeccion = true;
-                }
-                else
-                {
-                    activoReInspeccion = false;
-                }
-                if (oSolici1.Produc=="S")
-                {
-                    activoControl = true;
-                }
-                else
-                {
-                    activoControl = false;
-                }
-                if (oSolici1.Fecins.HasValue)
-                {
-                    FechaTemp = oSolici1.Fecins.Value;
-                }
+            <br />
+            <center>
+                <div class="mb-2">
+                    <br />
+                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                </div>
+            </center>
+        }
 
-            }
-            catch (Exception ex)
+
+
+    @code {
+        Solici1DTO oSolici1 = new();
+        List<SocioDTO> socios = new();
+        List<EstableDTO> establecimientos = new();
+        [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+        [Parameter] public int Id { get; set; }
+        [Parameter] public bool esSocio { get; set; }
+
+         bool cargando = false;
+
+        List<Solici1DTO> listadoSolicitudes = new ();
+        List<Solici1AuxDTO> listadoSolicitudesAuxOriginal = new();
+        DateTime FechaTemp = DateTime.Now.Date;
+        bool activoReInspeccion = false;
+        bool activoControl = false;
+        SocioDTO? socioSeleccionado = null;
+        EstableDTO establecimientoSeleccionado = new();
+
+
+        private ClaimsPrincipal? user;
+
+        protected async Task addElement()
+        {
+            Console.WriteLine("Agregando elemento");
+            listadoSolicitudes.Add(new Solici1DTO());
+            Console.WriteLine(listadoSolicitudes.Count());
+        }
+
+        protected override async Task OnInitializedAsync()
+        {
+
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            user = authState.User;
+
+
+            var rta = await _socioServicio.LimitadosFiltrados(0,0);
+            socios = rta.List;
+            var respuesta = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
+            establecimientos = respuesta.List;
+            if (Id != 0)
             {
+                try
+                {
+                    string filtro = $"Id = {Id}";
+                    var coso = await _solici1Servicio.LimitadosFiltradosNoInclude(0,1,filtro);
+                    oSolici1 = coso.List.FirstOrDefault();
+                    var rtaAux = await _solici1AuxServicio.GetBySolId(oSolici1.Id);
+                    listadoSolicitudesAuxOriginal = rtaAux.List;
+                    foreach(var solAux in listadoSolicitudesAuxOriginal){
+                        Solici1DTO soli = new();
+                        soli.Id = solAux.Id;
+                        soli.Cantor = solAux.Cantor;
+                        soli.Cantvq = solAux.Cantvq;
+                        soli.Canvac = solAux.Canvac;
+                        soli.Canvaq = solAux.Canvaq;
+                        soli.Anio = solAux.Anio;
+                        listadoSolicitudes.Add(soli);
+                    }
+                    establecimientoSeleccionado = establecimientos.Where(x => x.Ecod == oSolici1.Codest).FirstOrDefault();
+                    socioSeleccionado = socios.Where(x => x.Scod == establecimientoSeleccionado.Codsoc).FirstOrDefault();
+                    if (oSolici1.Reinsp=="S")
+                    {
+                        activoReInspeccion = true;
+                    }
+                    else
+                    {
+                        activoReInspeccion = false;
+                    }
+                    if (oSolici1.Produc=="S")
+                    {
+                        activoControl = true;
+                    }
+                    else
+                    {
+                        activoControl = false;
+                    }
+                    if (oSolici1.Fecins.HasValue)
+                    {
+                        FechaTemp = oSolici1.Fecins.Value;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                }
             }
-        }
-        if(listadoSolicitudesAuxOriginal.Count()==0){
-            listadoSolicitudes.Add(oSolici1);
-        }
+            if(listadoSolicitudesAuxOriginal.Count()==0){
+                listadoSolicitudes.Add(oSolici1);
+            }
         
-    }
+        }
     async Task Guardar()
     {
 
-        Solici1DTO soliPush = oSolici1;
-        soliPush.Fecins = FechaTemp;
-        if (activoControl)
-        {
-            soliPush.Produc = "S";
-        }
-        else
-        {
-            soliPush.Produc = "N";
-        }
-        if (activoReInspeccion)
-        {
-            soliPush.Reinsp = "S";
-        }
-        else
-        {
-            soliPush.Reinsp = "N";
-        }
-        soliPush.Codest = establecimientoSeleccionado.Ecod;
+        if (cargando) return; // Evita doble click
+        cargando = true;
 
-        if (Id == 0)
+
+        if (socioSeleccionado == null)
         {
-            var rta = await _solici1Servicio.Crear(soliPush);
-            oSolici1 = rta.List;
+            await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
+            return; return;
+        }
+
+        if (establecimientoSeleccionado == null || string.IsNullOrWhiteSpace(establecimientoSeleccionado.Nombre))
+        {
+            await Swal.FireAsync("Error", "Debe seleccionar un establecimiento.", SweetAlertIcon.Error);
+            return;
+        }
+
+        if (!oSolici1.Fecsol.HasValue)
+        {
+            await Swal.FireAsync("Error", "Debe ingresar la fecha de solicitud.", SweetAlertIcon.Error);
+            return;
+        }
+
+        if (listadoSolicitudes == null || listadoSolicitudes.Count == 0)
+        {
+            await Swal.FireAsync("Error", "Debe ingresar al menos un grupo de toros/vacas.", SweetAlertIcon.Error);
+            return;
+        }
+
+
+            Solici1DTO soliPush = oSolici1;
+            soliPush.Fecins = FechaTemp;
+            if (activoControl)
+            {
+                soliPush.Produc = "S";
+            }
+            else
+            {
+                soliPush.Produc = "N";
+            }
+            if (activoReInspeccion)
+            {
+                soliPush.Reinsp = "S";
+            }
+            else
+            {
+                soliPush.Reinsp = "N";
+            }
+            soliPush.Codest = establecimientoSeleccionado.Ecod;
+
+            if (Id == 0)
+            {
+                var rta = await _solici1Servicio.Crear(soliPush);
+                oSolici1 = rta.List;
             
 
             
 
-            var changeNotification = new ChangeNotificationModel
-                {
-                    Id = user?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value,
-                    Tipo = "Creacion",  // El tipo de la acción que estás realizando
-                    Clase = "Solicitud",  // La clase de la acción
-                    Detalle = "El usuario ha creado una solicitud."  // Detalles adicionales sobre la acción
-                };
+                var changeNotification = new ChangeNotificationModel
+                    {
+                        Id = user?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value,
+                        Tipo = "Creacion",  // El tipo de la acción que estás realizando
+                        Clase = "Solicitud",  // La clase de la acción
+                        Detalle = "El usuario ha creado una solicitud."  // Detalles adicionales sobre la acción
+                    };
 
-            // Enviar el objeto completo al backend
-            var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
+                // Enviar el objeto completo al backend
+                var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
 
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-        }
-        else
-        {
-            soliPush.Id = oSolici1.Id;
-            var coso = await _solici1Servicio.Editar(soliPush);
-
-
-
-            var changeNotification = new ChangeNotificationModel
-                {
-                    Id = user?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value,
-                    Tipo = "Edicion",  // El tipo de la acción que estás realizando
-                    Clase = "Solicitud",  // La clase de la acción
-                    Detalle = "El usuario ha editado una solicid."  // Detalles adicionales sobre la acción
-                };
-
-            // Enviar el objeto completo al backend
-            var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
-
-
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-        }
-        foreach(var data in listadoSolicitudes)
-        {
-            if(data.Id==0 || data.Id==oSolici1.Id){
-                Solici1AuxDTO soliAux = new();
-                soliAux.Cantor = data.Cantor;
-                soliAux.Cantvq = data.Cantvq;
-                soliAux.Canvac = data.Canvac;
-                soliAux.Canvaq = data.Canvaq;
-                soliAux.Anio = data.Anio;
-                soliAux.IdSoli = oSolici1.Id;
-                await _solici1AuxServicio.Crear(soliAux);
+                await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
             }
-            else{
-                Solici1AuxDTO soliAux = listadoSolicitudesAuxOriginal.Where(x => x.Id == data.Id).FirstOrDefault();
-                soliAux.Cantor = data.Cantor;
-                soliAux.Cantvq = data.Cantvq;
-                soliAux.Canvac = data.Canvac;
-                soliAux.Canvaq = data.Canvaq;
-                soliAux.Anio = data.Anio;
-                await _solici1AuxServicio.Editar(soliAux);
+            else
+            {
+                soliPush.Id = oSolici1.Id;
+                var coso = await _solici1Servicio.Editar(soliPush);
+
+
+
+                var changeNotification = new ChangeNotificationModel
+                    {
+                        Id = user?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value,
+                        Tipo = "Edicion",  // El tipo de la acción que estás realizando
+                        Clase = "Solicitud",  // La clase de la acción
+                        Detalle = "El usuario ha editado una solicid."  // Detalles adicionales sobre la acción
+                    };
+
+                // Enviar el objeto completo al backend
+                var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
+
+
+                await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
             }
+            foreach(var data in listadoSolicitudes)
+            {
+                if(data.Id==0 || data.Id==oSolici1.Id){
+                    Solici1AuxDTO soliAux = new();
+                    soliAux.Cantor = data.Cantor;
+                    soliAux.Cantvq = data.Cantvq;
+                    soliAux.Canvac = data.Canvac;
+                    soliAux.Canvaq = data.Canvaq;
+                    soliAux.Anio = data.Anio;
+                    soliAux.IdSoli = oSolici1.Id;
+                    await _solici1AuxServicio.Crear(soliAux);
+                }
+                else{
+                    Solici1AuxDTO soliAux = listadoSolicitudesAuxOriginal.Where(x => x.Id == data.Id).FirstOrDefault();
+                    soliAux.Cantor = data.Cantor;
+                    soliAux.Cantvq = data.Cantvq;
+                    soliAux.Canvac = data.Canvac;
+                    soliAux.Canvaq = data.Canvaq;
+                    soliAux.Anio = data.Anio;
+                    await _solici1AuxServicio.Editar(soliAux);
+                }
+            }
+
+            cargando = false;
         }
+
+
+        public class ChangeNotificationModel
+        {
+            public string Id { get; set; }
+            public string Tipo { get; set; }
+            public string Clase { get; set; }
+            public string Detalle { get; set; }
+        }
+
+        async Task cancel()
+        {
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+        }
+        public async Task deleteSolAux(int id, int index)
+        {
+            await _solici1AuxServicio.Eliminar(id);
+            listadoSolicitudesAuxOriginal= listadoSolicitudesAuxOriginal.Where(x=>x.Id!=id).ToList();
+            // listadoSolicitudes = listadoSolicitudes.Where(x=>x.Id!=id).ToList();
+            listadoSolicitudes.RemoveAt(index);
+        }
+
+        private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
+        {
+            return await Task.FromResult(socios.Where(x => x.Criador=="S" &&  x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+        }
+
+        private async Task<IEnumerable<EstableDTO>> BusquedaEstablecimientos(string searchText)
+        {
+            return await Task.FromResult(establecimientos.Where(x => x.Codsoc==socioSeleccionado.Scod && x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+        }
+
     }
-
-
-    public class ChangeNotificationModel
-    {
-        public string Id { get; set; }
-        public string Tipo { get; set; }
-        public string Clase { get; set; }
-        public string Detalle { get; set; }
-    }
-
-    async Task cancel()
-    {
-        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
-
-    }
-    public async Task deleteSolAux(int id, int index)
-    {
-        await _solici1AuxServicio.Eliminar(id);
-        listadoSolicitudesAuxOriginal= listadoSolicitudesAuxOriginal.Where(x=>x.Id!=id).ToList();
-        // listadoSolicitudes = listadoSolicitudes.Where(x=>x.Id!=id).ToList();
-        listadoSolicitudes.RemoveAt(index);
-    }
-
-    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
-    {
-        return await Task.FromResult(socios.Where(x => x.Criador=="S" &&  x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
-    }
-
-    private async Task<IEnumerable<EstableDTO>> BusquedaEstablecimientos(string searchText)
-    {
-        return await Task.FromResult(establecimientos.Where(x => x.Codsoc==socioSeleccionado.Scod && x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
-    }
-
-}

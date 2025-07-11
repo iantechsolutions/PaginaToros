@@ -873,7 +873,7 @@ else
                 await Swal.FireAsync("Error", "Debe seleccionar un plantel válido.", SweetAlertIcon.Error);
                 return;
             }
-           
+
             oResin1.Icod = inspectorSeleccionado.Icod;
             oResin1.Scod = socioSeleccionado.Scod;
 
@@ -1077,7 +1077,7 @@ else
         {
             Console.WriteLine(" No se encontró resultado anterior para esa combinación de establecimiento y socio.");
         }
-        
+
 
     }
     async Task confirmar()
@@ -1133,6 +1133,21 @@ else
     async Task confirmarNuevo()
     {
         bool shouldRedirect = (Id != 0);
+
+        if (inspectorSeleccionado == null)
+        {
+
+            SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Debe seleccionar un inspector",
+                    Text = "",
+                    Icon = SweetAlertIcon.Warning,
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Aceptar",
+                });
+            return;
+        }
+
         if (solicitudSeleccionada != null && solicitudSeleccionada.Any() &&
             !string.IsNullOrWhiteSpace(solicitudSeleccionada.First().Nrosol))
         {

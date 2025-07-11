@@ -2,8 +2,10 @@
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
+using PaginaToros.Shared.Models.Response;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
+using static System.Net.WebRequestMethods;
 
 namespace PaginaToros.Server.Repositorio.Implementacion
 {
@@ -27,6 +29,23 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                                                  .Skip(skip)
                                                  .Take(take)
                                                  .ToListAsync();
+            }
+            catch
+            {
+                throw;
+            }
+        }
+        public async Task<List<Plantel>> ObtenerPorRangoFechas(DateTime desde, DateTime hasta)
+        {
+            try
+            {
+                return await _dbContext.Planteles
+                    .Include(p => p.Socio)
+                    .Where(p => p.Urein.HasValue &&
+                                p.Urein.Value.Date >= desde.Date &&
+                                p.Urein.Value.Date <= hasta.Date)
+                    .OrderByDescending(p => p.Urein)
+                    .ToListAsync();
             }
             catch
             {
@@ -191,4 +210,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
 
     }
+    
+
+
 }

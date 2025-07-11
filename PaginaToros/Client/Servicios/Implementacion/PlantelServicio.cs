@@ -62,6 +62,12 @@ namespace PaginaToros.Client.Servicios.Implementacion
 
             return response!.Exito == 1;
         }
+        public async Task<Respuesta<List<PlantelDTO>>> ObtenerPorRangoFechas(DateTime desde, DateTime hasta)
+        {
+            var result = await _http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>(
+                $"api/plantel/ObtenerPorRangoFechas?desde={desde:yyyy-MM-dd}&hasta={hasta:yyyy-MM-dd}");
+            return result!;
+        }
 
         public async Task<Respuesta<PlantelDTO>> Filtrar(string descripcion)
         {

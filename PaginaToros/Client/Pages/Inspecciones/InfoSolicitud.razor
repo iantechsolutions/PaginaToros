@@ -106,26 +106,21 @@
     </div>
     <br class="no-print"/>
     <br/>
-    @if (Declaraciones.Count()>0)
-    {
-        @foreach(var soliAux in ListaSoliAux)
-{
-    var declaracionesPorAnio = Declaraciones
-        .Where(x =>
+        @foreach (var soliAux in ListaSoliAux)
+        {
+            var declaracionesPorAnio = Declaraciones
+            .Where(x =>
             (x.Desde.HasValue && x.Desde.Value.Year.ToString() == soliAux.Anio) ||
-            (x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio)
-        )
-        .GroupBy(x => x.Id)
-        .Select(x => x.First())
-        .ToList();
+            (x.Hasta.HasValue && x.Hasta.Value.Year.ToString() == soliAux.Anio))
+            .GroupBy(x => x.Id)
+            .Select(x => x.First())
+            .ToList();
 
-    if (declaracionesPorAnio.Count > 0)
-    {
-        <center>
-            <h3 style="font-weight:bold">Año de nacimiento: @soliAux.Anio</h3>
-            <br/>
-        </center>
-
+            <center>
+                <h3 style="font-weight:bold">Año de nacimiento: @soliAux.Anio</h3>
+                <br />
+            </center>
+            <h3 style="font-weight:bold">Declaraciones</h3>
         <table class="table table-bordered text-center" bottom="middle" border="1" align="center">
             <tbody>
                 <tr style="background-color: #82D682;font-size:12px">
@@ -208,8 +203,8 @@
         <br class="no-print" />
         <br class="no-print" />
     }
-}
-    } 
+
+   @*  }
     else
     {
         <table class="table table-bordered text-center" bottom="middle" width="334" bgcolor="#FFFFFF" align="center">
@@ -240,7 +235,7 @@
                     </tr>
             </tbody>
         </table>
-    }
+    } *@
         <br class="no-print" />
         <br class="no-print" />
     <table class="table table-bordered text-center" bottom="middle" style="font-size:18px" align="center">

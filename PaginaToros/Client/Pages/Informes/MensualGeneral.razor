@@ -150,6 +150,12 @@
         </span>
     }
 </button>
+    <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-100 hover:bg-gray-300 transition ease-in duration-100"
+            style="position:relative;width:20%; margin-bottom:5px;"
+            @onclick="ReiniciarFiltros">
+        Reiniciar Filtros
+    </button>
+
 </div>
 
 <br class="no-print"/>
@@ -550,6 +556,25 @@
     }
 
 
+    private void ReiniciarFiltros()
+    {
+        // Fechas
+        FechaInicial = DateTime.Now.AddDays(-700);
+        FechaFinal = DateTime.Now;
+
+        // Selección
+        seleccion = "";
+        provinciasSeleccionadas = new List<string>();
+        inspectoresSeleccionados = new List<InspectDTO>();
+
+        // Datos y estado
+        listaDatos.Clear();
+        datosActuales.Clear();
+        reportes.Clear();
+        confirmado = false;
+        terminado = true; // Ya se cargaron en OnInitialized
+        loading = false;
+    }
 
 
 

@@ -61,15 +61,15 @@
                         }
                     </div>
 
-                    <div class="col-sm text-end">
-                        <button type="button"
+                     <div class="col-sm text-end">
+                       @*  <button type="button"
                                 class="btn btn-primary mr-2"
                                 @onclick="GenerarOtra">
-                            Generar otra declaración
-                        </button>
+                            Aceptar y Generar otra declaración
+                        </button> *@
 
                         <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
-                    </div>
+                    </div> 
                 </div>
                 <br />
                 @if (socioSeleccionado != null)
@@ -254,11 +254,11 @@
                                                 @data.original.Tipo
                                             </Template>
                                         </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cantv" Width="4.6%">
+                                       @*  <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cantv" Width="4.6%">
                                             <Template Context="data">
                                                 @data.original.Cantv
                                             </Template>
-                                        </RadzenDataGridColumn>
+                                        </RadzenDataGridColumn> *@
                                         <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tatuaje" Width="4.6%">
                                             <Template Context="data">
                                                 @data.original.Tatpart
@@ -630,20 +630,18 @@ else
                         }
                     }
                     catch { }
-                    if (certificados.Any(x => x.Hba == desepla.Hardb))
+
+                    if (desepla.Tipo == "insem")
                     {
                         certificadosSeleccionados.Add(deseplaData);
                     }
                     else
                     {
-                        if (!torosSeleccionados.Any(x => x.original.Id == desepla.Id))
-                        {
-                            torosSeleccionados.Add(deseplaData);
-                        }
+                        torosSeleccionados.Add(deseplaData);
                     }
                 }
             }
-            Console.WriteLine(12);
+
         }
         else
         {
@@ -948,18 +946,24 @@ else
     protected void AddToSelectedCertif(DataGridRowMouseEventArgs<CertifsemanDTO> args)
     {
         var certif = args.Data;
+
+        bool yaExiste = certificadosSeleccionados.Any(c => c.original.Hardb == certif.Hba);
+        if (yaExiste)
+            return;
+
         certificadosSeleccionados.Add(
-        new Desepla3Data
-            {
-                original = new Desepla3DTO
+            new Desepla3Data
                 {
-                    Hardb = certif.Hba,
-                    Nrodec = nrodec,
-                    Tatpart = certif.Tatpart,
-                    Tipo = "insem"
+                    original = new Desepla3DTO
+                    {
+                        Hardb = certif.Hba,
+                        Nrodec = nrodec,
+                        Tatpart = certif.Tatpart,
+                        Tipo = "insem"
+                    }
                 }
-            }
         );
+
         InvokeAsync(gridCertif.Reload);
     }
 
