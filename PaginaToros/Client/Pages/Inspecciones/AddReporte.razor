@@ -168,21 +168,7 @@
                 
             </div>
                     <div class="col-sm-1" />
-                <div class="col-sm">
-                    <label>Plantel</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaPlanteles" Disabled="esSocio" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Placod
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion.Placod
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
-                    </div>
-
-            }else if (Id != 0){
-                    <div class="col-sm-1" />
-                    <div class="col-sm">
+                  @*   <div class="col-sm">
                         <label>Plantel</label>
                         <BlazoredTypeahead SearchMethod="BusquedaPlanteles" Disabled="esSocio" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
                             <SelectedTemplate Context="eleccion">
@@ -192,12 +178,28 @@
                                 @eleccion.Placod
                             </ResultTemplate>
                         </BlazoredTypeahead>
-                    </div>
-                    <div class="col-sm">
-                    </div>
-                    <div class="col-sm">
-                    </div>
+                        </div> *@
+
             }
+                @if (socioSeleccionado != null)
+                {
+                    <div class="col-sm-1" />
+                    <div class="col-sm">
+                        <label>Plantel</label>
+                        <BlazoredTypeahead SearchMethod="BusquedaPlanteles"
+                                           Disabled="@((Id != 0) || esSocio)"
+                                           placeholder="Busque plantel por número"
+                                           EnableDropDown="true"
+                                           @bind-Value="Plantelseleccionado">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.Placod
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.Placod
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                    </div>
+                }
         </div>
         <br />
 
@@ -750,6 +752,11 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await CargarDatos();
+    }
+
+    async Task CargarDatos()
+    {
         try{
             var rtaaa = await _inspectServicio.LimitadosFiltrados(0, 0);
             Inspects = rtaaa.List;
@@ -837,8 +844,6 @@ else
             oRespuesta.Mensaje = ex.Message;
         }
         cargando = false;
-        Console.WriteLine("LOLOLO");
-        Console.WriteLine(confirmado);
 
     }
 
@@ -856,7 +861,7 @@ else
                 return;
             }
 
-            if (solicitudSeleccionada == null || solicitudSeleccionada.FirstOrDefault() == null)
+            if (string.IsNullOrWhiteSpace(oResin1.Nrores))
             {
                 await Swal.FireAsync("Error", "Debe seleccionar o generar una solicitud válida.", SweetAlertIcon.Error);
                 return;
@@ -886,7 +891,7 @@ else
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("❌ Error al asignar Estcod: " + ex.Message);
+                    Console.WriteLine("Error al asignar Estcod: " + ex.Message);
                 }
             }
 
@@ -908,7 +913,6 @@ else
             }
             else
             {
-                Console.WriteLine("Entro bien al editar antes del error");
 
                 await _resin1Servicio.Editar(oResin1);
                 nav.NavigateTo("/reportes");
@@ -916,7 +920,7 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine("❌ Excepción al guardar reporte: " + ex.Message);
+            Console.WriteLine("Excepción al guardar reporte: " + ex.Message);
             await Swal.FireAsync("Error", "Ocurrió un error al guardar el reporte: " + ex.Message, SweetAlertIcon.Error);
         }
     }
@@ -939,7 +943,6 @@ else
         temp.Nrores = nrores;
         estadoAnterior = temp;
 
-        Console.WriteLine("crearhistorico");
         await _resin2Servicio.Crear(temp);
     }
 
@@ -1045,8 +1048,6 @@ else
     }
     async Task onSolicitudChange(IList<Solici1DTO?> lista){
         solicitudSeleccionada = lista;
-        Console.WriteLine(JsonSerializer.Serialize(solicitudSeleccionada));
-        Console.WriteLine("aca");
         var plantel = Planteles
         .Where(x => x.Nrocri == socioSeleccionado?.Scod)
         .OrderByDescending(x => x.Id)
@@ -1055,14 +1056,12 @@ else
         if (plantel != null)
         {
             Plantelseleccionado = plantel;
-            Console.WriteLine("Plantel seleccionado: " + JsonSerializer.Serialize(Plantelseleccionado));
         }
         else
         {
             Console.WriteLine("No se encontró plantel para el socio seleccionado.");
         }
         // Plantelseleccionado = Planteles.Where(x => x.Nrocri == socioSeleccionado.Scod).OrderByDescending(x => x.Id).First();
-        Console.WriteLine(Plantelseleccionado);
         // oResinAnterior = repor
         var oResinAnterior = resultados
     .Where(x => x.Establecimiento != null && x.Establecimiento.Ecod == establecimientoSeleccionado?.Ecod && x.Scod == socioSeleccionado?.Scod)
@@ -1085,8 +1084,7 @@ else
 
         confirmado = true;
 
-        Console.WriteLine("eNTRO AL CONFIRMNAR");
-        Console.WriteLine("Entró a guardarReporte");
+
         Console.WriteLine($"Plantelseleccionado: {Plantelseleccionado}");
         Console.WriteLine($"socioSeleccionado: {socioSeleccionado}");
         Console.WriteLine($"solicitudSeleccionada: {solicitudSeleccionada?.Count()}");
@@ -1147,6 +1145,18 @@ else
                 });
             return;
         }
+        if(Plantelseleccionado == null)
+        {
+            SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Debe seleccionar un plantel",
+                    Text = "",
+                    Icon = SweetAlertIcon.Warning,
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Aceptar",
+                });
+            return;
+        }
 
         if (solicitudSeleccionada != null && solicitudSeleccionada.Any() &&
             !string.IsNullOrWhiteSpace(solicitudSeleccionada.First().Nrosol))
@@ -1156,9 +1166,9 @@ else
         }
         await confirmar();
 
-     
+
         // if(shouldRedirect){
-            //send back to /reportes
+        //send back to /reportes
         // }
     }
 
@@ -1391,48 +1401,74 @@ else
 
     }
 
-    async Task ResultWithoutSolicitud(){
+    async Task ResultWithoutSolicitud()
+    {
         Console.WriteLine("ResultWithoutSolicitud");
-        string codEst = establecimientos.Where(x => x.Codsoc == socioSeleccionado.Scod).FirstOrDefault().Ecod;
-        Guid guid = Guid.NewGuid();
-        solicitudSeleccionada = new List<Solici1DTO>
-        {
-            new Solici1DTO
-            {
-                Nrosol = guid.ToString(),
-                Codest = codEst,
-                Fecsol = DateTime.Now,
-            }
-        };
-        Console.WriteLine(JsonSerializer.Serialize(solicitudSeleccionada));
-        Plantelseleccionado = Planteles.Where(x => x.Nrocri == socioSeleccionado.Scod).OrderByDescending(x => x.Id).First();
-        Console.WriteLine("Aca Llega");
-        // oResinAnterior = repor
-        Console.WriteLine(resultados.Count());
-        int count = resultados
-            .Where(x => 
-                x.Establecimiento?.Ecod == establecimientoSeleccionado?.Ecod &&
-                x.Scod == socioSeleccionado?.Scod)
-            .Count();
-        Console.WriteLine(count);
-        if(resultados.Count() > 0 && count > 0){
-            Console.WriteLine("JUSTO ANTES DEL COSO");
-            // Resin1DTO oResinAnterior = resultados.OrderByDescending(x => x.Id).Where(x => x.Establecimiento.Ecod == establecimientoSeleccionado.Ecod && x.Scod == socioSeleccionado.Scod).FirstOrDefault();
-            Resin1DTO oResinAnterior = resultados.OrderByDescending(x => x.Id)
-            .Where(x =>
-                x.Establecimiento?.Ecod == establecimientoSeleccionado?.Ecod &&
-                x.Scod == socioSeleccionado?.Scod).FirstOrDefault();
 
-            Console.WriteLine("Aca tambien llega");
-            if (oResinAnterior != null)
-            {
-                inspectorSeleccionado = Inspects.Where(x => x.Icod == oResinAnterior.Icod).FirstOrDefault();
-            }
-            Console.WriteLine("Termina");
+        // 1. Verificamos el socio y establecimiento
+        var codEst = establecimientos.FirstOrDefault(x => x.Codsoc == socioSeleccionado.Scod)?.Ecod;
+        if (codEst == null)
+        {
+            await Swal.FireAsync("Error", "El socio no tiene establecimientos cargados.", SweetAlertIcon.Error);
+            return;
         }
-        Console.WriteLine("Termina");
-        Console.WriteLine(JsonSerializer.Serialize(solicitudSeleccionada.FirstOrDefault()));
+
+        var guid = Guid.NewGuid().ToString();
+        solicitudSeleccionada = new List<Solici1DTO>
+    {
+        new Solici1DTO
+        {
+            Nrosol = guid,
+            Codest = codEst,
+            Fecsol = DateTime.Now,
+        }
+    };
+
+        var plantel = Planteles
+            .Where(x => x.Nrocri == socioSeleccionado.Scod)
+            .OrderByDescending(x => x.Id)
+            .FirstOrDefault();
+
+        if (plantel == null)
+        {
+            await Swal.FireAsync("Error", "El socio no tiene plantel registrado.", SweetAlertIcon.Error);
+            return;
+        }
+
+        if (inspectorSeleccionado == null)
+        {
+            await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
+            return;
+        }
+
+        // 2. Crear el objeto resin1 con datos mínimos
+        oResin1 = new Resin1DTO
+            {
+                Nrores = guid,
+                Estcod = codEst,
+                Scod = socioSeleccionado.Scod,
+                Icod = inspectorSeleccionado.Icod,
+                Nropla = plantel.Placod,
+                Freali = fechaTemp,
+            };
+
+        // 3. Guardar en la base de datos
+        var resultado = await _resin1Servicio.Crear(oResin1);
+
+        if (resultado?.List == null)
+        {
+            await Swal.FireAsync("Error", "No se pudo crear el resultado de inspección.", SweetAlertIcon.Error);
+            return;
+        }
+
+        //3.5
+
+        // 4. Redirigir automáticamente a la vista de edición
+        nav.NavigateTo($"/inforeporte/{resultado.List.Id}/0", forceLoad: true);
+
+        await CargarDatos();
     }
+
 
     public async Task alertaDeleteRechazo(int id)
     {
