@@ -44,7 +44,7 @@
             @if (solicitudSeleccionada != null)
             {
 
-                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">@(Id == 0 ? "Guardar Datos" : "Actualizar datos")</button>
+                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">@(Id == 0 ? "Crear resultado de inspección" : "Actualizar datos")</button>
             }
                 else  if (socioSeleccionado != null)
             {
@@ -909,13 +909,13 @@ else
                 }
 
                 Id = result.List.Id;
-                nav.NavigateTo("/reportes");
+                
             }
             else
             {
 
                 await _resin1Servicio.Editar(oResin1);
-                nav.NavigateTo("/reportes");
+               
             }
         }
         catch (Exception ex)
@@ -1079,7 +1079,7 @@ else
 
 
     }
-    async Task confirmar()
+    async Task confirmar(bool shouldRedirect)
     {
 
         confirmado = true;
@@ -1099,6 +1099,7 @@ else
                 Console.WriteLine("Era aca");
             }
         }
+        oResin1.Nrores ??= solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
 
         await guardarReporte();
 
@@ -1121,6 +1122,11 @@ else
         }
 
         Console.WriteLine("Redirigiendo a reportes");
+        if (shouldRedirect)
+        {
+
+        nav.NavigateTo("/reportes");
+        }
         // await ComeBack();
         //cambiar todos los gets a unicos por nrosol
     }
@@ -1164,7 +1170,7 @@ else
             Console.WriteLine(solicitudSeleccionada.First().Nrosol);
             crearHistorico(solicitudSeleccionada.First().Nrosol);
         }
-        await confirmar();
+        await confirmar(shouldRedirect);
 
 
         // if(shouldRedirect){
@@ -1485,7 +1491,7 @@ else
         if (!string.IsNullOrEmpty(result.Value))
         {
             deleteRechazo(id);
-            await confirmar();
+            await confirmar(false);
         }
         else if (result.Dismiss == DismissReason.Cancel)
         {
