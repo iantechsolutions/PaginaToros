@@ -383,7 +383,7 @@
                                                 <td>@hemyma.HdpAs</td>
                                                 <td>@(hemyma.HdpM+hemyma.HdpAs)</td>
                                                 <td style="background-color: #666666;">-</td>
-                                                <td style="background-color: #666666;">@(hemyma.Hdp - hemyma.HdpM - hemyma.HdpAs)</td>
+                                                <td style="background-color: #666666;">@(hemyma.Hdp - (hemyma.HdpM + hemyma.HdpAs))</td>
                                                 @if(esSocio){
                                                     <td/>
                                                 }
@@ -453,7 +453,7 @@
                                                 <td>@(hemyma.HppAs + hemyma.HdpAs)</td>
                                                 <td>@((hemyma.HdpM + hemyma.HdpAs) + (hemyma.HppM + hemyma.HppAs))</td>
                                                 <td>@(hemyma.Hgvb + hemyma.Hgqb)</td>
-                                                <td>@((-hemyma.Hdp - hemyma.HdpM - hemyma.HdpAs) + (hemyma.Hpp - hemyma.HppM - hemyma.HppAs) + (hemyma.Hgvb - hemyma.Hgvp) + (hemyma.Hgqb - hemyma.Hgqp))</td>
+                                                    <td>@((hemyma.Hdp - (hemyma.HdpM + hemyma.HdpAs)) + (hemyma.Hpp - hemyma.HppM - hemyma.HppAs) + (hemyma.Hgvp - hemyma.Hgvb) + (hemyma.Hgqp - hemyma.Hgqb))</td>
                                                 <td style="background-color: #fff;"></td>
                                             </tr>
                                         </tbody>
@@ -814,14 +814,27 @@ else
                 confirmado = true;
                 try
                 {
-                    int anio = oResin1.Freali.Value.Year;
-                    var planT = Planteles.Where(x => x.Anioex == anio.ToString() && x.Nrocri == socioSeleccionado.Scod).FirstOrDefault();
-                    Plantelseleccionado = planT;
+                    confirmado = true;
+                    Console.WriteLine("ENTRO");
+                    Console.WriteLine(oResin1.Nropla);
+
+                    Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla);
+                    Console.WriteLine(Plantelseleccionado);
+                    Console.WriteLine(Planteles.Count());
+
+
+                    if (Plantelseleccionado == null && oResin1.Freali.HasValue)
+                    {
+                        int anio = oResin1.Freali.Value.Year;
+                        Plantelseleccionado = Planteles.FirstOrDefault(x =>
+                            x.Anioex == anio.ToString() &&
+                            x.Nrocri == socioSeleccionado?.Scod
+                        );
+                    }
                 }
-                catch { }
-                if (Planteles.Where(x => x.Placod == oResin1.Nropla).Count()>0)
+                catch (Exception ex)
                 {
-                    Plantelseleccionado = Planteles.Where(x => x.Placod == oResin1.Nropla).FirstOrDefault();
+                    Console.WriteLine($"Error al asignar plantel: {ex.Message}");
                 }
             }
             else{
@@ -897,7 +910,11 @@ else
 
             if (Id == 0)
             {
-                oResin1.Nropla = socioSeleccionado.Placod;
+                
+
+                oResin1.Nropla = Plantelseleccionado.Placod;
+                Console.WriteLine("revisarr");
+                Console.WriteLine(socioSeleccionado.Placod);
                 oResin1.Freali = fechaTemp;
 
                 var result = await _resin1Servicio.Crear(oResin1);
