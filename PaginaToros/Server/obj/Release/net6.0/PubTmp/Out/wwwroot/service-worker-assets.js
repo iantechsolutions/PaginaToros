@@ -137,7 +137,7 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-AkKDDdhEP35utkpaHFOHGWZp6fmz7EdKKs+Q8BoHtwo=",
+      "hash": "sha256-dalLieN8\/mHD9aeFaCXZggPQIXgi0lHxWaZdZWRM2kU=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -377,7 +377,7 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-0zZx3yj8WKPdU4EwyXqDPXrg8nIAdfWddoZws1nkS9s=",
+      "hash": "sha256-ZdyThsyDNwfpBqEZxllWOPj8VgbB+JnWhIVc6q1s6V8=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
@@ -997,5 +997,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "IuHW7R\/W"
+  "version": "q8aqTqwj"
 };

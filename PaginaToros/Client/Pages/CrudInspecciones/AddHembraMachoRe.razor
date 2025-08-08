@@ -150,19 +150,146 @@
     }
     async Task Guardar()
     {
+        // helper para tratar null como 0
+        int P(double? v) => (int)(v ?? 0);
+        int Pi(int? v) => v ?? 0;
+
+        // Normalizo Nrores y evito referencias
         oResin6.Nrores = numeroRes;
         oResin6.Resin1 = null;
+
+        // Validaciones por pantalla (botonclick)
+        switch (botonclick)
+        {
+            case "vaqpr": // Hdp (presentadas), HdpM, HdpAs
+                {
+                    var presentadas = P(oResin6.Hdp);
+                    var totalPR = P(oResin6.HdpM) + P(oResin6.HdpAs);
+
+                    if (totalPR > presentadas)
+                    {
+                        await Swal.FireAsync(
+                            "Error",
+                            "En Vaq PR, la suma de Mocha Marcada y Astada Marcada no puede superar las presentadas.",
+                            SweetAlertIcon.Error
+                        );
+                        return;
+                    }
+                    break;
+                }
+
+            case "otrospr": // Hpp, HppM, HppAs
+                {
+                    var presentadas = P(oResin6.Hpp);
+                    var totalPR = Pi(oResin6.HppM) + Pi(oResin6.HppAs);
+
+                    if (totalPR > presentadas)
+                    {
+                        await Swal.FireAsync(
+                            "Error",
+                            "En Otros PR, la suma de Mocha Marcada y Astada Marcada no puede superar las presentadas.",
+                            SweetAlertIcon.Error
+                        );
+                        return;
+                    }
+                    break;
+                }
+
+            case "vacvip": // Hgvp (presentadas), Hgvb (VIP total)
+                {
+                    var presentadas = P(oResin6.Hgvp);
+                    var vipTotal = P(oResin6.Hgvb);
+
+                    if (vipTotal > presentadas)
+                    {
+                        await Swal.FireAsync(
+                            "Error",
+                            "En Vacas VIP, el total VIP no puede superar las presentadas.",
+                            SweetAlertIcon.Error
+                        );
+                        return;
+                    }
+                    break;
+                }
+
+            case "vaqvip": // Hgqp (presentadas), Hgqb (VIP total)
+                {
+                    var presentadas = P(oResin6.Hgqp);
+                    var vipTotal = P(oResin6.Hgqb);
+
+                    if (vipTotal > presentadas)
+                    {
+                        await Swal.FireAsync(
+                            "Error",
+                            "En Vaq VIP, el total VIP no puede superar las presentadas.",
+                            SweetAlertIcon.Error
+                        );
+                        return;
+                    }
+                    break;
+                }
+
+            case "scp": // Mcp (presentados), McpM, McpAs
+                {
+                    var presentados = P(oResin6.Mcp);
+                    var totalPR = P(oResin6.McpM) + P(oResin6.McpAs);
+
+                    if (totalPR > presentados)
+                    {
+                        await Swal.FireAsync(
+                            "Error",
+                            "En S.C.P., la suma de PR Mochos y PR Astados no puede superar los presentados.",
+                            SweetAlertIcon.Error
+                        );
+                        return;
+                    }
+                    break;
+                }
+
+            case "cp": // Msp (presentados), MspM, MspAs, Mspsb (control s/)
+                {
+                    var presentados = P(oResin6.Msp);
+                    var totalPR = P(oResin6.MspM) + P(oResin6.MspAs);
+
+                    if (totalPR > presentados)
+                    {
+                        await Swal.FireAsync(
+                            "Error",
+                            "En C.P., la suma de PR Mochos y PR Astados no puede superar los presentados.",
+                            SweetAlertIcon.Error
+                        );
+                        return;
+                    }
+
+                    // (opcional) si Control S/ debe estar acotado:
+                    if (P(oResin6.Mspsb) > presentados)
+                    {
+                        await Swal.FireAsync(
+                            "Error",
+                            "En C.P., el valor de 'Control S/' no puede superar los presentados.",
+                            SweetAlertIcon.Error
+                        );
+                        return;
+                    }
+
+                    break;
+                }
+        }
+
+        // Si pasa validaciones, guardamos
         if (Id == 0)
         {
             await _resin6Servicio.Crear(oResin6);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
         else
         {
             await _resin6Servicio.Editar(oResin6);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
+
+        await Swal.FireAsync("Guardado", "Datos actualizados correctamente.", SweetAlertIcon.Success);
+        await ModalInstance.CloseAsync(ModalResult.Ok("OK"));
     }
+
     async Task cancel()
     {
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
