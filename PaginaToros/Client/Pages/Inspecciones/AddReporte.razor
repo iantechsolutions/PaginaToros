@@ -861,20 +861,16 @@
                         confirmado = true;
 
                     Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla);
-                    if (Plantelseleccionado == null && oResin1.Freali.HasValue)
-                    {
-                        var anio = oResin1.Freali.Value.Year.ToString();
-                        var porAnio = Planteles.FirstOrDefault(x => x.Anioex == anio && x.Nrocri == socioSeleccionado?.Scod);
-                        if (porAnio != null)
+                        if (Plantelseleccionado == null && oResin1.Freali.HasValue)
                         {
-                            Plantelseleccionado = porAnio;
-                            if (oResin1.Nropla != porAnio.Placod)
+                            var anio = oResin1.Freali.Value.Year.ToString();
+                            var porAnio = Planteles.FirstOrDefault(x => x.Anioex == anio && x.Nrocri == socioSeleccionado?.Scod);
+                            if (porAnio != null)
                             {
-                                oResin1.Nropla = porAnio.Placod;
-                                await _resin1Servicio.Editar(oResin1);
+                                Plantelseleccionado = porAnio;
                             }
                         }
-                    }
+
                     }
                     catch (Exception ex)
                     {
@@ -957,25 +953,26 @@
                 
 
                     oResin1.Nropla = Plantelseleccionado.Placod;
-                    Console.WriteLine("revisarr");
-                    Console.WriteLine(socioSeleccionado.Placod);
                     oResin1.Freali = fechaTemp;
 
-                    var result = await _resin1Servicio.Crear(oResin1);
+                var result = await _resin1Servicio.Crear(oResin1);
 
-                    if (result?.List == null)
-                    {
-                        await Swal.FireAsync("Error", "La respuesta del servidor al crear el reporte fue inválida.", SweetAlertIcon.Error);
-                        return;
-                    }
+                if (result?.List == null)
+                {
+                    await Swal.FireAsync("Error", "La respuesta del servidor al crear el reporte fue inválida.", SweetAlertIcon.Error);
+                    return;
+                }
 
-                    Id = result.List.Id;
+                oResin1 = result.List;
+                Id = oResin1.Id;
+
                 
                 }
                 else
                 {
 
                 await _resin1Servicio.Editar(oResin1);
+
                 var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
                 oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
                 Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
@@ -1238,6 +1235,7 @@
                     var destino = await updatePlantel(subirDeAnio: true);
                     oResin1.Nropla = destino.Placod;
                     await _resin1Servicio.Editar(oResin1);
+                    await EsperarActualizacionNropla(Id, destino.Placod);
 
                     createNewPlantel = false; 
                     var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
@@ -1263,6 +1261,21 @@
         {
             nav.NavigateTo("/reportes");
         }
+        async Task<bool> EsperarActualizacionNropla(int id, string esperadoPlacod)
+{
+    const int intentos = 5;
+    for (int i = 0; i < intentos; i++)
+    {
+        var r = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {id}");
+        var actual = r.List.FirstOrDefault();
+        if (actual?.Nropla == esperadoPlacod) return true;
+        await Task.Delay(300);
+    }
+    return false;
+}
+
+
+
         async Task confirmarNuevo()
         {
             bool shouldRedirect = (Id != 0);
@@ -1341,6 +1354,9 @@
                 {
                     oResin1.Nropla = destino.Placod;
                     await _resin1Servicio.Editar(oResin1);
+
+                    await EsperarActualizacionNropla(Id, destino.Placod);
+
                 var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
                 oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
                 Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
@@ -1570,132 +1586,142 @@
                 oResin1.Id = Id;
                 Console.WriteLine("1");
                 await _resin1Servicio.Editar(oResin1);
+
                 Console.WriteLine("2");
             }
 
         }
 
-        async Task ResultWithoutSolicitud()
+    async Task ResultWithoutSolicitud()
+    {
+        Console.WriteLine("ResultWithoutSolicitud");
+
+        try
         {
-            Console.WriteLine("ResultWithoutSolicitud");
-
-            try
+            // 1) Validaciones básicas
+            if (socioSeleccionado is null)
             {
-                // 1) Validaciones básicas
-                if (socioSeleccionado is null)
-                {
-                    await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
-                    return;
-                }
+                await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
+                return;
+            }
 
-                var codEst = establecimientos.FirstOrDefault(x => x.Codsoc == socioSeleccionado.Scod)?.Ecod;
-                if (string.IsNullOrWhiteSpace(codEst))
-                {
-                    await Swal.FireAsync("Error", "El socio no tiene establecimientos cargados.", SweetAlertIcon.Error);
-                    return;
-                }
+            var codEst = establecimientos.FirstOrDefault(x => x.Codsoc == socioSeleccionado.Scod)?.Ecod;
+            if (string.IsNullOrWhiteSpace(codEst))
+            {
+                await Swal.FireAsync("Error", "El socio no tiene establecimientos cargados.", SweetAlertIcon.Error);
+                return;
+            }
 
-                if (inspectorSeleccionado is null)
-                {
-                    await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
-                    return;
-                }
+            if (inspectorSeleccionado is null)
+            {
+                await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
+                return;
+            }
 
-                // 2) Tomar plantel base (para 'Existencia anterior'), pero SIN pisar selección del usuario
-                PlantelDTO? plantel = Plantelseleccionado;
+            // 2) Tomar plantel base (para 'Existencia anterior'), pero SIN pisar selección del usuario
+            PlantelDTO? plantel = Plantelseleccionado;
 
-                if (plantel is null)
-                {
-                    // Primero buscar por el mismo año de la fecha de inspección
-                    var anio = fechaTemp.Year.ToString();
-                    plantel = Planteles
-                        .Where(x => x.Nrocri == socioSeleccionado.Scod && x.Anioex == anio)
+            if (plantel is null)
+            {
+                // Primero buscar por el mismo año de la fecha de inspección
+                var anio = fechaTemp.Year.ToString();
+                plantel = Planteles
+                    .Where(x => x.Nrocri == socioSeleccionado.Scod && x.Anioex == anio)
+                    .OrderByDescending(x => x.Id)
+                    .FirstOrDefault()
+                    ?? Planteles
+                        .Where(x => x.Nrocri == socioSeleccionado.Scod)
                         .OrderByDescending(x => x.Id)
-                        .FirstOrDefault()
-                        ?? Planteles
-                            .Where(x => x.Nrocri == socioSeleccionado.Scod)
-                            .OrderByDescending(x => x.Id)
-                            .FirstOrDefault();
-                }
+                        .FirstOrDefault();
+            }
 
-                if (plantel is null)
-                {
-                    await Swal.FireAsync("Error", "El socio no tiene plantel registrado.", SweetAlertIcon.Error);
-                    return;
-                }
-
-                Plantelseleccionado = plantel;
-
-                // 2.1) Mostrar tabs y loaders ya mismo
-                loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
-                confirmado = true;
-                await InvokeAsync(StateHasChanged);
-
-                // 3) Armar solicitud "virtual" y crear Resin1
-                var guid = Guid.NewGuid().ToString();
-
-                solicitudSeleccionada = new List<Solici1DTO?>
+            if (plantel is null)
             {
-                new Solici1DTO { Nrosol = guid, Codest = codEst, Fecsol = DateTime.Now }
-            };
+                await Swal.FireAsync("Error", "El socio no tiene plantel registrado.", SweetAlertIcon.Error);
+                return;
+            }
 
-                oResin1 = new Resin1DTO
-                    {
-                        Nrores = guid,
-                        Estcod = codEst,
-                        Scod = socioSeleccionado.Scod,
-                        Icod = inspectorSeleccionado.Icod,
-                        Nropla = plantel.Placod,
-                        Freali = fechaTemp
-                    };
+            Plantelseleccionado = plantel;
 
-                var resultado = await _resin1Servicio.Crear(oResin1);
-                if (resultado?.List is null)
+            // 2.1) Mostrar tabs y loaders ya mismo
+            loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
+            confirmado = true;
+            await InvokeAsync(StateHasChanged);
+
+            // 3) Armar solicitud "virtual" y crear Resin1
+            var guid = Guid.NewGuid().ToString();
+
+            solicitudSeleccionada = new List<Solici1DTO?>
+        {
+            new Solici1DTO { Nrosol = guid, Codest = codEst, Fecsol = DateTime.Now }
+        };
+
+            // IMPORTANTE: al crear, va con el plantel ACTUAL (luego lo actualizamos si tildaron "crear nuevo plantel")
+            oResin1 = new Resin1DTO
                 {
-                    await Swal.FireAsync("Error", "No se pudo crear el resultado de inspección.", SweetAlertIcon.Error);
-                    loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
-                    await InvokeAsync(StateHasChanged);
-                    return;
-                }
+                    Nrores = guid,
+                    Estcod = codEst,
+                    Scod = socioSeleccionado.Scod,
+                    Icod = inspectorSeleccionado.Icod,
+                    Nropla = plantel.Placod,
+                    Freali = fechaTemp
+                };
 
-                // 4) Crear histórico desde Plantel y refrescar secciones
-                await crearHistorico(guid);
-                await RefreshAll(guid);
+            var resultado = await _resin1Servicio.Crear(oResin1);
+            if (resultado?.List is null)
+            {
+                await Swal.FireAsync("Error", "No se pudo crear el resultado de inspección.", SweetAlertIcon.Error);
+                loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
 
-                // 5) Crear/actualizar plantel si corresponde
-                if (createNewPlantel)
-                {
-                    var destino = await updatePlantel(subirDeAnio: true);
-                    oResin1.Nropla = destino.Placod;
-                    await _resin1Servicio.Editar(oResin1);
-                    createNewPlantel = false; 
+            // ⬅️⬅️⬅️ **CLAVE**: guardar el Id y la entidad devuelta ANTES de cualquier otra operación
+            Id = resultado.List.Id;
+            oResin1 = resultado.List;
 
+            // 4) Crear histórico desde Plantel y refrescar secciones
+            await crearHistorico(guid);
+            await RefreshAll(guid);
+
+            // 5) Crear/actualizar plantel si corresponde
+            if (createNewPlantel)
+            {
+                var destino = await updatePlantel(subirDeAnio: true); // crea/actualiza 2025D1D1
+                Plantelseleccionado = destino;                         // reflejar en UI
+
+                // Forzar asociación del RESULTADO al NUEVO plantel
+                oResin1.Nropla = destino.Placod;
+                await _resin1Servicio.Editar(oResin1);
+
+                // Esperar a que el backend refleje el cambio
+                await EsperarActualizacionNropla(Id, destino.Placod);
+
+                // Refrescar entidad y UI
                 var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
                 oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
                 Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
-                await InvokeAsync(StateHasChanged);
 
-                }
-
-                // 6) Actualizar estado local
-                Id = resultado.List.Id;
-                oResin1 = resultado.List;
-
-                // 7) Refrescar grilla de resultados
-                var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
-                resultados = rtRes.List;
-
-                // 8) Render final
+                createNewPlantel = false; // evitar saltos a 2026, 2027...
                 await InvokeAsync(StateHasChanged);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                await Swal.FireAsync("Error", $"Ocurrió un error al crear el resultado sin solicitud: {ex.Message}", SweetAlertIcon.Error);
-                loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
-                await InvokeAsync(StateHasChanged);
-            }
+
+            // 6) Refrescar grilla de resultados
+            var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
+            resultados = rtRes.List;
+
+            // 7) Render final
+            await InvokeAsync(StateHasChanged);
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await Swal.FireAsync("Error", $"Ocurrió un error al crear el resultado sin solicitud: {ex.Message}", SweetAlertIcon.Error);
+            loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
 
 
 
