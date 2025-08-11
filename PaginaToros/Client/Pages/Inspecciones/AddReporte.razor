@@ -1,1225 +1,1731 @@
-﻿@page "/inforeporte/{Id:int}/{opcion:int}"
-@using Blazored.Typeahead
-@using PaginaToros.Client.Pages.CrudInspecciones
-@using PaginaToros.Client.Servicios.Contrato;
-@using System.Text.RegularExpressions;
+﻿    @page "/inforeporte/{Id:int}/{opcion:int}"
+    @using Blazored.Typeahead
+    @using PaginaToros.Client.Pages.CrudInspecciones
+    @using PaginaToros.Client.Servicios.Contrato;
+    @using System.Text.RegularExpressions;
 
-@inject NavigationManager NavigationManager
-@inject ISocioServicio _socioServicio
-@inject IResin8Servicio _resin8Servicio
-@inject IResin3Servicio _resin3Servicio
-@inject IResin4Servicio _resin4Servicio
-@inject IResin6Servicio _resin6Servicio
-@inject IInspectServicio _inspectServicio
-@inject IResin1Servicio _resin1Servicio
-@inject IEstableServicio _estableServicio
-@inject IPlantelServicio _plantelServicio
-@inject ISolici1Servicio _solici1Servicio
-@inject IResin2Servicio _resin2Servicio
-<style>
-    .bm-title {
-        font-size: 25px;
-        font-weight: bold;
-    }
+    @inject NavigationManager NavigationManager
+    @inject ISocioServicio _socioServicio
+    @inject IResin8Servicio _resin8Servicio
+    @inject IResin3Servicio _resin3Servicio
+    @inject IResin4Servicio _resin4Servicio
+    @inject IResin6Servicio _resin6Servicio
+    @inject IInspectServicio _inspectServicio
+    @inject IResin1Servicio _resin1Servicio
+    @inject IEstableServicio _estableServicio
+    @inject IPlantelServicio _plantelServicio
+    @inject ISolici1Servicio _solici1Servicio
+    @inject IResin2Servicio _resin2Servicio
+    <style>
+        .bm-title {
+            font-size: 25px;
+            font-weight: bold;
+        }
 
-</style>
+    </style>
 
-@if(!cargando){
-<div>
-        <button class="bm-title" @onclick="ComeBack"><FeatherArrowLeft Color="Black"></FeatherArrowLeft></button>
+    @if(!cargando){
+    <div>
+            <button class="bm-title" @onclick="ComeBack"><FeatherArrowLeft Color="Black"></FeatherArrowLeft></button>
 
-    <div class="row" style="width=100%;">
-        <div class="col-md-1" />
-        <div class="col-md-3">
-            <label>Socio</label>
-                <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado" Disabled="Id!=0">
-                <SelectedTemplate Context="eleccion">
-                    @eleccion.Nombre
-                </SelectedTemplate>
-                <ResultTemplate Context="eleccion">
-                    @eleccion.Nombre
-                </ResultTemplate>
-            </BlazoredTypeahead>
-        </div>
-        <div class="col-md-3" />
-        <div class="col-md-2">
-            @if (solicitudSeleccionada != null)
-            {
-
-                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">@(Id == 0 ? "Crear resultado de inspección" : "Actualizar datos")</button>
-            }
-                else  if (socioSeleccionado != null)
-            {
-                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick="()=>{ResultWithoutSolicitud();}" disabled=@(solicitudSeleccionada != null)>Resultado sin solicitud</button>
-
-            }
+        <div class="row" style="width=100%;">
+            <div class="col-md-1" />
+            <div class="col-md-3">
+                <label>Socio</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado" Disabled="Id!=0">
+                    <SelectedTemplate Context="eleccion">
+                        @eleccion.Nombre
+                    </SelectedTemplate>
+                    <ResultTemplate Context="eleccion">
+                        @eleccion.Nombre
+                    </ResultTemplate>
+                </BlazoredTypeahead>
             </div>
-    </div>
-        @if (socioSeleccionado != null)
-        {
+            <div class="col-md-3" />
+            <div class="col-md-2">
+                @if (solicitudSeleccionada != null)
+                {
 
-        <div class="row">
-            <label>Solicitudes</label>
-             
-            @if (solicitudSeleccionada == null)
+                    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">@(Id == 0 ? "Crear resultado de inspección" : "Actualizar datos")</button>
+                }
+                    else  if (socioSeleccionado != null)
+                {
+                    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick="()=>{ResultWithoutSolicitud();}" disabled=@(solicitudSeleccionada != null)>Resultado sin solicitud</button>
+
+                }
+                </div>
+        </div>
+            @if (socioSeleccionado != null)
             {
-            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@solicitudes.Where(x=>establecimientos.Where(t => t.Codsoc == socioSeleccionado.Scod).Any(t => t.Ecod == x.Codest) && !resultados.Any(r=>r.Nrores==x.Nrosol)).ToList()" TItem="Solici1DTO"
-                    LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" SelectionMode="DataGridSelectionMode.Single" ValueChanged="(e)=>onSolicitudChange(e)" >
-                <Columns>
-                            <RadzenDataGridColumn TItem="Solici1DTO" Property="Nrosol" Title="Nro Sol" />
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Socio">
-                        <Template Context="data">
-                            @socioSeleccionado.Nombre
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Fecha de solicitud">
-                        <Template Context="data">
-                            @if (data.Fecsol.HasValue)
-                            {
-                                <a>@data.Fecsol.Value.ToString("dd/MM/yyyy")</a>
-                            }
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Fecha de Autorización">
-                        <Template Context="data">
-                            @if(data.Fecins.HasValue){
-                                <a>@data.Fecins.Value.ToString("dd/MM/yyyy")</a>
-                            }
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="Cantor" Title="Toros PR"/>
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="Cantvq" Title="VQ PR" />
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Hembras VIP" >
-                        <Template Context="data">
-                            @(data.Canvac+data.Canvaq)
-                        </Template>
-                    </RadzenDataGridColumn>
-                </Columns>
-            </RadzenDataGrid>
 
-            <br/>
             <div class="row">
-                <div class="col-sm-9"/>
-                <div class="col-sm-3">
-                    <br/>
-                </div>
-                    </div>
-                }
-                else
+                <label>Solicitudes</label>
+             
+                @if (solicitudSeleccionada == null)
                 {
-                    if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
-                    {
-                        
-                    <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Nrosol" class="w-100"></RadzenNumeric>
-                    }
+                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@solicitudes.Where(x=>establecimientos.Where(t => t.Codsoc == socioSeleccionado.Scod).Any(t => t.Ecod == x.Codest) && !resultados.Any(r=>r.Nrores==x.Nrosol)).ToList()" TItem="Solici1DTO"
+                        LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" SelectionMode="DataGridSelectionMode.Single" ValueChanged="(e)=>onSolicitudChange(e)" >
+                    <Columns>
+                                <RadzenDataGridColumn TItem="Solici1DTO" Property="Nrosol" Title="Nro Sol" />
+                        <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Socio">
+                            <Template Context="data">
+                                @socioSeleccionado.Nombre
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Fecha de solicitud">
+                            <Template Context="data">
+                                @if (data.Fecsol.HasValue)
+                                {
+                                    <a>@data.Fecsol.Value.ToString("dd/MM/yyyy")</a>
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Fecha de Autorización">
+                            <Template Context="data">
+                                @if(data.Fecins.HasValue){
+                                    <a>@data.Fecins.Value.ToString("dd/MM/yyyy")</a>
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="Solici1DTO" Property="Cantor" Title="Toros PR"/>
+                        <RadzenDataGridColumn TItem="Solici1DTO" Property="Cantvq" Title="VQ PR" />
+                        <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Hembras VIP" >
+                            <Template Context="data">
+                                @(data.Canvac+data.Canvaq)
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
 
-                }
-            </div>
-    }
-        @if (socioSeleccionado != null)
-        {
-        <br />
-        <div class="row" style="width=100%;">
-            <div class="col-sm-1" />
-            <div class="col-sm">
-                <label>Inspector</label>
                 <br/>
-                    <BlazoredTypeahead SearchMethod="BusquedaInspects" placeholder="Busque inspector por nombre" disabled="@esSocio" EnableDropDown="true" @bind-Value="inspectorSeleccionado">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
-            </div>
-            <div class="col-sm">
-                <label class="col-sm">Numero de Socio</label>
-                <br/>
-                <RadzenNumeric @bind-Value="@socioSeleccionado.Scod" placeholder="Nro Socio" Disabled="true"></RadzenNumeric>
-            </div>
-            <div class="col-sm">
-                <label class="col-sm">Nombre de Socio</label>
-                <br />
-                <RadzenTextBox @bind-Value="@socioSeleccionado.Nombre" placeholder="Nombre de Socio" Disabled="true"></RadzenTextBox>
-            </div>
-
-        </div>
-        <br />
-
-        <div class="row" style="width=100%;">
-
-                
-            @if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null){
-            <div class="col-sm-1" />
-            <div class="col-sm">
-                <label class="col-sm">Establecimiento</label>
-                <br />
-                    <RadzenTextBox @bind-Value="@solicitudSeleccionada.FirstOrDefault().Codest" Disabled="true" placeholder="Establecimiento"></RadzenTextBox>
-            </div>
-            <div class="col-sm">
-                <label class="col-sm">Localidad</label>
-                <br />
-                @if (establecimientoSeleccionado != null)
-                {
-                    <RadzenTextBox @bind-Value="@establecimientoSeleccionado.Locali" Disabled="true" placeholder="Localidad"></RadzenTextBox>
-                }
-                else{
-                        <RadzenTextBox @bind-Value="@establecimientos.Where(x=>x.Ecod==solicitudSeleccionada.FirstOrDefault().Codest).First().Locali" Disabled="true" placeholder="Localidad"></RadzenTextBox>
-                }
-                
-            </div>
-                    <div class="col-sm-1" />
-                  @*   <div class="col-sm">
-                        <label>Plantel</label>
-                        <BlazoredTypeahead SearchMethod="BusquedaPlanteles" Disabled="esSocio" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
-                            <SelectedTemplate Context="eleccion">
-                                @eleccion.Placod
-                            </SelectedTemplate>
-                            <ResultTemplate Context="eleccion">
-                                @eleccion.Placod
-                            </ResultTemplate>
-                        </BlazoredTypeahead>
-                        </div> *@
-
-            }
-                @if (socioSeleccionado != null)
-                {
-                    <div class="col-sm-1" />
-                    <div class="col-sm">
-                        <label>Plantel</label>
-                        <BlazoredTypeahead SearchMethod="BusquedaPlanteles"
-                                           Disabled="@((Id != 0) || esSocio)"
-                                           placeholder="Busque plantel por número"
-                                           EnableDropDown="true"
-                                           @bind-Value="Plantelseleccionado">
-                            <SelectedTemplate Context="eleccion">
-                                @eleccion.Placod
-                            </SelectedTemplate>
-                            <ResultTemplate Context="eleccion">
-                                @eleccion.Placod
-                            </ResultTemplate>
-                        </BlazoredTypeahead>
-                    </div>
-                }
-        </div>
-        <br />
-
-        <div class="row" style="width=100%;">
-            <div class="col-sm-1" />
-                @if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
-                {
-            <div class="col-sm">
-                <label class="col-sm">Fecha De Solicitud</label>
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Fecsol" disabled="@esSocio" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-            </div>
-                }
-            <div class="col-sm">
-                <label class="col-sm">Fecha De Inspeccion</label>
-                @if (@Id != 0)
-                {
-            <div class="col-sm">
-
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oResin1.Freali" ShowTime="false" disabled="@esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                        </div>
-
-                    }
-                else
-                {
-            <div class="col-sm">
-                        <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" disabled="@esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                            </div>
-
-                }
-            </div>
-
-            @* bolonqui *@
-            <div class="col-sm">
-                <label class="col-sm">Reinspeccion?</label>
-                <br />
-                    <input type="checkbox" disabled="@esSocio" @bind="@tempReinspeccion">
-            </div>
-                @if (Id == 0)
-                {
-                    <div class="col-sm">
-                        <label class="col-sm">Crear nuevo plantel?</label>
-                        <br />
-                        <input type="checkbox" disabled="@esSocio" @bind="@createNewPlantel">
-                    </div>
-                }
-           
-        </div>
-        <br />
-          
-            <br />
-        <br />
-         @if (confirmado){
-            <RadzenTabs Class="w-100 mx-auto" RenderMode="TabRenderMode.Server">
-                <Tabs>
-                    <RadzenTabsItem Text="Movimientos">
-                         @if (loadingMovs)
-            {
-                <div class="p-2">
-                    <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="280px" />
-                </div>
-            }
-            else
-            {
-                        @if(!esSocio){
-                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>agregarMov(0)">Agregar Movimiento</button>
-                            }
+                <div class="row">
+                    <div class="col-sm-9"/>
+                    <div class="col-sm-3">
                         <br/>
-                        <br />
-                        <div class="container">
-                            <div class="row">
-                                <div class="col">
-                                    <table class="table table-bordered text-center">
-                                        <thead>
-                                            <tr>
-                                                <th rowspan="2" style="background-color: #FFFFFF;"></th>
-                                                <th rowspan="2" style="background-color: #999999;">TIPO DE MOVIMIENTO</th>
-                                                <th rowspan="2" style="background-color: #666666;">MOTIVO</th>
-                                                <th colspan="3" style="background-color: #999999;">PURO REGISTRADO</th>
-                                                <th colspan="3" style="background-color: #999999;">VIP</th>
-                                                <th/>
-                                            </tr>
-                                            <tr style="background-color: #FFFFFF;">
-                                                <th style="background-color: #FFFFFF;">VACAS</th>
-                                                <th style="background-color: #FFFFFF;">VAQ c/ Servicio</th>
-                                                <th style="background-color: #FFFFFF;">VAQ s/Servicio</th>
-                                                <th style="background-color: #FFFFFF;">VACAS</th>
-                                                <th style="background-color: #FFFFFF;">VAQ c/Servicio o preñadas</th>
-                                                <th style="background-color: #FFFFFF;">VAQ s/Servicio</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr style="background-color: #33CCFF;">
-                                                <td style="background-color: #999999;"><strong>EXISTENCIA ANTERIOR</strong></td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td>@estadoAnterior.Ea1</td>
-                                                <td>@estadoAnterior.Ea2</td>
-                                                <td>@estadoAnterior.Ea3</td>
-                                                <td>@estadoAnterior.Ea4</td>
-                                                <td>@estadoAnterior.Ea5</td>
-                                                <td>@estadoAnterior.Ea6</td>
-                                            </tr>
-                                            @foreach (var mov in mtos)
-                                            {
-                                                <tr>
-                                                    <td></td>
-                                                    <td>@traductor[mov.Tipmov]</td>
-                                                    <td>@traductor[mov.Ctomov]</td>
-                                                    <td>@mov.Rdvac</td>
-                                                    <td>@mov.Rdvaqcs</td>
-                                                    <td>@mov.Rdvaqss</td>
-                                                    <td>@mov.Rpvac</td>
-                                                    <td>@mov.Rpvaqcs</td>
-                                                    <td>@mov.Rpvaqss</td>
-                                                    @if(esSocio){
-                                                            <td></td>
-                                                    }
-                                                    else{
-                                                        <td><button class="btn" title="Editar info" @onclick='() => (agregarMov(mov.Id))' disabled="@esSocio" ><FeatherEdit Size="16" Color="green" /></button><button class="btn" title="Borrar" @onclick='() => (alertaDeleteMovimiento(mov.Id))'><FeatherDelete Size="16" Color="red" /></button></td>
-                                                    }
-                                                    
-                                                </tr>
-                                            }
-                                            <tr style="background-color: #FFFF66;">
-                                                <td style="background-color: #999999;"><strong>Total Entradas</strong></td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td>@entradasFinal.Ea1</td>
-                                                <td>@entradasFinal.Ea2</td>
-                                                <td>@entradasFinal.Ea3</td>
-                                                <td>@entradasFinal.Ea4</td>
-                                                <td>@entradasFinal.Ea5</td>
-                                                <td>@entradasFinal.Ea6</td>
-                                                <td />
-                                            </tr>
-                                            <tr style="background-color: #FFCC99;">
-                                                <td style="background-color: #999999;"><strong>Total Salidas</strong></td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td>@salidasFinal.Ea1</td>
-                                                <td>@salidasFinal.Ea2</td>
-                                                <td>@salidasFinal.Ea3</td>
-                                                <td>@salidasFinal.Ea4</td>
-                                                <td>@salidasFinal.Ea5</td>
-                                                <td>@salidasFinal.Ea6</td>
-                                                <td/>
-                                            </tr>
-                                            <tr style="background-color: #FF9966;">
-                                                <td style="background-color: #999999;"><strong>EXISTENCIA ACTUAL</strong></td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td>@estadoFinal.Ea1</td>
-                                                <td>@estadoFinal.Ea2</td>
-                                                <td>@estadoFinal.Ea3</td>
-                                                <td>@estadoFinal.Ea4</td>
-                                                <td>@estadoFinal.Ea5</td>
-                                                <td>@estadoFinal.Ea6</td>
-                                                <td />
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                    </div>
                         </div>
+                    }
+                    else
+                    {
+                        if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
+                        {
+                        
+                        <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Nrosol" class="w-100"></RadzenNumeric>
                         }
-                    </RadzenTabsItem>
-                    <RadzenTabsItem Text="Hembras y Machos">
-                        @if (loadingHemyma)
+
+                    }
+                </div>
+        }
+            @if (socioSeleccionado != null)
             {
-                <div class="p-2">
-                    <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="280px" />
-                    <div class="mt-2">
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm-1" />
+                <div class="col-sm">
+                    <label>Inspector</label>
+                    <br/>
+                        <BlazoredTypeahead SearchMethod="BusquedaInspects" placeholder="Busque inspector por nombre" disabled="@esSocio" EnableDropDown="true" @bind-Value="inspectorSeleccionado">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Numero de Socio</label>
+                    <br/>
+                    <RadzenNumeric @bind-Value="@socioSeleccionado.Scod" placeholder="Nro Socio" Disabled="true"></RadzenNumeric>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Nombre de Socio</label>
+                    <br />
+                    <RadzenTextBox @bind-Value="@socioSeleccionado.Nombre" placeholder="Nombre de Socio" Disabled="true"></RadzenTextBox>
+                </div>
+
+            </div>
+            <br />
+
+            <div class="row" style="width=100%;">
+
+                
+                @if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null){
+                <div class="col-sm-1" />
+                <div class="col-sm">
+                    <label class="col-sm">Establecimiento</label>
+                    <br />
+                        <RadzenTextBox @bind-Value="@solicitudSeleccionada.FirstOrDefault().Codest" Disabled="true" placeholder="Establecimiento"></RadzenTextBox>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Localidad</label>
+                    <br />
+                    @if (establecimientoSeleccionado != null)
+                    {
+                        <RadzenTextBox @bind-Value="@establecimientoSeleccionado.Locali" Disabled="true" placeholder="Localidad"></RadzenTextBox>
+                    }
+                    else{
+                            <RadzenTextBox @bind-Value="@establecimientos.Where(x=>x.Ecod==solicitudSeleccionada.FirstOrDefault().Codest).First().Locali" Disabled="true" placeholder="Localidad"></RadzenTextBox>
+                    }
+                
+                </div>
+                        <div class="col-sm-1" />
+                      @*   <div class="col-sm">
+                            <label>Plantel</label>
+                            <BlazoredTypeahead SearchMethod="BusquedaPlanteles" Disabled="esSocio" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
+                                <SelectedTemplate Context="eleccion">
+                                    @eleccion.Placod
+                                </SelectedTemplate>
+                                <ResultTemplate Context="eleccion">
+                                    @eleccion.Placod
+                                </ResultTemplate>
+                            </BlazoredTypeahead>
+                            </div> *@
+
+                }
+                    @if (socioSeleccionado != null)
+                    {
+                        <div class="col-sm-1" />
+                        <div class="col-sm">
+                            <label>Plantel</label>
+                            <BlazoredTypeahead SearchMethod="BusquedaPlanteles"
+                                               Disabled="@((Id != 0) || esSocio)"
+                                               placeholder="Busque plantel por número"
+                                               EnableDropDown="true"
+                                               @bind-Value="Plantelseleccionado">
+                                <SelectedTemplate Context="eleccion">
+                                    @eleccion.Placod
+                                </SelectedTemplate>
+                                <ResultTemplate Context="eleccion">
+                                    @eleccion.Placod
+                                </ResultTemplate>
+                            </BlazoredTypeahead>
+                        </div>
+                    }
+            </div>
+            <br />
+
+            <div class="row" style="width=100%;">
+                <div class="col-sm-1" />
+                    @if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
+                    {
+                <div class="col-sm">
+                    <label class="col-sm">Fecha De Solicitud</label>
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Fecsol" disabled="@esSocio" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                </div>
+                    }
+                <div class="col-sm">
+                    <label class="col-sm">Fecha De Inspeccion</label>
+                    @if (@Id != 0)
+                    {
+                <div class="col-sm">
+
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oResin1.Freali" ShowTime="false" disabled="@esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                            </div>
+
+                        }
+                    else
+                    {
+                <div class="col-sm">
+                            <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" disabled="@esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                </div>
+
+                    }
+                </div>
+
+                @* bolonqui *@
+                <div class="col-sm">
+                    <label class="col-sm">Reinspeccion?</label>
+                    <br />
+                        <input type="checkbox" disabled="@esSocio" @bind="@tempReinspeccion">
+                </div>
+                    @if (Id == 0)
+                    {
+                        <div class="col-sm">
+                            <label class="col-sm">Crear nuevo plantel?</label>
+                            <br />
+                            <input type="checkbox" disabled="@esSocio" @bind="@createNewPlantel">
+                        </div>
+                    }
+           
+            </div>
+            <br />
+          
+                <br />
+            <br />
+             @if (confirmado){
+                <RadzenTabs Class="w-100 mx-auto" RenderMode="TabRenderMode.Server">
+                    <Tabs>
+                        <RadzenTabsItem Text="Movimientos">
+                             @if (loadingMovs)
+                {
+                    <div class="p-2">
                         <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="280px" />
                     </div>
-                </div>
-            }
-            else
-            {
-
-
-                        <div class="container">
-                            <div class="row">
-                                <div class="col">
-                                    <table class="table table-bordered text-center">
-                                        <thead>
-                                            <tr bgcolor="#008000">
-                                                <th style="background-color: #FFFFFF;"></th>
-                                                <th>Presentadas</th>
-                                                <th>Mocha Marcada</th>
-                                                <th>Astada Marcada</th>
-                                                <th>PR Total</th>
-                                                <th>VIP Total</th>
-                                                <th>Rechazadas</th>
-                                                <th></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Vaq PR -->
-                                            <tr>
-                                                <td><strong>Vaq PR</strong></td>
-                                                <td>@hemyma.Hdp</td>
-                                                <td>@hemyma.HdpM</td>
-                                                <td>@hemyma.HdpAs</td>
-                                                <td>@(hemyma.HdpM+hemyma.HdpAs)</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td style="background-color: #666666;">@(hemyma.Hdp - (hemyma.HdpM + hemyma.HdpAs))</td>
-                                                @if(esSocio){
-                                                    <td/>
-                                                }
-                                                else{
-                                                        <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqpr"))'><FeatherEdit Color="green" /></button></td>
-                                                }
-                                            </tr>
-                                            <!-- Otros PR -->
-                                            <tr>
-                                                <td><strong>Otros PR</strong></td>
-                                                <td>@hemyma.Hpp</td>
-                                                <td>@hemyma.HppM</td>
-                                                <td>@hemyma.HppAs</td>
-                                                <td>@(hemyma.HppM+hemyma.HppAs)</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td style="background-color: #666666;">@(hemyma.Hpp - hemyma.HppM - hemyma.HppAs)</td>
-                                                @if (esSocio)
-                                                {
-                                                    <td />
-                                                }
-                                                else
-                                                {
-                                                    <td><button class="btn" title="Ver info @hemyma.Id" @onclick='() => (agregarHembraMacho("otrospr"))'><FeatherEdit Color="green" /></button></td>
-                                                }
-                                            </tr>
-                                            <!-- Vacas VIP -->
-                                            <tr >
-                                                <td><strong>Vacas VIP</strong></td>
-                                                <td>@hemyma.Hgvp</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td>@hemyma.Hgvb</td>
-                                                <td style="background-color: #666666;">@(hemyma.Hgvp-hemyma.Hgvb)</td>
-                                                @if (esSocio)
-                                                {
-                                                    <td />
-                                                }
-                                                else
-                                                {
-                                                    <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vacvip"))'><FeatherEdit Color="green" /></button></td>
-                                                }
-                                            </tr>
-                                            <!-- Vaq VIP -->
-                                            <tr>
-                                                <td><strong>Vaq VIP</strong></td>
-                                                <td>@hemyma.Hgqp</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                <td>@hemyma.Hgqb</td>
-                                                <td style="background-color: #666666;">@(hemyma.Hgqp - hemyma.Hgqb)</td>
-                                                @if (esSocio)
-                                                {
-                                                    <td />
-                                                }
-                                                else
-                                                {
-                                                        <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqvip"))'><FeatherEdit Color="green" /></button></td>
-                                                    }
-                                            </tr>
-                                            <!-- TOTALES -->
-                                            <tr style="background-color: #FF9966;">
-                                                <td><strong>TOTALES</strong></td>
-                                                <td>@(hemyma.Hdp + hemyma.Hpp + hemyma.Hgvp + hemyma.Hgqp)</td>
-                                                <td>@(hemyma.HppM + hemyma.HdpM)</td>
-                                                <td>@(hemyma.HppAs + hemyma.HdpAs)</td>
-                                                <td>@((hemyma.HdpM + hemyma.HdpAs) + (hemyma.HppM + hemyma.HppAs))</td>
-                                                <td>@(hemyma.Hgvb + hemyma.Hgqb)</td>
-                                                    <td>@((hemyma.Hdp - (hemyma.HdpM + hemyma.HdpAs)) + (hemyma.Hpp - hemyma.HppM - hemyma.HppAs) + (hemyma.Hgvp - hemyma.Hgvb) + (hemyma.Hgqp - hemyma.Hgqb))</td>
-                                                <td style="background-color: #fff;"></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <br/>
-                        <br/>
-                        <div class="container">
-                            <div class="row">
-                                <div class="col">
-                                    <table class="table table-bordered text-center">
-                                        <thead>
-                                            <tr bgcolor="#008000">
-                                                <th style="bgcolor:#FFFFFF"></th>
-                                                <th>Presentados</th>
-                                                <th>PR Mochos</th>
-                                                <th>PR Astados</th>
-                                                <th>PR Total</th>
-                                                <th>Rechazados</th>
-                                                <th>Control S/</th>
-                                                <th></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- S.C.P. -->
-                                            <tr>
-                                                <td><strong>S.C.P.</strong></td>
-                                                <td>@hemyma.Mcp</td>
-                                                <td>@hemyma.McpM</td>
-                                                <td>@hemyma.McpAs</td>
-                                                <td>@(hemyma.McpM + hemyma.McpAs)</td>
-                                                <td style="background-color: #666666;">@(hemyma.Mcp-hemyma.McpM - hemyma.McpAs)</td>
-                                                <td style="background-color: #666666;">-</td>
-                                                @if (esSocio)
-                                                {
-                                                    <td />
-                                                }
-                                                else
-                                                {
-                                                    <td style="background-color: #fff;"><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("scp"))'><FeatherEdit Color="green" /></button></td>
-                                                }
-                                                
-                                            </tr>
-                                            <!-- C.P. -->
-                                            <tr>
-                                                <td><strong>C.P.</strong></td>
-                                                <td>@hemyma.Msp</td>
-                                                <td>@hemyma.MspM</td>
-                                                <td>@hemyma.MspAs</td>
-                                                <td>@(hemyma.MspM + hemyma.MspAs)</td>
-                                                <td style="background-color: #666666;">@(hemyma.Msp - hemyma.MspM - hemyma.MspAs)</td>
-                                                <td>@hemyma.Mspsb</td>
-                                                @if (esSocio)
-                                                {
-                                                    <td />
-                                                }
-                                                else
-                                                {
-                                                        <td style="background-color: #fff;"><button disabled="@esSocio" class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("cp"))'><FeatherEdit Color="green" /></button></td>
-                                                    }
-                                            </tr>
-                                                <tr style="background-color: #FF9966;">
-                                                    <td><strong>TOTALES</strong></td>
-                                                    <td>@(hemyma.Mcp + hemyma.Msp)</td>
-                                                    <td>@(hemyma.McpM + hemyma.MspM)</td>
-                                                    <td>@(hemyma.McpAs + hemyma.MspAs)</td>
-                                                    <td>@(hemyma.MspM + hemyma.MspAs + hemyma.McpM + hemyma.McpAs)</td>
-                                                    <td>@((hemyma.Msp - hemyma.MspM - hemyma.MspAs) + (hemyma.Mcp - hemyma.McpM - hemyma.McpAs))</td>
-                                                    <td>@hemyma.Mspsb</td>
-                                                    <td style="background-color: #fff;"></td>
-                                                </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        }
-                    </RadzenTabsItem>
-                    <RadzenTabsItem Text="Informe general">
-                        <br/>
-                         @if (loadingProms || loadingRech)
-            {
-                <div class="p-2">
-                    <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="200px" />
-                    <div class="mt-2">
-                        <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="200px" />
-                    </div>
-                </div>
-            }
-            else
-            {
-
-
-                        <div class="container">
-                            <div class="row">
-                                <div class="col">
-                                    <table class="table table-bordered text-center">
-                                        <thead>
-                                            <tr bgcolor="#008000">
-                                                <th style="background-color: #FFFFFF;"></th>
-                                                <th>Promedio Edad</th>
-                                                <th>Promedio Peso</th>
-                                                <th>Max. Edad</th>
-                                                <th>Max. Peso</th>
-                                                <th>Min. Edad</th>
-                                                <th>Min. Peso</th>
-                                                <th>Diente de Leche %</th>
-                                                <th>Dos Dientes %</th>
-                                                <th>Cuatro Dientes %</th>
-                                                <th style="background-color: #FFFFFF;"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- HEMBRAS -->
-                                            <tr>
-                                                <td><strong>HEMBRAS</strong></td>
-                                                <td>@promediohembra.Pedad</td>
-                                                <td>@promediohembra.Ppeso</td>
-                                                <td>@promediohembra.Medad</td>
-                                                <td>@promediohembra.Mpeso</td>
-                                                <td>@promediohembra.Iedad</td>
-                                                <td>@promediohembra.Ipeso</td>
-                                                <td>@promediohembra.Pdl</td>
-                                                <td>@promediohembra.P2d</td>
-                                                <td>@promediohembra.P4d</td>
-                                                @if(esSocio){
-                                                    <td/>
-                                                }
-                                                else{
-                                                    <td><button class="btn" title="Ver info" disabled="@esSocio" @onclick='() => (editarPromedio(promediohembra.Id,"H"))'><FeatherEdit Color="green" /></button></td>
-
-                                                }
-                                            </tr>
-                                            <!-- MACHOS -->
-                                            <tr>
-                                                <td><strong>MACHOS</strong></td>
-                                                <td>@promediomacho.Pedad</td>
-                                                <td>@promediomacho.Ppeso</td>
-                                                <td>@promediomacho.Medad</td>
-                                                <td>@promediomacho.Mpeso</td>
-                                                <td>@promediomacho.Iedad</td>
-                                                <td>@promediomacho.Ipeso</td>
-                                                <td>@promediomacho.Pdl</td>
-                                                <td>@promediomacho.P2d</td>
-                                                <td>@promediomacho.P4d</td>
-                                                @if(esSocio){
-                                                    <td/>
-                                                }
-                                                else{
-                                                    <td><button class="btn" title="Ver info" disabled="@esSocio" @onclick='() => (editarPromedio(promediomacho.Id,"M"))'><FeatherEdit Color="green" /></button></td>
-
-                                                }
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <br />
-                        <br />
-                        <div class="container">
-                            <div class="row">
-                                <div class="col">
-                                    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>agregarRechazo(0)">Agregar Causal de rechazo</button>
-                                    <br/>
-                                    <br/>
-                                    <table class="table table-bordered text-center">
-                                        <thead>
-                                            <tr bgcolor="#008000" >
-                                                <th style="background-color: #FFFFFF;">#</th>
-                                                <th>Motivo</th>
-                                                <th>Hembras</th>
-                                                <th>Machos</th>
-                                                <th style="background-color: #FFFFFF;width:13.33%;"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var re in rechazos)
-                                            {
-                                                <tr>
-                                                    <td>@(rechazos.IndexOf(re) + 1)</td>
-                                                    <td>@traductor[re.MotivoRechazo.ToString()]</td>
-                                                    <td>@re.Hembras</td>
-                                                    <td>@re.Machos</td>
-                                                    <td style="width:13.33%;">
-                                                        @if(!esSocio){
-
-                                                        <button class="btn" title="Editar Rechazo" @onclick='() => (agregarRechazo(re.Id))'><FeatherEdit Color="green" /></button>
-                                                        <button class="btn" title="Editar Rechazo" @onclick='() => (alertaDeleteRechazo(re.Id))'><FeatherTrash Color="red" /></button>
-                                                        }
-                                                    </td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                }
+                else
+                {
+                            @if(!esSocio){
+                            <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>agregarMov(0)">Agregar Movimiento</button>
+                                }
+                            <br/>
+                            <br />
                             <div class="container">
                                 <div class="row">
                                     <div class="col">
-                                        <br />
-                                        <strong>OBSERVACIONES</strong>
-                                        <br />
-                                        
-                                        <textarea class="form-control" rows="4" disabled="@esSocio" @bind="@oResin1.Observ"></textarea>
-                                        <br />
-                                        <div class=" align-content-end">
-                                            <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>saveObservations()">Guardar observaciones</button>
-                                        </div>
+                                        <table class="table table-bordered text-center">
+                                            <thead>
+                                                <tr>
+                                                    <th rowspan="2" style="background-color: #FFFFFF;"></th>
+                                                    <th rowspan="2" style="background-color: #999999;">TIPO DE MOVIMIENTO</th>
+                                                    <th rowspan="2" style="background-color: #666666;">MOTIVO</th>
+                                                    <th colspan="3" style="background-color: #999999;">PURO REGISTRADO</th>
+                                                    <th colspan="3" style="background-color: #999999;">VIP</th>
+                                                    <th/>
+                                                </tr>
+                                                <tr style="background-color: #FFFFFF;">
+                                                    <th style="background-color: #FFFFFF;">VACAS</th>
+                                                    <th style="background-color: #FFFFFF;">VAQ c/ Servicio</th>
+                                                    <th style="background-color: #FFFFFF;">VAQ s/Servicio</th>
+                                                    <th style="background-color: #FFFFFF;">VACAS</th>
+                                                    <th style="background-color: #FFFFFF;">VAQ c/Servicio o preñadas</th>
+                                                    <th style="background-color: #FFFFFF;">VAQ s/Servicio</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr style="background-color: #33CCFF;">
+                                                    <td style="background-color: #999999;"><strong>EXISTENCIA ANTERIOR</strong></td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td>@estadoAnterior.Ea1</td>
+                                                    <td>@estadoAnterior.Ea2</td>
+                                                    <td>@estadoAnterior.Ea3</td>
+                                                    <td>@estadoAnterior.Ea4</td>
+                                                    <td>@estadoAnterior.Ea5</td>
+                                                    <td>@estadoAnterior.Ea6</td>
+                                                </tr>
+                                                @foreach (var mov in mtos)
+                                                {
+                                                    <tr>
+                                                        <td></td>
+                                                        <td>@traductor[mov.Tipmov]</td>
+                                                        <td>@traductor[mov.Ctomov]</td>
+                                                        <td>@mov.Rdvac</td>
+                                                        <td>@mov.Rdvaqcs</td>
+                                                        <td>@mov.Rdvaqss</td>
+                                                        <td>@mov.Rpvac</td>
+                                                        <td>@mov.Rpvaqcs</td>
+                                                        <td>@mov.Rpvaqss</td>
+                                                        @if(esSocio){
+                                                                <td></td>
+                                                        }
+                                                        else{
+                                                            <td><button class="btn" title="Editar info" @onclick='() => (agregarMov(mov.Id))' disabled="@esSocio" ><FeatherEdit Size="16" Color="green" /></button><button class="btn" title="Borrar" @onclick='() => (alertaDeleteMovimiento(mov.Id))'><FeatherDelete Size="16" Color="red" /></button></td>
+                                                        }
+                                                    
+                                                    </tr>
+                                                }
+                                                <tr style="background-color: #FFFF66;">
+                                                    <td style="background-color: #999999;"><strong>Total Entradas</strong></td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td>@entradasFinal.Ea1</td>
+                                                    <td>@entradasFinal.Ea2</td>
+                                                    <td>@entradasFinal.Ea3</td>
+                                                    <td>@entradasFinal.Ea4</td>
+                                                    <td>@entradasFinal.Ea5</td>
+                                                    <td>@entradasFinal.Ea6</td>
+                                                    <td />
+                                                </tr>
+                                                <tr style="background-color: #FFCC99;">
+                                                    <td style="background-color: #999999;"><strong>Total Salidas</strong></td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td>@salidasFinal.Ea1</td>
+                                                    <td>@salidasFinal.Ea2</td>
+                                                    <td>@salidasFinal.Ea3</td>
+                                                    <td>@salidasFinal.Ea4</td>
+                                                    <td>@salidasFinal.Ea5</td>
+                                                    <td>@salidasFinal.Ea6</td>
+                                                    <td/>
+                                                </tr>
+                                                <tr style="background-color: #FF9966;">
+                                                    <td style="background-color: #999999;"><strong>EXISTENCIA ACTUAL</strong></td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td>@estadoFinal.Ea1</td>
+                                                    <td>@estadoFinal.Ea2</td>
+                                                    <td>@estadoFinal.Ea3</td>
+                                                    <td>@estadoFinal.Ea4</td>
+                                                    <td>@estadoFinal.Ea5</td>
+                                                    <td>@estadoFinal.Ea6</td>
+                                                    <td />
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
                             }
-                    </RadzenTabsItem>
-                </Tabs>
-            </RadzenTabs>
-
-    }
-    }
-    </div>
-}
-else
-{
-    <br />
-    <center>
-        <div class="mb-2">
-            <br />
-            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-        </div>
-    </center>
-}
-@code {
-
-    [CascadingParameter] public IModalService Modal { get; set; } = default!;
-
-    bool tempReinspeccion = false;
-    bool createNewPlantel = false;
-
-    List<SocioDTO> socios = new();
-    SocioDTO? socioSeleccionado = null;
-
-    List<Resin8DTO> rechazos = new();
-    List<Resin3DTO> mtos = new();
-    Resin6DTO hemyma = new();
-
-    Resin4DTO promediohembra = new();
-    Resin4DTO promediomacho = new();
-
-    List<InspectDTO> Inspects = new();
-    InspectDTO? inspectorSeleccionado = null;
-
-    List<Resin1DTO> resultados = new();
-    List<EstableDTO> establecimientos = new();
-
-    List<PlantelDTO> Planteles = new();
-    PlantelDTO? Plantelseleccionado = null;
-    bool primerMov = true;
-    EstableDTO? establecimientoSeleccionado = null;
-    List<Resin4DTO> promedios = new();
-    List<Solici1DTO> solicitudes = new();
-    IList<Solici1DTO?> solicitudSeleccionada = null;
-    bool confirmado = false;
-    bool cargando = true;
-    Resin1DTO? oResin1 = new();
-    DateTime fechaTemp = DateTime.Now;
-    Respuesta<Resin1DTO> oRespuesta = new();
-    Resin2DTO estadoAnterior = new();
-    Resin2DTO salidasFinal = new();
-    Resin2DTO entradasFinal = new();
-    Resin2DTO estadoFinal = new();
-    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
-    [Parameter] public int Id { get; set; }
-    bool esSocio { get; set; }
-    [Parameter] public int opcion { get; set; }
-    Dictionary<string, string> traductor = new Dictionary<string, string>{
-        {"CO","Compras"},
-        {"VE","Ventas"},
-        {"CC","Cambio Categoria"},
-        {"PI","Por Inspeccion"},
-        {"EP","Epidemias"},
-        {"RE","Rechazos"},
-        {"RI","Reinspeccion"},
-        {"AJ","Ajuste"},
-        {"OT","Otros"},
-        {"E","Entrada"},
-        {"S","Salida"},
-        {"1","Pelaje"},
-        {"2","Estado"},
-        {"3","Desarrollo"},
-        {"4","Aplomo"},
-        {"5","Estructura"},
-        {"6","Conformacion"},
-        {"7","Pureza"},
-        {"8","Sanidad"},
-        {"9","Otros"},
-        {"10","Compras"},
-        {"11","Ventas"},
-        {"12","Cambio Categoria"},
-        {"13","Por Inspeccion"},
-        {"14","Epidemias"},
-        {"15","Rechazos"},
-        {"16","Otros"},
-        {"17","Reinspeccion"},
-        {"18","Ajuste"}
-    };
-
-    bool activo = true;
-    bool loadingSolicitudes, loadingMovs, loadingHemyma, loadingProms, loadingRech;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await CargarDatos();
-    }
-
-    async Task CargarDatos()
-    {
-        try{
-            var rtaaa = await _inspectServicio.LimitadosFiltrados(0, 0);
-            Inspects = rtaaa.List;
-            esSocio = opcion == 1;
-            var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
-            Planteles = plan.List;
-            if (Id != 0)
-            {
-                string filtro = $"Id = {Id}";
-                var res = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-                oResin1 = res.List.Where(x=>x.Id==Id).FirstOrDefault();
-
-                filtro = $"(Scod == null ? \"\" : Scod).ToLower().Contains(\"{oResin1.Scod}\".ToLower())";
-                var rt = await _socioServicio.LimitadosFiltrados(0,1,filtro);
-                socioSeleccionado = rt.List.Where(x => x.Scod == oResin1.Scod).FirstOrDefault() ?? new SocioDTO();
-
-                string nrores = oResin1.Nrores?.ToLower() ?? "";
-                filtro = $"(Nrosol == null ? \"\" : Nrosol).ToLower().Contains(\"{nrores}\")";
-
-                var sol = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-                if ((solicitudSeleccionada == null || solicitudSeleccionada.Count == 0) && !string.IsNullOrEmpty(oResin1.Nrores))
+                        </RadzenTabsItem>
+                        <RadzenTabsItem Text="Hembras y Machos">
+                            @if (loadingHemyma)
                 {
-                    solicitudSeleccionada = new List<Solici1DTO?>
+                    <div class="p-2">
+                        <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="280px" />
+                        <div class="mt-2">
+                            <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="280px" />
+                        </div>
+                    </div>
+                }
+                else
+                {
+
+
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col">
+                                        <table class="table table-bordered text-center">
+                                            <thead>
+                                                <tr bgcolor="#008000">
+                                                    <th style="background-color: #FFFFFF;"></th>
+                                                    <th>Presentadas</th>
+                                                    <th>Mocha Marcada</th>
+                                                    <th>Astada Marcada</th>
+                                                    <th>PR Total</th>
+                                                    <th>VIP Total</th>
+                                                    <th>Rechazadas</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Vaq PR -->
+                                                <tr>
+                                                    <td><strong>Vaq PR</strong></td>
+                                                    <td>@hemyma.Hdp</td>
+                                                    <td>@hemyma.HdpM</td>
+                                                    <td>@hemyma.HdpAs</td>
+                                                    <td>@(hemyma.HdpM+hemyma.HdpAs)</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td style="background-color: #666666;">@(hemyma.Hdp - (hemyma.HdpM + hemyma.HdpAs))</td>
+                                                    @if(esSocio){
+                                                        <td/>
+                                                    }
+                                                    else{
+                                                            <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqpr"))'><FeatherEdit Color="green" /></button></td>
+                                                    }
+                                                </tr>
+                                                <!-- Otros PR -->
+                                                <tr>
+                                                    <td><strong>Otros PR</strong></td>
+                                                    <td>@hemyma.Hpp</td>
+                                                    <td>@hemyma.HppM</td>
+                                                    <td>@hemyma.HppAs</td>
+                                                    <td>@(hemyma.HppM+hemyma.HppAs)</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td style="background-color: #666666;">@(hemyma.Hpp - hemyma.HppM - hemyma.HppAs)</td>
+                                                    @if (esSocio)
+                                                    {
+                                                        <td />
+                                                    }
+                                                    else
+                                                    {
+                                                        <td><button class="btn" title="Ver info @hemyma.Id" @onclick='() => (agregarHembraMacho("otrospr"))'><FeatherEdit Color="green" /></button></td>
+                                                    }
+                                                </tr>
+                                                <!-- Vacas VIP -->
+                                                <tr >
+                                                    <td><strong>Vacas VIP</strong></td>
+                                                    <td>@hemyma.Hgvp</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td>@hemyma.Hgvb</td>
+                                                    <td style="background-color: #666666;">@(hemyma.Hgvp-hemyma.Hgvb)</td>
+                                                    @if (esSocio)
+                                                    {
+                                                        <td />
+                                                    }
+                                                    else
+                                                    {
+                                                        <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vacvip"))'><FeatherEdit Color="green" /></button></td>
+                                                    }
+                                                </tr>
+                                                <!-- Vaq VIP -->
+                                                <tr>
+                                                    <td><strong>Vaq VIP</strong></td>
+                                                    <td>@hemyma.Hgqp</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    <td>@hemyma.Hgqb</td>
+                                                    <td style="background-color: #666666;">@(hemyma.Hgqp - hemyma.Hgqb)</td>
+                                                    @if (esSocio)
+                                                    {
+                                                        <td />
+                                                    }
+                                                    else
+                                                    {
+                                                            <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqvip"))'><FeatherEdit Color="green" /></button></td>
+                                                        }
+                                                </tr>
+                                                <!-- TOTALES -->
+                                                <tr style="background-color: #FF9966;">
+                                                    <td><strong>TOTALES</strong></td>
+                                                    <td>@(hemyma.Hdp + hemyma.Hpp + hemyma.Hgvp + hemyma.Hgqp)</td>
+                                                    <td>@(hemyma.HppM + hemyma.HdpM)</td>
+                                                    <td>@(hemyma.HppAs + hemyma.HdpAs)</td>
+                                                    <td>@((hemyma.HdpM + hemyma.HdpAs) + (hemyma.HppM + hemyma.HppAs))</td>
+                                                    <td>@(hemyma.Hgvb + hemyma.Hgqb)</td>
+                                                        <td>@((hemyma.Hdp - (hemyma.HdpM + hemyma.HdpAs)) + (hemyma.Hpp - hemyma.HppM - hemyma.HppAs) + (hemyma.Hgvp - hemyma.Hgvb) + (hemyma.Hgqp - hemyma.Hgqb))</td>
+                                                    <td style="background-color: #fff;"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <br/>
+                            <br/>
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col">
+                                        <table class="table table-bordered text-center">
+                                            <thead>
+                                                <tr bgcolor="#008000">
+                                                    <th style="bgcolor:#FFFFFF"></th>
+                                                    <th>Presentados</th>
+                                                    <th>PR Mochos</th>
+                                                    <th>PR Astados</th>
+                                                    <th>PR Total</th>
+                                                    <th>Rechazados</th>
+                                                    <th>Control S/</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- S.C.P. -->
+                                                <tr>
+                                                    <td><strong>S.C.P.</strong></td>
+                                                    <td>@hemyma.Mcp</td>
+                                                    <td>@hemyma.McpM</td>
+                                                    <td>@hemyma.McpAs</td>
+                                                    <td>@(hemyma.McpM + hemyma.McpAs)</td>
+                                                    <td style="background-color: #666666;">@(hemyma.Mcp-hemyma.McpM - hemyma.McpAs)</td>
+                                                    <td style="background-color: #666666;">-</td>
+                                                    @if (esSocio)
+                                                    {
+                                                        <td />
+                                                    }
+                                                    else
+                                                    {
+                                                        <td style="background-color: #fff;"><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("scp"))'><FeatherEdit Color="green" /></button></td>
+                                                    }
+                                                
+                                                </tr>
+                                                <!-- C.P. -->
+                                                <tr>
+                                                    <td><strong>C.P.</strong></td>
+                                                    <td>@hemyma.Msp</td>
+                                                    <td>@hemyma.MspM</td>
+                                                    <td>@hemyma.MspAs</td>
+                                                    <td>@(hemyma.MspM + hemyma.MspAs)</td>
+                                                    <td style="background-color: #666666;">@(hemyma.Msp - hemyma.MspM - hemyma.MspAs)</td>
+                                                    <td>@hemyma.Mspsb</td>
+                                                    @if (esSocio)
+                                                    {
+                                                        <td />
+                                                    }
+                                                    else
+                                                    {
+                                                            <td style="background-color: #fff;"><button disabled="@esSocio" class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("cp"))'><FeatherEdit Color="green" /></button></td>
+                                                        }
+                                                </tr>
+                                                    <tr style="background-color: #FF9966;">
+                                                        <td><strong>TOTALES</strong></td>
+                                                        <td>@(hemyma.Mcp + hemyma.Msp)</td>
+                                                        <td>@(hemyma.McpM + hemyma.MspM)</td>
+                                                        <td>@(hemyma.McpAs + hemyma.MspAs)</td>
+                                                        <td>@(hemyma.MspM + hemyma.MspAs + hemyma.McpM + hemyma.McpAs)</td>
+                                                        <td>@((hemyma.Msp - hemyma.MspM - hemyma.MspAs) + (hemyma.Mcp - hemyma.McpM - hemyma.McpAs))</td>
+                                                        <td>@hemyma.Mspsb</td>
+                                                        <td style="background-color: #fff;"></td>
+                                                    </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            }
+                        </RadzenTabsItem>
+                        <RadzenTabsItem Text="Informe general">
+                            <br/>
+                             @if (loadingProms || loadingRech)
+                {
+                    <div class="p-2">
+                        <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="200px" />
+                        <div class="mt-2">
+                            <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="200px" />
+                        </div>
+                    </div>
+                }
+                else
+                {
+
+
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col">
+                                        <table class="table table-bordered text-center">
+                                            <thead>
+                                                <tr bgcolor="#008000">
+                                                    <th style="background-color: #FFFFFF;"></th>
+                                                    <th>Promedio Edad</th>
+                                                    <th>Promedio Peso</th>
+                                                    <th>Max. Edad</th>
+                                                    <th>Max. Peso</th>
+                                                    <th>Min. Edad</th>
+                                                    <th>Min. Peso</th>
+                                                    <th>Diente de Leche %</th>
+                                                    <th>Dos Dientes %</th>
+                                                    <th>Cuatro Dientes %</th>
+                                                    <th style="background-color: #FFFFFF;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- HEMBRAS -->
+                                                <tr>
+                                                    <td><strong>HEMBRAS</strong></td>
+                                                    <td>@promediohembra.Pedad</td>
+                                                    <td>@promediohembra.Ppeso</td>
+                                                    <td>@promediohembra.Medad</td>
+                                                    <td>@promediohembra.Mpeso</td>
+                                                    <td>@promediohembra.Iedad</td>
+                                                    <td>@promediohembra.Ipeso</td>
+                                                    <td>@promediohembra.Pdl</td>
+                                                    <td>@promediohembra.P2d</td>
+                                                    <td>@promediohembra.P4d</td>
+                                                    @if(esSocio){
+                                                        <td/>
+                                                    }
+                                                    else{
+                                                        <td><button class="btn" title="Ver info" disabled="@esSocio" @onclick='() => (editarPromedio(promediohembra.Id,"H"))'><FeatherEdit Color="green" /></button></td>
+
+                                                    }
+                                                </tr>
+                                                <!-- MACHOS -->
+                                                <tr>
+                                                    <td><strong>MACHOS</strong></td>
+                                                    <td>@promediomacho.Pedad</td>
+                                                    <td>@promediomacho.Ppeso</td>
+                                                    <td>@promediomacho.Medad</td>
+                                                    <td>@promediomacho.Mpeso</td>
+                                                    <td>@promediomacho.Iedad</td>
+                                                    <td>@promediomacho.Ipeso</td>
+                                                    <td>@promediomacho.Pdl</td>
+                                                    <td>@promediomacho.P2d</td>
+                                                    <td>@promediomacho.P4d</td>
+                                                    @if(esSocio){
+                                                        <td/>
+                                                    }
+                                                    else{
+                                                        <td><button class="btn" title="Ver info" disabled="@esSocio" @onclick='() => (editarPromedio(promediomacho.Id,"M"))'><FeatherEdit Color="green" /></button></td>
+
+                                                    }
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <br />
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col">
+                                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>agregarRechazo(0)">Agregar Causal de rechazo</button>
+                                        <br/>
+                                        <br/>
+                                        <table class="table table-bordered text-center">
+                                            <thead>
+                                                <tr bgcolor="#008000" >
+                                                    <th style="background-color: #FFFFFF;">#</th>
+                                                    <th>Motivo</th>
+                                                    <th>Hembras</th>
+                                                    <th>Machos</th>
+                                                    <th style="background-color: #FFFFFF;width:13.33%;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var re in rechazos)
+                                                {
+                                                    <tr>
+                                                        <td>@(rechazos.IndexOf(re) + 1)</td>
+                                                        <td>@traductor[re.MotivoRechazo.ToString()]</td>
+                                                        <td>@re.Hembras</td>
+                                                        <td>@re.Machos</td>
+                                                        <td style="width:13.33%;">
+                                                            @if(!esSocio){
+
+                                                            <button class="btn" title="Editar Rechazo" @onclick='() => (agregarRechazo(re.Id))'><FeatherEdit Color="green" /></button>
+                                                            <button class="btn" title="Editar Rechazo" @onclick='() => (alertaDeleteRechazo(re.Id))'><FeatherTrash Color="red" /></button>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col">
+                                            <br />
+                                            <strong>OBSERVACIONES</strong>
+                                            <br />
+                                        
+                                            <textarea class="form-control" rows="4" disabled="@esSocio" @bind="@oResin1.Observ"></textarea>
+                                            <br />
+                                            <div class=" align-content-end">
+                                                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>saveObservations()">Guardar observaciones</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                }
+                        </RadzenTabsItem>
+                    </Tabs>
+                </RadzenTabs>
+
+        }
+        }
+        </div>
+    }
+    else
+    {
+        <br />
+        <center>
+            <div class="mb-2">
+                <br />
+                <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+            </div>
+        </center>
+    }
+    @code {
+
+        [CascadingParameter] public IModalService Modal { get; set; } = default!;
+
+        bool tempReinspeccion = false;
+        bool createNewPlantel = false;
+
+        List<SocioDTO> socios = new();
+        SocioDTO? socioSeleccionado = null;
+
+        List<Resin8DTO> rechazos = new();
+        List<Resin3DTO> mtos = new();
+        Resin6DTO hemyma = new();
+
+        Resin4DTO promediohembra = new();
+        Resin4DTO promediomacho = new();
+
+        List<InspectDTO> Inspects = new();
+        InspectDTO? inspectorSeleccionado = null;
+
+        List<Resin1DTO> resultados = new();
+        List<EstableDTO> establecimientos = new();
+
+        List<PlantelDTO> Planteles = new();
+        PlantelDTO? Plantelseleccionado = null;
+        bool primerMov = true;
+        EstableDTO? establecimientoSeleccionado = null;
+        List<Resin4DTO> promedios = new();
+        List<Solici1DTO> solicitudes = new();
+        IList<Solici1DTO?> solicitudSeleccionada = null;
+        bool confirmado = false;
+        bool cargando = true;
+        Resin1DTO? oResin1 = new();
+        DateTime fechaTemp = DateTime.Now;
+        Respuesta<Resin1DTO> oRespuesta = new();
+        Resin2DTO estadoAnterior = new();
+        Resin2DTO salidasFinal = new();
+        Resin2DTO entradasFinal = new();
+        Resin2DTO estadoFinal = new();
+        [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+        [Parameter] public int Id { get; set; }
+        bool esSocio { get; set; }
+        [Parameter] public int opcion { get; set; }
+        Dictionary<string, string> traductor = new Dictionary<string, string>{
+            {"CO","Compras"},
+            {"VE","Ventas"},
+            {"CC","Cambio Categoria"},
+            {"PI","Por Inspeccion"},
+            {"EP","Epidemias"},
+            {"RE","Rechazos"},
+            {"RI","Reinspeccion"},
+            {"AJ","Ajuste"},
+            {"OT","Otros"},
+            {"E","Entrada"},
+            {"S","Salida"},
+            {"1","Pelaje"},
+            {"2","Estado"},
+            {"3","Desarrollo"},
+            {"4","Aplomo"},
+            {"5","Estructura"},
+            {"6","Conformacion"},
+            {"7","Pureza"},
+            {"8","Sanidad"},
+            {"9","Otros"},
+            {"10","Compras"},
+            {"11","Ventas"},
+            {"12","Cambio Categoria"},
+            {"13","Por Inspeccion"},
+            {"14","Epidemias"},
+            {"15","Rechazos"},
+            {"16","Otros"},
+            {"17","Reinspeccion"},
+            {"18","Ajuste"}
+        };
+
+        bool activo = true;
+        bool loadingSolicitudes, loadingMovs, loadingHemyma, loadingProms, loadingRech;
+
+        protected override async Task OnInitializedAsync()
+        {
+            await CargarDatos();
+        }
+
+        async Task CargarDatos()
+        {
+            try{
+                var rtaaa = await _inspectServicio.LimitadosFiltrados(0, 0);
+                Inspects = rtaaa.List;
+                esSocio = opcion == 1;
+                var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
+                Planteles = plan.List;
+                if (Id != 0)
+                {
+                    string filtro = $"Id = {Id}";
+                    var res = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
+                    oResin1 = res.List.Where(x=>x.Id==Id).FirstOrDefault();
+
+                    filtro = $"(Scod == null ? \"\" : Scod).ToLower().Contains(\"{oResin1.Scod}\".ToLower())";
+                    var rt = await _socioServicio.LimitadosFiltrados(0,1,filtro);
+                    socioSeleccionado = rt.List.Where(x => x.Scod == oResin1.Scod).FirstOrDefault() ?? new SocioDTO();
+
+                    string nrores = oResin1.Nrores?.ToLower() ?? "";
+                    filtro = $"(Nrosol == null ? \"\" : Nrosol).ToLower().Contains(\"{nrores}\")";
+
+                    var sol = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
+                    if ((solicitudSeleccionada == null || solicitudSeleccionada.Count == 0) && !string.IsNullOrEmpty(oResin1.Nrores))
                     {
-                        new Solici1DTO
+                        solicitudSeleccionada = new List<Solici1DTO?>
                         {
-                            Nrosol = oResin1.Nrores,
-                            Codest = oResin1.Estcod,
-                            Fecsol = oResin1.Freali
+                            new Solici1DTO
+                            {
+                                Nrosol = oResin1.Nrores,
+                                Codest = oResin1.Estcod,
+                                Fecsol = oResin1.Freali
+                            }
+                        };
+                    }
+
+
+                    filtro = $"(Ecod == null ? \"\" : Ecod).ToLower().Contains(\"{oResin1.Estcod}\".ToLower())";
+                    var estable = await _estableServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
+                    establecimientoSeleccionado = estable.List.Where(x=>x.Ecod==oResin1.Estcod).FirstOrDefault();
+
+                    inspectorSeleccionado = Inspects.Where(x => x.Icod == oResin1.Icod).FirstOrDefault();
+
+                    loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
+                    confirmado = true;
+                    await InvokeAsync(StateHasChanged);
+
+
+                    if (solicitudSeleccionada?.FirstOrDefault() != null)
+                    {
+                        await updateEstadoHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
+
+                        await updatePromedios(solicitudSeleccionada.FirstOrDefault().Nrosol);
+
+                        await updateRechazos(solicitudSeleccionada.First().Nrosol);
+
+                        await updateMovimientos(solicitudSeleccionada.FirstOrDefault().Nrosol, "no");
+
+                        await updateHembrasMachos(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                    }
+
+                    confirmado = true;
+                    try
+                    {
+                        confirmado = true;
+
+                    Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla);
+                    if (Plantelseleccionado == null && oResin1.Freali.HasValue)
+                    {
+                        var anio = oResin1.Freali.Value.Year.ToString();
+                        var porAnio = Planteles.FirstOrDefault(x => x.Anioex == anio && x.Nrocri == socioSeleccionado?.Scod);
+                        if (porAnio != null)
+                        {
+                            Plantelseleccionado = porAnio;
+                            if (oResin1.Nropla != porAnio.Placod)
+                            {
+                                oResin1.Nropla = porAnio.Placod;
+                                await _resin1Servicio.Editar(oResin1);
+                            }
                         }
-                    };
+                    }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error al asignar plantel: {ex.Message}");
+                    }
+                }
+                else{
+                    var rta = await _socioServicio.LimitadosFiltrados(0, 0);
+                    socios = rta.List;
+
+                    var rtaa = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 0);
+                    solicitudes = rtaa.List;
+
+                    var rt = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
+                    resultados = rt.List;
+
+                    var respuesta = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
+                    establecimientos = respuesta.List;
+
+                }
+            }
+            catch(Exception ex)
+            {
+                oRespuesta.Mensaje = ex.Message;
+            }
+            cargando = false;
+
+        }
+
+        async Task guardarReporte()
+        {
+            Console.WriteLine("guardarReporte");
+
+            try
+            {
+                oResin1.Id = Id;
+
+                if (socioSeleccionado == null)
+                {
+                    await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(oResin1.Nrores))
+                {
+                    await Swal.FireAsync("Error", "Debe seleccionar o generar una solicitud válida.", SweetAlertIcon.Error);
+                    return;
+                }
+
+                if (inspectorSeleccionado == null)
+                {
+                    await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
+                    return;
+                }
+
+                if (Plantelseleccionado == null)
+                {
+                    await Swal.FireAsync("Error", "Debe seleccionar un plantel válido.", SweetAlertIcon.Error);
+                    return;
+                }
+
+                oResin1.Icod = inspectorSeleccionado.Icod;
+                oResin1.Scod = socioSeleccionado.Scod;
+
+                var soli = solicitudSeleccionada.FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(soli?.Codest))
+                {
+                    try
+                    {
+                        oResin1.Estcod = soli.Codest;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error al asignar Estcod: " + ex.Message);
+                    }
+                }
+
+                if (Id == 0)
+                {
+                
+
+                    oResin1.Nropla = Plantelseleccionado.Placod;
+                    Console.WriteLine("revisarr");
+                    Console.WriteLine(socioSeleccionado.Placod);
+                    oResin1.Freali = fechaTemp;
+
+                    var result = await _resin1Servicio.Crear(oResin1);
+
+                    if (result?.List == null)
+                    {
+                        await Swal.FireAsync("Error", "La respuesta del servidor al crear el reporte fue inválida.", SweetAlertIcon.Error);
+                        return;
+                    }
+
+                    Id = result.List.Id;
+                
+                }
+                else
+                {
+
+                await _resin1Servicio.Editar(oResin1);
+                var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
+                oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
+                Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
+                await InvokeAsync(StateHasChanged);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Excepción al guardar reporte: " + ex.Message);
+                await Swal.FireAsync("Error", "Ocurrió un error al guardar el reporte: " + ex.Message, SweetAlertIcon.Error);
+            }
+        }
+
+
+        async Task cancel()
+        {
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+
+        }
+        async Task crearHistorico(string nrores)
+        {
+            var temp = new Resin2DTO();
+            temp.Ea1 = Convert.ToInt32(Plantelseleccionado.Varede);
+            temp.Ea2 = Convert.ToInt32(Plantelseleccionado.Vqcsrd);
+            temp.Ea3 = Convert.ToInt32(Plantelseleccionado.Vqssrd);
+            temp.Ea4 = Convert.ToInt32(Plantelseleccionado.Varepr);
+            temp.Ea5 = Convert.ToInt32(Plantelseleccionado.Vqcsrp);
+            temp.Ea6 = Convert.ToInt32(Plantelseleccionado.Vqssrp);
+            temp.Nrores = nrores;
+            estadoAnterior = temp;
+
+            await _resin2Servicio.Crear(temp);
+        }
+
+        async Task RestartEstadoAnterior(){
+
+
+        }
+
+
+        async Task updatePromedios(string nrores)
+        {
+            loadingProms = true; await InvokeAsync(StateHasChanged);
+            try
+            {
+                string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+                var rtt = await _resin4Servicio.LimitadosFiltrados(0, 2, filtro);
+                if (rtt.List.Count > 0)
+                {
+                    promediohembra = rtt.List.FirstOrDefault(x => x.Sexo == "H") ?? new();
+                    promediomacho = rtt.List.FirstOrDefault(x => x.Sexo == "M") ?? new();
+                }
+                else { promediohembra = new(); promediomacho = new(); }
+            }
+            finally
+            {
+                loadingProms = false; await InvokeAsync(StateHasChanged);
+            }
+        }
+
+        async Task updateRechazos(string nrores)
+        {
+            loadingRech = true; await InvokeAsync(StateHasChanged);
+            try
+            {
+                string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+                var res = await _resin8Servicio.LimitadosFiltrados(0, 0, filtro);
+                rechazos = res.List;
+            }
+            finally
+            {
+                loadingRech = false; await InvokeAsync(StateHasChanged);
+            }
+        }
+        async Task updateMovimientos(string nrores, string condicion)
+        {
+
+            loadingMovs = true; await InvokeAsync(StateHasChanged);
+
+
+            try
+            {
+                string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+                var respuesta = await _resin3Servicio.LimitadosFiltrados(0, 0, filtro);
+                mtos = respuesta.List;
+                salidasFinal = new();
+                entradasFinal = new();
+                foreach (var mov in mtos)
+                {
+                    if (mov.Tipmov == "S")
+                    {
+                        salidasFinal.Ea1 += Convert.ToInt32(mov.Rdvac);
+                        salidasFinal.Ea2 += Convert.ToInt32(mov.Rdvaqcs);
+                        salidasFinal.Ea3 += Convert.ToInt32(mov.Rdvaqss);
+                        salidasFinal.Ea4 += Convert.ToInt32(mov.Rpvac);
+                        salidasFinal.Ea5 += Convert.ToInt32(mov.Rpvaqcs);
+                        salidasFinal.Ea6 += Convert.ToInt32(mov.Rpvaqss);
+                    }
+                    else
+                    {
+                        entradasFinal.Ea1 += Convert.ToInt32(mov.Rdvac);
+                        entradasFinal.Ea2 += Convert.ToInt32(mov.Rdvaqcs);
+                        entradasFinal.Ea3 += Convert.ToInt32(mov.Rdvaqss);
+                        entradasFinal.Ea4 += Convert.ToInt32(mov.Rpvac);
+                        entradasFinal.Ea5 += Convert.ToInt32(mov.Rpvaqcs);
+                        entradasFinal.Ea6 += Convert.ToInt32(mov.Rpvaqss);
+                    }
+                }
+                estadoFinal.Ea1 = estadoAnterior.Ea1 - salidasFinal.Ea1 + entradasFinal.Ea1;
+                estadoFinal.Ea2 = estadoAnterior.Ea2 - salidasFinal.Ea2 + entradasFinal.Ea2;
+                estadoFinal.Ea3 = estadoAnterior.Ea3 - salidasFinal.Ea3 + entradasFinal.Ea3;
+                estadoFinal.Ea4 = estadoAnterior.Ea4 - salidasFinal.Ea4 + entradasFinal.Ea4;
+                estadoFinal.Ea5 = estadoAnterior.Ea5 - salidasFinal.Ea5 + entradasFinal.Ea5;
+                estadoFinal.Ea6 = estadoAnterior.Ea6 - salidasFinal.Ea6 + entradasFinal.Ea6;
+            }
+            finally
+            {
+                loadingMovs = false; await InvokeAsync(StateHasChanged);
+            }
+        }
+        async Task updateHembrasMachos(string nrores)
+        {
+            loadingHemyma = true; await InvokeAsync(StateHasChanged);
+            try
+            {
+                string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+                var rta = await _resin6Servicio.LimitadosFiltrados(0, 1, filtro);
+                hemyma = rta.List.FirstOrDefault() ?? new();
+            }
+            finally
+            {
+                loadingHemyma = false; await InvokeAsync(StateHasChanged);
+            }
+        }
+        async Task updateEstadoHistorico(string nrores)
+        {
+            try
+            {
+                string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+                var rt = await _resin2Servicio.LimitadosFiltrados(0, 1, filtro);
+
+                var hist = rt.List.FirstOrDefault();
+                if (hist != null)
+                {
+                    estadoAnterior = hist;
+                }
+                else
+                {
+                    // Fallback al plantel seleccionado
+                    if (Plantelseleccionado is null)
+                    {
+                        // como último recurso, intentá recuperar el plantel del socio (ya lo hacés en otros lados)
+                        var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
+                        Planteles = plan.List;
+                        Plantelseleccionado = Planteles
+                            .Where(x => x.Nrocri == socioSeleccionado?.Scod)
+                            .OrderByDescending(x => x.Id)
+                            .FirstOrDefault();
+                    }
+
+                    estadoAnterior = new Resin2DTO
+                        {
+                            Ea1 = Convert.ToInt32(Plantelseleccionado?.Varede ?? 0),
+                            Ea2 = Convert.ToInt32(Plantelseleccionado?.Vqcsrd ?? 0),
+                            Ea3 = Convert.ToInt32(Plantelseleccionado?.Vqssrd ?? 0),
+                            Ea4 = Convert.ToInt32(Plantelseleccionado?.Varepr ?? 0),
+                            Ea5 = Convert.ToInt32(Plantelseleccionado?.Vqcsrp ?? 0),
+                            Ea6 = Convert.ToInt32(Plantelseleccionado?.Vqssrp ?? 0),
+                            Nrores = nrores
+                        };
+
+                    // Opcional pero recomendado: persistirlo para no recalcular cada vez
+                    await _resin2Servicio.Crear(estadoAnterior);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        async Task onSolicitudChange(IList<Solici1DTO?> lista){
+            solicitudSeleccionada = lista;
+            var plantel = Planteles
+            .Where(x => x.Nrocri == socioSeleccionado?.Scod)
+            .OrderByDescending(x => x.Id)
+            .FirstOrDefault();
+
+            if (plantel != null)
+            {
+                Plantelseleccionado = plantel;
+            }
+            else
+            {
+                Console.WriteLine("No se encontró plantel para el socio seleccionado.");
+            }
+            // Plantelseleccionado = Planteles.Where(x => x.Nrocri == socioSeleccionado.Scod).OrderByDescending(x => x.Id).First();
+            // oResinAnterior = repor
+            var oResinAnterior = resultados
+        .Where(x => x.Establecimiento != null && x.Establecimiento.Ecod == establecimientoSeleccionado?.Ecod && x.Scod == socioSeleccionado?.Scod)
+        .OrderByDescending(x => x.Id)
+        .FirstOrDefault();
+
+            if (oResinAnterior != null)
+            {
+                inspectorSeleccionado = Inspects.FirstOrDefault(x => x.Icod == oResinAnterior.Icod);
+            }
+            else
+            {
+                Console.WriteLine(" No se encontró resultado anterior para esa combinación de establecimiento y socio.");
+            }
+
+
+        }
+        async Task confirmar(bool shouldRedirect)
+        {
+            confirmado = true;
+            loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
+            await InvokeAsync(StateHasChanged);
+            Console.WriteLine($"Plantelseleccionado: {Plantelseleccionado}");
+            Console.WriteLine($"socioSeleccionado: {socioSeleccionado}");
+            Console.WriteLine($"solicitudSeleccionada: {solicitudSeleccionada?.Count()}");
+
+            // Asegurar plantel seleccionado por las dudas
+            if (Plantelseleccionado == null)
+            {
+                try
+                {
+                    Plantelseleccionado = Planteles
+                        .Where(x => x.Nrocri == socioSeleccionado?.Scod)
+                        .OrderByDescending(x => int.TryParse(x.Anioex, out var a) ? a : -1)
+                        .FirstOrDefault();
+                }
+                catch
+                {
+                    Console.WriteLine("No se pudo resolver Plantelseleccionado.");
+                }
+            }
+
+            // Asegurar Nrores
+            oResin1.Nrores ??= solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
+
+            await guardarReporte();
+
+            var nrores = oResin1.Nrores ?? solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
+
+            if (!string.IsNullOrWhiteSpace(nrores))
+            {
+                await updateEstadoHistorico(nrores); 
+                await Task.WhenAll(
+                    updatePromedios(nrores),
+                    updateRechazos(nrores),
+                    updateHembrasMachos(nrores)
+                );
+                await updateMovimientos(nrores, "no");
+
+                if (createNewPlantel)
+                {
+                    var destino = await updatePlantel(subirDeAnio: true);
+                    oResin1.Nropla = destino.Placod;
+                    await _resin1Servicio.Editar(oResin1);
+
+                    createNewPlantel = false; 
+                    var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
+                    oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
+                    Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
+                    await InvokeAsync(StateHasChanged);
                 }
 
 
-                filtro = $"(Ecod == null ? \"\" : Ecod).ToLower().Contains(\"{oResin1.Estcod}\".ToLower())";
-                var estable = await _estableServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-                establecimientoSeleccionado = estable.List.Where(x=>x.Ecod==oResin1.Estcod).FirstOrDefault();
+                var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
+                resultados = rtRes.List;
+            }
 
-                inspectorSeleccionado = Inspects.Where(x => x.Icod == oResin1.Icod).FirstOrDefault();
+            await InvokeAsync(StateHasChanged);
 
+            if (shouldRedirect)
+            {
+                nav.NavigateTo("/reportes");
+            }
+        }
+
+        async Task ComeBack()
+        {
+            nav.NavigateTo("/reportes");
+        }
+        async Task confirmarNuevo()
+        {
+            bool shouldRedirect = (Id != 0);
+
+            if (inspectorSeleccionado == null)
+            {
+
+                SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Debe seleccionar un inspector",
+                        Text = "",
+                        Icon = SweetAlertIcon.Warning,
+                        ShowCancelButton = true,
+                        ConfirmButtonText = "Aceptar",
+                    });
+                return;
+            }
+            if(Plantelseleccionado == null)
+            {
+                SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Debe seleccionar un plantel",
+                        Text = "",
+                        Icon = SweetAlertIcon.Warning,
+                        ShowCancelButton = true,
+                        ConfirmButtonText = "Aceptar",
+                    });
+                return;
+            }
+
+            if (solicitudSeleccionada != null && solicitudSeleccionada.Any() &&
+                !string.IsNullOrWhiteSpace(solicitudSeleccionada.First().Nrosol))
+            {
+                Console.WriteLine(solicitudSeleccionada.First().Nrosol);
+                crearHistorico(solicitudSeleccionada.First().Nrosol);
+            }
+
+            
+            await confirmar(shouldRedirect);
+
+
+            // if(shouldRedirect){
+            //send back to /reportes
+            // }
+        }
+
+
+        async Task agregarMov(int id)
+        {
+            try
+            {
+                var nrores = solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
+                if (string.IsNullOrWhiteSpace(nrores))
+                {
+                    await Swal.FireAsync("Error", "No hay solicitud seleccionada.", SweetAlertIcon.Error);
+                    return;
+                }
+
+                var parameters = new ModalParameters();
+                parameters.Add(nameof(AddMovimientoRe.Id), id);
+                parameters.Add(nameof(AddMovimientoRe.numeroRes), nrores);
+
+                var options = new ModalOptions { Size = ModalSize.ExtraLarge };
+                var formModal = Modal.Show<AddMovimientoRe>("Agregar Movimiento", parameters, options);
+                var result = await formModal.Result;
+                if (result.Cancelled) return;
+
+                // Recalcular totales (estadoFinal)
+                await updateMovimientos(nrores, "si");
+
+                // Persistir en plantel: solo subir de año si todavía está tildado
+                var destino = await updatePlantel(subirDeAnio: createNewPlantel);
+
+                // Si acabo de crear/migrar, apunto el informe al nuevo plantel y APAGO el flag
+                if (createNewPlantel && !string.IsNullOrWhiteSpace(oResin1?.Nrores))
+                {
+                    oResin1.Nropla = destino.Placod;
+                    await _resin1Servicio.Editar(oResin1);
+                var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
+                oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
+                Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
+                await InvokeAsync(StateHasChanged);
+                    createNewPlantel = false; // <- clave para no seguir saltando a 2026, 2027, ...
+                }
+
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                await Swal.FireAsync("Error", $"Ocurrió un error al agregar/editar el movimiento: {ex.Message}", SweetAlertIcon.Error);
+            }
+        }
+
+
+
+
+        async Task<PlantelDTO> updatePlantel(bool subirDeAnio)
+        {
+            if (Plantelseleccionado is null) throw new InvalidOperationException("No hay plantel seleccionado.");
+            if (socioSeleccionado is null) throw new InvalidOperationException("No hay socio seleccionado.");
+
+            var planViejo = Plantelseleccionado!;
+            var socio = socioSeleccionado!;
+
+            int anioBase = ExtraerAnio(planViejo.Anioex);
+            string anioDestino = (subirDeAnio ? anioBase + 1 : anioBase).ToString();
+
+            var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
+            Planteles = plan.List;
+
+            // Buscá por (Anioex, Nrocri) – si existe, se actualiza; si no, se crea
+            var planDestino = Planteles.FirstOrDefault(x => x.Anioex == anioDestino && x.Nrocri == socio.Scod);
+
+            if (planDestino != null)
+            {
+                planDestino.Varede = estadoFinal.Ea1;
+                planDestino.Vqcsrd = estadoFinal.Ea2;
+                planDestino.Vqssrd = estadoFinal.Ea3;
+                planDestino.Varepr = estadoFinal.Ea4;
+                planDestino.Vqcsrp = estadoFinal.Ea5;
+                planDestino.Vqssrp = estadoFinal.Ea6;
+                planDestino.Fecing = "";
+                await _plantelServicio.Editar(planDestino);
+            }
+            else
+            {
+                planDestino = new PlantelDTO
+                    {
+                        Anioex = anioDestino,
+                        Varede = estadoFinal.Ea1,
+                        Vqcsrd = estadoFinal.Ea2,
+                        Vqssrd = estadoFinal.Ea3,
+                        Varepr = estadoFinal.Ea4,
+                        Vqcsrp = estadoFinal.Ea5,
+                        Vqssrp = estadoFinal.Ea6,
+                        Nrocri = planViejo.Nrocri,
+                        Placod = $"{anioDestino}{socio.Placod}",
+                        Estado = planViejo.Estado,
+                        Fecing = planViejo.Fecing ?? "",
+                        Nroins = planViejo.Nroins
+                    };
+
+                var creado = await _plantelServicio.Crear(planDestino);
+                planDestino = creado?.List ?? planDestino;
+            }
+
+            Plantelseleccionado = planDestino;
+            return planDestino;
+
+            static int ExtraerAnio(string anioex)
+            {
+                if (int.TryParse(anioex, out var y)) return y;
+                var m = Regex.Match(anioex ?? "", @"\d{4}");
+                return m.Success ? int.Parse(m.Value) : DateTime.Now.Year;
+            }
+        }
+
+
+
+
+
+        async Task agregarHembraMacho(string parametro)
+        {
+            try
+            {
+                var parameters = new ModalParameters(); 
+                parameters.Add(nameof(AddHembraMachoRe.Id), hemyma.Id);
+                parameters.Add(nameof(AddHembraMachoRe.botonclick), parametro);
+                parameters.Add(nameof(AddMovimientoRe.numeroRes), solicitudSeleccionada.FirstOrDefault().Nrosol);
+                var options = new ModalOptions()
+                    {
+                        Size = ModalSize.ExtraLarge
+                    };
+                var textoPopUp = "Editar";
+                if (parametro == "vaqpr")
+                {
+                    textoPopUp = "Editar Registro Definitivo";
+                }
+                if (parametro == "otrospr")
+                {
+                    textoPopUp = "Editar Registro Preparatorio";
+                }
+                var formModal = Modal.Show<AddHembraMachoRe>(textoPopUp, parameters, options);
+                var result = await formModal.Result;
+                if (result.Cancelled)
+                {
+                    Console.WriteLine("Modal was cancelled");
+                }
+                else
+                {
+                    await updateHembrasMachos(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        async Task editarPromedio(int id,string sexo)
+        {
+            try
+            {
+                var parameters = new ModalParameters();
+                parameters.Add(nameof(AddEdadMesPromedioRe.Id), id);
+                parameters.Add(nameof(AddEdadMesPromedioRe.nrores), solicitudSeleccionada.FirstOrDefault().Nrosol);
+                parameters.Add(nameof(AddEdadMesPromedioRe.sexo), sexo);
+                var options = new ModalOptions()
+                    {
+                        Size = ModalSize.ExtraLarge
+                    };
+                var formModal = Modal.Show<AddEdadMesPromedioRe>("Editar Datos", parameters, options);
+                var result = await formModal.Result;
+                if (result.Cancelled)
+                {
+                    Console.WriteLine("Modal was cancelled");
+                }
+                else
+                {
+                    await updatePromedios(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        async Task agregarRechazo(int id)
+        {
+            try
+            {
+                var parameters = new ModalParameters();
+                parameters.Add(nameof(AddRechazoRe.Id), id);
+                parameters.Add(nameof(AddRechazoRe.nrores), solicitudSeleccionada.FirstOrDefault().Nrosol);
+                var options = new ModalOptions()
+                    {
+                        Size = ModalSize.ExtraLarge
+                    };
+                var formModal = Modal.Show<AddRechazoRe>("Editar causal de rechazo", parameters, options);
+                var result = await formModal.Result;
+                if (result.Cancelled)
+                {
+                    Console.WriteLine("Modal was cancelled");
+                }
+                else
+                {
+                    await updateRechazos(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        public async Task alertaDeleteMovimiento(int id)
+        {
+            SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "¿Está seguro?",
+                    Text = "Se eliminará el movimiento",
+                    Icon = SweetAlertIcon.Warning,
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Eliminar",
+                    CancelButtonText = "Cancelar"
+                });
+
+            if (!string.IsNullOrEmpty(result.Value))
+            {
+                deleteMovimiento(id);
+            }
+            else if (result.Dismiss == DismissReason.Cancel)
+            {
+
+            }
+        }
+
+        async Task deleteMovimiento(int id)
+        {
+            await _resin3Servicio.Eliminar(id);
+            var nrores = solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
+            if (!string.IsNullOrWhiteSpace(nrores))
+            {
+                await updateMovimientos(nrores, "si");
+                await updatePlantel(subirDeAnio: false); 
+            }
+        }
+
+
+
+        async Task deleteRechazo(int id)
+        {
+            await Http.DeleteAsync($"/api/Resin8/Eliminar/{id}");
+            await updateRechazos(solicitudSeleccionada.FirstOrDefault().Nrosol);
+        }
+
+        async Task saveObservations()
+        {
+            Console.WriteLine("0");
+            if(Id == 0){
+                Console.WriteLine("entra");
+            }
+            else{
+                oResin1.Id = Id;
+                Console.WriteLine("1");
+                await _resin1Servicio.Editar(oResin1);
+                Console.WriteLine("2");
+            }
+
+        }
+
+        async Task ResultWithoutSolicitud()
+        {
+            Console.WriteLine("ResultWithoutSolicitud");
+
+            try
+            {
+                // 1) Validaciones básicas
+                if (socioSeleccionado is null)
+                {
+                    await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
+                    return;
+                }
+
+                var codEst = establecimientos.FirstOrDefault(x => x.Codsoc == socioSeleccionado.Scod)?.Ecod;
+                if (string.IsNullOrWhiteSpace(codEst))
+                {
+                    await Swal.FireAsync("Error", "El socio no tiene establecimientos cargados.", SweetAlertIcon.Error);
+                    return;
+                }
+
+                if (inspectorSeleccionado is null)
+                {
+                    await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
+                    return;
+                }
+
+                // 2) Tomar plantel base (para 'Existencia anterior'), pero SIN pisar selección del usuario
+                PlantelDTO? plantel = Plantelseleccionado;
+
+                if (plantel is null)
+                {
+                    // Primero buscar por el mismo año de la fecha de inspección
+                    var anio = fechaTemp.Year.ToString();
+                    plantel = Planteles
+                        .Where(x => x.Nrocri == socioSeleccionado.Scod && x.Anioex == anio)
+                        .OrderByDescending(x => x.Id)
+                        .FirstOrDefault()
+                        ?? Planteles
+                            .Where(x => x.Nrocri == socioSeleccionado.Scod)
+                            .OrderByDescending(x => x.Id)
+                            .FirstOrDefault();
+                }
+
+                if (plantel is null)
+                {
+                    await Swal.FireAsync("Error", "El socio no tiene plantel registrado.", SweetAlertIcon.Error);
+                    return;
+                }
+
+                Plantelseleccionado = plantel;
+
+                // 2.1) Mostrar tabs y loaders ya mismo
                 loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
                 confirmado = true;
                 await InvokeAsync(StateHasChanged);
 
+                // 3) Armar solicitud "virtual" y crear Resin1
+                var guid = Guid.NewGuid().ToString();
 
-                if (solicitudSeleccionada?.FirstOrDefault() != null)
-                {
-                    await updateEstadoHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                solicitudSeleccionada = new List<Solici1DTO?>
+            {
+                new Solici1DTO { Nrosol = guid, Codest = codEst, Fecsol = DateTime.Now }
+            };
 
-                    await updatePromedios(solicitudSeleccionada.FirstOrDefault().Nrosol);
-
-                    await updateRechazos(solicitudSeleccionada.First().Nrosol);
-
-                    await updateMovimientos(solicitudSeleccionada.FirstOrDefault().Nrosol, "no");
-
-                    await updateHembrasMachos(solicitudSeleccionada.FirstOrDefault().Nrosol);
-                }
-
-                confirmado = true;
-                try
-                {
-                    confirmado = true;
-                    Console.WriteLine("ENTRO");
-                    Console.WriteLine(oResin1.Nropla);
-
-                    Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla);
-                    Console.WriteLine(Plantelseleccionado);
-                    Console.WriteLine(Planteles.Count());
-
-
-                    if (Plantelseleccionado == null && oResin1.Freali.HasValue)
+                oResin1 = new Resin1DTO
                     {
-                        int anio = oResin1.Freali.Value.Year;
-                        Plantelseleccionado = Planteles.FirstOrDefault(x =>
-                            x.Anioex == anio.ToString() &&
-                            x.Nrocri == socioSeleccionado?.Scod
-                        );
-                    }
-                }
-                catch (Exception ex)
+                        Nrores = guid,
+                        Estcod = codEst,
+                        Scod = socioSeleccionado.Scod,
+                        Icod = inspectorSeleccionado.Icod,
+                        Nropla = plantel.Placod,
+                        Freali = fechaTemp
+                    };
+
+                var resultado = await _resin1Servicio.Crear(oResin1);
+                if (resultado?.List is null)
                 {
-                    Console.WriteLine($"Error al asignar plantel: {ex.Message}");
-                }
-            }
-            else{
-                var rta = await _socioServicio.LimitadosFiltrados(0, 0);
-                socios = rta.List;
-
-                var rtaa = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 0);
-                solicitudes = rtaa.List;
-
-                var rt = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
-                resultados = rt.List;
-
-                var respuesta = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
-                establecimientos = respuesta.List;
-
-            }
-        }
-        catch(Exception ex)
-        {
-            oRespuesta.Mensaje = ex.Message;
-        }
-        cargando = false;
-
-    }
-
-    async Task guardarReporte()
-    {
-        Console.WriteLine("guardarReporte");
-
-        try
-        {
-            oResin1.Id = Id;
-
-            if (socioSeleccionado == null)
-            {
-                await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(oResin1.Nrores))
-            {
-                await Swal.FireAsync("Error", "Debe seleccionar o generar una solicitud válida.", SweetAlertIcon.Error);
-                return;
-            }
-
-            if (inspectorSeleccionado == null)
-            {
-                await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
-                return;
-            }
-
-            if (Plantelseleccionado == null)
-            {
-                await Swal.FireAsync("Error", "Debe seleccionar un plantel válido.", SweetAlertIcon.Error);
-                return;
-            }
-
-            oResin1.Icod = inspectorSeleccionado.Icod;
-            oResin1.Scod = socioSeleccionado.Scod;
-
-            var soli = solicitudSeleccionada.FirstOrDefault();
-            if (!string.IsNullOrWhiteSpace(soli?.Codest))
-            {
-                try
-                {
-                    oResin1.Estcod = soli.Codest;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error al asignar Estcod: " + ex.Message);
-                }
-            }
-
-            if (Id == 0)
-            {
-                
-
-                oResin1.Nropla = Plantelseleccionado.Placod;
-                Console.WriteLine("revisarr");
-                Console.WriteLine(socioSeleccionado.Placod);
-                oResin1.Freali = fechaTemp;
-
-                var result = await _resin1Servicio.Crear(oResin1);
-
-                if (result?.List == null)
-                {
-                    await Swal.FireAsync("Error", "La respuesta del servidor al crear el reporte fue inválida.", SweetAlertIcon.Error);
+                    await Swal.FireAsync("Error", "No se pudo crear el resultado de inspección.", SweetAlertIcon.Error);
+                    loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
+                    await InvokeAsync(StateHasChanged);
                     return;
                 }
 
-                Id = result.List.Id;
-                
-            }
-            else
-            {
+                // 4) Crear histórico desde Plantel y refrescar secciones
+                await crearHistorico(guid);
+                await RefreshAll(guid);
 
-                await _resin1Servicio.Editar(oResin1);
-               
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Excepción al guardar reporte: " + ex.Message);
-            await Swal.FireAsync("Error", "Ocurrió un error al guardar el reporte: " + ex.Message, SweetAlertIcon.Error);
-        }
-    }
-
-
-    async Task cancel()
-    {
-        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
-
-    }
-    async Task crearHistorico(string nrores)
-    {
-        var temp = new Resin2DTO();
-        temp.Ea1 = Convert.ToInt32(Plantelseleccionado.Varede);
-        temp.Ea2 = Convert.ToInt32(Plantelseleccionado.Vqcsrd);
-        temp.Ea3 = Convert.ToInt32(Plantelseleccionado.Vqssrd);
-        temp.Ea4 = Convert.ToInt32(Plantelseleccionado.Varepr);
-        temp.Ea5 = Convert.ToInt32(Plantelseleccionado.Vqcsrp);
-        temp.Ea6 = Convert.ToInt32(Plantelseleccionado.Vqssrp);
-        temp.Nrores = nrores;
-        estadoAnterior = temp;
-
-        await _resin2Servicio.Crear(temp);
-    }
-
-    async Task RestartEstadoAnterior(){
-
-
-    }
-
-
-    async Task updatePromedios(string nrores)
-    {
-        loadingProms = true; await InvokeAsync(StateHasChanged);
-        try
-        {
-            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
-            var rtt = await _resin4Servicio.LimitadosFiltrados(0, 2, filtro);
-            if (rtt.List.Count > 0)
-            {
-                promediohembra = rtt.List.FirstOrDefault(x => x.Sexo == "H") ?? new();
-                promediomacho = rtt.List.FirstOrDefault(x => x.Sexo == "M") ?? new();
-            }
-            else { promediohembra = new(); promediomacho = new(); }
-        }
-        finally
-        {
-            loadingProms = false; await InvokeAsync(StateHasChanged);
-        }
-    }
-
-    async Task updateRechazos(string nrores)
-    {
-        loadingRech = true; await InvokeAsync(StateHasChanged);
-        try
-        {
-            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
-            var res = await _resin8Servicio.LimitadosFiltrados(0, 0, filtro);
-            rechazos = res.List;
-        }
-        finally
-        {
-            loadingRech = false; await InvokeAsync(StateHasChanged);
-        }
-    }
-    async Task updateMovimientos(string nrores, string condicion)
-    {
-
-        loadingMovs = true; await InvokeAsync(StateHasChanged);
-
-
-        try
-        {
-            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
-            var respuesta = await _resin3Servicio.LimitadosFiltrados(0, 0, filtro);
-            mtos = respuesta.List;
-            salidasFinal = new();
-            entradasFinal = new();
-            foreach (var mov in mtos)
-            {
-                if (mov.Tipmov == "S")
+                // 5) Crear/actualizar plantel si corresponde
+                if (createNewPlantel)
                 {
-                    salidasFinal.Ea1 += Convert.ToInt32(mov.Rdvac);
-                    salidasFinal.Ea2 += Convert.ToInt32(mov.Rdvaqcs);
-                    salidasFinal.Ea3 += Convert.ToInt32(mov.Rdvaqss);
-                    salidasFinal.Ea4 += Convert.ToInt32(mov.Rpvac);
-                    salidasFinal.Ea5 += Convert.ToInt32(mov.Rpvaqcs);
-                    salidasFinal.Ea6 += Convert.ToInt32(mov.Rpvaqss);
-                }
-                else
-                {
-                    entradasFinal.Ea1 += Convert.ToInt32(mov.Rdvac);
-                    entradasFinal.Ea2 += Convert.ToInt32(mov.Rdvaqcs);
-                    entradasFinal.Ea3 += Convert.ToInt32(mov.Rdvaqss);
-                    entradasFinal.Ea4 += Convert.ToInt32(mov.Rpvac);
-                    entradasFinal.Ea5 += Convert.ToInt32(mov.Rpvaqcs);
-                    entradasFinal.Ea6 += Convert.ToInt32(mov.Rpvaqss);
-                }
-            }
-            estadoFinal.Ea1 = estadoAnterior.Ea1 - salidasFinal.Ea1 + entradasFinal.Ea1;
-            estadoFinal.Ea2 = estadoAnterior.Ea2 - salidasFinal.Ea2 + entradasFinal.Ea2;
-            estadoFinal.Ea3 = estadoAnterior.Ea3 - salidasFinal.Ea3 + entradasFinal.Ea3;
-            estadoFinal.Ea4 = estadoAnterior.Ea4 - salidasFinal.Ea4 + entradasFinal.Ea4;
-            estadoFinal.Ea5 = estadoAnterior.Ea5 - salidasFinal.Ea5 + entradasFinal.Ea5;
-            estadoFinal.Ea6 = estadoAnterior.Ea6 - salidasFinal.Ea6 + entradasFinal.Ea6;
-        }
-        finally
-        {
-            loadingMovs = false; await InvokeAsync(StateHasChanged);
-        }
-    }
-    async Task updateHembrasMachos(string nrores)
-    {
-        loadingHemyma = true; await InvokeAsync(StateHasChanged);
-        try
-        {
-            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
-            var rta = await _resin6Servicio.LimitadosFiltrados(0, 1, filtro);
-            hemyma = rta.List.FirstOrDefault() ?? new();
-        }
-        finally
-        {
-            loadingHemyma = false; await InvokeAsync(StateHasChanged);
-        }
-    }
-    async Task updateEstadoHistorico(string nrores)
-    {
-        try
-        {
-            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
-            var rt = await _resin2Servicio.LimitadosFiltrados(0, 1, filtro);
+                    var destino = await updatePlantel(subirDeAnio: true);
+                    oResin1.Nropla = destino.Placod;
+                    await _resin1Servicio.Editar(oResin1);
+                    createNewPlantel = false; 
 
-            var hist = rt.List.FirstOrDefault();
-            if (hist != null)
-            {
-                estadoAnterior = hist;
-            }
-            else
-            {
-                // Fallback al plantel seleccionado
-                if (Plantelseleccionado is null)
-                {
-                    // como último recurso, intentá recuperar el plantel del socio (ya lo hacés en otros lados)
-                    var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
-                    Planteles = plan.List;
-                    Plantelseleccionado = Planteles
-                        .Where(x => x.Nrocri == socioSeleccionado?.Scod)
-                        .OrderByDescending(x => x.Id)
-                        .FirstOrDefault();
+                var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
+                oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
+                Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
+                await InvokeAsync(StateHasChanged);
+
                 }
 
-                estadoAnterior = new Resin2DTO
-                    {
-                        Ea1 = Convert.ToInt32(Plantelseleccionado?.Varede ?? 0),
-                        Ea2 = Convert.ToInt32(Plantelseleccionado?.Vqcsrd ?? 0),
-                        Ea3 = Convert.ToInt32(Plantelseleccionado?.Vqssrd ?? 0),
-                        Ea4 = Convert.ToInt32(Plantelseleccionado?.Varepr ?? 0),
-                        Ea5 = Convert.ToInt32(Plantelseleccionado?.Vqcsrp ?? 0),
-                        Ea6 = Convert.ToInt32(Plantelseleccionado?.Vqssrp ?? 0),
-                        Nrores = nrores
-                    };
+                // 6) Actualizar estado local
+                Id = resultado.List.Id;
+                oResin1 = resultado.List;
 
-                // Opcional pero recomendado: persistirlo para no recalcular cada vez
-                await _resin2Servicio.Crear(estadoAnterior);
+                // 7) Refrescar grilla de resultados
+                var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
+                resultados = rtRes.List;
+
+                // 8) Render final
+                await InvokeAsync(StateHasChanged);
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
-    }
-
-    async Task onSolicitudChange(IList<Solici1DTO?> lista){
-        solicitudSeleccionada = lista;
-        var plantel = Planteles
-        .Where(x => x.Nrocri == socioSeleccionado?.Scod)
-        .OrderByDescending(x => x.Id)
-        .FirstOrDefault();
-
-        if (plantel != null)
-        {
-            Plantelseleccionado = plantel;
-        }
-        else
-        {
-            Console.WriteLine("No se encontró plantel para el socio seleccionado.");
-        }
-        // Plantelseleccionado = Planteles.Where(x => x.Nrocri == socioSeleccionado.Scod).OrderByDescending(x => x.Id).First();
-        // oResinAnterior = repor
-        var oResinAnterior = resultados
-    .Where(x => x.Establecimiento != null && x.Establecimiento.Ecod == establecimientoSeleccionado?.Ecod && x.Scod == socioSeleccionado?.Scod)
-    .OrderByDescending(x => x.Id)
-    .FirstOrDefault();
-
-        if (oResinAnterior != null)
-        {
-            inspectorSeleccionado = Inspects.FirstOrDefault(x => x.Icod == oResinAnterior.Icod);
-        }
-        else
-        {
-            Console.WriteLine(" No se encontró resultado anterior para esa combinación de establecimiento y socio.");
-        }
-
-
-    }
-    async Task confirmar(bool shouldRedirect)
-    {
-        confirmado = true;
-        loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
-        await InvokeAsync(StateHasChanged);
-        Console.WriteLine($"Plantelseleccionado: {Plantelseleccionado}");
-        Console.WriteLine($"socioSeleccionado: {socioSeleccionado}");
-        Console.WriteLine($"solicitudSeleccionada: {solicitudSeleccionada?.Count()}");
-
-        // Asegurar plantel seleccionado por las dudas
-        if (Plantelseleccionado == null)
-        {
-            try
+            catch (Exception ex)
             {
-                Plantelseleccionado = Planteles
-                    .Where(x => x.Nrocri == socioSeleccionado?.Scod)
-                    .OrderByDescending(x => int.TryParse(x.Anioex, out var a) ? a : -1)
-                    .FirstOrDefault();
-            }
-            catch
-            {
-                Console.WriteLine("No se pudo resolver Plantelseleccionado.");
+                Console.WriteLine(ex.Message);
+                await Swal.FireAsync("Error", $"Ocurrió un error al crear el resultado sin solicitud: {ex.Message}", SweetAlertIcon.Error);
+                loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
+                await InvokeAsync(StateHasChanged);
             }
         }
 
-        // Asegurar Nrores
-        oResin1.Nrores ??= solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
 
-        await guardarReporte();
 
-        var nrores = oResin1.Nrores ?? solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
 
-        if (!string.IsNullOrWhiteSpace(nrores))
+
+
+        public async Task alertaDeleteRechazo(int id)
+        {
+            SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "¿Está seguro?",
+                    Text = "Se eliminará el causal",
+                    Icon = SweetAlertIcon.Warning,
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Eliminar",
+                    CancelButtonText = "Cancelar"
+                });
+
+            if (!string.IsNullOrEmpty(result.Value))
+            {
+                deleteRechazo(id);
+                await confirmar(false);
+            }
+            else if (result.Dismiss == DismissReason.Cancel)
+            {
+
+            }
+        }
+
+        async Task RefreshAll(string nrores)
         {
             await updateEstadoHistorico(nrores); 
             await Task.WhenAll(
@@ -1227,511 +1733,24 @@ else
                 updateRechazos(nrores),
                 updateHembrasMachos(nrores)
             );
-            await updateMovimientos(nrores, "no");
-
-            if (createNewPlantel)
-            {
-                var destino = await updatePlantel(subirDeAnio: true);
-                oResin1.Nropla = destino.Placod;
-                await _resin1Servicio.Editar(oResin1);
-                createNewPlantel = false; // <- para que los movimientos posteriores actualicen SIEMPRE el 2025
-            }
-
-
-            var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
-            resultados = rtRes.List;
-        }
-
-        await InvokeAsync(StateHasChanged);
-
-        if (shouldRedirect)
-        {
-            nav.NavigateTo("/reportes");
-        }
-    }
-
-    async Task ComeBack()
-    {
-        nav.NavigateTo("/reportes");
-    }
-    async Task confirmarNuevo()
-    {
-        bool shouldRedirect = (Id != 0);
-
-        if (inspectorSeleccionado == null)
-        {
-
-            SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
-                {
-                    Title = "Debe seleccionar un inspector",
-                    Text = "",
-                    Icon = SweetAlertIcon.Warning,
-                    ShowCancelButton = true,
-                    ConfirmButtonText = "Aceptar",
-                });
-            return;
-        }
-        if(Plantelseleccionado == null)
-        {
-            SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
-                {
-                    Title = "Debe seleccionar un plantel",
-                    Text = "",
-                    Icon = SweetAlertIcon.Warning,
-                    ShowCancelButton = true,
-                    ConfirmButtonText = "Aceptar",
-                });
-            return;
-        }
-
-        if (solicitudSeleccionada != null && solicitudSeleccionada.Any() &&
-            !string.IsNullOrWhiteSpace(solicitudSeleccionada.First().Nrosol))
-        {
-            Console.WriteLine(solicitudSeleccionada.First().Nrosol);
-            crearHistorico(solicitudSeleccionada.First().Nrosol);
-        }
-
-            
-        await confirmar(shouldRedirect);
-
-
-        // if(shouldRedirect){
-        //send back to /reportes
-        // }
-    }
-
-
-    async Task agregarMov(int id)
-    {
-        try
-        {
-            var nrores = solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
-            if (string.IsNullOrWhiteSpace(nrores))
-            {
-                await Swal.FireAsync("Error", "No hay solicitud seleccionada.", SweetAlertIcon.Error);
-                return;
-            }
-
-            var parameters = new ModalParameters();
-            parameters.Add(nameof(AddMovimientoRe.Id), id);
-            parameters.Add(nameof(AddMovimientoRe.numeroRes), nrores);
-
-            var options = new ModalOptions { Size = ModalSize.ExtraLarge };
-            var formModal = Modal.Show<AddMovimientoRe>("Agregar Movimiento", parameters, options);
-            var result = await formModal.Result;
-            if (result.Cancelled) return;
-
-            // Recalcular totales (estadoFinal)
-            await updateMovimientos(nrores, "si");
-
-            // Persistir en plantel: solo subir de año si todavía está tildado
-            var destino = await updatePlantel(subirDeAnio: createNewPlantel);
-
-            // Si acabo de crear/migrar, apunto el informe al nuevo plantel y APAGO el flag
-            if (createNewPlantel && !string.IsNullOrWhiteSpace(oResin1?.Nrores))
-            {
-                oResin1.Nropla = destino.Placod;
-                await _resin1Servicio.Editar(oResin1);
-                createNewPlantel = false; // <- clave para no seguir saltando a 2026, 2027, ...
-            }
-
+            await updateMovimientos(nrores, "no"); 
             await InvokeAsync(StateHasChanged);
         }
-        catch (Exception ex)
+
+        private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
         {
-            Console.WriteLine(ex.Message);
-            await Swal.FireAsync("Error", $"Ocurrió un error al agregar/editar el movimiento: {ex.Message}", SweetAlertIcon.Error);
+            return await Task.FromResult(socios.Where(x => x.Criador=="S" &&  x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
         }
-    }
 
 
-
-
-    async Task<PlantelDTO> updatePlantel(bool subirDeAnio)
-    {
-        if (Plantelseleccionado is null) throw new InvalidOperationException("No hay plantel seleccionado.");
-        if (socioSeleccionado is null) throw new InvalidOperationException("No hay socio seleccionado.");
-
-        var planViejo = Plantelseleccionado!;
-        var socio = socioSeleccionado!;
-
-        int anioBase = ExtraerAnio(planViejo.Anioex);
-        string anioDestino = (subirDeAnio ? anioBase + 1 : anioBase).ToString();
-
-        var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
-        Planteles = plan.List;
-
-        // Buscá por (Anioex, Nrocri) – si existe, se actualiza; si no, se crea
-        var planDestino = Planteles.FirstOrDefault(x => x.Anioex == anioDestino && x.Nrocri == socio.Scod);
-
-        if (planDestino != null)
+        private async Task<IEnumerable<InspectDTO>> BusquedaInspects(string searchText)
         {
-            planDestino.Varede = estadoFinal.Ea1;
-            planDestino.Vqcsrd = estadoFinal.Ea2;
-            planDestino.Vqssrd = estadoFinal.Ea3;
-            planDestino.Varepr = estadoFinal.Ea4;
-            planDestino.Vqcsrp = estadoFinal.Ea5;
-            planDestino.Vqssrp = estadoFinal.Ea6;
-            planDestino.Fecing = "";
-            await _plantelServicio.Editar(planDestino);
+            return await Task.FromResult(Inspects.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
         }
-        else
+
+        private async Task<IEnumerable<PlantelDTO>> BusquedaPlanteles(string searchText)
         {
-            planDestino = new PlantelDTO
-                {
-                    Anioex = anioDestino,
-                    Varede = estadoFinal.Ea1,
-                    Vqcsrd = estadoFinal.Ea2,
-                    Vqssrd = estadoFinal.Ea3,
-                    Varepr = estadoFinal.Ea4,
-                    Vqcsrp = estadoFinal.Ea5,
-                    Vqssrp = estadoFinal.Ea6,
-                    Nrocri = planViejo.Nrocri,
-                    Placod = $"{anioDestino}{socio.Placod}",
-                    Estado = planViejo.Estado,
-                    Fecing = planViejo.Fecing ?? "",
-                    Nroins = planViejo.Nroins
-                };
-
-            var creado = await _plantelServicio.Crear(planDestino);
-            planDestino = creado?.List ?? planDestino;
-        }
-
-        Plantelseleccionado = planDestino;
-        return planDestino;
-
-        static int ExtraerAnio(string anioex)
-        {
-            if (int.TryParse(anioex, out var y)) return y;
-            var m = Regex.Match(anioex ?? "", @"\d{4}");
-            return m.Success ? int.Parse(m.Value) : DateTime.Now.Year;
-        }
-    }
-
-
-
-
-
-    async Task agregarHembraMacho(string parametro)
-    {
-        try
-        {
-            var parameters = new ModalParameters(); 
-            parameters.Add(nameof(AddHembraMachoRe.Id), hemyma.Id);
-            parameters.Add(nameof(AddHembraMachoRe.botonclick), parametro);
-            parameters.Add(nameof(AddMovimientoRe.numeroRes), solicitudSeleccionada.FirstOrDefault().Nrosol);
-            var options = new ModalOptions()
-                {
-                    Size = ModalSize.ExtraLarge
-                };
-            var textoPopUp = "Editar";
-            if (parametro == "vaqpr")
-            {
-                textoPopUp = "Editar Registro Definitivo";
-            }
-            if (parametro == "otrospr")
-            {
-                textoPopUp = "Editar Registro Preparatorio";
-            }
-            var formModal = Modal.Show<AddHembraMachoRe>(textoPopUp, parameters, options);
-            var result = await formModal.Result;
-            if (result.Cancelled)
-            {
-                Console.WriteLine("Modal was cancelled");
-            }
-            else
-            {
-                await updateHembrasMachos(solicitudSeleccionada.FirstOrDefault().Nrosol);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
-    }
-
-    async Task editarPromedio(int id,string sexo)
-    {
-        try
-        {
-            var parameters = new ModalParameters();
-            parameters.Add(nameof(AddEdadMesPromedioRe.Id), id);
-            parameters.Add(nameof(AddEdadMesPromedioRe.nrores), solicitudSeleccionada.FirstOrDefault().Nrosol);
-            parameters.Add(nameof(AddEdadMesPromedioRe.sexo), sexo);
-            var options = new ModalOptions()
-                {
-                    Size = ModalSize.ExtraLarge
-                };
-            var formModal = Modal.Show<AddEdadMesPromedioRe>("Editar Datos", parameters, options);
-            var result = await formModal.Result;
-            if (result.Cancelled)
-            {
-                Console.WriteLine("Modal was cancelled");
-            }
-            else
-            {
-                await updatePromedios(solicitudSeleccionada.FirstOrDefault().Nrosol);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
-    }
-    async Task agregarRechazo(int id)
-    {
-        try
-        {
-            var parameters = new ModalParameters();
-            parameters.Add(nameof(AddRechazoRe.Id), id);
-            parameters.Add(nameof(AddRechazoRe.nrores), solicitudSeleccionada.FirstOrDefault().Nrosol);
-            var options = new ModalOptions()
-                {
-                    Size = ModalSize.ExtraLarge
-                };
-            var formModal = Modal.Show<AddRechazoRe>("Editar causal de rechazo", parameters, options);
-            var result = await formModal.Result;
-            if (result.Cancelled)
-            {
-                Console.WriteLine("Modal was cancelled");
-            }
-            else
-            {
-                await updateRechazos(solicitudSeleccionada.FirstOrDefault().Nrosol);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
-    }
-
-    public async Task alertaDeleteMovimiento(int id)
-    {
-        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
-            {
-                Title = "¿Está seguro?",
-                Text = "Se eliminará el movimiento",
-                Icon = SweetAlertIcon.Warning,
-                ShowCancelButton = true,
-                ConfirmButtonText = "Eliminar",
-                CancelButtonText = "Cancelar"
-            });
-
-        if (!string.IsNullOrEmpty(result.Value))
-        {
-            deleteMovimiento(id);
-        }
-        else if (result.Dismiss == DismissReason.Cancel)
-        {
-
-        }
-    }
-
-    async Task deleteMovimiento(int id)
-    {
-        await _resin3Servicio.Eliminar(id);
-        var nrores = solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
-        if (!string.IsNullOrWhiteSpace(nrores))
-        {
-            await updateMovimientos(nrores, "si");
-            await updatePlantel(subirDeAnio: false); 
-        }
-    }
-
-
-
-    async Task deleteRechazo(int id)
-    {
-        await Http.DeleteAsync($"/api/Resin8/Eliminar/{id}");
-        await updateRechazos(solicitudSeleccionada.FirstOrDefault().Nrosol);
-    }
-
-    async Task saveObservations()
-    {
-        Console.WriteLine("0");
-        if(Id == 0){
-            Console.WriteLine("entra");
-        }
-        else{
-            oResin1.Id = Id;
-            Console.WriteLine("1");
-            await _resin1Servicio.Editar(oResin1);
-            Console.WriteLine("2");
+            return await Task.FromResult(Planteles.Where(x => x.Placod.Contains(searchText) && x.Nrocri==socioSeleccionado.Scod).ToList());
         }
 
     }
-
-    async Task ResultWithoutSolicitud()
-    {
-        Console.WriteLine("ResultWithoutSolicitud");
-
-        try
-        {
-            // 1) Validaciones básicas
-            if (socioSeleccionado is null)
-            {
-                await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
-                return;
-            }
-
-            var codEst = establecimientos.FirstOrDefault(x => x.Codsoc == socioSeleccionado.Scod)?.Ecod;
-            if (string.IsNullOrWhiteSpace(codEst))
-            {
-                await Swal.FireAsync("Error", "El socio no tiene establecimientos cargados.", SweetAlertIcon.Error);
-                return;
-            }
-
-            if (inspectorSeleccionado is null)
-            {
-                await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
-                return;
-            }
-
-            // 2) Tomar plantel base (para 'Existencia anterior'), pero SIN pisar selección del usuario
-            PlantelDTO? plantel = Plantelseleccionado;
-
-            if (plantel is null)
-            {
-                // Primero buscar por el mismo año de la fecha de inspección
-                var anio = fechaTemp.Year.ToString();
-                plantel = Planteles
-                    .Where(x => x.Nrocri == socioSeleccionado.Scod && x.Anioex == anio)
-                    .OrderByDescending(x => x.Id)
-                    .FirstOrDefault()
-                    ?? Planteles
-                        .Where(x => x.Nrocri == socioSeleccionado.Scod)
-                        .OrderByDescending(x => x.Id)
-                        .FirstOrDefault();
-            }
-
-            if (plantel is null)
-            {
-                await Swal.FireAsync("Error", "El socio no tiene plantel registrado.", SweetAlertIcon.Error);
-                return;
-            }
-
-            Plantelseleccionado = plantel;
-
-            // 2.1) Mostrar tabs y loaders ya mismo
-            loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
-            confirmado = true;
-            await InvokeAsync(StateHasChanged);
-
-            // 3) Armar solicitud "virtual" y crear Resin1
-            var guid = Guid.NewGuid().ToString();
-
-            solicitudSeleccionada = new List<Solici1DTO?>
-        {
-            new Solici1DTO { Nrosol = guid, Codest = codEst, Fecsol = DateTime.Now }
-        };
-
-            oResin1 = new Resin1DTO
-                {
-                    Nrores = guid,
-                    Estcod = codEst,
-                    Scod = socioSeleccionado.Scod,
-                    Icod = inspectorSeleccionado.Icod,
-                    Nropla = plantel.Placod,
-                    Freali = fechaTemp
-                };
-
-            var resultado = await _resin1Servicio.Crear(oResin1);
-            if (resultado?.List is null)
-            {
-                await Swal.FireAsync("Error", "No se pudo crear el resultado de inspección.", SweetAlertIcon.Error);
-                loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
-                await InvokeAsync(StateHasChanged);
-                return;
-            }
-
-            // 4) Crear histórico desde Plantel y refrescar secciones
-            await crearHistorico(guid);
-            await RefreshAll(guid);
-
-            // 5) Crear/actualizar plantel si corresponde
-            if (createNewPlantel)
-            {
-                var destino = await updatePlantel(subirDeAnio: true);
-                oResin1.Nropla = destino.Placod;
-                await _resin1Servicio.Editar(oResin1);
-                createNewPlantel = false; // <- para que los movimientos posteriores actualicen SIEMPRE el 2025
-            }
-
-            // 6) Actualizar estado local
-            Id = resultado.List.Id;
-            oResin1 = resultado.List;
-
-            // 7) Refrescar grilla de resultados
-            var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
-            resultados = rtRes.List;
-
-            // 8) Render final
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            await Swal.FireAsync("Error", $"Ocurrió un error al crear el resultado sin solicitud: {ex.Message}", SweetAlertIcon.Error);
-            loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
-            await InvokeAsync(StateHasChanged);
-        }
-    }
-
-
-
-
-
-
-    public async Task alertaDeleteRechazo(int id)
-    {
-        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
-            {
-                Title = "¿Está seguro?",
-                Text = "Se eliminará el causal",
-                Icon = SweetAlertIcon.Warning,
-                ShowCancelButton = true,
-                ConfirmButtonText = "Eliminar",
-                CancelButtonText = "Cancelar"
-            });
-
-        if (!string.IsNullOrEmpty(result.Value))
-        {
-            deleteRechazo(id);
-            await confirmar(false);
-        }
-        else if (result.Dismiss == DismissReason.Cancel)
-        {
-
-        }
-    }
-
-    async Task RefreshAll(string nrores)
-    {
-        await updateEstadoHistorico(nrores); 
-        await Task.WhenAll(
-            updatePromedios(nrores),
-            updateRechazos(nrores),
-            updateHembrasMachos(nrores)
-        );
-        await updateMovimientos(nrores, "no"); 
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
-    {
-        return await Task.FromResult(socios.Where(x => x.Criador=="S" &&  x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
-    }
-
-
-    private async Task<IEnumerable<InspectDTO>> BusquedaInspects(string searchText)
-    {
-        return await Task.FromResult(Inspects.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
-    }
-
-    private async Task<IEnumerable<PlantelDTO>> BusquedaPlanteles(string searchText)
-    {
-        return await Task.FromResult(Planteles.Where(x => x.Placod.Contains(searchText) && x.Nrocri==socioSeleccionado.Scod).ToList());
-    }
-
-}
