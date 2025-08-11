@@ -1229,8 +1229,11 @@ else
 
             if (createNewPlantel)
             {
-                await updatePlantel();
+                var destino = await updatePlantel();
+                oResin1.Nropla = destino.Placod;
+                await _resin1Servicio.Editar(oResin1);
             }
+
 
             var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
             resultados = rtRes.List;
@@ -1601,9 +1604,11 @@ else
 
             // 5) Crear/actualizar plantel si corresponde
             if (createNewPlantel)
-            {
-                await updatePlantel();
-            }
+{
+    var destino = await updatePlantel();        // crea/actualiza y te da el plantel final
+    oResin1.Nropla = destino.Placod;            // apuntá la inspección al plantel nuevo
+    await _resin1Servicio.Editar(oResin1);      // persistí el cambio
+}
 
             // 6) Actualizar estado local
             Id = resultado.List.Id;
