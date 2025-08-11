@@ -1231,9 +1231,10 @@ else
 
             if (createNewPlantel)
             {
-                var destino = await updatePlantel();
+                var destino = await updatePlantel(subirDeAnio: true);
                 oResin1.Nropla = destino.Placod;
                 await _resin1Servicio.Editar(oResin1);
+                createNewPlantel = false; // <- para que los movimientos posteriores actualicen SIEMPRE el 2025
             }
 
 
@@ -1318,17 +1319,20 @@ else
             var options = new ModalOptions { Size = ModalSize.ExtraLarge };
             var formModal = Modal.Show<AddMovimientoRe>("Agregar Movimiento", parameters, options);
             var result = await formModal.Result;
-
             if (result.Cancelled) return;
 
+            // Recalcular totales (estadoFinal)
             await updateMovimientos(nrores, "si");
 
-            var destino = await updatePlantel();
+            // Persistir en plantel: solo subir de año si todavía está tildado
+            var destino = await updatePlantel(subirDeAnio: createNewPlantel);
 
+            // Si acabo de crear/migrar, apunto el informe al nuevo plantel y APAGO el flag
             if (createNewPlantel && !string.IsNullOrWhiteSpace(oResin1?.Nrores))
             {
                 oResin1.Nropla = destino.Placod;
                 await _resin1Servicio.Editar(oResin1);
+                createNewPlantel = false; // <- clave para no seguir saltando a 2026, 2027, ...
             }
 
             await InvokeAsync(StateHasChanged);
@@ -1342,7 +1346,8 @@ else
 
 
 
-    async Task<PlantelDTO> updatePlantel()
+
+    async Task<PlantelDTO> updatePlantel(bool subirDeAnio)
     {
         if (Plantelseleccionado is null) throw new InvalidOperationException("No hay plantel seleccionado.");
         if (socioSeleccionado is null) throw new InvalidOperationException("No hay socio seleccionado.");
@@ -1350,32 +1355,31 @@ else
         var planViejo = Plantelseleccionado!;
         var socio = socioSeleccionado!;
 
-        // Tomar SIEMPRE el año del plantel seleccionado
         int anioBase = ExtraerAnio(planViejo.Anioex);
-        string anioNuevo = (createNewPlantel ? anioBase + 1 : anioBase).ToString();
+        string anioDestino = (subirDeAnio ? anioBase + 1 : anioBase).ToString();
 
-        // (Solo para buscar si ya existe el plantel de ese año)
         var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
         Planteles = plan.List;
 
-        var planNuevo = Planteles.FirstOrDefault(x => x.Anioex == anioNuevo && x.Nrocri == socio.Scod);
+        // Buscá por (Anioex, Nrocri) – si existe, se actualiza; si no, se crea
+        var planDestino = Planteles.FirstOrDefault(x => x.Anioex == anioDestino && x.Nrocri == socio.Scod);
 
-        if (planNuevo != null)
+        if (planDestino != null)
         {
-            planNuevo.Varede = estadoFinal.Ea1;
-            planNuevo.Vqcsrd = estadoFinal.Ea2;
-            planNuevo.Vqssrd = estadoFinal.Ea3;
-            planNuevo.Varepr = estadoFinal.Ea4;
-            planNuevo.Vqcsrp = estadoFinal.Ea5;
-            planNuevo.Vqssrp = estadoFinal.Ea6;
-            planNuevo.Fecing = "";
-            await _plantelServicio.Editar(planNuevo);
+            planDestino.Varede = estadoFinal.Ea1;
+            planDestino.Vqcsrd = estadoFinal.Ea2;
+            planDestino.Vqssrd = estadoFinal.Ea3;
+            planDestino.Varepr = estadoFinal.Ea4;
+            planDestino.Vqcsrp = estadoFinal.Ea5;
+            planDestino.Vqssrp = estadoFinal.Ea6;
+            planDestino.Fecing = "";
+            await _plantelServicio.Editar(planDestino);
         }
         else
         {
-            planNuevo = new PlantelDTO
+            planDestino = new PlantelDTO
                 {
-                    Anioex = anioNuevo,
+                    Anioex = anioDestino,
                     Varede = estadoFinal.Ea1,
                     Vqcsrd = estadoFinal.Ea2,
                     Vqssrd = estadoFinal.Ea3,
@@ -1383,22 +1387,18 @@ else
                     Vqcsrp = estadoFinal.Ea5,
                     Vqssrp = estadoFinal.Ea6,
                     Nrocri = planViejo.Nrocri,
-
-                    // Antes: $"{anioNuevo[^1]}{socio.Placod}" (solo último dígito del año)
-                    // Ahora: año completo + placod del socio
-                    Placod = $"{anioNuevo}{socio.Placod}",
-
+                    Placod = $"{anioDestino}{socio.Placod}",
                     Estado = planViejo.Estado,
                     Fecing = planViejo.Fecing ?? "",
                     Nroins = planViejo.Nroins
                 };
 
-            var creado = await _plantelServicio.Crear(planNuevo);
-            planNuevo = creado?.List ?? planNuevo;
+            var creado = await _plantelServicio.Crear(planDestino);
+            planDestino = creado?.List ?? planDestino;
         }
 
-        Plantelseleccionado = planNuevo;
-        return planNuevo;
+        Plantelseleccionado = planDestino;
+        return planDestino;
 
         static int ExtraerAnio(string anioex)
         {
@@ -1407,6 +1407,7 @@ else
             return m.Success ? int.Parse(m.Value) : DateTime.Now.Year;
         }
     }
+
 
 
 
@@ -1534,9 +1535,10 @@ else
         if (!string.IsNullOrWhiteSpace(nrores))
         {
             await updateMovimientos(nrores, "si");
-            await updatePlantel(); 
+            await updatePlantel(subirDeAnio: false); 
         }
     }
+
 
 
     async Task deleteRechazo(int id)
@@ -1650,9 +1652,10 @@ else
             // 5) Crear/actualizar plantel si corresponde
             if (createNewPlantel)
             {
-                var destino = await updatePlantel();
+                var destino = await updatePlantel(subirDeAnio: true);
                 oResin1.Nropla = destino.Placod;
                 await _resin1Servicio.Editar(oResin1);
+                createNewPlantel = false; // <- para que los movimientos posteriores actualicen SIEMPRE el 2025
             }
 
             // 6) Actualizar estado local
