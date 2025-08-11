@@ -1297,7 +1297,7 @@
                 !string.IsNullOrWhiteSpace(solicitudSeleccionada.First().Nrosol))
             {
                 Console.WriteLine(solicitudSeleccionada.First().Nrosol);
-                crearHistorico(solicitudSeleccionada.First().Nrosol);
+                await crearHistorico(solicitudSeleccionada.First().Nrosol);
             }
 
             
