@@ -228,26 +228,42 @@ namespace PaginaPlantels.Server.Cont{
         [Route("Guardar")]
         public async Task<IActionResult> Guardar([FromBody] PlantelDTO request)
         {
-            Respuesta<PlantelDTO> _Respuesta = new Respuesta<PlantelDTO>();
+            var _Respuesta = new Respuesta<PlantelDTO>();
             try
             {
-                Plantel _Plantel = _mapper.Map<Plantel>(request);
+                var entidad = _mapper.Map<Plantel>(request);
 
-                Plantel _PlantelCreado = await _plantelRepositorio.Crear(_Plantel);
+                var creado = await _plantelRepositorio.Crear(entidad);
 
-                if (_PlantelCreado.Id != 0)
-                    _Respuesta = new Respuesta<PlantelDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<PlantelDTO>(_PlantelCreado) };
-                else
-                    _Respuesta = new Respuesta<PlantelDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+                if (creado?.Id > 0)
+                {
+                    _Respuesta = new Respuesta<PlantelDTO>
+                    {
+                        Exito = 1,
+                        Mensaje = "ok",
+                        List = _mapper.Map<PlantelDTO>(creado)
+                    };
+                    return StatusCode(StatusCodes.Status201Created, _Respuesta);
+                }
 
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                _Respuesta = new Respuesta<PlantelDTO>
+                {
+                    Exito = 0,
+                    Mensaje = "No se pudo crear el identificador"
+                };
+                return BadRequest(_Respuesta);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<PlantelDTO>() { Exito = 1, Mensaje = ex.Message };
+                _Respuesta = new Respuesta<PlantelDTO>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message
+                };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
+
 
         [HttpPut]
         [Route("Editar")]

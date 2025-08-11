@@ -50,10 +50,18 @@ namespace PaginaToros.Client.Servicios.Implementacion
 
         public async Task<Respuesta<PlantelDTO>> Crear(PlantelDTO entidad)
         {
-            var result = await _http.PostAsJsonAsync("api/plantel/Guardar", entidad);
-            var response = await result.Content.ReadFromJsonAsync<Respuesta<PlantelDTO>>();
-            return response!;
+            var http = await _http.PostAsJsonAsync("api/plantel/Guardar", entidad);
+
+            if (!http.IsSuccessStatusCode)
+            {
+                var raw = await http.Content.ReadAsStringAsync();
+                Console.WriteLine($"Crear Plantel HTTP {(int)http.StatusCode}: {raw}");
+            }
+
+            var resp = await http.Content.ReadFromJsonAsync<Respuesta<PlantelDTO>>();
+            return resp!;
         }
+
 
         public async Task<bool> Editar(PlantelDTO entidad)
         {

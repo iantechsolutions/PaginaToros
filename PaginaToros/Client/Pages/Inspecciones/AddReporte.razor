@@ -1047,22 +1047,48 @@ else
         try
         {
             string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
-            var rt = await _resin2Servicio.LimitadosFiltrados(0, 1,filtro);
-            estadoAnterior = rt.List.First();
-            // estadoAnterior = new Resin2DTO();
-            // estadoAnterior.Ea1 = Convert.ToInt32(Plantelseleccionado.Varede);
-            // estadoAnterior.Ea2 = Convert.ToInt32(Plantelseleccionado.Vqcsrd);
-            // estadoAnterior.Ea3 = Convert.ToInt32(Plantelseleccionado.Vqssrd);
-            // estadoAnterior.Ea4 = Convert.ToInt32(Plantelseleccionado.Varepr);
-            // estadoAnterior.Ea5 = Convert.ToInt32(Plantelseleccionado.Vqcsrp);
-            // estadoAnterior.Ea6 = Convert.ToInt32(Plantelseleccionado.Vqssrp);
+            var rt = await _resin2Servicio.LimitadosFiltrados(0, 1, filtro);
 
+            var hist = rt.List.FirstOrDefault();
+            if (hist != null)
+            {
+                estadoAnterior = hist;
+            }
+            else
+            {
+                // Fallback al plantel seleccionado
+                if (Plantelseleccionado is null)
+                {
+                    // como último recurso, intentá recuperar el plantel del socio (ya lo hacés en otros lados)
+                    var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
+                    Planteles = plan.List;
+                    Plantelseleccionado = Planteles
+                        .Where(x => x.Nrocri == socioSeleccionado?.Scod)
+                        .OrderByDescending(x => x.Id)
+                        .FirstOrDefault();
+                }
+
+                estadoAnterior = new Resin2DTO
+                    {
+                        Ea1 = Convert.ToInt32(Plantelseleccionado?.Varede ?? 0),
+                        Ea2 = Convert.ToInt32(Plantelseleccionado?.Vqcsrd ?? 0),
+                        Ea3 = Convert.ToInt32(Plantelseleccionado?.Vqssrd ?? 0),
+                        Ea4 = Convert.ToInt32(Plantelseleccionado?.Varepr ?? 0),
+                        Ea5 = Convert.ToInt32(Plantelseleccionado?.Vqcsrp ?? 0),
+                        Ea6 = Convert.ToInt32(Plantelseleccionado?.Vqssrp ?? 0),
+                        Nrores = nrores
+                    };
+
+                // Opcional pero recomendado: persistirlo para no recalcular cada vez
+                await _resin2Servicio.Crear(estadoAnterior);
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
         }
     }
+
     async Task onSolicitudChange(IList<Solici1DTO?> lista){
         solicitudSeleccionada = lista;
         var plantel = Planteles
@@ -1098,55 +1124,62 @@ else
     }
     async Task confirmar(bool shouldRedirect)
     {
-
         confirmado = true;
-
 
         Console.WriteLine($"Plantelseleccionado: {Plantelseleccionado}");
         Console.WriteLine($"socioSeleccionado: {socioSeleccionado}");
         Console.WriteLine($"solicitudSeleccionada: {solicitudSeleccionada?.Count()}");
 
-        if(Plantelseleccionado==null){
-            try{
-
-                Plantelseleccionado = Planteles.OrderByDescending(x => Int32.Parse(x.Anioex)).Where(x => x.Nrocri == socioSeleccionado?.Scod).First();
+        // Asegurar plantel seleccionado por las dudas
+        if (Plantelseleccionado == null)
+        {
+            try
+            {
+                Plantelseleccionado = Planteles
+                    .Where(x => x.Nrocri == socioSeleccionado?.Scod)
+                    .OrderByDescending(x => int.TryParse(x.Anioex, out var a) ? a : -1)
+                    .FirstOrDefault();
             }
             catch
             {
-                Console.WriteLine("Era aca");
+                Console.WriteLine("No se pudo resolver Plantelseleccionado.");
             }
         }
+
+        // Asegurar Nrores
         oResin1.Nrores ??= solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
 
         await guardarReporte();
 
-        Console.WriteLine("Termno el guardar");
-        if (!string.IsNullOrWhiteSpace(solicitudSeleccionada?.FirstOrDefault()?.Nrosol))
+        var nrores = oResin1.Nrores ?? solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
+
+        if (!string.IsNullOrWhiteSpace(nrores))
         {
-            string nrores =   solicitudSeleccionada?.FirstOrDefault()?.Nrosol ?? "";
-
-            await updatePromedios(nrores);
-
-            await updateRechazos(nrores);
-
+            await updateEstadoHistorico(nrores); 
+            await Task.WhenAll(
+                updatePromedios(nrores),
+                updateRechazos(nrores),
+                updateHembrasMachos(nrores)
+            );
             await updateMovimientos(nrores, "no");
 
-            await updateHembrasMachos(nrores);
+            if (createNewPlantel)
+            {
+                await updatePlantel();
+            }
 
-
-            await updateEstadoHistorico(nrores);
-
+            var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
+            resultados = rtRes.List;
         }
 
-        Console.WriteLine("Redirigiendo a reportes");
+        await InvokeAsync(StateHasChanged);
+
         if (shouldRedirect)
         {
-
-        nav.NavigateTo("/reportes");
+            nav.NavigateTo("/reportes");
         }
-        // await ComeBack();
-        //cambiar todos los gets a unicos por nrosol
     }
+
     async Task ComeBack()
     {
         nav.NavigateTo("/reportes");
@@ -1187,6 +1220,8 @@ else
             Console.WriteLine(solicitudSeleccionada.First().Nrosol);
             crearHistorico(solicitudSeleccionada.First().Nrosol);
         }
+
+            
         await confirmar(shouldRedirect);
 
 
@@ -1270,6 +1305,9 @@ else
                 planCreado.Nrocri = planViejo.Nrocri;
                 planCreado.Placod = anioNuevo.ElementAt(3) + (socio.Placod);
                 planCreado.Estado = planViejo.Estado;
+                planCreado.Fecing  = planViejo.Fecing ?? "";
+                planCreado.Nroins = planViejo.Nroins;
+
                 await _plantelServicio.Crear(planCreado);
             }
             catch(Exception ex)
@@ -1428,43 +1466,39 @@ else
     {
         Console.WriteLine("ResultWithoutSolicitud");
 
-        // 1. Verificamos el socio y establecimiento
+        // 1) Validaciones básicas
         var codEst = establecimientos.FirstOrDefault(x => x.Codsoc == socioSeleccionado.Scod)?.Ecod;
-        if (codEst == null)
+        if (string.IsNullOrWhiteSpace(codEst))
         {
             await Swal.FireAsync("Error", "El socio no tiene establecimientos cargados.", SweetAlertIcon.Error);
             return;
         }
-
-        var guid = Guid.NewGuid().ToString();
-        solicitudSeleccionada = new List<Solici1DTO>
-    {
-        new Solici1DTO
-        {
-            Nrosol = guid,
-            Codest = codEst,
-            Fecsol = DateTime.Now,
-        }
-    };
-
-        var plantel = Planteles
-            .Where(x => x.Nrocri == socioSeleccionado.Scod)
-            .OrderByDescending(x => x.Id)
-            .FirstOrDefault();
-
-        if (plantel == null)
-        {
-            await Swal.FireAsync("Error", "El socio no tiene plantel registrado.", SweetAlertIcon.Error);
-            return;
-        }
-
-        if (inspectorSeleccionado == null)
+        if (inspectorSeleccionado is null)
         {
             await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
             return;
         }
 
-        // 2. Crear el objeto resin1 con datos mínimos
+        // 2) Tomar plantel base (para 'Existencia anterior')
+        var plantel = Planteles
+            .Where(x => x.Nrocri == socioSeleccionado.Scod)
+            .OrderByDescending(x => x.Id)
+            .FirstOrDefault();
+
+        if (plantel is null)
+        {
+            await Swal.FireAsync("Error", "El socio no tiene plantel registrado.", SweetAlertIcon.Error);
+            return;
+        }
+        Plantelseleccionado = plantel;
+
+        // 3) Armar solicitud "virtual" y crear Resin1
+        var guid = Guid.NewGuid().ToString();
+        solicitudSeleccionada = new List<Solici1DTO>
+    {
+        new Solici1DTO { Nrosol = guid, Codest = codEst, Fecsol = DateTime.Now }
+    };
+
         oResin1 = new Resin1DTO
             {
                 Nrores = guid,
@@ -1472,25 +1506,44 @@ else
                 Scod = socioSeleccionado.Scod,
                 Icod = inspectorSeleccionado.Icod,
                 Nropla = plantel.Placod,
-                Freali = fechaTemp,
+                Freali = fechaTemp
             };
 
-        // 3. Guardar en la base de datos
         var resultado = await _resin1Servicio.Crear(oResin1);
-
-        if (resultado?.List == null)
+        if (resultado?.List is null)
         {
             await Swal.FireAsync("Error", "No se pudo crear el resultado de inspección.", SweetAlertIcon.Error);
             return;
         }
 
-        //3.5
+        // 4) Crear histórico desde Plantel y refrescar datos de la UI
+        await crearHistorico(guid);     // persiste Resin2 a partir del plantel
+        await RefreshAll(guid);         // estadoAnterior -> promedios/rechazos/hembras -> movimientos
 
-        // 4. Redirigir automáticamente a la vista de edición
-        nav.NavigateTo($"/inforeporte/{resultado.List.Id}/0", forceLoad: true);
+        // 5) Crear/actualizar plantel si corresponde
+        if (createNewPlantel)
+        {
+            await updatePlantel();
+        }
 
-        await CargarDatos();
+        // 6) Marcar como confirmado y actualizar estado local
+        confirmado = true;
+        Id = resultado.List.Id;
+        oResin1 = resultado.List;
+
+        // 7) Refrescar grilla que depende de 'resultados' (opcional pero útil)
+        var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
+        resultados = rtRes.List;
+
+        // 8) Forzar render para que se vean las tablas ya mismo
+        await InvokeAsync(StateHasChanged);
+
+        // 9) Si preferís, podés navegar (no es necesario):
+        // nav.NavigateTo($"/inforeporte/{Id}/0", forceLoad: true);
     }
+
+
+
 
 
     public async Task alertaDeleteRechazo(int id)
@@ -1514,6 +1567,18 @@ else
         {
 
         }
+    }
+
+    async Task RefreshAll(string nrores)
+    {
+        await updateEstadoHistorico(nrores); 
+        await Task.WhenAll(
+            updatePromedios(nrores),
+            updateRechazos(nrores),
+            updateHembrasMachos(nrores)
+        );
+        await updateMovimientos(nrores, "no"); 
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
