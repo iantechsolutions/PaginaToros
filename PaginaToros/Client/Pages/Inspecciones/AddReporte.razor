@@ -255,6 +255,14 @@
             <RadzenTabs Class="w-100 mx-auto" RenderMode="TabRenderMode.Server">
                 <Tabs>
                     <RadzenTabsItem Text="Movimientos">
+                         @if (loadingMovs)
+            {
+                <div class="p-2">
+                    <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="280px" />
+                </div>
+            }
+            else
+            {
                         @if(!esSocio){
                         <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:13px;" @onclick="()=>agregarMov(0)">Agregar Movimiento</button>
                             }
@@ -356,8 +364,22 @@
                                 </div>
                             </div>
                         </div>
+                        }
                     </RadzenTabsItem>
                     <RadzenTabsItem Text="Hembras y Machos">
+                        @if (loadingHemyma)
+            {
+                <div class="p-2">
+                    <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="280px" />
+                    <div class="mt-2">
+                        <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="280px" />
+                    </div>
+                </div>
+            }
+            else
+            {
+
+
                         <div class="container">
                             <div class="row">
                                 <div class="col">
@@ -532,9 +554,23 @@
                                 </div>
                             </div>
                         </div>
+                        }
                     </RadzenTabsItem>
                     <RadzenTabsItem Text="Informe general">
                         <br/>
+                         @if (loadingProms || loadingRech)
+            {
+                <div class="p-2">
+                    <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="200px" />
+                    <div class="mt-2">
+                        <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="200px" />
+                    </div>
+                </div>
+            }
+            else
+            {
+
+
                         <div class="container">
                             <div class="row">
                                 <div class="col">
@@ -655,6 +691,7 @@
                                     </div>
                                 </div>
                             </div>
+                            }
                     </RadzenTabsItem>
                 </Tabs>
             </RadzenTabs>
@@ -749,6 +786,7 @@ else
     };
 
     bool activo = true;
+    bool loadingSolicitudes, loadingMovs, loadingHemyma, loadingProms, loadingRech;
 
     protected override async Task OnInitializedAsync()
     {
@@ -796,6 +834,10 @@ else
                 establecimientoSeleccionado = estable.List.Where(x=>x.Ecod==oResin1.Estcod).FirstOrDefault();
 
                 inspectorSeleccionado = Inspects.Where(x => x.Icod == oResin1.Icod).FirstOrDefault();
+
+                loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
+                confirmado = true;
+                await InvokeAsync(StateHasChanged);
 
 
                 if (solicitudSeleccionada?.FirstOrDefault() != null)
@@ -971,76 +1013,97 @@ else
 
     async Task updatePromedios(string nrores)
     {
-        string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
-        var rtt = await _resin4Servicio.LimitadosFiltrados(0,2,filtro);
-        if (rtt.List.Count() > 0)
+        loadingProms = true; await InvokeAsync(StateHasChanged);
+        try
         {
-            try{
-                promediohembra = rtt.List.Where(x => x.Sexo == "H").First();
-                promediomacho = rtt.List.Where(x => x.Sexo == "M").First();
-            }
-            catch
+            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+            var rtt = await _resin4Servicio.LimitadosFiltrados(0, 2, filtro);
+            if (rtt.List.Count > 0)
             {
-
+                promediohembra = rtt.List.FirstOrDefault(x => x.Sexo == "H") ?? new();
+                promediomacho = rtt.List.FirstOrDefault(x => x.Sexo == "M") ?? new();
             }
+            else { promediohembra = new(); promediomacho = new(); }
+        }
+        finally
+        {
+            loadingProms = false; await InvokeAsync(StateHasChanged);
         }
     }
+
     async Task updateRechazos(string nrores)
     {
-        string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
-        var res = await _resin8Servicio.LimitadosFiltrados(0, 0,filtro);
-        rechazos = res.List;
+        loadingRech = true; await InvokeAsync(StateHasChanged);
+        try
+        {
+            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+            var res = await _resin8Servicio.LimitadosFiltrados(0, 0, filtro);
+            rechazos = res.List;
+        }
+        finally
+        {
+            loadingRech = false; await InvokeAsync(StateHasChanged);
+        }
     }
     async Task updateMovimientos(string nrores, string condicion)
     {
-        string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
-        var respuesta = await _resin3Servicio.LimitadosFiltrados(0, 0,filtro);
-        mtos = respuesta.List;
-        salidasFinal = new();
-        entradasFinal = new();
-        foreach (var mov in mtos)
-        {
-            if (mov.Tipmov == "S")
-            {
-                salidasFinal.Ea1 += Convert.ToInt32(mov.Rdvac);
-                salidasFinal.Ea2 += Convert.ToInt32(mov.Rdvaqcs);
-                salidasFinal.Ea3 += Convert.ToInt32(mov.Rdvaqss);
-                salidasFinal.Ea4 += Convert.ToInt32(mov.Rpvac);
-                salidasFinal.Ea5 += Convert.ToInt32(mov.Rpvaqcs);
-                salidasFinal.Ea6 += Convert.ToInt32(mov.Rpvaqss);
-            }
-            else
-            {
-                entradasFinal.Ea1 += Convert.ToInt32(mov.Rdvac);
-                entradasFinal.Ea2 += Convert.ToInt32(mov.Rdvaqcs);
-                entradasFinal.Ea3 += Convert.ToInt32(mov.Rdvaqss);
-                entradasFinal.Ea4 += Convert.ToInt32(mov.Rpvac);
-                entradasFinal.Ea5 += Convert.ToInt32(mov.Rpvaqcs);
-                entradasFinal.Ea6 += Convert.ToInt32(mov.Rpvaqss);
-            }
-        }
-        estadoFinal.Ea1 = estadoAnterior.Ea1 - salidasFinal.Ea1 + entradasFinal.Ea1;
-        estadoFinal.Ea2 = estadoAnterior.Ea2 - salidasFinal.Ea2 + entradasFinal.Ea2;
-        estadoFinal.Ea3 = estadoAnterior.Ea3 - salidasFinal.Ea3 + entradasFinal.Ea3;
-        estadoFinal.Ea4 = estadoAnterior.Ea4 - salidasFinal.Ea4 + entradasFinal.Ea4;
-        estadoFinal.Ea5 = estadoAnterior.Ea5 - salidasFinal.Ea5 + entradasFinal.Ea5;
-        estadoFinal.Ea6 = estadoAnterior.Ea6 - salidasFinal.Ea6 + entradasFinal.Ea6;
 
-        StateHasChanged();
+        loadingMovs = true; await InvokeAsync(StateHasChanged);
+
+
+        try
+        {
+            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+            var respuesta = await _resin3Servicio.LimitadosFiltrados(0, 0, filtro);
+            mtos = respuesta.List;
+            salidasFinal = new();
+            entradasFinal = new();
+            foreach (var mov in mtos)
+            {
+                if (mov.Tipmov == "S")
+                {
+                    salidasFinal.Ea1 += Convert.ToInt32(mov.Rdvac);
+                    salidasFinal.Ea2 += Convert.ToInt32(mov.Rdvaqcs);
+                    salidasFinal.Ea3 += Convert.ToInt32(mov.Rdvaqss);
+                    salidasFinal.Ea4 += Convert.ToInt32(mov.Rpvac);
+                    salidasFinal.Ea5 += Convert.ToInt32(mov.Rpvaqcs);
+                    salidasFinal.Ea6 += Convert.ToInt32(mov.Rpvaqss);
+                }
+                else
+                {
+                    entradasFinal.Ea1 += Convert.ToInt32(mov.Rdvac);
+                    entradasFinal.Ea2 += Convert.ToInt32(mov.Rdvaqcs);
+                    entradasFinal.Ea3 += Convert.ToInt32(mov.Rdvaqss);
+                    entradasFinal.Ea4 += Convert.ToInt32(mov.Rpvac);
+                    entradasFinal.Ea5 += Convert.ToInt32(mov.Rpvaqcs);
+                    entradasFinal.Ea6 += Convert.ToInt32(mov.Rpvaqss);
+                }
+            }
+            estadoFinal.Ea1 = estadoAnterior.Ea1 - salidasFinal.Ea1 + entradasFinal.Ea1;
+            estadoFinal.Ea2 = estadoAnterior.Ea2 - salidasFinal.Ea2 + entradasFinal.Ea2;
+            estadoFinal.Ea3 = estadoAnterior.Ea3 - salidasFinal.Ea3 + entradasFinal.Ea3;
+            estadoFinal.Ea4 = estadoAnterior.Ea4 - salidasFinal.Ea4 + entradasFinal.Ea4;
+            estadoFinal.Ea5 = estadoAnterior.Ea5 - salidasFinal.Ea5 + entradasFinal.Ea5;
+            estadoFinal.Ea6 = estadoAnterior.Ea6 - salidasFinal.Ea6 + entradasFinal.Ea6;
+        }
+        finally
+        {
+            loadingMovs = false; await InvokeAsync(StateHasChanged);
+        }
     }
     async Task updateHembrasMachos(string nrores)
     {
+        loadingHemyma = true; await InvokeAsync(StateHasChanged);
         try
         {
             string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
             var rta = await _resin6Servicio.LimitadosFiltrados(0, 1, filtro);
-            hemyma = rta.List.FirstOrDefault();
-            if(hemyma is null)
-            {
-                hemyma = new();
-            }
+            hemyma = rta.List.FirstOrDefault() ?? new();
         }
-        catch { }
+        finally
+        {
+            loadingHemyma = false; await InvokeAsync(StateHasChanged);
+        }
     }
     async Task updateEstadoHistorico(string nrores)
     {
@@ -1125,7 +1188,8 @@ else
     async Task confirmar(bool shouldRedirect)
     {
         confirmado = true;
-
+        loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
+        await InvokeAsync(StateHasChanged);
         Console.WriteLine($"Plantelseleccionado: {Plantelseleccionado}");
         Console.WriteLine($"socioSeleccionado: {socioSeleccionado}");
         Console.WriteLine($"solicitudSeleccionada: {solicitudSeleccionada?.Count()}");
@@ -1466,81 +1530,110 @@ else
     {
         Console.WriteLine("ResultWithoutSolicitud");
 
-        // 1) Validaciones básicas
-        var codEst = establecimientos.FirstOrDefault(x => x.Codsoc == socioSeleccionado.Scod)?.Ecod;
-        if (string.IsNullOrWhiteSpace(codEst))
+        try
         {
-            await Swal.FireAsync("Error", "El socio no tiene establecimientos cargados.", SweetAlertIcon.Error);
-            return;
-        }
-        if (inspectorSeleccionado is null)
-        {
-            await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
-            return;
-        }
-
-        // 2) Tomar plantel base (para 'Existencia anterior')
-        var plantel = Planteles
-            .Where(x => x.Nrocri == socioSeleccionado.Scod)
-            .OrderByDescending(x => x.Id)
-            .FirstOrDefault();
-
-        if (plantel is null)
-        {
-            await Swal.FireAsync("Error", "El socio no tiene plantel registrado.", SweetAlertIcon.Error);
-            return;
-        }
-        Plantelseleccionado = plantel;
-
-        // 3) Armar solicitud "virtual" y crear Resin1
-        var guid = Guid.NewGuid().ToString();
-        solicitudSeleccionada = new List<Solici1DTO>
-    {
-        new Solici1DTO { Nrosol = guid, Codest = codEst, Fecsol = DateTime.Now }
-    };
-
-        oResin1 = new Resin1DTO
+            // 1) Validaciones básicas
+            if (socioSeleccionado is null)
             {
-                Nrores = guid,
-                Estcod = codEst,
-                Scod = socioSeleccionado.Scod,
-                Icod = inspectorSeleccionado.Icod,
-                Nropla = plantel.Placod,
-                Freali = fechaTemp
-            };
+                await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
+                return;
+            }
 
-        var resultado = await _resin1Servicio.Crear(oResin1);
-        if (resultado?.List is null)
+            var codEst = establecimientos.FirstOrDefault(x => x.Codsoc == socioSeleccionado.Scod)?.Ecod;
+            if (string.IsNullOrWhiteSpace(codEst))
+            {
+                await Swal.FireAsync("Error", "El socio no tiene establecimientos cargados.", SweetAlertIcon.Error);
+                return;
+            }
+
+            if (inspectorSeleccionado is null)
+            {
+                await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
+                return;
+            }
+
+            // 2) Tomar plantel base (para 'Existencia anterior')
+            var plantel = Planteles
+                .Where(x => x.Nrocri == socioSeleccionado.Scod)
+                .OrderByDescending(x => x.Id)
+                .FirstOrDefault();
+
+            if (plantel is null)
+            {
+                await Swal.FireAsync("Error", "El socio no tiene plantel registrado.", SweetAlertIcon.Error);
+                return;
+            }
+            Plantelseleccionado = plantel;
+
+            // 2.1) MOSTRAR TABS Y LOADERS YA MISMO
+            loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
+            confirmado = true;                     // habilita <RadzenTabs> para que se vean los skeletons
+            await InvokeAsync(StateHasChanged);    // render inmediato de los loaders
+
+            // 3) Armar solicitud "virtual" y crear Resin1
+            var guid = Guid.NewGuid().ToString();
+
+            // OJO con el tipo de la lista (IList<Solici1DTO?>)
+            solicitudSeleccionada = new List<Solici1DTO?>
         {
-            await Swal.FireAsync("Error", "No se pudo crear el resultado de inspección.", SweetAlertIcon.Error);
-            return;
+            new Solici1DTO { Nrosol = guid, Codest = codEst, Fecsol = DateTime.Now }
+        };
+
+            oResin1 = new Resin1DTO
+                {
+                    Nrores = guid,
+                    Estcod = codEst,
+                    Scod = socioSeleccionado.Scod,
+                    Icod = inspectorSeleccionado.Icod,
+                    Nropla = plantel.Placod,
+                    Freali = fechaTemp
+                };
+
+            var resultado = await _resin1Servicio.Crear(oResin1);
+            if (resultado?.List is null)
+            {
+                await Swal.FireAsync("Error", "No se pudo crear el resultado de inspección.", SweetAlertIcon.Error);
+                // apago loaders porque no voy a refrescar nada
+                loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+
+            // 4) Crear histórico desde Plantel y refrescar secciones (cada update apaga su propio loader en finally)
+            await crearHistorico(guid);     // persiste Resin2 (estadoAnterior) a partir del plantel
+            await RefreshAll(guid);         // estadoAnterior -> promedios/rechazos/hembras -> movimientos
+
+            // 5) Crear/actualizar plantel si corresponde
+            if (createNewPlantel)
+            {
+                await updatePlantel();
+            }
+
+            // 6) Actualizar estado local
+            Id = resultado.List.Id;
+            oResin1 = resultado.List;
+
+            // 7) Refrescar grilla de resultados (si te sirve que se actualice)
+            var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
+            resultados = rtRes.List;
+
+            // 8) Forzar render final
+            await InvokeAsync(StateHasChanged);
+
+            // 9) Si quisieras navegar:
+            // NavigationManager.NavigateTo($"/inforeporte/{Id}/0", forceLoad: true);
         }
-
-        // 4) Crear histórico desde Plantel y refrescar datos de la UI
-        await crearHistorico(guid);     // persiste Resin2 a partir del plantel
-        await RefreshAll(guid);         // estadoAnterior -> promedios/rechazos/hembras -> movimientos
-
-        // 5) Crear/actualizar plantel si corresponde
-        if (createNewPlantel)
+        catch (Exception ex)
         {
-            await updatePlantel();
+            Console.WriteLine(ex.Message);
+            await Swal.FireAsync("Error", $"Ocurrió un error al crear el resultado sin solicitud: {ex.Message}", SweetAlertIcon.Error);
+
+            // En caso de error, asegurate de apagar loaders para no dejar el UI "colgado"
+            loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
+            await InvokeAsync(StateHasChanged);
         }
-
-        // 6) Marcar como confirmado y actualizar estado local
-        confirmado = true;
-        Id = resultado.List.Id;
-        oResin1 = resultado.List;
-
-        // 7) Refrescar grilla que depende de 'resultados' (opcional pero útil)
-        var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
-        resultados = rtRes.List;
-
-        // 8) Forzar render para que se vean las tablas ya mismo
-        await InvokeAsync(StateHasChanged);
-
-        // 9) Si preferís, podés navegar (no es necesario):
-        // nav.NavigateTo($"/inforeporte/{Id}/0", forceLoad: true);
     }
+
 
 
 
