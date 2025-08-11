@@ -2,6 +2,8 @@
 @using Blazored.Typeahead
 @using PaginaToros.Client.Pages.CrudInspecciones
 @using PaginaToros.Client.Servicios.Contrato;
+@using System.Text.RegularExpressions;
+
 @inject NavigationManager NavigationManager
 @inject ISocioServicio _socioServicio
 @inject IResin8Servicio _resin8Servicio
@@ -1302,42 +1304,60 @@ else
     {
         try
         {
+            var nrores = solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
+            if (string.IsNullOrWhiteSpace(nrores))
+            {
+                await Swal.FireAsync("Error", "No hay solicitud seleccionada.", SweetAlertIcon.Error);
+                return;
+            }
+
             var parameters = new ModalParameters();
             parameters.Add(nameof(AddMovimientoRe.Id), id);
-            parameters.Add(nameof(AddMovimientoRe.numeroRes), solicitudSeleccionada.FirstOrDefault().Nrosol);
-            var options = new ModalOptions()
-                {
-                    Size = ModalSize.ExtraLarge
-                };
+            parameters.Add(nameof(AddMovimientoRe.numeroRes), nrores);
+
+            var options = new ModalOptions { Size = ModalSize.ExtraLarge };
             var formModal = Modal.Show<AddMovimientoRe>("Agregar Movimiento", parameters, options);
             var result = await formModal.Result;
-            if (result.Cancelled)
+
+            if (result.Cancelled) return;
+
+            await updateMovimientos(nrores, "si");
+
+            var destino = await updatePlantel();
+
+            if (createNewPlantel && !string.IsNullOrWhiteSpace(oResin1?.Nrores))
             {
-                Console.WriteLine("Modal was cancelled");
+                oResin1.Nropla = destino.Placod;
+                await _resin1Servicio.Editar(oResin1);
             }
-            else
-            {
-                await updateMovimientos(solicitudSeleccionada.FirstOrDefault().Nrosol, "si");
-                await updatePlantel();
-            }
+
+            await InvokeAsync(StateHasChanged);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
+            await Swal.FireAsync("Error", $"Ocurrió un error al agregar/editar el movimiento: {ex.Message}", SweetAlertIcon.Error);
         }
     }
 
 
+
     async Task<PlantelDTO> updatePlantel()
     {
+        if (Plantelseleccionado is null) throw new InvalidOperationException("No hay plantel seleccionado.");
+        if (socioSeleccionado is null) throw new InvalidOperationException("No hay socio seleccionado.");
+
+        var planViejo = Plantelseleccionado!;
+        var socio = socioSeleccionado!;
+
+        // Tomar SIEMPRE el año del plantel seleccionado
+        int anioBase = ExtraerAnio(planViejo.Anioex);
+        string anioNuevo = (createNewPlantel ? anioBase + 1 : anioBase).ToString();
+
+        // (Solo para buscar si ya existe el plantel de ese año)
         var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
         Planteles = plan.List;
 
-        var planViejo = Plantelseleccionado!;
-        var anio = planViejo.Anioex;
-        var anioNuevo = createNewPlantel ? (Int32.Parse(anio) + 1).ToString() : anio;
-
-        var socio = socioSeleccionado!;
         var planNuevo = Planteles.FirstOrDefault(x => x.Anioex == anioNuevo && x.Nrocri == socio.Scod);
 
         if (planNuevo != null)
@@ -1363,20 +1383,29 @@ else
                     Vqcsrp = estadoFinal.Ea5,
                     Vqssrp = estadoFinal.Ea6,
                     Nrocri = planViejo.Nrocri,
-                    // Concatenación explícita (más segura)
-                    Placod = $"{anioNuevo[^1]}{socio.Placod}",
+
+                    // Antes: $"{anioNuevo[^1]}{socio.Placod}" (solo último dígito del año)
+                    // Ahora: año completo + placod del socio
+                    Placod = $"{anioNuevo}{socio.Placod}",
+
                     Estado = planViejo.Estado,
                     Fecing = planViejo.Fecing ?? "",
                     Nroins = planViejo.Nroins
                 };
+
             var creado = await _plantelServicio.Crear(planNuevo);
-            // si tu servicio devuelve el creado con Id, reasignalo:
             planNuevo = creado?.List ?? planNuevo;
         }
 
-        // Actualizá referencia local al plantel “destino”
         Plantelseleccionado = planNuevo;
         return planNuevo;
+
+        static int ExtraerAnio(string anioex)
+        {
+            if (int.TryParse(anioex, out var y)) return y;
+            var m = Regex.Match(anioex ?? "", @"\d{4}");
+            return m.Success ? int.Parse(m.Value) : DateTime.Now.Year;
+        }
     }
 
 
@@ -1501,8 +1530,14 @@ else
     async Task deleteMovimiento(int id)
     {
         await _resin3Servicio.Eliminar(id);
-        await updateMovimientos(solicitudSeleccionada.FirstOrDefault().Nrosol, "si");
+        var nrores = solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
+        if (!string.IsNullOrWhiteSpace(nrores))
+        {
+            await updateMovimientos(nrores, "si");
+            await updatePlantel(); 
+        }
     }
+
 
     async Task deleteRechazo(int id)
     {
@@ -1551,28 +1586,39 @@ else
                 return;
             }
 
-            // 2) Tomar plantel base (para 'Existencia anterior')
-            var plantel = Planteles
-                .Where(x => x.Nrocri == socioSeleccionado.Scod)
-                .OrderByDescending(x => x.Id)
-                .FirstOrDefault();
+            // 2) Tomar plantel base (para 'Existencia anterior'), pero SIN pisar selección del usuario
+            PlantelDTO? plantel = Plantelseleccionado;
+
+            if (plantel is null)
+            {
+                // Primero buscar por el mismo año de la fecha de inspección
+                var anio = fechaTemp.Year.ToString();
+                plantel = Planteles
+                    .Where(x => x.Nrocri == socioSeleccionado.Scod && x.Anioex == anio)
+                    .OrderByDescending(x => x.Id)
+                    .FirstOrDefault()
+                    ?? Planteles
+                        .Where(x => x.Nrocri == socioSeleccionado.Scod)
+                        .OrderByDescending(x => x.Id)
+                        .FirstOrDefault();
+            }
 
             if (plantel is null)
             {
                 await Swal.FireAsync("Error", "El socio no tiene plantel registrado.", SweetAlertIcon.Error);
                 return;
             }
+
             Plantelseleccionado = plantel;
 
-            // 2.1) MOSTRAR TABS Y LOADERS YA MISMO
+            // 2.1) Mostrar tabs y loaders ya mismo
             loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
-            confirmado = true;                     // habilita <RadzenTabs> para que se vean los skeletons
-            await InvokeAsync(StateHasChanged);    // render inmediato de los loaders
+            confirmado = true;
+            await InvokeAsync(StateHasChanged);
 
             // 3) Armar solicitud "virtual" y crear Resin1
             var guid = Guid.NewGuid().ToString();
 
-            // OJO con el tipo de la lista (IList<Solici1DTO?>)
             solicitudSeleccionada = new List<Solici1DTO?>
         {
             new Solici1DTO { Nrosol = guid, Codest = codEst, Fecsol = DateTime.Now }
@@ -1592,44 +1638,38 @@ else
             if (resultado?.List is null)
             {
                 await Swal.FireAsync("Error", "No se pudo crear el resultado de inspección.", SweetAlertIcon.Error);
-                // apago loaders porque no voy a refrescar nada
                 loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
                 await InvokeAsync(StateHasChanged);
                 return;
             }
 
-            // 4) Crear histórico desde Plantel y refrescar secciones (cada update apaga su propio loader en finally)
-            await crearHistorico(guid);     // persiste Resin2 (estadoAnterior) a partir del plantel
-            await RefreshAll(guid);         // estadoAnterior -> promedios/rechazos/hembras -> movimientos
+            // 4) Crear histórico desde Plantel y refrescar secciones
+            await crearHistorico(guid);
+            await RefreshAll(guid);
 
             // 5) Crear/actualizar plantel si corresponde
             if (createNewPlantel)
-{
-    var destino = await updatePlantel();        // crea/actualiza y te da el plantel final
-    oResin1.Nropla = destino.Placod;            // apuntá la inspección al plantel nuevo
-    await _resin1Servicio.Editar(oResin1);      // persistí el cambio
-}
+            {
+                var destino = await updatePlantel();
+                oResin1.Nropla = destino.Placod;
+                await _resin1Servicio.Editar(oResin1);
+            }
 
             // 6) Actualizar estado local
             Id = resultado.List.Id;
             oResin1 = resultado.List;
 
-            // 7) Refrescar grilla de resultados (si te sirve que se actualice)
+            // 7) Refrescar grilla de resultados
             var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
             resultados = rtRes.List;
 
-            // 8) Forzar render final
+            // 8) Render final
             await InvokeAsync(StateHasChanged);
-
-            // 9) Si quisieras navegar:
-            // NavigationManager.NavigateTo($"/inforeporte/{Id}/0", forceLoad: true);
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
             await Swal.FireAsync("Error", $"Ocurrió un error al crear el resultado sin solicitud: {ex.Message}", SweetAlertIcon.Error);
-
-            // En caso de error, asegurate de apagar loaders para no dejar el UI "colgado"
             loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
             await InvokeAsync(StateHasChanged);
         }
