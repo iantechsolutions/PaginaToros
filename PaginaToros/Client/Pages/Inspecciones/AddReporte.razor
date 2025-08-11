@@ -1325,27 +1325,20 @@ else
     }
 
 
-    async Task updatePlantel()
+    async Task<PlantelDTO> updatePlantel()
     {
         var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
         Planteles = plan.List;
-        // var planViejo = Planteles.Where(x => x.Placod == oResin1.Nropla).FirstOrDefault();
-        var planViejo = Plantelseleccionado;
+
+        var planViejo = Plantelseleccionado!;
         var anio = planViejo.Anioex;
-        string anioNuevo;
-        if (createNewPlantel)
-        {
-            anioNuevo = (Int32.Parse(anio) + 1).ToString();
-        }
-        else
-        {
-            anioNuevo = anio;
-        }
-        var socio = socioSeleccionado;
+        var anioNuevo = createNewPlantel ? (Int32.Parse(anio) + 1).ToString() : anio;
 
+        var socio = socioSeleccionado!;
+        var planNuevo = Planteles.FirstOrDefault(x => x.Anioex == anioNuevo && x.Nrocri == socio.Scod);
 
-        var planNuevo = Planteles.Where(x => x.Anioex == anioNuevo && x.Nrocri == socio.Scod).FirstOrDefault();
-        if( planNuevo != null){
+        if (planNuevo != null)
+        {
             planNuevo.Varede = estadoFinal.Ea1;
             planNuevo.Vqcsrd = estadoFinal.Ea2;
             planNuevo.Vqssrd = estadoFinal.Ea3;
@@ -1355,31 +1348,34 @@ else
             planNuevo.Fecing = "";
             await _plantelServicio.Editar(planNuevo);
         }
-        else{
-            try{
-                primerMov = false;
-                var planCreado = new PlantelDTO();
-                planCreado.Anioex = anioNuevo;
-                planCreado.Varede = estadoFinal.Ea1;
-                planCreado.Vqcsrd = estadoFinal.Ea2;
-                planCreado.Vqssrd = estadoFinal.Ea3;
-                planCreado.Varepr = estadoFinal.Ea4;
-                planCreado.Vqcsrp = estadoFinal.Ea5;
-                planCreado.Vqssrp = estadoFinal.Ea6;
-                planCreado.Nrocri = planViejo.Nrocri;
-                planCreado.Placod = anioNuevo.ElementAt(3) + (socio.Placod);
-                planCreado.Estado = planViejo.Estado;
-                planCreado.Fecing  = planViejo.Fecing ?? "";
-                planCreado.Nroins = planViejo.Nroins;
-
-                await _plantelServicio.Crear(planCreado);
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+        else
+        {
+            planNuevo = new PlantelDTO
+                {
+                    Anioex = anioNuevo,
+                    Varede = estadoFinal.Ea1,
+                    Vqcsrd = estadoFinal.Ea2,
+                    Vqssrd = estadoFinal.Ea3,
+                    Varepr = estadoFinal.Ea4,
+                    Vqcsrp = estadoFinal.Ea5,
+                    Vqssrp = estadoFinal.Ea6,
+                    Nrocri = planViejo.Nrocri,
+                    // Concatenación explícita (más segura)
+                    Placod = $"{anioNuevo[^1]}{socio.Placod}",
+                    Estado = planViejo.Estado,
+                    Fecing = planViejo.Fecing ?? "",
+                    Nroins = planViejo.Nroins
+                };
+            var creado = await _plantelServicio.Crear(planNuevo);
+            // si tu servicio devuelve el creado con Id, reasignalo:
+            planNuevo = creado?.List ?? planNuevo;
         }
+
+        // Actualizá referencia local al plantel “destino”
+        Plantelseleccionado = planNuevo;
+        return planNuevo;
     }
+
 
 
 
