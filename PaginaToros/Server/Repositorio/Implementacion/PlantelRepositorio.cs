@@ -39,11 +39,15 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
+                var yDesde = desde.Year.ToString("0000");
+                var yHasta = hasta.Year.ToString("0000");
+
                 return await _dbContext.Planteles
                     .Include(p => p.Socio)
-                    .Where(p => p.Urein.HasValue &&
-                                p.Urein.Value.Date >= desde.Date &&
-                                p.Urein.Value.Date <= hasta.Date)
+                    .Where(p => p.Anioex != null
+                             && p.Anioex.Length == 4
+                             && string.Compare(p.Anioex, yDesde) >= 0
+                             && string.Compare(p.Anioex, yHasta) <= 0)
                     .OrderByDescending(p => p.Urein)
                     .ToListAsync();
             }

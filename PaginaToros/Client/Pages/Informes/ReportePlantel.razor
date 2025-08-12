@@ -7,51 +7,66 @@
 @using OfficeOpenXml.Style
 @using System.Drawing
 
-
 <center><RadzenText TextStyle="TextStyle.H4">Informe de planteles</RadzenText></center>
+
 <div>
     <DataAnnotationsValidator />
-        <div class="row">
-            <div class="col-sm">
-                <label>Seleccionar Fecha Inicial</label>
-            <RadzenDatePicker TValue="DateTime?" @bind-Value="@fechaInicial" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-            </div>
-            <div class="col-sm">
-                <label>Seleccionar Fecha Final</label>
-            <RadzenDatePicker TValue="DateTime?" @bind-Value="@fechaFinal" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-            </div>
-            <div class="col-sm">
-                <label>Seleccione el estado de los planteles</label>
-                <RadzenDropDown @bind-Value="@seleccion" Data="@opciones" Style="width: 100%; max-width: 400px;" />
-            </div>
+    <div class="row">
+        <div class="col-sm">
+            <label>Seleccionar Fecha Inicial</label>
+            <RadzenDatePicker TValue="DateTime?" @bind-Value="@fechaInicial"
+                              ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75"
+                              @onchange="OnFechaInicialChanged" /> @* *** auto-regenerar (opcional) *@
         </div>
-</div>
-<br />
-@if(terminado){
-    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
-
-        <button class="no-print font-bold px-6 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
-                style="width: 150px;" @onclick="DescargarExcel">
-            Descargar Excel
-        </button>
-
-        <button class="no-print px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center"
-                style="width: 100px;" @onclick="Print">
-            <FeatherPrinter Color="Black"></FeatherPrinter>
-        </button>
-
-        <button @onclick="ReiniciarFiltros"
-                class="font-bold px-4 py-2 rounded-2xl bg-gray-100 hover:bg-gray-300 transition ease-in duration-100"
-                style="width: 150px;">
-            Reiniciar Filtros
-        </button>
-
+        <div class="col-sm">
+            <label>Seleccionar Fecha Final</label>
+            <RadzenDatePicker TValue="DateTime?" @bind-Value="@fechaFinal"
+                              ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75"
+                              @onchange="OnFechaFinalChanged" /> @* *** auto-regenerar (opcional) *@
+        </div>
+        <div class="col-sm">
+            <label>Seleccione el estado de los planteles</label>
+            <RadzenDropDown @bind-Value="@seleccion" Data="@opciones" Style="width: 100%; max-width: 400px;"
+                            Change="OnSeleccionChanged" /> @* *** auto-regenerar (opcional) *@
+        </div>
     </div>
+</div>
 
+<br />
 
+@* *** Toolbar SIEMPRE visible, con Generar siempre accesible *@
+<div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+    <button class="font-bold px-6 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
+            style="width: 150px;" @onclick="Generate" disabled="@isLoading">
+        @if (isLoading)
+        {
+            <span><i class="fa fa-spinner fa-spin"></i> Generando...</span>
+        }
+        else
+        {
+            <span>Generar</span>
+        }
+    </button>
 
+    <button class="no-print font-bold px-6 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
+            style="width: 150px;" @onclick="DescargarExcel" disabled="@(isLoading || !terminado || !planteles.Any())">
+        Descargar Excel
+    </button>
 
-    
+    <button class="no-print px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center"
+            style="width: 100px;" @onclick="Print" disabled="@(isLoading || !terminado)">
+        <FeatherPrinter Color="Black"></FeatherPrinter>
+    </button>
+
+    <button @onclick="ReiniciarFiltros"
+            class="font-bold px-4 py-2 rounded-2xl bg-gray-100 hover:bg-gray-300 transition ease-in duration-100"
+            style="width: 150px;" disabled="@isLoading">
+        Reiniciar Filtros
+    </button>
+</div>
+
+@if (terminado)
+{
     <table style="border-collapse:collapse;position:relative;left:3%;width:95%" cellspacing="0">
         <tr>
             <td colspan="9">
@@ -59,72 +74,40 @@
             </td>
         </tr>
         <tr>
-            <td>
-                <p class="s2">Plantel</p>
-            </td>
-            <td>
-                <p class="s2">Vacas</p>
-            </td>
-            <td>
-                <p class="s2">Vaquill. c/servicio</p>
-            </td>
-            <td>
-                <p class="s2">Vaquill. s/servicio</p>
-            </td>
-            <td>
-                <p class="s2">Vacas</p>
-            </td>
-            <td>
-                <p class="s2">Vaquillonas c/servicio</p>
-            </td>
-            <td>
-                <p class="s2">Vaquillonas s/servicio</p>
-            </td>
-            <td>
-                <p class="s2">Socio</p>
-            </td>
-            <td>
-                <p class="s2">Estado</p>
-            </td>
+            <td><p class="s2">Plantel</p></td>
+            <td><p class="s2">Vacas</p></td>
+            <td><p class="s2">Vaquill. c/servicio</p></td>
+            <td><p class="s2">Vaquill. s/servicio</p></td>
+            <td><p class="s2">Vacas</p></td>
+            <td><p class="s2">Vaquillonas c/servicio</p></td>
+            <td><p class="s2">Vaquillonas s/servicio</p></td>
+            <td><p class="s2">Socio</p></td>
+            <td><p class="s2">Estado</p></td>
         </tr>
         <tr>
-            <td>
-            </td>
-            <td>
-                <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Varede)</p>
-            </td>
-            <td>
-                <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqcsrd)</p>
-            </td>
-            <td>
-                <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqssrd)</p>
-            </td>
-            <td>
-                <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Varepr)</p>
-            </td>
-            <td>
-                <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqcsrp)</p>
-            </td>
-            <td>
-                <p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqssrp)</p>
-            </td>
-            <td>
-            </td>
-            <td>
-            </td>
+            <td></td>
+            <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Varede)</p></td>
+            <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqcsrd)</p></td>
+            <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqssrd)</p></td>
+            <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Varepr)</p></td>
+            <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqcsrp)</p></td>
+            <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqssrp)</p></td>
+            <td></td>
+            <td></td>
         </tr>
     </table>
+
     <br />
     <br />
-    foreach (int i in anios)
+
+    @foreach (int i in anios)
     {
         var datosAnio = planteles
-            .Where(x => !string.IsNullOrEmpty(x.Anioex) && Int32.Parse(x.Anioex) == i)
+            .Where(x => !string.IsNullOrEmpty(x.Anioex) && int.TryParse(x.Anioex, out var yy) && yy == i)
             .ToList();
 
-        <RadzenText TextStyle="Radzen.Blazor.TextStyle.H4">
-            Año @i
-        </RadzenText>
+        <RadzenText TextStyle="Radzen.Blazor.TextStyle.H4">Año @i</RadzenText>
+
         <table style="border-collapse:collapse;position:relative;left:3%;width:95%" cellspacing="0">
             <tr>
                 <td><p class="s2">Plantel</p></td>
@@ -137,6 +120,7 @@
                 <td><p class="s2">Socio</p></td>
                 <td><p class="s2">Estado</p></td>
             </tr>
+
             @if (datosAnio.Any())
             {
                 @foreach (var plan in datosAnio)
@@ -169,6 +153,7 @@
                     <td colspan="9"><p class="s2">No hay datos para este año.</p></td>
                 </tr>
             }
+
             <tr>
                 <td colspan="9"><p class="s2">TOTAL del año @i</p></td>
             </tr>
@@ -185,77 +170,53 @@
             </tr>
         </table>
     }
-
-
-    
 }
-else
-{
 
-    <br />
-    <div class="row">
-        <div class="col-sm-3" />
-        <div class="col" style="width:10%;position:relative;left:2%">
-            <button @onclick="Generate"
-                    class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                    style="position:relative;width:80%" disabled="@isLoading">
-                @if (isLoading)
-                {
-                    <span><i class="fa fa-spinner fa-spin"></i> Generando...</span>
-                }
-                else
-                {
-                    <span>Generar</span>
-                }
-            </button>
-        </div>
-        <div class="col-sm-3" />
-        <div class="col-sm-1">
-        </div>
-    </div>
-
-}
 @code {
     public DateTime? fechaInicial { get; set; } = new DateTime(2020, 1, 1);
     public DateTime? fechaFinal { get; set; } = DateTime.Now;
+
     public List<PlantelDTO> planteles = new();
     List<string> opciones = new() { "Activos", "Inactivos", "Todos" };
     List<int> anios = new();
+
     bool terminado = false;
     bool isLoading = false;
     string seleccion = "Activos";
 
-
-
     private async Task Generate()
     {
+        if (isLoading) return; // *** evita dobles clics
+
+        // *** Validación de fechas
+        if (fechaInicial == null || fechaFinal == null)
+        {
+            Console.WriteLine("Fechas inválidas");
+            return;
+        }
+        if (fechaInicial > fechaFinal)
+        {
+            Console.WriteLine("La fecha inicial no puede ser mayor que la final.");
+            return;
+        }
+
         isLoading = true;
         terminado = false;
         planteles.Clear();
         anios.Clear();
+        StateHasChanged();
 
         try
         {
-            if (fechaInicial == null || fechaFinal == null)
-            {
-                Console.WriteLine("Fechas inválidas");
-                return;
-            }
-
             var rtaa = await _plantelServicio.ObtenerPorRangoFechas(fechaInicial.Value, fechaFinal.Value);
+            var lista = rtaa?.List ?? new List<PlantelDTO>();
 
-            switch (seleccion)
+            planteles = seleccion switch
             {
-                case "Activos":
-                    planteles = rtaa.List.Where(x => x.Estado == "S").ToList();
-                    break;
-                case "Inactivos":
-                    planteles = rtaa.List.Where(x => x.Estado == "N").ToList();
-                    break;
-                case "Todos":
-                    planteles = rtaa.List;
-                    break;
-            }
+                "Activos" => lista.Where(x => x.Estado == "S").ToList(),
+                "Inactivos" => lista.Where(x => x.Estado == "N").ToList(),
+                _ => lista
+            };
 
             anios = planteles
                 .Where(x => !string.IsNullOrEmpty(x.Anioex) && int.TryParse(x.Anioex, out _))
@@ -273,21 +234,19 @@ else
         finally
         {
             isLoading = false;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
-
-
-
     private async Task DescargarExcel()
     {
+        if (!planteles.Any()) return;
+
         using var package = new ExcelPackage();
 
-        // --------- Hoja 1: Resumen general (solo suma total) ----------
+        // --------- Hoja 1: Resumen general ----------
         var resumen = package.Workbook.Worksheets.Add("Resumen General");
 
-        // Encabezados
         resumen.Cells[1, 1].Value = "Plantel";
         resumen.Cells[1, 2].Value = "Vacas";
         resumen.Cells[1, 3].Value = "Vaquill. c/servicio";
@@ -299,7 +258,6 @@ else
         resumen.Cells[1, 9].Value = "Estado";
         resumen.Cells[1, 10].Value = "Año";
 
-        // Aquí la suma total para cada campo, excluyendo plantel, socio, estado y año (porque sumarlos no tiene sentido)
         resumen.Cells[2, 1].Value = "TOTAL GENERAL";
         resumen.Cells[2, 2].Value = planteles.Where(p => !string.IsNullOrEmpty(p.Anioex)).Sum(p => p.Varede);
         resumen.Cells[2, 3].Value = planteles.Where(p => !string.IsNullOrEmpty(p.Anioex)).Sum(p => p.Vqcsrd);
@@ -307,24 +265,19 @@ else
         resumen.Cells[2, 5].Value = planteles.Where(p => !string.IsNullOrEmpty(p.Anioex)).Sum(p => p.Varepr);
         resumen.Cells[2, 6].Value = planteles.Where(p => !string.IsNullOrEmpty(p.Anioex)).Sum(p => p.Vqcsrp);
         resumen.Cells[2, 7].Value = planteles.Where(p => !string.IsNullOrEmpty(p.Anioex)).Sum(p => p.Vqssrp);
-        resumen.Cells[2, 8].Value = ""; // No tiene sentido sumar nombres
-        resumen.Cells[2, 9].Value = ""; // No tiene sentido sumar estados
-        resumen.Cells[2, 10].Value = ""; // No tiene sentido sumar años
+        resumen.Cells[2, 8].Value = "";
+        resumen.Cells[2, 9].Value = "";
+        resumen.Cells[2, 10].Value = "";
 
         resumen.Cells[1, 1, 2, 10].AutoFitColumns();
 
         // --------- Hojas por Año ----------
-        var anios = planteles
-            .Where(p => !string.IsNullOrEmpty(p.Anioex))
-            .Select(p => int.Parse(p.Anioex))
-            .Distinct()
-            .OrderBy(y => y);
+        var years = anios; // *** uso la lista ya calculada, evito sombreado
 
-        foreach (var año in anios)
+        foreach (var año in years)
         {
             var hoja = package.Workbook.Worksheets.Add($"Año {año}");
 
-            // Encabezados (sin Año porque ya está en el nombre)
             hoja.Cells[1, 1].Value = "Plantel";
             hoja.Cells[1, 2].Value = "Vacas";
             hoja.Cells[1, 3].Value = "Vaquill. c/servicio";
@@ -336,7 +289,7 @@ else
             hoja.Cells[1, 9].Value = "Estado";
 
             var datosAnio = planteles
-                .Where(p => !string.IsNullOrEmpty(p.Anioex) && int.Parse(p.Anioex) == año)
+                .Where(p => !string.IsNullOrEmpty(p.Anioex) && int.TryParse(p.Anioex, out var yy) && yy == año)
                 .ToList();
 
             int r = 2;
@@ -354,7 +307,6 @@ else
                 r++;
             }
 
-            // Total del año debajo
             hoja.Cells[r, 1].Value = $"TOTAL del año {año}";
             hoja.Cells[r, 2].Value = datosAnio.Sum(x => x.Varede);
             hoja.Cells[r, 3].Value = datosAnio.Sum(x => x.Vqcsrd);
@@ -366,7 +318,6 @@ else
             hoja.Cells[1, 1, r, 9].AutoFitColumns();
         }
 
-        // --------- Guardar y descargar ----------
         var bytes = package.GetAsByteArray();
         var fileName = "reporte-planteles.xlsx";
         var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -375,12 +326,10 @@ else
         await js.InvokeVoidAsync("saveAsFile", fileName, url);
     }
 
-
-
     private void ReiniciarFiltros()
     {
-        fechaInicial = null;
-        fechaFinal = new DateTime(2022, 1, 1); 
+        fechaInicial = new DateTime(2020, 1, 1); // *** restauro default
+        fechaFinal = DateTime.Now;               // *** restauro default
         seleccion = "Activos";
 
         planteles.Clear();
@@ -388,15 +337,26 @@ else
         terminado = false;
 
         StateHasChanged();
+        // Opcional: llamar a Generate() automáticamente:
+        // _ = Generate();
     }
 
-
-
-
-
     private async Task Print()
-    => await js.InvokeVoidAsync("window.print");
+        => await js.InvokeVoidAsync("window.print");
 
+    // ----- Auto-regenerar al cambiar filtros (opcional: ya está activo)
+    private async Task OnFechaInicialChanged(ChangeEventArgs _)
+    {
+        // _ = Generate(); // si preferís regenerar en vivo, descomentar
+    }
 
-    
+    private async Task OnFechaFinalChanged(ChangeEventArgs _)
+    {
+        // _ = Generate(); // si preferís regenerar en vivo, descomentar
+    }
+
+    private async Task OnSeleccionChanged(object _)
+    {
+        // _ = Generate(); // si preferís regenerar en vivo, descomentar
+    }
 }
