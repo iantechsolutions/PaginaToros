@@ -1,4 +1,4 @@
-@page "/reportegeneral"
+﻿@page "/reportegeneral"
 @using PaginaToros.Client.Servicios.Contrato;
 @using Blazored.Typeahead;
 @inject IResin1Servicio _resin1Servicio;
@@ -24,7 +24,23 @@
             display:none;
         }
     }
+    button[disabled] {
+  opacity: .6;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
 
+/* Pulso suave mientras está ocupado */
+.btn-busy {
+  animation: pulse 0.9s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@@keyframes pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.985); }
+  100% { transform: scale(1); }
+}
     .col-sm {
         display: block;
         min-height: 100px; 
@@ -90,36 +106,42 @@
 
 <br class="no-print" />
 <div class="flex items-center gap-2 ml-2">
-<button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
+
+<button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 @(loading ? "btn-busy" : "")"
         style="position:relative;width:20%; margin-bottom:5px;"
-        @onclick="()=>ConfirmarDatos()"
-        disabled="@(!terminado || confirmado)">
+        @onclick="OnGenerarClick"
+        disabled="@(!terminado || confirmado || loading)">
 
     @if (loading)
     {
-        <span>
-            <i class="fa fa-spinner fa-spin"></i> Cargando...
-        </span>
+        <span><i class="fa fa-spinner fa-spin"></i> Cargando...</span>
     }
-    Generar Reporte
+    else
+    {
+        <span>Generar Reporte</span>
+    }
 </button>
-<button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
+
+<button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 @(download ? "btn-busy" : "")"
         style="position:relative;width:20%; margin-bottom:5px;"
-    @onclick="() =>DescargarExcel()">
-    Exportar Excel
+        @onclick="OnDescargarClick"
+            disabled="@(download || !(listaDatos?.Any() ?? false))">
     @if (download)
     {
-        <span>
-            <i class="fa fa-spinner fa-spin"></i> Cargando...
-        </span>
+        <span><i class="fa fa-spinner fa-spin"></i> Cargando...</span>
+    }
+    else
+    {
+        <span>Exportar Excel</span>
     }
 </button>
-    <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-100 hover:bg-gray-300 transition ease-in duration-100"
-            style="position:relative;width:20%; margin-bottom:5px;"
-            @onclick="ReiniciarFiltros">
-        Reiniciar Filtros
-    </button>
 
+<button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-100 hover:bg-gray-300 transition ease-in duration-100"
+        style="position:relative;width:20%; margin-bottom:5px;"
+        @onclick="ReiniciarFiltros"
+        disabled="@loading">
+    Reiniciar Filtros
+</button>
 </div>
 
 <br class="no-print"/>
@@ -376,7 +398,7 @@
                 x.Resin1.Freali.Value.Date >= FechaInicial.Date &&
                 x.Resin1.Freali.Value.Date <= FechaFinal.Date);
 
-            // 2) Filtros m�ltiples (solo si hay selecci�n)
+            // 2) Filtros múltiples (solo si hay selección)
             var icodsSel = (inspectoresSeleccionados ?? new List<InspectDTO>())
                 .Select(i => (i?.Icod ?? "").Trim())
                 .Where(s => s != "")
@@ -530,6 +552,86 @@
 
         ws.Cells[1, 1, row - 1, 10].AutoFitColumns();
 
+
+        // ===== Hoja 2: Inspecciones tomadas en cuenta =====
+        var ws2 = excelPackage.Workbook.Worksheets.Add("Inspecciones");
+
+        var resin1ConDetalles = listaDatos.Values
+            .SelectMany(v => v) 
+            .Where(x => x.Resin1 != null)
+            .GroupBy(x => x.Resin1.Id)
+            .Select(g => new
+            {
+                Inspeccion = g.First().Resin1,
+                Detalles = g.ToList()
+            })
+            .OrderBy(x => x.Inspeccion.Freali)
+            .ToList();
+
+        var mapInspect = (Inspects ?? new List<InspectDTO>())
+            .GroupBy(i => i.Icod)
+            .ToDictionary(g => g.Key, g => g.First().Nombre ?? "");
+
+        
+
+        // Encabezados
+        ws2.Cells[1, 1].Value = "Nro Inspección (Id)";
+        ws2.Cells[1, 2].Value = "Nro Solicitud";
+        ws2.Cells[1, 3].Value = "Fecha";
+        ws2.Cells[1, 4].Value = "Inspector";
+        ws2.Cells[1, 5].Value = "Provincia";
+        ws2.Cells[1, 6].Value = "Establecimiento (Codest)";
+        ws2.Cells[1, 7].Value = "PR Presentadas (Hdp)";
+        ws2.Cells[1, 8].Value = "VIP Vacas Presentadas (Hgvp)";
+        ws2.Cells[1, 9].Value = "VIP Vaquillonas Presentadas (Hgqp)";
+        ws2.Cells[1, 10].Value = "SCP Presentados (Mcp)";
+        ws2.Cells[1, 11].Value = "CP Presentados (Msp)";
+
+        int r2 = 2;
+        foreach (var item in resin1ConDetalles)
+        {
+            var r = item.Inspeccion;
+            var det = item.Detalles;
+
+            // Calcular totales desde Resin6
+            var totalHdp = det.Sum(x => x.Hdp);
+            var totalHgvp = det.Sum(x => x.Hgvp);
+            var totalHgqp = det.Sum(x => x.Hgqp);
+            var totalMcp = det.Sum(x => x.Mcp);
+            var totalMsp = det.Sum(x => x.Msp);
+
+            ws2.Cells[r2, 1].Value = r.Id;
+
+            // Nrores <= 10 caracteres → usar, si no → "Sin solicitud"
+            if (!string.IsNullOrWhiteSpace(r.Nrores) && r.Nrores.Trim().Length <= 10)
+                ws2.Cells[r2, 2].Value = r.Nrores.Trim();
+            else
+                ws2.Cells[r2, 2].Value = "Sin solicitud";
+
+            ws2.Cells[r2, 3].Value = r.Freali?.ToString("dd/MM/yyyy");
+
+            // Nombre inspector
+            ws2.Cells[r2, 4].Value = mapInspect.TryGetValue(r.Icod ?? "", out var nomInspector) ? nomInspector : "";
+
+            // Nombre provincia
+            ws2.Cells[r2, 5].Value = traductorProvinciaInverso.TryGetValue(r.Establecimiento?.Codpro ?? "", out var nomProv) ? nomProv : "";
+
+            ws2.Cells[r2, 6].Value = r.Establecimiento?.Ecod;
+            ws2.Cells[r2, 7].Value = totalHdp;
+            ws2.Cells[r2, 8].Value = totalHgvp;
+            ws2.Cells[r2, 9].Value = totalHgqp;
+            ws2.Cells[r2, 10].Value = totalMcp;
+            ws2.Cells[r2, 11].Value = totalMsp;
+
+            r2++;
+        }
+
+        ws2.Cells[1, 1, 1, 11].Style.Font.Bold = true;
+        ws2.Cells[1, 1, r2 - 1, 11].AutoFitColumns();
+
+
+
+
         var fileContents = excelPackage.GetAsByteArray();
         var fileName = $"Reporte_{DateTime.Now:dd_MM}.xlsx";
         var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -545,7 +647,7 @@
         FechaInicial = DateTime.Now.AddDays(-700);
         FechaFinal = DateTime.Now;
 
-        // Selecci�n
+        // Selección
         seleccion = "";
         provinciasSeleccionadas = new List<string>();
         inspectoresSeleccionados = new List<InspectDTO>();
@@ -560,7 +662,36 @@
     }
 
 
+        private async Task OnGenerarClick()
+        {
+            if (loading || confirmado) return;   // anti-spam
+            loading = true; StateHasChanged();
+            try
+            {
+                // si querés, podés mover ConfirmarDatos a async Task y await aquí
+                ConfirmarDatos(); // ya maneja try/catch interno y setea 'confirmado'
+            }
+            finally
+            {
+                loading = false;
+                StateHasChanged();
+            }
+        }
 
+        private async Task OnDescargarClick()
+        {
+            if (download) return;                // anti-spam
+            download = true; StateHasChanged();
+            try
+            {
+                await DescargarExcel();
+            }
+            finally
+            {
+                download = false;
+                StateHasChanged();
+            }
+        }
     private async Task Print()
         => await _js.InvokeVoidAsync("window.print");
 
