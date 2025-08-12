@@ -394,9 +394,12 @@
                                                 @data.original.Hardb
                                             </Template>
                                         </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Dosis Reman" Width="7%">
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Dosis Reman" Width="7%">
                                             <Template Context="data">
-                                                @certificados.Where(x => x.Hba == data.original.Hardb).First().NrDosi
+                                                @{
+                                                    var cert = certificados.FirstOrDefault(x => x.Hba == data.original.Hardb);
+                                                }
+                                                @((cert?.NrDosi ?? 0))
                                             </Template>
                                         </RadzenDataGridColumn>
                                         <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Vientres" Width="6%">
@@ -429,16 +432,28 @@
                                                 }
                                             </Template>
                                         </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="5%">
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Desde" Width="10%">
                                             <Template Context="data">
-                                                <RadzenDatePicker Style="max-width:auto;color:white" @bind-Value="data.Desde" TValue="DateTime" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                                <div style="min-width:160px">
+                                                    <RadzenDatePicker TValue="DateTime"
+                                                                      @bind-Value="data.Desde"
+                                                                      DateFormat="dd/MM/yyyy"
+                                                                      Class="w-100" />
+                                                </div>
                                             </Template>
                                         </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="5%">
+
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Hasta" Width="10%">
                                             <Template Context="data">
-                                                <RadzenDatePicker Style="max-width:auto;color:white" @bind-Value="data.Hasta" TValue="DateTime" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                                <div style="min-width:160px">
+                                                    <RadzenDatePicker TValue="DateTime"
+                                                                      @bind-Value="data.Hasta"
+                                                                      DateFormat="dd/MM/yyyy"
+                                                                      Class="w-100" />
+                                                </div>
                                             </Template>
                                         </RadzenDataGridColumn>
+
                                     </Columns>
                                 </RadzenDataGrid>
                             </div>
@@ -721,14 +736,21 @@ else
 
         foreach (var adaptacion in certificadosSeleccionados)
         {
-
-            Console.WriteLine("Cuantos se crean?");
             adaptacion.original.Desde = adaptacion.Desde.ToString("yyyy-MM-dd");
             adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyyy-MM-dd");
             seleccionFinal.Add(adaptacion.original);
-            var cert = certificados.Where(x => x.Hba == adaptacion.original.Hardb).First();
-            cert.NrDosi = cert.NrDosi - Convert.ToInt32(Math.Round((decimal)(adaptacion.original.Cantv * multiplicador)));
-            certificadosAlterados.Add(cert);
+
+            var cert = certificados.FirstOrDefault(x => x.Hba == adaptacion.original.Hardb);
+            if (cert != null)
+            {
+                cert.NrDosi -= Convert.ToInt32(Math.Round((decimal)(adaptacion.original.Cantv * multiplicador)));
+                certificadosAlterados.Add(cert);
+            }
+            else
+            {
+                // await Swal.FireAsync("Atención", $"No se encontró certificado para HBA {adaptacion.original.Hardb}", SweetAlertIcon.Warning);
+            }
+
             oDeclaracion.Desde = adaptacion.Desde;
             oDeclaracion.Hasta = adaptacion.Hasta;
         }
