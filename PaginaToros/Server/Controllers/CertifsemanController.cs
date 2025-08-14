@@ -252,6 +252,48 @@ namespace PaginaToros.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
+
+
+        [HttpPut]
+        [Route("{id}/nr-dosi")]
+        public async Task<IActionResult> UpdateNrDosi(int id, [FromBody] int nrDosi)
+        {
+            var _Respuesta = new Respuesta<CertifsemanDTO>();
+            try
+            {
+                // Validar existencia (si opcional, podés omitir este SELECT y confiar en UpdateNrDosiAsync)
+                var existente = await _CertifsemanRepositorio.Obtener(x => x.Id == id);
+                if (existente == null)
+                {
+                    _Respuesta = new Respuesta<CertifsemanDTO> { Exito = 0, Mensaje = "No se encontró el certificado" };
+                    return NotFound(_Respuesta);
+                }
+
+                var ok = await _CertifsemanRepositorio.UpdateNrDosiAsync(id, nrDosi);
+                if (!ok)
+                {
+                    _Respuesta = new Respuesta<CertifsemanDTO> { Exito = 0, Mensaje = "No se pudo actualizar NrDosi" };
+                    return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                }
+
+                // refresco dto para devolverlo coherente
+                existente.NrDosi = nrDosi;
+                _Respuesta = new Respuesta<CertifsemanDTO>
+                {
+                    Exito = 1,
+                    Mensaje = "ok",
+                    List = _mapper.Map<CertifsemanDTO>(existente)
+                };
+                return Ok(_Respuesta);
+            }
+            catch (Exception ex)
+            {
+                var err = new Respuesta<CertifsemanDTO> { Exito = 0, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, err);
+            }
+        }
+
     }
-}
+
+    }
 

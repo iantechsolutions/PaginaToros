@@ -40,14 +40,14 @@
                 <DataAnnotationsValidator />
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
-                        <label>Socio @(socioSeleccionado?.Nombre)</label>
-                        @if (!esSocio)
+                        @if (!esSocio )
                         {
                             <BlazoredTypeahead SearchMethod="BusquedaSocios"
                                                placeholder="Busque socio por nombre"
                                                EnableDropDown="true"
                                                TItem="SocioDTO"
                                                TValue="SocioDTO"
+                                               Disabled="@(Id != 0)"
                                                Value="socioSeleccionado"
                                                ValueChanged="UpdateValores"
                                                ValueExpression="@(() => socioSeleccionado)">
@@ -59,6 +59,7 @@
                                 </ResultTemplate>
                             </BlazoredTypeahead>
                         }
+                        
                     </div>
 
                      <div class="col-sm text-end">
@@ -86,7 +87,7 @@
                         </div>
                         <div class="col-sm">
                             <label class="col-sm">Plantel</label>
-                            <BlazoredTypeahead @bind-Value="@Plantelseleccionado" SearchMethod="BusquedaPlanteles" placeholder="Plantel - Año" EnableDropDown="true">
+                            <BlazoredTypeahead @bind-Value="@Plantelseleccionado" SearchMethod="BusquedaPlanteles" placeholder="Plantel - Año" EnableDropDown="true" Disabled="@(Id != 0)">
                                 <SelectedTemplate Context="eleccion">
                                     @(@eleccion.Placod + " - " + @eleccion.Anioex)
                                 </SelectedTemplate>
@@ -185,7 +186,7 @@
                         </div>
                         <br />
                         <div class="row">
-                            <div class="col-sm">
+                            <div style="flex: 0 0 40%; max-width: 40%;">
                                 <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros</RadzenText>
                                 <br />
 
@@ -227,7 +228,7 @@
                                             <Template Context="data">
                                                 @if (data.Nacido.HasValue)
                                                 {
-                                                    <a>@data.Nacido.Value.ToString("dd/MM/yyyy")</a>
+                                                    <a>@data.Nacido.Value.ToString("MM/yyyy")</a>
                                                 }
                                                 else
                                                 {
@@ -238,7 +239,7 @@
                                     </Columns>
                                 </RadzenDataGrid>
                             </div>
-                            <div class="col-sm">
+                            <div style="flex: 0 0 60%; max-width: 60%;">
                                 <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
                                 <br />
                                 <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@torosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
@@ -267,7 +268,7 @@
                                         <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="3%">
                                             <Template Context="data">
 
-                                                <button class="btn" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
+                                                <button class="btn" type="button" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
 
                                             </Template>
                                         </RadzenDataGridColumn>
@@ -280,7 +281,7 @@
                     {
 
                         <div class="row">
-                            <div class="col-sm">
+                            <div style="flex: 0 0 40%; max-width: 40%;">
                                 <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros</RadzenText>
                                 <br />
                                 <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod).Where(x=>x.CodEstado=="1")" TItem="TorosuniDTO" ColumnWidth="3.33%" SelectionMode="DataGridSelectionMode.Single"
@@ -329,7 +330,7 @@
                                     </Columns>
                                 </RadzenDataGrid>
                             </div>
-                            <div class="col-sm">
+                            <div style="flex: 0 0 60%; max-width: 60%;">
                                 <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
                                 <br />
                                 <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@torosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
@@ -357,7 +358,7 @@
                                         </RadzenDataGridColumn>
                                         <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="4%">
                                             <Template Context="data">
-                                                <button class="btn" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
+                                                <button class="btn" type="button" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
 
                                             </Template>
                                         </RadzenDataGridColumn>
@@ -370,7 +371,7 @@
                     if (tipoTemp == "Inseminacion c/celo" || tipoTemp == "Inseminacion c/celo y rep" || tipoTemp == "Inseminacion c/p y rep" || tipoTemp == "IATF c/rep")
                     {
                         <div class="row">
-                            <div class="col-sm">
+                            <div style="flex: 0 0 40%; max-width: 40%;">
                                 <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado dosis de semen</RadzenText>
                                 <br />
                                 <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificados.Where(x=>x.Nrocri==socioSeleccionado.Scod).Where(x=>x.NrDosi>0)" SelectionMode="DataGridSelectionMode.Single" RowClick="@((args) => AddToSelectedCertif(args))"
@@ -383,7 +384,7 @@
                                     </Columns>
                                 </RadzenDataGrid>
                             </div>
-                            <div class="col-sm">
+                            <div style="flex: 0 0 60%; max-width: 60%;">
                                 <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
                                 <br />
                                 <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificadosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
@@ -394,7 +395,8 @@
                                                 @data.original.Hardb
                                             </Template>
                                         </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Dosis Reman" Width="7%">
+
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Dosis Reman" Width="5%">
                                             <Template Context="data">
                                                 @{
                                                     var cert = certificados.FirstOrDefault(x => x.Hba == data.original.Hardb);
@@ -402,12 +404,14 @@
                                                 @((cert?.NrDosi ?? 0))
                                             </Template>
                                         </RadzenDataGridColumn>
+
                                         <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Vientres" Width="6%">
                                             <Template Context="data">
                                                 <RadzenNumeric @bind-Value="data.original.Cantv" class="w-100"></RadzenNumeric>
                                             </Template>
                                         </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Dosis Necesaria" Width="7%">
+
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Dosis Necesaria" Width="5%">
                                             <Template Context="data">
                                                 @if (data.original.Cantv != null)
                                                 {
@@ -417,7 +421,6 @@
                                                             <a>@Math.Round((decimal)(data.original.Cantv * 1.5))</a>
                                                             break;
                                                         case "Inseminacion c/celo y rep":
-
                                                         case "IATF c/rep":
                                                             <a>@data.original.Cantv</a>
                                                             break;
@@ -432,9 +435,10 @@
                                                 }
                                             </Template>
                                         </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Desde" Width="10%">
+
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Desde" Width="9%">
                                             <Template Context="data">
-                                                <div style="min-width:160px">
+                                                <div style="min-width:100px">
                                                     <RadzenDatePicker TValue="DateTime"
                                                                       @bind-Value="data.Desde"
                                                                       DateFormat="dd/MM/yyyy"
@@ -443,9 +447,9 @@
                                             </Template>
                                         </RadzenDataGridColumn>
 
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Hasta" Width="10%">
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Hasta" Width="9%">
                                             <Template Context="data">
-                                                <div style="min-width:160px">
+                                                <div style="min-width:100px">
                                                     <RadzenDatePicker TValue="DateTime"
                                                                       @bind-Value="data.Hasta"
                                                                       DateFormat="dd/MM/yyyy"
@@ -454,6 +458,13 @@
                                             </Template>
                                         </RadzenDataGridColumn>
 
+                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="4%">
+                                            <Template Context="data">
+                                                <button class="btn" type="button" title="Eliminar" @onclick="() => RemoveCertif(data)">
+                                                    <FeatherTrash2 Size="16" Color="red" />
+                                                </button>
+                                            </Template>
+                                        </RadzenDataGridColumn>
                                     </Columns>
                                 </RadzenDataGrid>
                             </div>
@@ -519,6 +530,8 @@ else
     List<Desepla3Data> certificadosSeleccionados = new();
     List<Desepla3DTO> deseplasViejos = new();
     string tipoTemp = "";
+    string previousTipoTemp = "";
+
     Dictionary<string, string> traductor = new Dictionary<string, string>
     {
         {"Natural","NA"},
@@ -539,6 +552,22 @@ else
 
 
     private ClaimsPrincipal? user;
+
+
+    Desepla3DTO CloneDesepla(Desepla3DTO s) => new Desepla3DTO
+        {
+            Id = s.Id,
+            Tatpart = s.Tatpart,
+            Hardb = s.Hardb,
+            Cantv = s.Cantv,
+            Nrodec = s.Nrodec,
+            Tipo = s.Tipo,
+            Servicio = s.Servicio,
+            Desde = s.Desde,
+            Hasta = s.Hasta,
+            Apodo = s.Apodo
+        };
+
 
 
     protected override async Task OnInitializedAsync()
@@ -591,7 +620,11 @@ else
             oDeclaracion = rtaD.List.FirstOrDefault();
             var nrodecLower = oDeclaracion.Nrodec.ToLower();
             Console.WriteLine(3);
+
             tipoTemp = traductor[oDeclaracion.Tipse];
+            previousTipoTemp = tipoTemp;
+            
+            
             Console.WriteLine(4);
             socioSeleccionado = socios.Where(x => x.Scod == oDeclaracion.Nrocri).FirstOrDefault();
             Console.WriteLine(5);
@@ -610,9 +643,8 @@ else
             filtro = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
             var torosrta = await _torosServicio.LimitadosFiltrados(0, 0, filtro);
             toros = torosrta.List.ToList();
-            filtro = $"(Nrocert == null ? \"\" : Nrocert).ToLower() == \"{nrodecLower}\"";
-
-            var certrta = await _certifsemanServicio.LimitadosFiltrados(0, 0, filtro);
+            filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
+            var certrta = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
             certificados = certrta.List.ToList();
 
             Console.WriteLine(certificados);
@@ -623,39 +655,37 @@ else
                 {
                     DateTime? desde = new();
                     DateTime? hasta = new();
+
+                    // CLONAR (¡clave!)
+                    var deseplaClonado = CloneDesepla(desepla);
+
                     var deseplaData = new Desepla3Data
                         {
-                            original = desepla,
+                            original = deseplaClonado,
                         };
+
                     try
                     {
                         desde = DateTime.ParseExact(desepla.Desde, "yyyy-MM-dd", null);
-                        if (desde.HasValue)
-                        {
-                            deseplaData.Desde = desde.Value;
-                        }
+                        if (desde.HasValue) deseplaData.Desde = desde.Value;
                     }
                     catch { }
+
                     try
                     {
                         hasta = DateTime.ParseExact(desepla.Hasta, "yyyy-MM-dd", null);
-                        if (hasta.HasValue)
-                        {
-                            deseplaData.Hasta = hasta.Value;
-                        }
+                        if (hasta.HasValue) deseplaData.Hasta = hasta.Value;
                     }
                     catch { }
 
                     if (desepla.Tipo == "insem")
-                    {
                         certificadosSeleccionados.Add(deseplaData);
-                    }
                     else
-                    {
                         torosSeleccionados.Add(deseplaData);
-                    }
                 }
             }
+
+
 
         }
         else
@@ -685,6 +715,41 @@ else
     }
 
 
+
+
+
+
+    // Helpers
+    double GetMultiplicador(string tipo) => tipo switch
+    {
+        "Inseminacion c/celo" => 1.5,
+        "Inseminacion c/celo y rep" => 1.0,
+        "IATF c/rep" => 1.0,
+        "Inseminacion c/p y rep" => 0.8,
+        _ => 0.0 // Natural no consume dosis
+    };
+
+    int DosisNecesarias(double? cantVientres, double multiplicador)
+    {
+        var v = cantVientres ?? 0.0;
+        if (multiplicador <= 0) return 0;
+
+        return (int)Math.Round(v * multiplicador, MidpointRounding.AwayFromZero);
+    }
+
+    // Construye un mapa HBA -> dosis totales usadas en la declaración
+    Dictionary<string, int> BuildUsoPorCert(IEnumerable<Desepla3DTO> items, double multiplicador)
+    {
+        return items
+            .Where(x => x.Tipo == "insem")  // solo inseminación consume dosis
+            .GroupBy(x => x.Hardb)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Sum(d => DosisNecesarias(d.Cantv, multiplicador))
+            );
+    }
+
+
     async Task Guardar()
     {
         Console.WriteLine("1");
@@ -693,46 +758,24 @@ else
         oDeclaracion.Nrocri = socioSeleccionado.Scod;
         oDeclaracion.Nroplan = Plantelseleccionado.Placod;
         oDeclaracion.Tipse = traductor[tipoTemp];
-        double multiplicador = 0;
 
-        Console.WriteLine("2");
-        @switch (tipoTemp)
-        {
-            case "Inseminacion c/celo":
-                multiplicador = 1.5;
-                break;
-            case "Inseminacion c/celo y rep":
+        // --- Multiplicadores
+        var multActual = GetMultiplicador(tipoTemp);
+        var multPrevio = GetMultiplicador(string.IsNullOrWhiteSpace(previousTipoTemp) ? tipoTemp : previousTipoTemp);
 
-            case "IATF c/rep":
-                multiplicador = 1;
-                break;
-            case "Inseminacion c/p y rep":
-                multiplicador = 0.8;
-                break;
-        }
-        List<CertifsemanDTO> certificadosAlterados = new();
-
-        Console.WriteLine("3");
-
+        // --- Armo seleccionFinal como hacías
         foreach (var adaptacion in torosSeleccionados)
         {
             adaptacion.original.Desde = adaptacion.Desde.ToString("yyyy-MM-dd");
             adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyyy-MM-dd");
             seleccionFinal.Add(adaptacion.original);
+
             if (tipoTemp != "Natural")
             {
-                if (adaptacion.Desde < oDeclaracion.Desde)
-                {
-                    oDeclaracion.Desde = adaptacion.Desde;
-                }
-                if (adaptacion.Hasta > oDeclaracion.Hasta)
-                {
-                    oDeclaracion.Hasta = adaptacion.Hasta;
-                }
+                if (adaptacion.Desde < oDeclaracion.Desde) oDeclaracion.Desde = adaptacion.Desde;
+                if (adaptacion.Hasta > oDeclaracion.Hasta) oDeclaracion.Hasta = adaptacion.Hasta;
             }
         }
-
-        Console.WriteLine("4");
 
         foreach (var adaptacion in certificadosSeleccionados)
         {
@@ -740,94 +783,112 @@ else
             adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyyy-MM-dd");
             seleccionFinal.Add(adaptacion.original);
 
-            var cert = certificados.FirstOrDefault(x => x.Hba == adaptacion.original.Hardb);
-            if (cert != null)
-            {
-                cert.NrDosi -= Convert.ToInt32(Math.Round((decimal)(adaptacion.original.Cantv * multiplicador)));
-                certificadosAlterados.Add(cert);
-            }
-            else
-            {
-                // await Swal.FireAsync("Atención", $"No se encontró certificado para HBA {adaptacion.original.Hardb}", SweetAlertIcon.Warning);
-            }
-
+            // Ajusto rango general si aplica
             oDeclaracion.Desde = adaptacion.Desde;
             oDeclaracion.Hasta = adaptacion.Hasta;
         }
-        Console.WriteLine("5");
+
+        // --- USO INICIAL (lo que tenía la declaración al cargar)
+        //     NOTA: usamos deseplasViejos (traídos de BD). Si estás creando, es lista vacía.
+        var usoInicialPorCert = BuildUsoPorCert(deseplasViejos, multPrevio);
+
+        // --- USO ACTUAL (lo que consumen hoy los seleccionados en pantalla)
+        var usoActualPorCert = BuildUsoPorCert(seleccionFinal, multActual);
+
+        // --- Union de HBAs para calcular delta
+        var hbAs = new HashSet<string>(usoInicialPorCert.Keys);
+        hbAs.UnionWith(usoActualPorCert.Keys);
+
+        // --- Calcular delta y preparar edición de certificados
+        var certificadosAlterados = new List<CertifsemanDTO>();
+
+        foreach (var hba in hbAs)
+        {
+            var inicial = usoInicialPorCert.TryGetValue(hba, out var i) ? i : 0;
+            var actual = usoActualPorCert.TryGetValue(hba, out var a) ? a : 0;
+            var delta = actual - inicial; // + = restar del certificado; - = devolver al certificado
+
+            if (delta == 0) continue;
+
+            var cert = certificados.FirstOrDefault(x => x.Hba == hba);
+            if (cert == null)
+            {
+                await Swal.FireAsync("Atención", $"No se encontró certificado para HBA {hba}", SweetAlertIcon.Warning);
+                continue;
+            }
+
+            // Simulamos para validar
+            var nuevoNrDosi = cert.NrDosi - delta; // delta positivo resta; delta negativo suma
+            if (nuevoNrDosi < 0)
+            {
+                await Swal.FireAsync("Atención",
+                    $"El certificado HBA {hba} no tiene suficientes dosis. " +
+                    $"Intento consumir {delta} y quedan {cert.NrDosi}.",
+                    SweetAlertIcon.Warning);
+                return; // aborta el guardado
+            }
+
+            // Creamos un "snapshot" para enviar al Editar
+            certificadosAlterados.Add(new CertifsemanDTO
+                {
+                    Id = cert.Id,
+                    NrDosi = nuevoNrDosi,
+
+                    // <<< IMPORTANTE >>>
+                    // Copiá aquí cualquier otro campo NO NULLABLE que tu API espere en Editar
+                    // (si tu Editar hace "update full", envía los mismos valores actuales del cert)
+                    Hba = cert.Hba,
+                    Tatpart = cert.Tatpart,
+                    Nrocri = cert.Nrocri,
+                    NomDad = cert.NomDad
+                    // ... lo que corresponda en tu DTO
+                });
+        }
+
+        // --- Persistencia de certificados primero (para asegurar stock coherente)
+        foreach (var cert in certificadosAlterados)
+        {
+            var r = await _certifsemanServicio.UpdateNrDosi(cert.Id, cert.NrDosi ?? 0);
+            if (r?.Exito != 1)
+            {
+                await Swal.FireAsync("Error", r?.Mensaje ?? "No se pudo actualizar NrDosi", SweetAlertIcon.Error);
+                return; // abortar guardar si querés consistencia estricta
+            }
+        }
+
+        // --- Persistir declaración y detalles (tu flujo original)
+        if (!string.IsNullOrEmpty(oDeclaracion.Nrodec) && oDeclaracion.Nrodec.Length > 15)
+        {
+            oDeclaracion.Nrodec = oDeclaracion.Nrodec.Substring(0, 15);
+        }
+        else if (string.IsNullOrEmpty(oDeclaracion.Nrodec))
+        {
+            oDeclaracion.Nrodec = "0";
+        }
 
         if (Id == 0)
         {
-
-            Console.WriteLine("5 id == 0");
-
-            foreach (var cert in certificadosAlterados)
-            {
-                Console.WriteLine("LOOP");
-                await _certifsemanServicio.Crear(cert);
-            }
-            if (!string.IsNullOrEmpty(oDeclaracion.Nrodec) && oDeclaracion.Nrodec.Length > 10)
-            {
-                oDeclaracion.Nrodec = oDeclaracion.Nrodec.Substring(0, 15);
-            }
-
-
-            else if (string.IsNullOrEmpty(oDeclaracion.Nrodec))
-            {
-                oDeclaracion.Nrodec = "0";
-            }
+            // Crear
             foreach (var dese in seleccionFinal)
             {
-                Console.WriteLine($"NRODEC: {dese.Nrodec} (Length: {dese.Nrodec?.Length})");
-
                 await _desepla3Servicio.Crear(dese);
             }
-
-            Console.WriteLine("6");
-
             await _desepla1Servicio.Crear(oDeclaracion);
-
-
-
-
-
-            // var mail = $"Aviso de creación de declaración S/ \n -Nro de folio: {oDeclaracion.NrFolio} \n -Tipo: {tipoTemp} \n -Servicio de Vientres PR: {oDeclaracion.Plantel} \n-Servicio de Vientres VIP: {oDeclaracion.Cantb} \n- plantel: {oDeclaracion.Plantel}";
-            // var request = new
-            // {
-            //     Vendedor = "",
-            //     Comprador = "",
-            //     Mail = mail,
-            //     Direccion = ""
-            // };
-            // HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
-
-            Navigation.NavigateTo("/declaraciones"); // Volvé al listado si cancela
+            Navigation.NavigateTo("/declaraciones");
+            return;
         }
         else
         {
-            foreach (var cert in certificadosAlterados)
-            {
-                Console.WriteLine("LOOP");
-                await _certifsemanServicio.Crear(cert);
-            }
-
-
-            Console.WriteLine("ID !== 0 6");
-
+            // Editar: borro viejos y recreo (como ya tenías)
             var nrodecLower = oDeclaracion.Nrodec.ToLower();
             var filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecLower}\"";
-            var certificadosExistentes = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
+            var existentes = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
 
-            if (certificadosExistentes?.List != null)
+            if (existentes?.List != null)
             {
-                foreach (var cert in certificadosExistentes.List)
-                {
-                    await _desepla3Servicio.Eliminar(cert.Id);
-                }
+                foreach (var d in existentes.List)
+                    await _desepla3Servicio.Eliminar(d.Id);
             }
-
-            // Luego los creás nuevamente
-
 
             foreach (var dese in seleccionFinal)
             {
@@ -836,33 +897,9 @@ else
             }
 
             await _desepla1Servicio.Editar(oDeclaracion);
-            Console.WriteLine("7");
-
-
-            Console.WriteLine("BOSSS");
-
-            Console.WriteLine(user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value);
-
-            // var changeNotification = new
-            // {
-            //     Id = user?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value,
-            //     // Email = user?.Claims?.FirstOrDefault(c => c.Type == "email")?.Value,
-            //     Tipo = "Creacion",  // El tipo de la acción que estás realizando
-            //     Clase = "Declaracion",  // La clase de la acción
-            //     Detalle = "El usuario ha creado una declaracion."  // Detalles adicionales sobre la acción
-            // };
-
-
-
-            // // Enviar el objeto completo al backend
-            // var result2 = await http.PostAsJsonAsync("api/Account/SendChangeNotificationMail", changeNotification);
-
-
-
-            Navigation.NavigateTo("/declaraciones"); // Volvé al listado si cancela
+            Navigation.NavigateTo("/declaraciones");
+            return;
         }
-
-
     }
 
 
@@ -965,6 +1002,32 @@ else
         catch { }
     }
 
+
+    private async Task RemoveCertif(Desepla3Data data)
+    {
+        certificadosSeleccionados = certificadosSeleccionados
+            .Where(c => c.original.Hardb != data.original.Hardb)
+            .ToList();
+
+        if (Id != 0 && data.Id > 0)
+        {
+            try
+            {
+                await _desepla3Servicio.Eliminar(data.Id);
+            }
+            catch
+            {
+                Console.WriteLine("Error al eliminar desepla3 (semen)");
+            }
+        }
+
+        try { await InvokeAsync(gridCertif.Reload); } catch { }
+    }
+
+
+
+
+
     protected void AddToSelectedCertif(DataGridRowMouseEventArgs<CertifsemanDTO> args)
     {
         var certif = args.Data;
@@ -998,16 +1061,59 @@ else
     protected async Task UpdateValores(SocioDTO socio)
     {
         socioSeleccionado = socio;
+
+        await ResetForSocioChange();
+
         string filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socio.Scod}\".ToLower())";
         var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         Planteles = rt.List;
+
         filtro = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{socio.Scod}\".ToLower())";
         var rta = await _torosServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         toros = rta.List;
+
         filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socio.Scod}\".ToLower())";
         var rtaa = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         certificados = rtaa.List;
+
+        StateHasChanged();
     }
+
+
+    private async Task ResetForSocioChange()
+    {
+        // Limpiar seleccionados y resultados intermedios
+        torosSeleccionados.Clear();
+        certificadosSeleccionados.Clear();
+        seleccionFinal.Clear();
+        deseplasViejos.Clear();
+
+        // Reset de plantel y tipo
+        Plantelseleccionado = null;
+        tipoTemp = string.Empty;
+
+        // Reset de campos de la declaración (sin tocar Nrodec ni Id)
+        oDeclaracion.Cantv = 0;
+        oDeclaracion.Cantb = 0;
+        oDeclaracion.Desde = DateTime.Now;
+        oDeclaracion.Hasta = DateTime.Now;
+
+        // (Opcional) Fecha de recepción si querés reiniciarla
+        // oDeclaracion.Fchrecepcion = DateTime.Now;
+
+        // Refrescar grillas si están montadas
+        try { if (gridToro1 != null) await gridToro1.Reload(); } catch { }
+        try { if (gridToro2 != null) await gridToro2.Reload(); } catch { }
+        try { if (gridCertif != null) await gridCertif.Reload(); } catch { }
+
+        StateHasChanged();
+    }
+
+
+
+
+
+
 
     public class Desepla3Data
     {

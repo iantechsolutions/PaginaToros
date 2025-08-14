@@ -2,8 +2,10 @@
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
+using PaginaToros.Shared.Models.Response;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
+using static System.Net.WebRequestMethods;
 
 namespace PaginaToros.Server.Repositorio.Implementacion
 {
@@ -156,6 +158,25 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
+        public async Task<bool> UpdateNrDosiAsync(int id, int nrDosi)
+        {
+            try
+            {
+                var entity = await _dbContext.Certifsemen.FirstOrDefaultAsync(e => e.Id == id);
+                if (entity == null) return false;
+
+                entity.NrDosi = nrDosi;
+                await _dbContext.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+
         public async Task<IQueryable<Certifseman>> Consultar(Expression<Func<Certifseman, bool>> filtro = null)
         {
             IQueryable<Certifseman> queryEntidad = filtro == null
@@ -164,6 +185,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
             return queryEntidad;
         }
+
+            
 
         public async Task<int> CantidadTotal()
         {

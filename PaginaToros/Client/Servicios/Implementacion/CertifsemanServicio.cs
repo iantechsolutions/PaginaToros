@@ -40,6 +40,21 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var result = await _http.GetFromJsonAsync<Respuesta<List<CertifsemanDTO>>>($"api/Certifseman/LimitadosFiltrados?skip=0&take=0&expression={filter}");
             return result;
         }
+        public async Task<Respuesta<CertifsemanDTO>> UpdateNrDosi(int id, int nrDosi)
+        {
+            var url = $"api/Certifseman/{id}/nr-dosi";
+            var res = await _http.PutAsJsonAsync(url, nrDosi);
+
+            var payload = await res.Content.ReadFromJsonAsync<Respuesta<CertifsemanDTO>>();
+
+            return payload ?? new Respuesta<CertifsemanDTO>
+            {
+                Exito = 0,
+                Mensaje = $"Error HTTP {(int)res.StatusCode} al actualizar NrDosi"
+            };
+        }
+
+
 
         public async Task<bool> Eliminar(int id)
         {

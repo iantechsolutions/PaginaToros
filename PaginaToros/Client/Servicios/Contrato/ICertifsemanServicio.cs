@@ -12,6 +12,9 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<Respuesta<List<CertifsemanDTO>>> GetBySocioId(int socioId);
         Task<bool> Eliminar(int id);
         Task<Respuesta<CertifsemanDTO>> Crear(CertifsemanDTO entidad);
+
+        Task<Respuesta<CertifsemanDTO>> UpdateNrDosi(int id, int nrDosi);
+
         Task<bool> Editar(CertifsemanDTO entidad);
         Task<Respuesta<CertifsemanDTO>> Filtrar(string descripcion);
     }
