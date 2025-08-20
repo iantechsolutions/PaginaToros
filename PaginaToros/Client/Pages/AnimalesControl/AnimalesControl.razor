@@ -332,10 +332,17 @@
             HembrasMarcablesPR = presentadasPR - yaMarcadasPR;
             if (HembrasMarcablesPR < 0) HembrasMarcablesPR = 0;
 
-            // MACHOS marcables = mochos de SCP + CP
-            var mcpM = SumAny<double>(x => x.McpM);
-            var mspM = SumAny<double>(x => x.MspM);
-            MachosMarcables = mcpM + mspM;
+            // MACHOS marcables = presentados (SCP + CP) - (mochos + astados)
+            var mcp = SumAny<double>(x => x.Mcp);    // presentados CP
+            var msp = SumAny<double>(x => x.Msp);    // presentados SCP
+            var mcpM = SumAny<double>(x => x.McpM);   // mochos CP
+            var mspM = SumAny<double>(x => x.MspM);   // mochos SCP
+            var mcpAs = SumAny<double>(x => x.McpAs);  // astados CP
+            var mspAs = SumAny<double>(x => x.MspAs);  // astados SCP
+
+            var presentadosMachos = mcp + msp;
+            var descartadosMachos = mcpM + mspM + mcpAs + mspAs;
+            MachosMarcables = Math.Max(0, presentadosMachos - descartadosMachos);
 
             tuvoDatos = items.Count > 0;
 
