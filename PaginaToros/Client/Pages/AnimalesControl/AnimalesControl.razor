@@ -1,16 +1,39 @@
 ﻿@page "/animalescontrol"
 
-@using PaginaToros.Client.Servicios.Contrato
 @using Blazored.Typeahead
-@inject AuthenticationStateProvider AuthenticationStateProvider
-@inject IDesepla1Servicio _desepla1Servicio
-@inject ISocioServicio _socioServicio
+@using PaginaToros.Client.Servicios.Contrato
 @using PaginaToros.Shared.Models
-@inject IDesepla3Servicio _desepla3Servicio
-<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Animales posibles para control:</h3>
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISocioServicio _socioServicio
+@inject IResin6Servicio _resin6Servicio
+
+<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Animales marcables</h3>
 
 <style>
-    .inline-flex { display:inline-flex; align-items:center; gap:.5rem; }
+    .inline-flex {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+        margin: 8px auto;
+        max-width: 640px;
+        background: #fff;
+    }
+
+    .big {
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .muted {
+        color: #6b7280;
+        font-size: 12px
+    }
 </style>
 
 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
@@ -27,7 +50,6 @@
         else
         {
             <div style="max-width: 900px; margin: 0 auto;">
-                <!-- Selector de socio (Admin) -->
                 <div class="inline-flex" style="margin: 8px 0;">
                     <label class="font-semibold">Seleccionar socio:</label>
                     <BlazoredTypeahead TItem="SocioDTO"
@@ -38,33 +60,28 @@
                                        SearchMethod="BusquedaSocios"
                                        EnableDropDown="true"
                                        placeholder="Busque socio por nombre">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </ResultTemplate>
+                        <SelectedTemplate Context="s">@s.Nombre</SelectedTemplate>
+                        <ResultTemplate Context="s">@s.Nombre</ResultTemplate>
                     </BlazoredTypeahead>
 
                     <button class="font-bold px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100"
-                            disabled="@(socioSeleccionadoId <= 0)"
+                            disabled="@(string.IsNullOrWhiteSpace(scodSeleccionado))"
                             @onclick="CargarParaSocio">
-                        Cargar toros
+                        Cargar datos
                     </button>
                 </div>
 
-                @if (socioSeleccionadoId <= 0)
+                @if (string.IsNullOrWhiteSpace(scodSeleccionado))
                 {
                     <div class="mt-4 p-4 rounded-xl border border-gray-200 bg-gray-50">
                         Elegí un socio para habilitar la consulta por año.
                     </div>
                 }
-                else if (Declaraciones != null && Declaraciones.Count > 0)
+                else
                 {
-                    @* Sección de año + resultados (igual a la de Socio) *@
                     <center>
                         <br />
-                        <RadzenText TextStyle="TextStyle.H5">Ingrese año de nacimiento de los animales</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H5">Ingrese año</RadzenText>
                         <br />
                         <div style="display:flex;flex-direction:row;align-items:center;justify-content:center">
                             <input type="number" class="form-control" @bind="anioTemp" style="width:10%" />
@@ -75,79 +92,31 @@
                             </button>
                         </div>
 
-                        <br />
-                        <br />
+                        <br /><br />
                         @if (generado)
                         {
-                            <!-- Resumen de vientres -->
-                            <h4>Declaraciones que afectan el año: @anioGenerado</h4>
-                            <br />
-                            <table class="tableStyleClassTwo" id="tabla2" bottom="middle" width="334" bgcolor="#FFFFFF" align="center" style="text-align:center">
-                                <tbody>
-                                    <tr bgcolor="#CCCCCC">
-                                        <td colspan="3" bgcolor="#FFFFFF"><h3 align="center">Resumen de Vientres</h3></td>
-                                    </tr>
-                                <td colspan="3" bgcolor="#FFFFFF"></td>
-                                <tr bgcolor="#CCCCCC">
-                                    <td width="75"><strong style="font-size:12px">Vientres PR</strong></td>
-                                    <td width="62"><strong style="font-size:12px">Vientres VIP</strong></td>
-                                    <td width="62"><strong style="font-size:12px">Total</strong></td>
-                                </tr>
-                                <tr>
-                                    <td>@totalVientresPR</td>
-                                    <td>@totalVientresVIP</td>
-                                    <td>@totalVientres</td>
-                                </tr>
-                                </tbody>
-                            </table>
+                            <div class="card">
+                                <div class="muted">Año</div>
+                                <div class="big">@anioGenerado</div>
+                                <div class="mt-3 grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                                    <div>
+                                        <div class="muted">Hembras PR marcables</div>
+                                        <div class="big">@HembrasMarcablesPR</div>
+                                    </div>
+                                    <div>
+                                        <div class="muted">Machos marcables (SCP+CP)</div>
+                                        <div class="big">@MachosMarcables</div>
+                                    </div>
+                                </div>
+                            </div>
 
-                            <!-- Toros seleccionados -->
-                            <br />
-                            <RadzenText TextStyle="TextStyle.H5">Toros seleccionados en declaraciones del año</RadzenText>
-                            <br />
-                            @if (TorosSeleccionados.Count == 0)
+                            @if (!tuvoDatos)
                             {
-                                <div class="mt-2 p-3 rounded-xl border border-gray-200 bg-gray-50">
-                                    No hay toros seleccionados en las declaraciones que afectan @anioGenerado.
+                                <div class="mt-4 p-3 rounded-xl border border-gray-200 bg-gray-50" style="max-width:700px">
+                                    No se encontraron inspecciones (Resin6) para el socio en @anioGenerado.
                                 </div>
                             }
-                            else
-                            {
-                                <table class="tableStyleClassTwo" width="640" bgcolor="#FFFFFF" align="center" style="text-align:center">
-                                    <thead>
-                                        <tr bgcolor="#CCCCCC">
-                                            <th>Declaración</th>
-                                            <th>HBA</th>
-                                            <th>Tatuaje</th>
-                                            <th>Desde</th>
-                                            <th>Hasta</th>
-                                            <th>Vientres</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var t in TorosSeleccionados)
-                                        {
-                                            <tr>
-                                                <td>@t.Nrodec</td>
-                                                <td>@t.Hba</td>
-                                                <td>@t.Tatuaje</td>
-                                                <td>@(t.Desde?.ToString("dd/MM/yyyy") ?? "-")</td>
-                                                <td>@(t.Hasta?.ToString("dd/MM/yyyy") ?? "-")</td>
-                                                <td>@t.Vientres</td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            }
                         }
-                    </center>
-                }
-                else
-                {
-                    <center>
-                        <div class="mt-6 p-4 rounded-xl border border-gray-200 bg-gray-50" style="max-width: 800px;">
-                            <strong>No hay toros cargados para este socio.</strong>
-                        </div>
                     </center>
                 }
             </div>
@@ -168,140 +137,67 @@
         }
         else
         {
-            @if (Declaraciones != null && Declaraciones.Count > 0)
-            {
-                <center>
-                    <br />
-                    <RadzenText TextStyle="TextStyle.H5">Ingrese año de nacimiento de los animales</RadzenText>
-                    <br />
-                    <div style="display:flex;flex-direction:row;align-items:center;justify-content:center">
-                        <input type="number" class="form-control" @bind="anioTemp" style="width:10%" />
-                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                                style="position:relative;left:3.33%;display:flex"
-                                @onclick="GenerarResultado">
-                            <FeatherSearch Size="24" Color="Black" /> Consultar
-                        </button>
-                    </div>
+            <center>
+                <br />
+                <RadzenText TextStyle="TextStyle.H5">Ingrese año</RadzenText>
+                <br />
+                <div style="display:flex;flex-direction:row;align-items:center;justify-content:center">
+                    <input type="number" class="form-control" @bind="anioTemp" style="width:10%" />
+                    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
+                            style="position:relative;left:3.33%;display:flex"
+                            @onclick="GenerarResultado">
+                        <FeatherSearch Size="24" Color="Black" /> Consultar
+                    </button>
+                </div>
 
-                    <br />
-                    <br />
-                    @if (generado)
-                    {
-                        <!-- Resumen de vientres -->
-                        <h4>Declaraciones que afectan el año: @anioGenerado</h4>
-                        <br />
-                        <table class="tableStyleClassTwo" id="tabla2" bottom="middle" width="334" bgcolor="#FFFFFF" align="center" style="text-align:center">
-                            <tbody>
-                                <tr bgcolor="#CCCCCC">
-                                    <td colspan="3" bgcolor="#FFFFFF"><h3 align="center">Resumen de Vientres</h3></td>
-                                </tr>
-                            <td colspan="3" bgcolor="#FFFFFF"></td>
-                            <tr bgcolor="#CCCCCC">
-                                <td width="75"><strong style="font-size:12px">Vientres PR</strong></td>
-                                <td width="62"><strong style="font-size:12px">Vientres VIP</strong></td>
-                                <td width="62"><strong style="font-size:12px">Total</strong></td>
-                            </tr>
-                            <tr>
-                                <td>@totalVientresPR</td>
-                                <td>@totalVientresVIP</td>
-                                <td>@totalVientres</td>
-                            </tr>
-                            </tbody>
-                        </table>
-
-                        <!-- Toros seleccionados -->
-                        <br />
-                        <RadzenText TextStyle="TextStyle.H5">Toros seleccionados en declaraciones del año</RadzenText>
-                        <br />
-                        @if (TorosSeleccionados.Count == 0)
-                        {
-                            <div class="mt-2 p-3 rounded-xl border border-gray-200 bg-gray-50">
-                                No hay toros seleccionados en las declaraciones que afectan @anioGenerado.
+                <br /><br />
+                @if (generado)
+                {
+                    <div class="card">
+                        <div class="muted">Año</div>
+                        <div class="big">@anioGenerado</div>
+                        <div class="mt-3 grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                            <div>
+                                <div class="muted">Hembras PR marcables</div>
+                                <div class="big">@HembrasMarcablesPR</div>
                             </div>
-                        }
-                        else
-                        {
-                            <table class="tableStyleClassTwo" width="640" bgcolor="#FFFFFF" align="center" style="text-align:center">
-                                <thead>
-                                    <tr bgcolor="#CCCCCC">
-                                        <th>Declaración</th>
-                                        <th>HBA</th>
-                                        <th>Tatuaje</th>
-                                        <th>Desde</th>
-                                        <th>Hasta</th>
-                                        <th>Vientres</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var t in TorosSeleccionados)
-                                    {
-                                        <tr>
-                                            <td>@t.Nrodec</td>
-                                            <td>@t.Hba</td>
-                                            <td>@t.Tatuaje</td>
-                                            <td>@(t.Desde?.ToString("dd/MM/yyyy") ?? "-")</td>
-                                            <td>@(t.Hasta?.ToString("dd/MM/yyyy") ?? "-")</td>
-                                            <td>@t.Vientres</td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        }
-                    }
-                </center>
-            }
-            else
-            {
-                <center>
-                    <div class="mt-6 p-4 rounded-xl border border-gray-200 bg-gray-50" style="max-width: 800px;">
-                        <strong>No hay toros cargados para este socio.</strong>
+                            <div>
+                                <div class="muted">Machos marcables (SCP+CP)</div>
+                                <div class="big">@MachosMarcables</div>
+                            </div>
+                        </div>
                     </div>
-                </center>
-            }
+
+                    @if (!tuvoDatos)
+                    {
+                        <div class="mt-4 p-3 rounded-xl border border-gray-200 bg-gray-50" style="max-width:700px">
+                            No se encontraron inspecciones (Resin6) para tu usuario en @anioGenerado.
+                        </div>
+                    }
+                }
+            </center>
         }
     </Authorized>
 </AuthorizeView>
 
 @code {
-    // Estado general
+    // Estado
     bool loading = true;
     bool generado = false;
+    bool tuvoDatos = false;
 
     // Año
     int anioTemp = DateTime.Now.Year;
     int anioGenerado = DateTime.Now.Year;
+
+    // Socio / SCOD
     SocioDTO? socioSeleccionado = null;
-    // Datos
-    List<Desepla1DTO> Declaraciones = new();
-    double totalVientresPR;
-    double totalVientresVIP;
-    double totalVientres;
-
-    List<ToroSeleccionadoVM> TorosSeleccionados = new();
-
-    class ToroSeleccionadoVM
-    {
-        public string Hba { get; set; } = "";
-        public string? Tatuaje { get; set; }
-        public string Nrodec { get; set; } = "";
-        public DateTime? Desde { get; set; }
-        public DateTime? Hasta { get; set; }
-        public double Vientres { get; set; }
-    }
-
-    public class Desepla1DTO
-    {
-        public int Id { get; set; }
-        public DateTime? Desde { get; set; }
-        public DateTime? Hasta { get; set; }
-        public double? Cantv { get; set; }   // PR
-        public double? Cantb { get; set; }   // VIP
-        public string? Tipse { get; set; }
-        public string? Nrodec { get; set; }  // <-- NUEVO
-    }
-    // Admin: selector de socios
+    string scodSeleccionado = "";
     List<SocioDTO> Socios = new();
-    int socioSeleccionadoId = 0;
+
+    // Totales que pedís
+    double HembrasMarcablesPR = 0;   // (Hdp + Hpp) - (HdpM + HppM + HdpAs + HppAs)
+    double MachosMarcables = 0;      // (McpM + MspM)
 
     protected override async Task OnInitializedAsync()
     {
@@ -313,33 +209,31 @@
         try
         {
             loading = true;
+            var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = auth.User;
 
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-
-            // Si es Admin/Maestro, precarga lista de socios (selector)
             if (user.IsInRole("ADMINISTRADOR") || user.IsInRole("USUARIOMAESTRO"))
             {
                 var r = await _socioServicio.LimitadosFiltrados(0, 0);
-                Socios = r.List;
-                Declaraciones = new(); 
+                Socios = r.List ?? new();
+                Console.WriteLine($"[Init] Admin/Maestro: {Socios.Count} socios");
             }
 
-            // Si es Socio, ya carga por su SocioId
             if (user.IsInRole("Socio"))
             {
-                var socioId = 0;
-                foreach (var claim in user.Claims)
+                var socioId = user.Claims.FirstOrDefault(c => c.Type == "SocioId")?.Value;
+                if (int.TryParse(socioId, out var id) && id > 0)
                 {
-                    if (claim.Type == "SocioId" && int.TryParse(claim.Value, out var parsed))
-                    {
-                        socioId = parsed;
-                        break;
-                    }
+                    var all = await _socioServicio.LimitadosFiltrados(0, 0);
+                    var me = (all.List ?? new()).FirstOrDefault(s => s.Id == id);
+                    scodSeleccionado = me?.Scod ?? "";
+                    Console.WriteLine($"[Init] Socio Id={id} -> SCOD={scodSeleccionado}");
                 }
-
-                await CargarDeclaracionesPorSocio(socioId);
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Init] Error: {ex.Message}");
         }
         finally
         {
@@ -348,175 +242,113 @@
         }
     }
 
-    private async Task CargarParaSocio()
-    {
-        if (socioSeleccionadoId <= 0) return;
-
-        loading = true;
-        try
-        {
-            await CargarDeclaracionesPorSocio(socioSeleccionadoId);
-            // Limpio resultados previos
-            ResetResultados();
-        }
-        finally
-        {
-            loading = false;
-        }
-    }
-
-    private async Task CargarDeclaracionesPorSocio(int socioId)
-    {
-        var rta = await _desepla1Servicio.GetBySocioId(socioId);
-        var origen = rta?.List ?? new List<PaginaToros.Shared.Models.Desepla1DTO>();
-
-        Declaraciones = origen
-            .Select(x => new Desepla1DTO
-                {
-                    Id = x.Id,
-                    Desde = x.Desde,
-                    Hasta = x.Hasta,
-                    Cantv = x.Cantv,
-                    Cantb = x.Cantb,
-                    Tipse = x.Tipse,
-                    Nrodec = x.Nrodec   // <-- NUEVO
-                })
-            .ToList();
-    }
+    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string q)
+      => await Task.FromResult(
+        Socios.Where(x => x.Criador == "S" && (x.Nombre ?? "").ToLower().Contains((q ?? "").ToLower()))
+              .ToList()
+      );
 
     public async Task uploadSocio(SocioDTO socio)
     {
         socioSeleccionado = socio;
-        socioSeleccionadoId = socio?.Id ?? 0;
-
-        Declaraciones.Clear();
-        ResetResultados();
-
-
+        scodSeleccionado = socio?.Scod ?? "";
+        Console.WriteLine($"[uploadSocio] {socioSeleccionado?.Nombre} - SCOD={scodSeleccionado}");
+        generado = false;
+        ResetTotals();
         StateHasChanged();
+        await Task.CompletedTask;
     }
 
-
-    private void OnSocioChange(ChangeEventArgs _)
+    private async Task CargarParaSocio()
     {
-        Declaraciones = new();
-        ResetResultados();
+        if (socioSeleccionado is null) return;
+        scodSeleccionado = socioSeleccionado.Scod ?? "";
+        Console.WriteLine($"[CargarParaSocio] SCOD={scodSeleccionado}");
+        generado = false;
+        ResetTotals();
         StateHasChanged();
+        await Task.CompletedTask;
     }
-    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
+
+    private void ResetTotals()
     {
-        return await Task.FromResult(Socios.Where(x => x.Criador == "S" && x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+        HembrasMarcablesPR = 0;
+        MachosMarcables = 0;
+        tuvoDatos = false;
     }
 
-
-    private void ResetResultados()
+    private async Task GenerarResultado()
     {
         generado = false;
-        anioTemp = 0;
-        anioGenerado = 0;
-        totalVientresPR = 0;
-        totalVientresVIP = 0;
-        totalVientres = 0;
-    }
-    private async Task<List<Desepla3DTO>> TraerDesepla3PorNrodec(IEnumerable<string> nroDecs)
-    {
-        var lista = new List<Desepla3DTO>();
-        foreach (var nd in nroDecs.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct())
-        {
-            var key = nd.ToLower();
-            var filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{key}\"";
-            var r = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
-            if (r?.List != null) lista.AddRange(r.List);
-        }
-        return lista;
-    }
-
-    private async void GenerarResultado()
-    {
-        generado = false;
-        totalVientresPR = 0;
-        totalVientresVIP = 0;
-        totalVientres = 0;
-        TorosSeleccionados.Clear();  // <-- limpiar listado de toros
+        ResetTotals();
 
         anioGenerado = anioTemp;
-        if (anioGenerado <= 0) return;
-
-        var inicio = new DateTime(anioGenerado, 1, 1);
-        var fin = new DateTime(anioGenerado, 12, 31);
-
-        var dec = Declaraciones
-            .Where(x =>
-            {
-                var d = x.Desde ?? DateTime.MinValue;
-                var h = x.Hasta ?? DateTime.MaxValue;
-                return d <= fin && h >= inicio;
-            })
-            .GroupBy(x => x.Id)
-            .Select(g => g.First())
-            .ToList();
-
-        totalVientresPR = dec.Sum(x => x.Cantv ?? 0);
-        totalVientresVIP = dec.Sum(x => x.Cantb ?? 0);
-        totalVientres = totalVientresPR + totalVientresVIP;
-
-        // --- NUEVO: cargar toros seleccionados (Desepla3) para esas declaraciones
-        var nroDecs = dec.Select(x => x.Nrodec).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToList();
-        var detalles = await TraerDesepla3PorNrodec(nroDecs);
-
-        // Solo NATURAL (toros): Tipo == "toro"
-        var toros = detalles
-            .Where(d => string.Equals(d.Tipo, "toro", StringComparison.OrdinalIgnoreCase))
-            .Select(d => new
-            {
-                d.Hardb,
-                d.Tatpart,
-                d.Nrodec,
-                // d.Desde / d.Hasta vienen como string "yyyy-MM-dd" en muchos casos
-                Desde = ParseDate(d.Desde),
-                Hasta = ParseDate(d.Hasta),
-                Vientres = d.Cantv ?? 0
-            })
-            .ToList();
-
-        // (opcional) Filtrar por solapamiento con el año a nivel detalle de toro
-        toros = toros.Where(t =>
+        if (anioGenerado <= 0 || string.IsNullOrWhiteSpace(scodSeleccionado))
         {
-            var d = t.Desde ?? DateTime.MinValue;
-            var h = t.Hasta ?? DateTime.MaxValue;
-            return d <= fin && h >= inicio;
-        }).ToList();
+            Console.WriteLine("[GenerarResultado] Año o SCOD inválidos");
+            return;
+        }
 
-        // Agrupar por HBA + Nrodec (si querés ver por declaración)
-        TorosSeleccionados = toros
-            .GroupBy(t => new { t.Hardb, t.Tatpart, t.Nrodec })
-            .Select(g => new ToroSeleccionadoVM
+        var desde = new DateTime(anioGenerado, 1, 1);
+        var hasta = new DateTime(anioGenerado, 12, 31);
+
+        try
+        {
+            var r = await _resin6Servicio.ObtenerFechas(desde.Ticks, hasta.Ticks);
+            var items = (r?.List ?? new List<Resin6DTO>())
+              .Where(x =>
+                (x.Resin1?.Freali?.Date ?? DateTime.MinValue) >= desde &&
+                (x.Resin1?.Freali?.Date ?? DateTime.MaxValue) <= hasta &&
+                string.Equals((x.Resin1?.Scod ?? "").Trim(),
+                              (scodSeleccionado ?? "").Trim(),
+                              StringComparison.OrdinalIgnoreCase))
+              .ToList();
+
+            Console.WriteLine($"[GenerarResultado] Año={anioGenerado} SCOD={scodSeleccionado} items={items.Count}");
+
+            // Sum helpers (funciona si los DTO son double? o int?)
+            double SumAny<T>(Func<Resin6DTO, T?> sel) where T : struct
+            {
+                double s = 0;
+                foreach (var it in items)
                 {
-                    Hba = g.Key.Hardb,
-                    Tatuaje = g.Key.Tatpart,
-                    Nrodec = g.Key.Nrodec,
-                    Desde = g.Min(x => x.Desde),
-                    Hasta = g.Max(x => x.Hasta),
-                    Vientres = g.Sum(x => x.Vientres)
-                })
-            .OrderBy(t => t.Nrodec)
-            .ThenBy(t => t.Hba)
-            .ToList();
+                    var v = sel(it);
+                    if (v.HasValue) s += Convert.ToDouble(v.Value);
+                }
+                return s;
+            }
 
-        generado = true;
-        StateHasChanged();
+            // HEMBRAS PR marcables = presentadas PR - (marcadas mochas + marcadas astadas)
+            var hdp = SumAny<double>(x => x.Hdp);
+            var hpp = SumAny<double>(x => x.Hpp);
+            var hdpM = SumAny<double>(x => x.HdpM);
+            var hppM = SumAny<double>(x => x.HppM);   // si fuese int? igual funciona
+            var hdpAs = SumAny<double>(x => x.HdpAs);
+            var hppAs = SumAny<double>(x => x.HppAs);
+
+            var presentadasPR = hdp + hpp;
+            var yaMarcadasPR = hdpM + hppM + hdpAs + hppAs;
+
+            HembrasMarcablesPR = presentadasPR - yaMarcadasPR;
+            if (HembrasMarcablesPR < 0) HembrasMarcablesPR = 0;
+
+            // MACHOS marcables = mochos de SCP + CP
+            var mcpM = SumAny<double>(x => x.McpM);
+            var mspM = SumAny<double>(x => x.MspM);
+            MachosMarcables = mcpM + mspM;
+
+            tuvoDatos = items.Count > 0;
+
+            Console.WriteLine($"[GenerarResultado] HembrasMarcablesPR={HembrasMarcablesPR}  MachosMarcables={MachosMarcables}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GenerarResultado] Error: {ex.Message}");
+        }
+        finally
+        {
+            generado = true;
+            StateHasChanged();
+        }
     }
-
-    private DateTime? ParseDate(string? ymd)
-    {
-        if (string.IsNullOrWhiteSpace(ymd)) return null;
-        if (DateTime.TryParseExact(ymd, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var d))
-            return d;
-        // Si el backend ya guarda DateTime, podrías intentar DateTime.TryParse(ymd, out var d2)
-        return null;
-    }
-
-   
-
-    
 }
