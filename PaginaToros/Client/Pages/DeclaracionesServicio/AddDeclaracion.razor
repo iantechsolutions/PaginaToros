@@ -63,13 +63,19 @@
                     </div>
 
                      <div class="col-sm text-end">
-                       @*  <button type="button"
-                                class="btn btn-primary mr-2"
-                                @onclick="GenerarOtra">
-                            Aceptar y Generar otra declaración
-                        </button> *@
+                 
 
+                            @if (Id != 0)
+                            {
+                                <button type="button"
+                                        class="btn btn-danger"
+                                        @onclick="EliminarDeclaracion">
+                                    Eliminar declaración
+                                </button>
+                            }
                         <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+                        
+
                     </div> 
                 </div>
                 <br />
@@ -661,8 +667,11 @@ else
 
                     var deseplaData = new Desepla3Data
                         {
+                            LineKey = Guid.NewGuid(),
                             original = deseplaClonado,
+                            Id = desepla.Id
                         };
+
 
                     try
                     {
@@ -1006,19 +1015,13 @@ else
     private async Task RemoveCertif(Desepla3Data data)
     {
         certificadosSeleccionados = certificadosSeleccionados
-            .Where(c => c.original.Hardb != data.original.Hardb)
+            .Where(c => c.LineKey != data.LineKey)
             .ToList();
 
         if (Id != 0 && data.Id > 0)
         {
-            try
-            {
-                await _desepla3Servicio.Eliminar(data.Id);
-            }
-            catch
-            {
-                Console.WriteLine("Error al eliminar desepla3 (semen)");
-            }
+            try { await _desepla3Servicio.Eliminar(data.Id); }
+            catch { Console.WriteLine("Error al eliminar desepla3 (semen)"); }
         }
 
         try { await InvokeAsync(gridCertif.Reload); } catch { }
@@ -1032,20 +1035,20 @@ else
     {
         var certif = args.Data;
 
-        bool yaExiste = certificadosSeleccionados.Any(c => c.original.Hardb == certif.Hba);
-        if (yaExiste)
-            return;
-
         certificadosSeleccionados.Add(
             new Desepla3Data
                 {
+                    LineKey = Guid.NewGuid(),
                     original = new Desepla3DTO
                     {
                         Hardb = certif.Hba,
                         Nrodec = nrodec,
                         Tatpart = certif.Tatpart,
-                        Tipo = "insem"
-                    }
+                        Tipo = "insem",
+                        Cantv = 0 
+                    },
+                    Desde = DateTime.Now,
+                    Hasta = DateTime.Now
                 }
         );
 
@@ -1117,27 +1120,137 @@ else
 
     public class Desepla3Data
     {
+        public Guid LineKey { get; set; } = Guid.NewGuid();
         public Desepla3DTO original { get; set; }
         public DateTime Desde { get; set; } = DateTime.Now;
         public DateTime Hasta { get; set; } = DateTime.Now;
         public int Id { get; set; }
     }
 
+
+    double GetMultiplicadorForCode(string tipse) => tipse switch
+    {
+        // Códigos que usás en DB (oDeclaracion.Tipse)
+        "IA" => 1.5, // Inseminacion c/celo
+        "IACR" => 1.0, // Inseminacion c/celo y rep
+        "IR" => 1.0, // (si lo usás como “IA con rep”)
+        "ANUAL" => 1.0, // mapeado a insem con rep
+        "IAPR" => 0.8, // Inseminacion c/p y rep
+        "IATFR" => 1.0, // Santa Fe / IATF con rep
+        _ => 0.0  // Natural/NC no consumen dosis
+    };
+
+    
+
+ 
+    async Task EliminarDeclaracion()
+    {
+        var result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "¿Eliminar declaración?",
+                Text = "Se eliminará la declaración y se restaurarán las dosis.",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Sí, eliminar",
+                CancelButtonText = "Cancelar"
+            });
+
+        if (!result.IsConfirmed) return;
+
+        if (oDeclaracion is null || string.IsNullOrWhiteSpace(oDeclaracion.Nrodec))
+        {
+            await Swal.FireAsync("Atención", "No se encontró la declaración a eliminar.", SweetAlertIcon.Warning);
+            return;
+        }
+
+        try
+        {
+            // 1) Traer TODOS los detalles (Desepla3) por Nrodec
+            var nrodecLower = oDeclaracion.Nrodec.ToLower();
+            var filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecLower}\"";
+            var detallesResp = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
+            var detalles = detallesResp?.List?.ToList() ?? new List<Desepla3DTO>();
+
+            // 2) Calcular cuántas dosis devolver por HBA (solo líneas de inseminación)
+            var mult = GetMultiplicadorForCode(oDeclaracion.Tipse ?? "");
+            var devolverPorHba = detalles
+                .Where(d => (d.Tipo ?? "").Equals("insem", StringComparison.OrdinalIgnoreCase))
+                .GroupBy(d => d.Hardb)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(d => DosisNecesarias(d.Cantv, mult))
+                );
+
+            // 3) Asegurar certificados en memoria (si está vacío, recargar)
+            if (certificados == null || certificados.Count == 0)
+            {
+                // Si no hay socioSeleccionado, buscarlo por Nrocri de la declaración
+                if (socioSeleccionado == null && !string.IsNullOrWhiteSpace(oDeclaracion.Nrocri))
+                {
+                    var socioFiltro = $"Id > 0"; // o el que uses; lo importante es tener certificados
+                                                 // (si querés, también podés buscar socio por Scod == Nrocri)
+                }
+
+                if (!string.IsNullOrWhiteSpace(oDeclaracion.Nrocri))
+                {
+                    var certFiltro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{(oDeclaracion.Nrocri ?? "").ToLower()}\")";
+                    var certrta = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, certFiltro);
+                    certificados = certrta.List?.ToList() ?? new List<CertifsemanDTO>();
+                }
+            }
+
+            // 4) Restaurar NrDosi por cada HBA involucrado
+            foreach (var kvp in devolverPorHba)
+            {
+                var hba = kvp.Key;
+                var cantidadADevolver = kvp.Value;
+
+                if (string.IsNullOrWhiteSpace(hba) || cantidadADevolver <= 0) continue;
+
+                var cert = certificados.FirstOrDefault(c => c.Hba == hba);
+                if (cert == null)
+                {
+                    var f = $"(Hba == null ? \"\" : Hba).ToLower() == \"{hba.ToLower()}\"";
+                    var uno = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 1, f);
+                    cert = uno.List?.FirstOrDefault();
+                    if (cert != null) certificados.Add(cert);
+                }
+
+                if (cert == null)
+                {
+                    await Swal.FireAsync("Atención", $"No se encontró certificado para HBA {hba} al restaurar dosis.", SweetAlertIcon.Warning);
+                    continue;
+                }
+
+                var nuevo = (cert.NrDosi ?? 0) + cantidadADevolver;
+
+                var r = await _certifsemanServicio.UpdateNrDosi(cert.Id, nuevo);
+                if (r?.Exito != 1)
+                {
+                    await Swal.FireAsync("Error", r?.Mensaje ?? $"Error al restaurar dosis para HBA {hba}.", SweetAlertIcon.Error);
+                    return;
+                }
+
+                cert.NrDosi = nuevo;
+            }
+
+            // 5) Eliminar los detalles Desepla3
+            foreach (var d in detalles)
+            {
+                try { await _desepla3Servicio.Eliminar(d.Id); }
+                catch { /* loggear si querés */ }
+            }
+
+            await _desepla1Servicio.Eliminar(oDeclaracion.Id);
+
+            Navigation.NavigateTo("/declaraciones");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            await Swal.FireAsync("Error", "Ocurrió un error al eliminar la declaración.", SweetAlertIcon.Error);
+        }
+    }
 }
 
-         @* <div class="col-sm">
-                            <label>Total de Vientres Seleccionados</label>
-                            <div class="card">
-                                <div class="card-body">
-                                    <a>@(@oDeclaracion.Cantv + @oDeclaracion.Cantb)</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm">
-                            <label>Total de Vientres Utilizados</label>
-                            <div class="card">
-                                <div class="card-body">
-                                    <a>@(torosSeleccionados.Sum(x => x.original.Cantv) + certificadosSeleccionados.Sum(x => x.original.Cantv))</a>
-                                </div>
-                            </div>
-                        </div> *@
+       

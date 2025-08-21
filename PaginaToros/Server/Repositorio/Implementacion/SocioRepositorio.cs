@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic.FileIO;
 using PaginaToros.Client.Pages.Auth;
+using PaginaToros.Client.Pages.Socios;
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
@@ -93,16 +94,77 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
         public async Task<bool> Eliminar(Socio entidad)
         {
-            try
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
+
+             var socioId = entidad.Id;
+
+            return await strategy.ExecuteAsync(async () =>
             {
-                _dbContext.Socios.Remove(entidad);
-                await _dbContext.SaveChangesAsync();
-                return true;
-            }
-            catch
-            {
-                throw;
-            }
+                await using var tx = await _dbContext.Database.BeginTransactionAsync();
+                try
+                {
+                    var socio = await _dbContext.Socios.FirstOrDefaultAsync(s => s.Id == socioId);
+                    if (socio == null) return false;
+
+                    var scod = socio.Scod ?? string.Empty;
+
+                    // 1) RESIN1 (+ hijos RESIN2/3/4/6/8)
+                    //    Busco todas las inspecciones del socio (por código y/o por CodUsu si existe)
+                    var resin1s = await _dbContext.Resin1s
+                        .Where(r => (r.Scod == scod) || (r.CodUsu == socioId)) // ajustá si tu Resin1 no tiene CodUsu
+                        .ToListAsync();
+
+                    foreach (var r1 in resin1s)
+                    {
+                        // Mismo patrón que ya tenés en tu Eliminar(Resin1)
+                        _dbContext.Resin2s.RemoveRange(_dbContext.Resin2s.Where(x => x.Nrores == r1.Nrores));
+                        _dbContext.Resin3s.RemoveRange(_dbContext.Resin3s.Where(x => x.Nrores == r1.Nrores));
+                        _dbContext.Resin4s.RemoveRange(_dbContext.Resin4s.Where(x => x.Nrores == r1.Nrores));
+                        _dbContext.Resin6s.RemoveRange(_dbContext.Resin6s.Where(x => x.Nrores == r1.Nrores));
+                        _dbContext.Resin8s.RemoveRange(_dbContext.Resin8s.Where(x => x.Nrores == r1.Nrores));
+                    }
+                    _dbContext.Resin1s.RemoveRange(resin1s);
+
+                    // 2) DECLARACIONES: Desepla1 (cabecera) + Desepla3 (líneas)
+                    var nroDecsDelSocio = await _dbContext.Desepla1s
+                        .Where(d => d.Nrocri == scod) // si tenés SocioId, podés sumar OR d.SocioId == socioId
+                        .Select(d => d.Nrodec)
+                        .ToListAsync();
+
+                    if (nroDecsDelSocio.Count > 0)
+                    {
+                        _dbContext.Desepla3s.RemoveRange(_dbContext.Desepla3s.Where(l => nroDecsDelSocio.Contains(l.Nrodec)));
+                        _dbContext.Desepla1s.RemoveRange(_dbContext.Desepla1s.Where(h => nroDecsDelSocio.Contains(h.Nrodec)));
+                    }
+
+                    _dbContext.Planteles.RemoveRange(
+                        _dbContext.Planteles.Where(p => p.Nrocri == scod || p.CodUsu == socioId) // usa los campos que existan
+                    );
+
+                    // 4) TOROS (por CodUsu y también por código criador)
+                    _dbContext.Torosunis.RemoveRange(
+                        _dbContext.Torosunis.Where(t => t.CodUsu == socioId || t.Criador == scod)
+                    );
+
+                    // 5) CERTIFICADOS (por CodUsu y/o Nrocri)
+                    _dbContext.Certifsemen.RemoveRange(
+                        _dbContext.Certifsemen.Where(c => c.CodUsu == socioId || c.Nrocri == scod)
+                    );
+
+                    // 6) Finalmente, el socio
+                    _dbContext.Socios.Remove(socio);
+
+                    await _dbContext.SaveChangesAsync();
+                    await tx.CommitAsync();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    await tx.RollbackAsync();
+                    Console.Error.WriteLine($"Error en EliminarSocioProfundo: {ex}");
+                    throw;
+                }
+            });
         }
 
         public async Task<Socio> Crear(Socio entidad)

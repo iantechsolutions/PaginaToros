@@ -93,11 +93,11 @@
                         <button class="btn" position="absolute" title="Editar Declaracion" @onclick="() => add(data.Id,false)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Desepla1DTO" Property="" Title="" Filterable="false" Width="3.33%">
+                @* <RadzenDataGridColumn TItem="Desepla1DTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
-                </RadzenDataGridColumn>
+                </RadzenDataGridColumn> *@
 @*                 <RadzenDataGridColumn TItem="Desepla1DTO" Property="" Title="" Filterable="false" Width="30px">
                     <Template Context="data">
                         <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
@@ -266,81 +266,81 @@ else
         StateHasChanged();
     }
 
-    async Task delete(int id)
-    {
-        currentPage = grid.CurrentPage;
+    // async Task delete(int id)
+    // {
+    //     currentPage = grid.CurrentPage;
 
-        var deseplaSeleccionado = oRespuesta.List.FirstOrDefault(x => x.Id == id);
-        if (deseplaSeleccionado == null)
-        {
-            return;
-        }
-
-
-
-        // Obtener los certificados filtrados
-        var nrodecLower = deseplaSeleccionado.Nrodec.ToLower();
-        var filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecLower}\"";
-
-        var certificados = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
-
-        Console.WriteLine(certificados.List.Count());
-
-        if (certificados != null && certificados.List != null && certificados.List.Any())
-        {
-            foreach (var certificado in certificados.List.Where(x => x.Nrodec == deseplaSeleccionado.Nrodec))
-            {
-                await _desepla3Servicio.Eliminar(certificado.Id);
-            }
-        }
-
-        var response = await _desepla1Servicio.Eliminar(id);
-
-        if (response)
-        {
-            var eliminado = oRespuesta.List.FirstOrDefault(x => x.Id == id);
-            if (eliminado != null)
-            {
-                oRespuesta.List.Remove(eliminado);
-            }
-
-            if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
-            {
-                await grid.GoToPage(currentPage - 1);
-            }
-            else if (grid.Count != 0)
-            {
-                await grid.GoToPage(currentPage);
-            }
-
-            await grid.Reload();
-            StateHasChanged();
-        }
-    }
+    //     var deseplaSeleccionado = oRespuesta.List.FirstOrDefault(x => x.Id == id);
+    //     if (deseplaSeleccionado == null)
+    //     {
+    //         return;
+    //     }
 
 
-    public async Task alertaDelete(int id)
-    {
-        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
-            {
-                Title = "¿Está seguro?",
-                Text = "Se eliminará esta declaración",
-                Icon = SweetAlertIcon.Warning,
-                ShowCancelButton = true,
-                ConfirmButtonText = "Eliminar",
-                CancelButtonText = "Cancelar"
-            });
 
-        if (!string.IsNullOrEmpty(result.Value))
-        {
-            delete(id);
+    //     // Obtener los certificados filtrados
+    //     var nrodecLower = deseplaSeleccionado.Nrodec.ToLower();
+    //     var filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecLower}\"";
 
-        }
-        else if (result.Dismiss == DismissReason.Cancel)
-        {
+    //     var certificados = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
 
-        }
-    }
+    //     Console.WriteLine(certificados.List.Count());
+
+    //     if (certificados != null && certificados.List != null && certificados.List.Any())
+    //     {
+    //         foreach (var certificado in certificados.List.Where(x => x.Nrodec == deseplaSeleccionado.Nrodec))
+    //         {
+    //             await _desepla3Servicio.Eliminar(certificado.Id);
+    //         }
+    //     }
+
+    //     var response = await _desepla1Servicio.Eliminar(id);
+
+    //     if (response)
+    //     {
+    //         var eliminado = oRespuesta.List.FirstOrDefault(x => x.Id == id);
+    //         if (eliminado != null)
+    //         {
+    //             oRespuesta.List.Remove(eliminado);
+    //         }
+
+    //         if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
+    //         {
+    //             await grid.GoToPage(currentPage - 1);
+    //         }
+    //         else if (grid.Count != 0)
+    //         {
+    //             await grid.GoToPage(currentPage);
+    //         }
+
+    //         await grid.Reload();
+    //         StateHasChanged();
+    //     }
+    // }
+
+
+    // public async Task alertaDelete(int id)
+    // {
+    //     SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+    //         {
+    //             Title = "¿Está seguro?",
+    //             Text = "Se eliminará esta declaración",
+    //             Icon = SweetAlertIcon.Warning,
+    //             ShowCancelButton = true,
+    //             ConfirmButtonText = "Eliminar",
+    //             CancelButtonText = "Cancelar"
+    //         });
+
+    //     if (!string.IsNullOrEmpty(result.Value))
+    //     {
+    //         delete(id);
+
+    //     }
+    //     else if (result.Dismiss == DismissReason.Cancel)
+    //     {
+
+    //     }
+    // }
 
     async Task add(int Id,bool esSocio)
     {
