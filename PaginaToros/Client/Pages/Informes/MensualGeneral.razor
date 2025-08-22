@@ -1,15 +1,15 @@
 ﻿@page "/reportegeneral"
-@using PaginaToros.Client.Servicios.Contrato;
-@using Blazored.Typeahead;
-@inject IResin1Servicio _resin1Servicio;
-@inject IResin6Servicio _resin6Servicio;
-@inject IInspectServicio _inspectServicio;
+@using PaginaToros.Client.Servicios.Contrato
+@using Radzen
+@using Radzen.Blazor
+@inject IResin1Servicio _resin1Servicio
+@inject IResin6Servicio _resin6Servicio
+@inject IInspectServicio _inspectServicio
 @inject IJSRuntime _js
 
 @using OfficeOpenXml
 @using OfficeOpenXml.Style
 @using System.Drawing
-
 
 <style>
     @@page {
@@ -20,30 +20,47 @@
         .row {
             break-inside: avoid
         }
-        .no-print{
-            display:none;
+
+        .no-print {
+            display: none;
         }
     }
+
     button[disabled] {
-  opacity: .6;
-  cursor: not-allowed !important;
-  pointer-events: none;
-}
+        opacity: .6;
+        cursor: not-allowed !important;
+        pointer-events: none;
+    }
 
-/* Pulso suave mientras está ocupado */
-.btn-busy {
-  animation: pulse 0.9s ease-in-out infinite;
-  transform-origin: center;
-}
+    /* Pulso suave mientras está ocupado */
+    .btn-busy {
+        animation: pulse 0.9s ease-in-out infinite;
+        transform-origin: center;
+    }
 
-@@keyframes pulse {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(0.985); }
-  100% { transform: scale(1); }
-}
+    @@keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(0.985);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
     .col-sm {
         display: block;
-        min-height: 100px; 
+        min-height: 100px;
+    }
+
+    /* Altura máx + scroll en los paneles de dropdown Radzen */
+    .rz-dropdown-panel {
+        max-height: 320px !important;
+        overflow: auto !important;
     }
 </style>
 
@@ -52,7 +69,6 @@
 </h2>
 
 <div class="row no-print">
-
     <div class="col-sm">
         <label>Seleccionar Fecha Inicial</label>
         <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaInicial Disabled="terminado && confirmado" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
@@ -61,39 +77,43 @@
         <label>Seleccionar Fecha Final</label>
         <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaFinal Disabled="terminado && confirmado" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
     </div>
-    <div class="col-sm">
-       
-    </div>
+    <div class="col-sm"></div>
 </div>
 
 <div class="row no-print">
     <div class="row no-print">
+        <!-- Inspectores -->
         <div class="col-sm">
             <label>Selecciona Inspectores</label>
-            <BlazoredTypeahead SearchMethod="BuscarInspector" @ref="selectIns"
-                               @bind-Values="inspectoresSeleccionados"
-                               EnableDropDown="true"
-                               Disabled="terminado && confirmado"
-                               placeholder="Busque por Nombre">
-                <SelectedTemplate Context="data">@data.Nombre</SelectedTemplate>
-                <ResultTemplate Context="data">@data.Nombre</ResultTemplate>
-            </BlazoredTypeahead>
+            <RadzenDropDown Data="@inspectOpts"
+                            Multiple="true"
+                            AllowFiltering="true"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            TextProperty="Nombre"
+                            ValueProperty="Icod"
+                            Style="width:100%"
+                            TValue="IEnumerable<string>"
+                            @bind-Value="inspectoresSeleccionadosCods"
+                            Placeholder="Busque por nombre" />
             <div class="flex gap-2 mt-1">
-                <button class="no-print" @onclick="SeleccionarTodos"><FeatherCheck Color="green" Width="18" Height="18" /></button>
-                <button class="no-print" @onclick="DeseleccionarTodos"><FeatherX Color="red" Width="18" Height="18" /></button>
+                <button class="no-print" @onclick="SeleccionarTodosInspectores"><FeatherCheck Color="green" Width="18" Height="18" /></button>
+                <button class="no-print" @onclick="DeseleccionarTodosInspectores"><FeatherX Color="red" Width="18" Height="18" /></button>
             </div>
         </div>
 
+        <!-- Provincias -->
         <div class="col-sm">
             <label>Selecciona Provincias</label>
-            <BlazoredTypeahead SearchMethod="BuscarProvincia" @ref="selectProv"
-                               @bind-Values="provinciasSeleccionadas"
-                               EnableDropDown="true"
-                               Disabled="terminado && confirmado"
-                               placeholder="Busque por Nombre">
-                <SelectedTemplate Context="data">@traductorProvinciaInverso[data]</SelectedTemplate>
-                <ResultTemplate Context="data">@traductorProvinciaInverso[data]</ResultTemplate>
-            </BlazoredTypeahead>
+            <RadzenDropDown Data="@provinciasOpts"
+                            Multiple="true"
+                            AllowFiltering="true"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            TextProperty="Name"
+                            ValueProperty="Code"
+                            Style="width:100%"
+                            TValue="IEnumerable<string>"
+                            @bind-Value="provinciasSeleccionadas"
+                            Placeholder="Busque por nombre" />
             <div class="flex gap-2 mt-1">
                 <button class="no-print" @onclick="SeleccionarTodasProvincias"><FeatherCheck Color="green" Width="18" Height="18" /></button>
                 <button class="no-print" @onclick="DeseleccionarTodasProvincias"><FeatherX Color="red" Width="18" Height="18" /></button>
@@ -102,187 +122,172 @@
     </div>
 </div>
 
-
-
 <br class="no-print" />
 <div class="flex items-center gap-2 ml-2">
+    <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 @(loading ? "btn-busy" : "")"
+            style="position:relative;width:20%; margin-bottom:5px;"
+            @onclick="OnGenerarClick"
+            disabled="@(!terminado || confirmado || loading)">
+        @if (loading)
+        {
+            <span><i class="fa fa-spinner fa-spin"></i> Cargando...</span>
+        }
+        else
+        {
+            <span>Generar Reporte</span>
+        }
+    </button>
 
-<button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 @(loading ? "btn-busy" : "")"
-        style="position:relative;width:20%; margin-bottom:5px;"
-        @onclick="OnGenerarClick"
-        disabled="@(!terminado || confirmado || loading)">
-
-    @if (loading)
-    {
-        <span><i class="fa fa-spinner fa-spin"></i> Cargando...</span>
-    }
-    else
-    {
-        <span>Generar Reporte</span>
-    }
-</button>
-
-<button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 @(download ? "btn-busy" : "")"
-        style="position:relative;width:20%; margin-bottom:5px;"
-        @onclick="OnDescargarClick"
+    <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 @(download ? "btn-busy" : "")"
+            style="position:relative;width:20%; margin-bottom:5px;"
+            @onclick="OnDescargarClick"
             disabled="@(download || !(listaDatos?.Any() ?? false))">
-    @if (download)
-    {
-        <span><i class="fa fa-spinner fa-spin"></i> Cargando...</span>
-    }
-    else
-    {
-        <span>Exportar Excel</span>
-    }
-</button>
+        @if (download)
+        {
+            <span><i class="fa fa-spinner fa-spin"></i> Cargando...</span>
+        }
+        else
+        {
+            <span>Exportar Excel</span>
+        }
+    </button>
 
-<button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-100 hover:bg-gray-300 transition ease-in duration-100"
-        style="position:relative;width:20%; margin-bottom:5px;"
-        @onclick="ReiniciarFiltros"
-        disabled="@loading">
-    Reiniciar Filtros
-</button>
+    <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-100 hover:bg-gray-300 transition ease-in duration-100"
+            style="position:relative;width:20%; margin-bottom:5px;"
+            @onclick="ReiniciarFiltros"
+            disabled="@loading">
+        Reiniciar Filtros
+    </button>
 </div>
 
-<br class="no-print"/>
-<br class="no-print"/>
-
-
+<br class="no-print" />
+<br class="no-print" />
 
 @if (confirmado)
 {
     <div class="mt-4">
-
         @if (listaDatos != null)
         {
-            
-        double? vaqPRPresentadasTotal = 0;
-        double? vaqPRMarcadasTotal = 0;
-        double? vaqPRAstadasTotal = 0;
-        double? vacasVIPPresentadasTotal = 0;
-        double? vacasVIPTotal = 0;
-        double? vaqVIPPresentadasTotal = 0;
-        double? vaqVIPTotal = 0;
-        double? scpPresentadosTotal = 0;
-        double? scpMochosTotal = 0;
-        double? scpAstadosTotal = 0;
-        double? cpPresentadosTotal = 0;
-        double? cpMochosTotal = 0;
-        double? cpAstadosTotal = 0;
-        double? cpControlSTotal = 0;
+            double? vaqPRPresentadasTotal = 0;
+            double? vaqPRMarcadasTotal = 0;
+            double? vaqPRAstadasTotal = 0;
+            double? vacasVIPPresentadasTotal = 0;
+            double? vacasVIPTotal = 0;
+            double? vaqVIPPresentadasTotal = 0;
+            double? vaqVIPTotal = 0;
+            double? scpPresentadosTotal = 0;
+            double? scpMochosTotal = 0;
+            double? scpAstadosTotal = 0;
+            double? cpPresentadosTotal = 0;
+            double? cpMochosTotal = 0;
+            double? cpAstadosTotal = 0;
+            double? cpControlSTotal = 0;
 
-        @foreach (var grupo in listaDatos)
-        {
-            var datosFiltrados = grupo.Value;
+            @foreach (var grupo in listaDatos)
+            {
+                var datosFiltrados = grupo.Value;
 
-            vaqPRPresentadasTotal += datosFiltrados.Sum(x => x.Hdp);
-            vaqPRMarcadasTotal += datosFiltrados.Sum(x => x.HdpM);
-            vaqPRAstadasTotal += datosFiltrados.Sum(x => x.HdpAs);
+                vaqPRPresentadasTotal += datosFiltrados.Sum(x => x.Hdp);
+                vaqPRMarcadasTotal += datosFiltrados.Sum(x => x.HdpM);
+                vaqPRAstadasTotal += datosFiltrados.Sum(x => x.HdpAs);
 
-            vacasVIPPresentadasTotal += datosFiltrados.Sum(x => x.Hgvp);
-            vacasVIPTotal += datosFiltrados.Sum(x => x.Hgvb);
-            vaqVIPPresentadasTotal += datosFiltrados.Sum(x => x.Hgqp);
-            vaqVIPTotal += datosFiltrados.Sum(x => x.Hgqb);
+                vacasVIPPresentadasTotal += datosFiltrados.Sum(x => x.Hgvp);
+                vacasVIPTotal += datosFiltrados.Sum(x => x.Hgvb);
+                vaqVIPPresentadasTotal += datosFiltrados.Sum(x => x.Hgqp);
+                vaqVIPTotal += datosFiltrados.Sum(x => x.Hgqb);
 
-            scpPresentadosTotal += datosFiltrados.Sum(x => x.Mcp);
-            scpMochosTotal += datosFiltrados.Sum(x => x.McpM);
-            scpAstadosTotal += datosFiltrados.Sum(x => x.McpAs);
-            cpPresentadosTotal += datosFiltrados.Sum(x => x.Msp);
-            cpMochosTotal += datosFiltrados.Sum(x => x.MspM);
-            cpAstadosTotal += datosFiltrados.Sum(x => x.MspAs);
-            cpControlSTotal += datosFiltrados.Sum(x => x.Mspsb);
+                scpPresentadosTotal += datosFiltrados.Sum(x => x.Mcp);
+                scpMochosTotal += datosFiltrados.Sum(x => x.McpM);
+                scpAstadosTotal += datosFiltrados.Sum(x => x.McpAs);
+                cpPresentadosTotal += datosFiltrados.Sum(x => x.Msp);
+                cpMochosTotal += datosFiltrados.Sum(x => x.MspM);
+                cpAstadosTotal += datosFiltrados.Sum(x => x.MspAs);
+                cpControlSTotal += datosFiltrados.Sum(x => x.Mspsb);
+            }
 
-        }
-        <div class="mt-4">
+            <div class="mt-4">
                 <h3 class="font-bold text-xl mb-3">Resumen General de inspecciones Agrupado por @seleccion</h3>
 
-            <!-- Tabla general: Vaquillas PR -->
-            <h5 class="font-semibold text-sm mt-2 mb-1">Vaquillas PR</h5>
-            <table class="table-auto w-full text-xs border mb-2">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="border px-2 py-1">Presentadas</th>
-                        <th class="border px-2 py-1">Marcadas</th>
-                        <th class="border px-2 py-1">Astadas</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="border px-2 py-1">@vaqPRPresentadasTotal</td>
-                        <td class="border px-2 py-1">@vaqPRMarcadasTotal</td>
-                        <td class="border px-2 py-1">@vaqPRAstadasTotal</td>
-                    </tr>
-                </tbody>
-            </table>
+                <h5 class="font-semibold text-sm mt-2 mb-1">Vaquillas PR</h5>
+                <table class="table-auto w-full text-xs border mb-2">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border px-2 py-1">Presentadas</th>
+                            <th class="border px-2 py-1">Marcadas</th>
+                            <th class="border px-2 py-1">Astadas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border px-2 py-1">@vaqPRPresentadasTotal</td>
+                            <td class="border px-2 py-1">@vaqPRMarcadasTotal</td>
+                            <td class="border px-2 py-1">@vaqPRAstadasTotal</td>
+                        </tr>
+                    </tbody>
+                </table>
 
-            <!-- Tabla general: VIP -->
-            <h5 class="font-semibold text-sm mt-2 mb-1">Vacas VIP</h5>
-            <table class="table-auto w-full text-xs border mb-2">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="border px-2 py-1">Vacas Presentadas</th>
-                        <th class="border px-2 py-1">Vacas Total</th>
-                        <th class="border px-2 py-1">Vaquillonas Presentadas</th>
-                        <th class="border px-2 py-1">Vaquillonas Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="border px-2 py-1">@vacasVIPPresentadasTotal</td>
-                        <td class="border px-2 py-1">@vacasVIPTotal</td>
-                        <td class="border px-2 py-1">@vaqVIPPresentadasTotal</td>
-                        <td class="border px-2 py-1">@vaqVIPTotal</td>
-                    </tr>
-                </tbody>
-            </table>
+                <h5 class="font-semibold text-sm mt-2 mb-1">Vacas VIP</h5>
+                <table class="table-auto w-full text-xs border mb-2">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border px-2 py-1">Vacas Presentadas</th>
+                            <th class="border px-2 py-1">Vacas Total</th>
+                            <th class="border px-2 py-1">Vaquillonas Presentadas</th>
+                            <th class="border px-2 py-1">Vaquillonas Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border px-2 py-1">@vacasVIPPresentadasTotal</td>
+                            <td class="border px-2 py-1">@vacasVIPTotal</td>
+                            <td class="border px-2 py-1">@vaqVIPPresentadasTotal</td>
+                            <td class="border px-2 py-1">@vaqVIPTotal</td>
+                        </tr>
+                    </tbody>
+                </table>
 
-            <!-- Tabla general: SCP / CP -->
-            <h5 class="font-semibold text-sm mt-2 mb-1">SCP / CP</h5>
-            <table class="table-auto w-full text-xs border mb-6">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="border px-2 py-1">SCP Presentados</th>
-                        <th class="border px-2 py-1">SCP Mochos</th>
-                        <th class="border px-2 py-1">SCP Astados</th>
-                        <th class="border px-2 py-1">CP Presentados</th>
-                        <th class="border px-2 py-1">CP Mochos</th>
-                        <th class="border px-2 py-1">CP Astados</th>
-                        <th class="border px-2 py-1">CP Control S</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="border px-2 py-1">@scpPresentadosTotal</td>
-                        <td class="border px-2 py-1">@scpMochosTotal</td>
-                        <td class="border px-2 py-1">@scpAstadosTotal</td>
-                        <td class="border px-2 py-1">@cpPresentadosTotal</td>
-                        <td class="border px-2 py-1">@cpMochosTotal</td>
-                        <td class="border px-2 py-1">@cpAstadosTotal</td>
-                        <td class="border px-2 py-1">@cpControlSTotal</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-
+                <h5 class="font-semibold text-sm mt-2 mb-1">SCP / CP</h5>
+                <table class="table-auto w-full text-xs border mb-6">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border px-2 py-1">SCP Presentados</th>
+                            <th class="border px-2 py-1">SCP Mochos</th>
+                            <th class="border px-2 py-1">SCP Astados</th>
+                            <th class="border px-2 py-1">CP Presentados</th>
+                            <th class="border px-2 py-1">CP Mochos</th>
+                            <th class="border px-2 py-1">CP Astados</th>
+                            <th class="border px-2 py-1">CP Control S</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border px-2 py-1">@scpPresentadosTotal</td>
+                            <td class="border px-2 py-1">@scpMochosTotal</td>
+                            <td class="border px-2 py-1">@scpAstadosTotal</td>
+                            <td class="border px-2 py-1">@cpPresentadosTotal</td>
+                            <td class="border px-2 py-1">@cpMochosTotal</td>
+                            <td class="border px-2 py-1">@cpAstadosTotal</td>
+                            <td class="border px-2 py-1">@cpControlSTotal</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         }
-
-
-     
     </div>
 }
 
-
-
-
-
-
-
 @code {
+    /* ======== MODELOS DE OPCIÓN ======== */
+    public class ProvinceOption
+    {
+        public string Code { get; set; } = "";
+        public string Name { get; set; } = "";
+    }
+
+    /* ======== ESTADO ======== */
     bool showDataLabels = false;
     bool confirmado = false;
-    public BlazoredTypeahead<string,string> selectProv;
-    public BlazoredTypeahead<InspectDTO, InspectDTO> selectIns;
+
     public DateTime FechaInicial { get; set; } = DateTime.Now.AddDays(-700);
     public DateTime FechaFinal { get; set; } = DateTime.Now;
     bool terminado = false;
@@ -291,16 +296,24 @@
     bool download = false;
     string agruparPor { get; set; } = "Inspectores";
 
-    List<string> opciones = new List<string> { "Inspectores", "Provincias" };
+    List<string> opciones = new() { "Inspectores", "Provincias" };
     List<Resin1DTO> reportes = new();
-    List<Resin6DTO> datos = new ();
-    Dictionary<string,List<Resin6DTO>> listaDatos = new();
+    List<Resin6DTO> datos = new();
+    Dictionary<string, List<Resin6DTO>> listaDatos = new();
     List<Resin6DTO> datosActuales = new();
-    List<InspectDTO> Inspects = null;
-    List<string> provincias = new List<string> { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23","24" };
-    IList<string> provinciasSeleccionadas = new List<string>();
-    IList<InspectDTO> inspectoresSeleccionados = new List<InspectDTO>();
-    Dictionary<string, string> traductorProvinciaInverso = new Dictionary<string, string>
+    List<InspectDTO>? Inspects = null;
+
+    // Opciones para los dropdowns
+    IEnumerable<InspectDTO> inspectOpts => Inspects ?? Enumerable.Empty<InspectDTO>();
+    List<ProvinceOption> provinciasOpts = new();
+
+    // Selecciones (códigos)
+    IEnumerable<string> provinciasSeleccionadas { get; set; } = Array.Empty<string>();
+    IEnumerable<string> inspectoresSeleccionadosCods { get; set; } = Array.Empty<string>();
+
+
+    // Diccionario de códigos de provincia a nombre
+    Dictionary<string, string> traductorProvinciaInverso = new()
     {
         {"01", "Chaco"},
         {"02", "Corrientes"},
@@ -329,63 +342,54 @@
         {"",""}
     };
 
-
     protected override async Task OnInitializedAsync()
     {
-        try{
-            var rt = await _resin6Servicio.ObtenerFechas(FechaInicial.Ticks,FechaFinal.Ticks);
+        try
+        {
+            var rt = await _resin6Servicio.ObtenerFechas(FechaInicial.Ticks, FechaFinal.Ticks);
             datos = rt.List;
+
             var rtaa = await _inspectServicio.LimitadosFiltrados(0, 0);
-            Inspects = rtaa.List;
+            Inspects = rtaa.List ?? new List<InspectDTO>();
+
+            provinciasOpts = traductorProvinciaInverso
+                .Where(kv => !string.IsNullOrWhiteSpace(kv.Key))
+                .Select(kv => new ProvinceOption { Code = kv.Key, Name = kv.Value })
+                .OrderBy(p => p.Name)
+                .ToList();
+
             terminado = true;
-
-
-            Console.WriteLine(7);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
         }
     }
 
-   
-
-    private async Task<IEnumerable<InspectDTO>> BuscarInspector(string searchText)
+    /* ==== Botones seleccionar / deseleccionar ==== */
+    private void SeleccionarTodosInspectores()
     {
-        return await Task.FromResult(Inspects.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
+        inspectoresSeleccionadosCods = (Inspects ?? new List<InspectDTO>())
+            .Select(i => (i?.Icod ?? "").Trim())
+            .Where(s => s != "")
+            .Distinct()
+            .ToList(); 
     }
 
-   
-
-
-
-    private async Task<IEnumerable<string>> BuscarProvincia(string searchText)
+    private void DeseleccionarTodosInspectores()
     {
-        return await Task.FromResult(provincias.Where(x => traductorProvinciaInverso[x].Contains(searchText.ToLower())).ToList());
-    }
-
-    private void SeleccionarTodos()
-    {
-        inspectoresSeleccionados = (Inspects ?? new List<InspectDTO>()).ToList();
-    }
-
-    private void DeseleccionarTodos()
-    {
-        (inspectoresSeleccionados ??= new List<InspectDTO>()).Clear();
+        inspectoresSeleccionadosCods = Array.Empty<string>();
     }
 
     private void SeleccionarTodasProvincias()
     {
-        provinciasSeleccionadas = provincias.ToList();
+        provinciasSeleccionadas = provinciasOpts.Select(p => p.Code).ToList();
     }
 
     private void DeseleccionarTodasProvincias()
     {
-        (provinciasSeleccionadas ??= new List<string>()).Clear();
+        provinciasSeleccionadas = Array.Empty<string>();
     }
-
-
-
 
     public void ConfirmarDatos()
     {
@@ -398,9 +402,9 @@
                 x.Resin1.Freali.Value.Date >= FechaInicial.Date &&
                 x.Resin1.Freali.Value.Date <= FechaFinal.Date);
 
-            // 2) Filtros múltiples (solo si hay selección)
-            var icodsSel = (inspectoresSeleccionados ?? new List<InspectDTO>())
-                .Select(i => (i?.Icod ?? "").Trim())
+            // 2) Filtros múltiples por códigos seleccionados
+            var icodsSel = (inspectoresSeleccionadosCods ?? new List<string>())
+                .Select(s => (s ?? "").Trim())
                 .Where(s => s != "")
                 .ToHashSet();
 
@@ -428,7 +432,7 @@
                 foreach (var g in lista.GroupBy(x => (x.Resin1.Establecimiento?.Codpro ?? "").Trim()))
                     listaDatos[g.Key] = g.ToList();
             }
-            else 
+            else
             {
                 foreach (var g in lista.GroupBy(x => new
                 {
@@ -450,23 +454,6 @@
         loading = false;
     }
 
-
-
-
-    private void OnSeleccionChange(object value)
-    {
-        if (seleccion == "Inspectores")
-        {
-            provinciasSeleccionadas.Clear(); 
-        }
-        else if (seleccion == "Provincias")
-        {
-            inspectoresSeleccionados.Clear(); 
-        }
-    }
-
-
-
     private async Task DescargarExcel()
     {
         var elements = listaDatos.Values;
@@ -476,8 +463,6 @@
             Console.WriteLine("No se encontraron elementos.");
             return;
         }
-
-        Console.WriteLine("Generando Excel...");
 
         using var stream = new MemoryStream();
         using var excelPackage = new ExcelPackage();
@@ -552,12 +537,11 @@
 
         ws.Cells[1, 1, row - 1, 10].AutoFitColumns();
 
-
         // ===== Hoja 2: Inspecciones tomadas en cuenta =====
         var ws2 = excelPackage.Workbook.Worksheets.Add("Inspecciones");
 
         var resin1ConDetalles = listaDatos.Values
-            .SelectMany(v => v) 
+            .SelectMany(v => v)
             .Where(x => x.Resin1 != null)
             .GroupBy(x => x.Resin1.Id)
             .Select(g => new
@@ -571,8 +555,6 @@
         var mapInspect = (Inspects ?? new List<InspectDTO>())
             .GroupBy(i => i.Icod)
             .ToDictionary(g => g.Key, g => g.First().Nombre ?? "");
-
-        
 
         // Encabezados
         ws2.Cells[1, 1].Value = "Nro Inspección (Id)";
@@ -593,7 +575,6 @@
             var r = item.Inspeccion;
             var det = item.Detalles;
 
-            // Calcular totales desde Resin6
             var totalHdp = det.Sum(x => x.Hdp);
             var totalHgvp = det.Sum(x => x.Hgvp);
             var totalHgqp = det.Sum(x => x.Hgqp);
@@ -602,20 +583,14 @@
 
             ws2.Cells[r2, 1].Value = r.Id;
 
-            // Nrores <= 10 caracteres → usar, si no → "Sin solicitud"
             if (!string.IsNullOrWhiteSpace(r.Nrores) && r.Nrores.Trim().Length <= 10)
                 ws2.Cells[r2, 2].Value = r.Nrores.Trim();
             else
                 ws2.Cells[r2, 2].Value = "Sin solicitud";
 
             ws2.Cells[r2, 3].Value = r.Freali?.ToString("dd/MM/yyyy");
-
-            // Nombre inspector
             ws2.Cells[r2, 4].Value = mapInspect.TryGetValue(r.Icod ?? "", out var nomInspector) ? nomInspector : "";
-
-            // Nombre provincia
             ws2.Cells[r2, 5].Value = traductorProvinciaInverso.TryGetValue(r.Establecimiento?.Codpro ?? "", out var nomProv) ? nomProv : "";
-
             ws2.Cells[r2, 6].Value = r.Establecimiento?.Ecod;
             ws2.Cells[r2, 7].Value = totalHdp;
             ws2.Cells[r2, 8].Value = totalHgvp;
@@ -629,9 +604,6 @@
         ws2.Cells[1, 1, 1, 11].Style.Font.Bold = true;
         ws2.Cells[1, 1, r2 - 1, 11].AutoFitColumns();
 
-
-
-
         var fileContents = excelPackage.GetAsByteArray();
         var fileName = $"Reporte_{DateTime.Now:dd_MM}.xlsx";
         var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -640,59 +612,39 @@
         await _js.InvokeVoidAsync("saveAsFile", fileName, url);
     }
 
-
     private void ReiniciarFiltros()
     {
-        // Fechas
         FechaInicial = DateTime.Now.AddDays(-700);
         FechaFinal = DateTime.Now;
 
-        // Selección
         seleccion = "";
         provinciasSeleccionadas = new List<string>();
-        inspectoresSeleccionados = new List<InspectDTO>();
+        inspectoresSeleccionadosCods = new List<string>();
 
-        // Datos y estado
         listaDatos.Clear();
         datosActuales.Clear();
         reportes.Clear();
         confirmado = false;
-        terminado = true; // Ya se cargaron en OnInitialized
+        terminado = true;
         loading = false;
     }
 
+    private async Task OnGenerarClick()
+    {
+        if (loading || confirmado) return;
+        loading = true; StateHasChanged();
+        try { ConfirmarDatos(); }
+        finally { loading = false; StateHasChanged(); }
+    }
 
-        private async Task OnGenerarClick()
-        {
-            if (loading || confirmado) return;   // anti-spam
-            loading = true; StateHasChanged();
-            try
-            {
-                // si querés, podés mover ConfirmarDatos a async Task y await aquí
-                ConfirmarDatos(); // ya maneja try/catch interno y setea 'confirmado'
-            }
-            finally
-            {
-                loading = false;
-                StateHasChanged();
-            }
-        }
+    private async Task OnDescargarClick()
+    {
+        if (download) return;
+        download = true; StateHasChanged();
+        try { await DescargarExcel(); }
+        finally { download = false; StateHasChanged(); }
+    }
 
-        private async Task OnDescargarClick()
-        {
-            if (download) return;                // anti-spam
-            download = true; StateHasChanged();
-            try
-            {
-                await DescargarExcel();
-            }
-            finally
-            {
-                download = false;
-                StateHasChanged();
-            }
-        }
     private async Task Print()
         => await _js.InvokeVoidAsync("window.print");
-
 }
