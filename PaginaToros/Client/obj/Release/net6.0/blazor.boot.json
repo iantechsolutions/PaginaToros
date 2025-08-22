@@ -1,7 +1,7 @@
 {
   "entryAssembly": "PaginaToros.Client",
   "resources": {
-    "hash": "sha256-YjCI6v84VVkoU8MyfmmcFIRD8VIPH7+9vXwUuaBIM4c=",
+    "hash": "sha256-jXL+rRT86k7o8yp2l31iXgLtNvC5nWvORVsY2w6QuPQ=",
     "runtime": {
       "dotnet.6.0.30.ya1fxxfwsd.js": "sha256-45+wyMAt9YjYwF4PikeWhYvv/KKuYEMhwoXqAPu6iQM=",
       "dotnet.timezones.blat": "sha256-YTQh+6fLXFGHBQ3xWd368q2DdX0uiUvgIBcs17i6yBI=",
@@ -246,11 +246,11 @@
       "netstandard.dll": "sha256-Aw5a9ijqeRQg+StQkcNm62mYcoDAOV+3vLOyZSv+aH4=",
       "System.Private.CoreLib.dll": "sha256-xOxQU+wDIWWwnxPOoZdztT4fYsBW3koQCT/sgTPLirk=",
       "PaginaToros.Shared.dll": "sha256-a1N6tZrigrKdYAv/z4z7hnnktfYux3JkVmvSbqE51w8=",
-      "PaginaToros.Client.dll": "sha256-hr26lvMMo1PRktZicXtec8BMtt9DfakbNNQ927ugRik="
+      "PaginaToros.Client.dll": "sha256-Ji3KNHwtnipsAqQ0CRliu5mq1DScdSiVq6ZAUJvwKp4="
     },
     "pdb": {
       "PaginaToros.Shared.pdb": "sha256-K0aR5GLucjCchiB4T8ZW5CNpB3pBUFPD2E7qAfJnou4=",
-      "PaginaToros.Client.pdb": "sha256-wOdrGmRKBFhhH+pDs2z4fBNTvhQGgF4zl/s9KVPjBzU="
+      "PaginaToros.Client.pdb": "sha256-VDhTiLnrKIFXGqEHOuD3TiRBM1HiVyWMa+wpi8oLl/U="
     },
     "runtimeAssets": {
       "dotnet.wasm": {

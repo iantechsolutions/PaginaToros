@@ -56,25 +56,34 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         public async Task<List<Desepla1>> LimitadosFiltrados(int skip, int take, string? filtro = null)
         {
             try
+            {
+                IQueryable<Desepla1> baseQ = _dbContext.Desepla1s
+                    .AsNoTracking()
+                    .Include(x => x.Socio)
+                    .Include(x => x.Plantel);
+
+                if (!string.IsNullOrWhiteSpace(filtro))
                 {
-                DbSet<Desepla1> a;
-                List<Desepla1> b;
-                if(filtro is not null)
-                {
-                    b = await _dbContext.Desepla1s.Include(x => x.Socio).Include(a => a.Plantel).Where(filtro).Skip(skip).ToListAsync();
+                    baseQ = baseQ.Where(filtro); 
                 }
-                else
-                {
-                    b = await _dbContext.Desepla1s.Include(x => x.Socio).Include(a => a.Plantel).Skip(skip).ToListAsync();
-                }
-                if (take == 0)
-                {
-                    return b.OrderByDescending(t => t.Nrodec).ToList();
-                }
-                else
-                {
-                    return b.Take(take).OrderByDescending(t => t.Nrodec).ToList();
-                }
+
+                var idsDedup = await baseQ
+                    .GroupBy(d => d.Nrodec)
+                    .Select(g => g.Max(x => x.Id))
+                    .ToListAsync();
+
+                IQueryable<Desepla1> dedupQ = _dbContext.Desepla1s
+                    .AsNoTracking()
+                    .Where(d => idsDedup.Contains(d.Id))
+                    .Include(x => x.Socio)
+                    .Include(x => x.Plantel);
+
+                dedupQ = dedupQ.OrderByDescending(x => x.Nrodec);
+
+                if (skip > 0) dedupQ = dedupQ.Skip(skip);
+                if (take > 0) dedupQ = dedupQ.Take(take);
+
+                return await dedupQ.ToListAsync();
             }
             catch
             {

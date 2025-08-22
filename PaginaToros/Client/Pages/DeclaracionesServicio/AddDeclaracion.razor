@@ -1234,7 +1234,6 @@ else
                 cert.NrDosi = nuevo;
             }
 
-            // 5) Eliminar los detalles Desepla3
             foreach (var d in detalles)
             {
                 try { await _desepla3Servicio.Eliminar(d.Id); }

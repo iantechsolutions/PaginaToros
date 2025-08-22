@@ -350,22 +350,17 @@ else
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
-        if (!string.IsNullOrEmpty(args.Filter))
-        {
-            oRespuesta = await _desepla1Servicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
-        }
-        else
-        {
-            oRespuesta = await _desepla1Servicio.Lista(args.Skip.Value, args.Top.Value);
-        }
 
-        oRespuesta.List = oRespuesta.List
-            .GroupBy(x => x.Id)
-            .Select(g => g.First())
-            .ToList();
+        if (!string.IsNullOrEmpty(args.Filter))
+            oRespuesta = await _desepla1Servicio.LimitadosFiltrados(args.Skip ?? 0, args.Top ?? 15, args.Filter);
+        else
+            oRespuesta = await _desepla1Servicio.Lista(args.Skip ?? 0, args.Top ?? 15);
 
         isLoading = false;
     }
+
+
+
 
   
 
