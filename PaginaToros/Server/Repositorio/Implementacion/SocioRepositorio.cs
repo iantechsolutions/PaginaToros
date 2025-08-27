@@ -183,71 +183,67 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
         public async Task<bool> Editar(Socio entidad)
         {
-            try
+            if (entidad == null) throw new ArgumentNullException(nameof(entidad));
+
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
             {
-                var socioViejo = _dbContext.Socios.Where(x=>x.Id == entidad.Id).First();
-                Console.WriteLine("viejo");
-                Console.WriteLine(socioViejo.Scod);
-                Console.WriteLine("entidad");
-                Console.WriteLine(entidad.Scod);
-                try {
-                    Console.WriteLine(socioViejo);
-                    Console.WriteLine(socioViejo.Id);
-                    if (socioViejo.Scod != entidad.Scod)
+                await using var trx = await _dbContext.Database.BeginTransactionAsync();
+                try
                 {
-                    var certificados = _dbContext.Certifsemen.Where(x => x.Nrocri == socioViejo.Scod).ToList();
-                    foreach (var certificado in certificados)
+                    var socioViejo = await _dbContext.Socios
+                        .FirstOrDefaultAsync(x => x.Id == entidad.Id);
+
+                    if (socioViejo == null)
+                        throw new InvalidOperationException("Socio no encontrado");
+
+                    var scodViejo = socioViejo.Scod?.Trim() ?? "";
+                    var scodNuevo = entidad.Scod?.Trim() ?? "";
+
+                    // Si cambió el Scod, actualizo referencias
+                    if (!string.Equals(scodViejo, scodNuevo, StringComparison.Ordinal))
                     {
-                        certificado.Nrocri = entidad.Scod;
-                        _dbContext.Update(certificado);
-                    }
-                    var deseplas = _dbContext.Desepla1s.Where(x => x.Nrocri == socioViejo.Scod).ToList();
-                    foreach (var desepla in deseplas)
-                    {
-                        desepla.Nrocri = entidad.Scod;
-                        _dbContext.Update(desepla);
-                    }
-                    var planteles = _dbContext.Planteles.Where(x => x.Nrocri == socioViejo.Scod).ToList();
-                    foreach(var plantel in planteles)
-                        {
-                        plantel.Nrocri = entidad.Scod;
-                        _dbContext.Update(plantel);
-                    }
-                    var toros = _dbContext.Torosunis.Where(x => x.Criador == socioViejo.Scod).ToList();
-                    foreach (var toro in toros)
-                    {
-                        toro.Criador = entidad.Scod;
-                        _dbContext.Update(toro);
-                    }
-                    var establecimientos = _dbContext.Estables.Where(x => x.Codsoc == socioViejo.Scod).ToList();
-                    foreach (var establecimiento in establecimientos)
-                        {
-                        establecimiento.Codsoc = entidad.Scod;
-                        _dbContext.Update(establecimiento);
-                    }
-                    var resultados = _dbContext.Resin1s.Where(x => x.Scod == socioViejo.Scod).ToList();
-                    foreach (var resultado in resultados)
-                        {
-                        resultado.Scod = entidad.Scod;
-                        _dbContext.Update(resultado);
+                        var certificados = await _dbContext.Certifsemen
+                            .Where(x => x.Nrocri == scodViejo).ToListAsync();
+                        foreach (var c in certificados) c.Nrocri = scodNuevo;
+
+                        var deseplas = await _dbContext.Desepla1s
+                            .Where(x => x.Nrocri == scodViejo).ToListAsync();
+                        foreach (var d in deseplas) d.Nrocri = scodNuevo;
+
+                        var planteles = await _dbContext.Planteles
+                            .Where(x => x.Nrocri == scodViejo).ToListAsync();
+                        foreach (var p in planteles) p.Nrocri = scodNuevo;
+
+                        var toros = await _dbContext.Torosunis
+                            .Where(x => x.Criador == scodViejo).ToListAsync();
+                        foreach (var t in toros) t.Criador = scodNuevo;
+
+                        var establecimientos = await _dbContext.Estables
+                            .Where(x => x.Codsoc == scodViejo).ToListAsync();
+                        foreach (var e in establecimientos) e.Codsoc = scodNuevo;
+
+                        var resultados = await _dbContext.Resin1s
+                            .Where(x => x.Scod == scodViejo).ToListAsync();
+                        foreach (var r in resultados) r.Scod = scodNuevo;
                     }
 
-                }
+                    // Copio campos a la instancia trackeada (evita doble tracking)
+                    _dbContext.Entry(socioViejo).CurrentValues.SetValues(entidad);
 
-                _dbContext.Update(entidad);
-                await _dbContext.SaveChangesAsync();
-                return true;
+                    await _dbContext.SaveChangesAsync();
+                    await trx.CommitAsync();
+                    return true;
                 }
-                catch {
+                catch
+                {
+                    await trx.RollbackAsync();
                     throw;
                 }
-                
-            }
-            catch
-            {
-                throw;
-            }
+            });
         }
+
         public async Task<IQueryable<Socio>> Consultar(Expression<Func<Socio, bool>> filtro = null)
         {
             IQueryable<Socio> queryEntidad = filtro == null

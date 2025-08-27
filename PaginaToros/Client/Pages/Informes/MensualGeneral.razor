@@ -32,7 +32,6 @@
         pointer-events: none;
     }
 
-    /* Pulso suave mientras está ocupado */
     .btn-busy {
         animation: pulse 0.9s ease-in-out infinite;
         transform-origin: center;
@@ -57,7 +56,6 @@
         min-height: 100px;
     }
 
-    /* Altura máx + scroll en los paneles de dropdown Radzen */
     .rz-dropdown-panel {
         max-height: 320px !important;
         overflow: auto !important;
@@ -141,7 +139,7 @@
     <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 @(download ? "btn-busy" : "")"
             style="position:relative;width:20%; margin-bottom:5px;"
             @onclick="OnDescargarClick"
-            disabled="@(download || !(listaDatos?.Any() ?? false))">
+            disabled="@(download || !(confirmado && (byProvince.Any() || byInspector.Any() || byMonth.Any())))">
         @if (download)
         {
             <span><i class="fa fa-spinner fa-spin"></i> Cargando...</span>
@@ -166,109 +164,297 @@
 @if (confirmado)
 {
     <div class="mt-4">
-        @if (listaDatos != null)
+        <h3 class="font-bold text-xl mb-3">
+            Resumen General — @FechaInicial.ToString("dd/MM/yyyy") a @FechaFinal.ToString("dd/MM/yyyy")
+            (@listaFiltrada.Count inspecciones)
+        </h3>
+
+        <!-- HEMBRAS: PR y VIP en una sola fila -->
+        <h5 class="font-semibold text-sm mt-2 mb-1">Hembras</h5>
+        <div class="grid" style="grid-template-columns: repeat(2,minmax(0,1fr)); gap:10px;">
+            <!-- PR -->
+            <table class="table-auto w-full text-xs border mb-2">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border px-2 py-1" colspan="3">PR</th>
+                    </tr>
+                    <tr class="bg-gray-50">
+                        <th class="border px-2 py-1">Presentadas</th>
+                        <th class="border px-2 py-1">Marcadas</th>
+                        <th class="border px-2 py-1">Rechazadas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="border px-2 py-1">@totalesGeneral.prPres</td>
+                        <td class="border px-2 py-1">@totalesGeneral.prMarc</td>
+                        <td class="border px-2 py-1">@totalesGeneral.prRech</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- VIP -->
+            <table class="table-auto w-full text-xs border mb-2">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border px-2 py-1" colspan="3">VIP</th>
+                    </tr>
+                    <tr class="bg-gray-50">
+                        <th class="border px-2 py-1">Presentadas</th>
+                        <th class="border px-2 py-1">Marcadas</th>
+                        <th class="border px-2 py-1">Rechazadas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="border px-2 py-1">@totalesGeneral.vipPres</td>
+                        <td class="border px-2 py-1">@totalesGeneral.vipMarc</td>
+                        <td class="border px-2 py-1">@totalesGeneral.vipRech</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- MACHOS: SCP y CP en una sola fila -->
+        <h5 class="font-semibold text-sm mt-3 mb-1">Machos</h5>
+        <div class="grid" style="grid-template-columns: repeat(2,minmax(0,1fr)); gap:10px;">
+            <!-- SCP -->
+            <table class="table-auto w-full text-xs border mb-2">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border px-2 py-1" colspan="3">SCP (Sin Control de Producción)</th>
+                    </tr>
+                    <tr class="bg-gray-50">
+                        <th class="border px-2 py-1">Presentados</th>
+                        <th class="border px-2 py-1">Marcados</th>
+                        <th class="border px-2 py-1">Rechazadas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="border px-2 py-1">@totalesGeneral.scpPres</td>
+                        <td class="border px-2 py-1">@totalesGeneral.scpMarc</td>
+                        <td class="border px-2 py-1">@totalesGeneral.scpRech</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- CP con S/ -->
+            <table class="table-auto w-full text-xs border mb-2">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border px-2 py-1" colspan="4">CP (Con Control de Producción)</th>
+                    </tr>
+                    <tr class="bg-gray-50">
+                        <th class="border px-2 py-1">Presentados</th>
+                        <th class="border px-2 py-1">Marcados</th>
+                        <th class="border px-2 py-1">Rechazadas</th>
+                        <th class="border px-2 py-1">S/</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="border px-2 py-1">@totalesGeneral.cpPres</td>
+                        <td class="border px-2 py-1">@totalesGeneral.cpMarc</td>
+                        <td class="border px-2 py-1">@totalesGeneral.cpRech</td>
+                        <td class="border px-2 py-1">@totalesGeneral.cpSBarra</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ===================== POR PROVINCIA ===================== -->
+        <h5 class="font-semibold text-sm mt-4 mb-1">Por Provincia</h5>
+        <table class="table-auto w-full text-xs border mb-2">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="border px-2 py-1">Provincia</th>
+                    <th class="border px-2 py-1">PR Pres</th>
+                    <th class="border px-2 py-1">PR Marc</th>
+                    <th class="border px-2 py-1">PR Rech</th>
+                    <th class="border px-2 py-1">VIP Pres</th>
+                    <th class="border px-2 py-1">VIP Marc</th>
+                    <th class="border px-2 py-1">VIP Rech</th>
+                    <th class="border px-2 py-1">SCP Pres</th>
+                    <th class="border px-2 py-1">SCP Marc</th>
+                    <th class="border px-2 py-1">SCP Rech</th>
+                    <th class="border px-2 py-1">CP Pres</th>
+                    <th class="border px-2 py-1">CP Marc</th>
+                    <th class="border px-2 py-1">CP Rech</th>
+                    <th class="border px-2 py-1">CP S/</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var kv in byProvince
+               .Where(kv => !kv.Value.IsAllZero)
+               .OrderByDescending(kv => kv.Value.TotalPresentadas))
+                {
+                    var code = kv.Key;
+                    var c = kv.Value;
+                    <tr>
+                        <td class="border px-2 py-1">@SafeProvName(code)</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.prPres</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.prMarc</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.prRech</td>
+
+                        <td class="border px-2 py-1" style="text-align:right">@c.vipPres</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.vipMarc</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.vipRech</td>
+
+                        <td class="border px-2 py-1" style="text-align:right">@c.scpPres</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.scpMarc</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.scpRech</td>
+
+                        <td class="border px-2 py-1" style="text-align:right">@c.cpPres</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.cpMarc</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.cpRech</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.cpSBarra</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- ===================== POR INSPECTOR ===================== -->
+        <h5 class="font-semibold text-sm mt-4 mb-1">Por Inspector</h5>
+        <table class="table-auto w-full text-xs border mb-2">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="border px-2 py-1">Inspector</th>
+                    <th class="border px-2 py-1">PR Pres</th>
+                    <th class="border px-2 py-1">PR Marc</th>
+                    <th class="border px-2 py-1">PR Rech</th>
+                    <th class="border px-2 py-1">VIP Pres</th>
+                    <th class="border px-2 py-1">VIP Marc</th>
+                    <th class="border px-2 py-1">VIP Rech</th>
+                    <th class="border px-2 py-1">SCP Pres</th>
+                    <th class="border px-2 py-1">SCP Marc</th>
+                    <th class="border px-2 py-1">SCP Rech</th>
+                    <th class="border px-2 py-1">CP Pres</th>
+                    <th class="border px-2 py-1">CP Marc</th>
+                    <th class="border px-2 py-1">CP Rech</th>
+                    <th class="border px-2 py-1">CP S/</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var kv in byInspector
+               .Where(kv => !kv.Value.IsAllZero)
+               .OrderByDescending(kv => kv.Value.TotalPresentadas))
+                {
+                    var code = kv.Key;
+                    var c = kv.Value;
+                    <tr>
+                        <td class="border px-2 py-1">@SafeInspName(code)</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.prPres</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.prMarc</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.prRech</td>
+
+                        <td class="border px-2 py-1" style="text-align:right">@c.vipPres</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.vipMarc</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.vipRech</td>
+
+                        <td class="border px-2 py-1" style="text-align:right">@c.scpPres</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.scpMarc</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.scpRech</td>
+
+                        <td class="border px-2 py-1" style="text-align:right">@c.cpPres</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.cpMarc</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.cpRech</td>
+                        <td class="border px-2 py-1" style="text-align:right">@c.cpSBarra</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- ===== Resumen del inspector seleccionado (si hay 1) ===== -->
+        @{
+            var icodsSel = (inspectoresSeleccionadosCods ?? Array.Empty<string>())
+            .Select(s => (s ?? "").Trim()).Where(s => s != "").Distinct().ToList();
+        }
+        @if (icodsSel.Count == 1)
         {
-            double? vaqPRPresentadasTotal = 0;
-            double? vaqPRMarcadasTotal = 0;
-            double? vaqPRAstadasTotal = 0;
-            double? vacasVIPPresentadasTotal = 0;
-            double? vacasVIPTotal = 0;
-            double? vaqVIPPresentadasTotal = 0;
-            double? vaqVIPTotal = 0;
-            double? scpPresentadosTotal = 0;
-            double? scpMochosTotal = 0;
-            double? scpAstadosTotal = 0;
-            double? cpPresentadosTotal = 0;
-            double? cpMochosTotal = 0;
-            double? cpAstadosTotal = 0;
-            double? cpControlSTotal = 0;
+            var inspCode = icodsSel[0];
+            var nombreInsp = SafeInspName(inspCode);
+            var c = byInspector.TryGetValue(inspCode, out var vv) ? vv : new Counters();
 
-            @foreach (var grupo in listaDatos)
-            {
-                var datosFiltrados = grupo.Value;
+            <h5 class="font-semibold text-sm mt-4 mb-1">Resumen del Inspector: @nombreInsp</h5>
 
-                vaqPRPresentadasTotal += datosFiltrados.Sum(x => x.Hdp);
-                vaqPRMarcadasTotal += datosFiltrados.Sum(x => x.HdpM);
-                vaqPRAstadasTotal += datosFiltrados.Sum(x => x.HdpAs);
-
-                vacasVIPPresentadasTotal += datosFiltrados.Sum(x => x.Hgvp);
-                vacasVIPTotal += datosFiltrados.Sum(x => x.Hgvb);
-                vaqVIPPresentadasTotal += datosFiltrados.Sum(x => x.Hgqp);
-                vaqVIPTotal += datosFiltrados.Sum(x => x.Hgqb);
-
-                scpPresentadosTotal += datosFiltrados.Sum(x => x.Mcp);
-                scpMochosTotal += datosFiltrados.Sum(x => x.McpM);
-                scpAstadosTotal += datosFiltrados.Sum(x => x.McpAs);
-                cpPresentadosTotal += datosFiltrados.Sum(x => x.Msp);
-                cpMochosTotal += datosFiltrados.Sum(x => x.MspM);
-                cpAstadosTotal += datosFiltrados.Sum(x => x.MspAs);
-                cpControlSTotal += datosFiltrados.Sum(x => x.Mspsb);
-            }
-
-            <div class="mt-4">
-                <h3 class="font-bold text-xl mb-3">Resumen General de inspecciones Agrupado por @seleccion</h3>
-
-                <h5 class="font-semibold text-sm mt-2 mb-1">Vaquillas PR</h5>
+            <div class="grid" style="grid-template-columns: repeat(2,minmax(0,1fr)); gap:10px;">
+                <!-- General del inspector -->
                 <table class="table-auto w-full text-xs border mb-2">
                     <thead>
                         <tr class="bg-gray-100">
-                            <th class="border px-2 py-1">Presentadas</th>
-                            <th class="border px-2 py-1">Marcadas</th>
-                            <th class="border px-2 py-1">Astadas</th>
+                            <th class="border px-2 py-1" colspan="7">General</th>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <th class="border px-2 py-1">PR Pres</th>
+                            <th class="border px-2 py-1">PR Marc</th>
+                            <th class="border px-2 py-1">PR Rech</th>
+                            <th class="border px-2 py-1">VIP Pres</th>
+                            <th class="border px-2 py-1">VIP Marc</th>
+                            <th class="border px-2 py-1">VIP Rech</th>
+                            <th class="border px-2 py-1">CP S/</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="border px-2 py-1">@vaqPRPresentadasTotal</td>
-                            <td class="border px-2 py-1">@vaqPRMarcadasTotal</td>
-                            <td class="border px-2 py-1">@vaqPRAstadasTotal</td>
+                            <td class="border px-2 py-1" style="text-align:right">@c.prPres</td>
+                            <td class="border px-2 py-1" style="text-align:right">@c.prMarc</td>
+                            <td class="border px-2 py-1" style="text-align:right">@c.prRech</td>
+                            <td class="border px-2 py-1" style="text-align:right">@c.vipPres</td>
+                            <td class="border px-2 py-1" style="text-align:right">@c.vipMarc</td>
+                            <td class="border px-2 py-1" style="text-align:right">@c.vipRech</td>
+                            <td class="border px-2 py-1" style="text-align:right">@c.cpSBarra</td>
                         </tr>
                     </tbody>
                 </table>
 
-                <h5 class="font-semibold text-sm mt-2 mb-1">Vacas VIP</h5>
+                <!-- Por provincia del inspector -->
                 <table class="table-auto w-full text-xs border mb-2">
                     <thead>
                         <tr class="bg-gray-100">
-                            <th class="border px-2 py-1">Vacas Presentadas</th>
-                            <th class="border px-2 py-1">Vacas Total</th>
-                            <th class="border px-2 py-1">Vaquillonas Presentadas</th>
-                            <th class="border px-2 py-1">Vaquillonas Total</th>
+                            <th class="border px-2 py-1" colspan="14">Por Provincia (del inspector)</th>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <th class="border px-2 py-1">Provincia</th>
+                            <th class="border px-2 py-1">PR Pres</th>
+                            <th class="border px-2 py-1">PR Marc</th>
+                            <th class="border px-2 py-1">PR Rech</th>
+                            <th class="border px-2 py-1">VIP Pres</th>
+                            <th class="border px-2 py-1">VIP Marc</th>
+                            <th class="border px-2 py-1">VIP Rech</th>
+                            <th class="border px-2 py-1">SCP Pres</th>
+                            <th class="border px-2 py-1">SCP Marc</th>
+                            <th class="border px-2 py-1">SCP Rech</th>
+                            <th class="border px-2 py-1">CP Pres</th>
+                            <th class="border px-2 py-1">CP Marc</th>
+                            <th class="border px-2 py-1">CP Rech</th>
+                            <th class="border px-2 py-1">CP S/</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td class="border px-2 py-1">@vacasVIPPresentadasTotal</td>
-                            <td class="border px-2 py-1">@vacasVIPTotal</td>
-                            <td class="border px-2 py-1">@vaqVIPPresentadasTotal</td>
-                            <td class="border px-2 py-1">@vaqVIPTotal</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <h5 class="font-semibold text-sm mt-2 mb-1">SCP / CP</h5>
-                <table class="table-auto w-full text-xs border mb-6">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="border px-2 py-1">SCP Presentados</th>
-                            <th class="border px-2 py-1">SCP Mochos</th>
-                            <th class="border px-2 py-1">SCP Astados</th>
-                            <th class="border px-2 py-1">CP Presentados</th>
-                            <th class="border px-2 py-1">CP Mochos</th>
-                            <th class="border px-2 py-1">CP Astados</th>
-                            <th class="border px-2 py-1">CP Control S</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="border px-2 py-1">@scpPresentadosTotal</td>
-                            <td class="border px-2 py-1">@scpMochosTotal</td>
-                            <td class="border px-2 py-1">@scpAstadosTotal</td>
-                            <td class="border px-2 py-1">@cpPresentadosTotal</td>
-                            <td class="border px-2 py-1">@cpMochosTotal</td>
-                            <td class="border px-2 py-1">@cpAstadosTotal</td>
-                            <td class="border px-2 py-1">@cpControlSTotal</td>
-                        </tr>
+                        @foreach (var row in listaFiltrada.Where(x => (x.Resin1.Icod ?? "").Trim() == inspCode)
+                       .GroupBy(x => (x.Resin1.Establecimiento?.Codpro ?? "").Trim())
+                       .Select(g => new { prov = g.Key, c = Aggregate(g) })
+                       .Where(r => !r.c.IsAllZero)
+                       .OrderByDescending(r => r.c.TotalPresentadas))
+                        {
+                            <tr>
+                                <td class="border px-2 py-1">@SafeProvName(row.prov)</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.prPres</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.prMarc</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.prRech</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.vipPres</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.vipMarc</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.vipRech</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.scpPres</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.scpMarc</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.scpRech</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.cpPres</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.cpMarc</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.cpRech</td>
+                                <td class="border px-2 py-1" style="text-align:right">@row.c.cpSBarra</td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>
@@ -292,15 +478,11 @@
     public DateTime FechaFinal { get; set; } = DateTime.Now;
     bool terminado = false;
     bool loading = false;
-    string seleccion = "";
     bool download = false;
-    string agruparPor { get; set; } = "Inspectores";
 
-    List<string> opciones = new() { "Inspectores", "Provincias" };
     List<Resin1DTO> reportes = new();
     List<Resin6DTO> datos = new();
-    Dictionary<string, List<Resin6DTO>> listaDatos = new();
-    List<Resin6DTO> datosActuales = new();
+    List<Resin6DTO> listaFiltrada = new();
     List<InspectDTO>? Inspects = null;
 
     // Opciones para los dropdowns
@@ -310,7 +492,6 @@
     // Selecciones (códigos)
     IEnumerable<string> provinciasSeleccionadas { get; set; } = Array.Empty<string>();
     IEnumerable<string> inspectoresSeleccionadosCods { get; set; } = Array.Empty<string>();
-
 
     // Diccionario de códigos de provincia a nombre
     Dictionary<string, string> traductorProvinciaInverso = new()
@@ -373,7 +554,7 @@
             .Select(i => (i?.Icod ?? "").Trim())
             .Where(s => s != "")
             .Distinct()
-            .ToList(); 
+            .ToList();
     }
 
     private void DeseleccionarTodosInspectores()
@@ -396,22 +577,18 @@
         loading = true;
         try
         {
-            // 1) Fecha (inclusiva)
+            // 1) Filtrado por fecha
             var q = datos.Where(x =>
                 x.Resin1.Freali.HasValue &&
                 x.Resin1.Freali.Value.Date >= FechaInicial.Date &&
                 x.Resin1.Freali.Value.Date <= FechaFinal.Date);
 
-            // 2) Filtros múltiples por códigos seleccionados
-            var icodsSel = (inspectoresSeleccionadosCods ?? new List<string>())
-                .Select(s => (s ?? "").Trim())
-                .Where(s => s != "")
-                .ToHashSet();
+            // 2) Filtros múltiples por códigos
+            var icodsSel = (inspectoresSeleccionadosCods ?? Enumerable.Empty<string>())
+                .Select(s => (s ?? "").Trim()).Where(s => s != "").ToHashSet();
 
-            var provSel = (provinciasSeleccionadas ?? new List<string>())
-                .Select(p => (p ?? "").Trim())
-                .Where(s => s != "")
-                .ToHashSet();
+            var provSel = (provinciasSeleccionadas ?? Enumerable.Empty<string>())
+                .Select(s => (s ?? "").Trim()).Where(s => s != "").ToHashSet();
 
             if (icodsSel.Count > 0)
                 q = q.Where(x => icodsSel.Contains((x.Resin1.Icod ?? "").Trim()));
@@ -419,30 +596,30 @@
             if (provSel.Count > 0)
                 q = q.Where(x => provSel.Contains((x.Resin1.Establecimiento?.Codpro ?? "").Trim()));
 
-            var lista = q.ToList();
+            // 3) Materializamos la lista filtrada
+            listaFiltrada = q.ToList();
 
-            listaDatos.Clear();
-            if (agruparPor == "Inspectores")
+            // 4) Limpiamos pivotes y acumulamos en O(n)
+            totalesGeneral = new();
+            byProvince.Clear();
+            byInspector.Clear();
+            byMonth.Clear();
+            byMonthProvince.Clear();
+            byMonthInspector.Clear();
+
+            foreach (var x in listaFiltrada)
             {
-                foreach (var g in lista.GroupBy(x => (x.Resin1.Icod ?? "").Trim()))
-                    listaDatos[g.Key] = g.ToList();
-            }
-            else if (agruparPor == "Provincias")
-            {
-                foreach (var g in lista.GroupBy(x => (x.Resin1.Establecimiento?.Codpro ?? "").Trim()))
-                    listaDatos[g.Key] = g.ToList();
-            }
-            else
-            {
-                foreach (var g in lista.GroupBy(x => new
-                {
-                    I = (x.Resin1.Icod ?? "").Trim(),
-                    P = (x.Resin1.Establecimiento?.Codpro ?? "").Trim()
-                }))
-                {
-                    var key = $"{g.Key.I} | {g.Key.P}";
-                    listaDatos[key] = g.ToList();
-                }
+                totalesGeneral.AddFrom(x);
+
+                var provCode = (x.Resin1.Establecimiento?.Codpro ?? "").Trim();
+                var inspCode = (x.Resin1.Icod ?? "").Trim();
+                var mKey = MonthKey(x.Resin1.Freali);
+
+                GetOrCreate(byProvince, provCode).AddFrom(x);
+                GetOrCreate(byInspector, inspCode).AddFrom(x);
+                GetOrCreate(byMonth, mKey).AddFrom(x);
+                GetOrCreate(byMonthProvince, (mKey, provCode)).AddFrom(x);
+                GetOrCreate(byMonthInspector, (mKey, inspCode)).AddFrom(x);
             }
 
             confirmado = true;
@@ -456,159 +633,348 @@
 
     private async Task DescargarExcel()
     {
-        var elements = listaDatos.Values;
-
-        if (!elements.Any())
+        if (!byProvince.Any() && !byInspector.Any() && !byMonth.Any())
         {
-            Console.WriteLine("No se encontraron elementos.");
+            Console.WriteLine("No hay datos para exportar.");
             return;
         }
 
         using var stream = new MemoryStream();
-        using var excelPackage = new ExcelPackage();
-        var ws = excelPackage.Workbook.Worksheets.Add("Reporte");
+        using var excel = new ExcelPackage();
+        var wb = excel.Workbook;
 
-        // Acumuladores
-        double? hdp = 0, hdpM = 0, hdpAs = 0;
-        double? hgvp = 0, hgvb = 0, hgqp = 0, hgqb = 0;
-        double? mcp = 0, mcpM = 0, mcpAs = 0;
-        double? msp = 0, mspM = 0, mspAs = 0, mspsb = 0;
-
-        foreach (var dato in elements)
+        // ==== Sheet 1: General ====
         {
-            hdp += dato.Sum(x => x.Hdp);
-            hdpM += dato.Sum(x => x.HdpM);
-            hdpAs += dato.Sum(x => x.HdpAs);
+            var ws = wb.Worksheets.Add("General");
+            int r = 1;
 
-            hgvp += dato.Sum(x => x.Hgvp);
-            hgvb += dato.Sum(x => x.Hgvb);
-            hgqp += dato.Sum(x => x.Hgqp);
-            hgqb += dato.Sum(x => x.Hgqb);
+            void AddSection(string title, string[] headers, object?[] values)
+            {
+                ws.Cells[r, 1].Value = title;
+                ws.Cells[r, 1, r, headers.Length].Merge = true;
+                ws.Cells[r, 1].Style.Font.Bold = true;
+                ws.Cells[r, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                r++;
 
-            mcp += dato.Sum(x => x.Mcp);
-            mcpM += dato.Sum(x => x.McpM);
-            mcpAs += dato.Sum(x => x.McpAs);
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    ws.Cells[r, i + 1].Value = headers[i];
+                    ws.Cells[r, i + 1].Style.Font.Bold = true;
+                    ws.Cells[r, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    ws.Cells[r, i + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+                    ws.Cells[r, i + 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                }
+                r++;
 
-            msp += dato.Sum(x => x.Msp);
-            mspM += dato.Sum(x => x.MspM);
-            mspAs += dato.Sum(x => x.MspAs);
-            mspsb += dato.Sum(x => x.Mspsb);
+                for (int i = 0; i < values.Length; i++)
+                    ws.Cells[r, i + 1].Value = values[i] ?? "-";
+
+                r += 2;
+            }
+
+            var g = totalesGeneral;
+
+            // Hembras
+            AddSection("Hembras PR",
+                new[] { "Presentadas", "Marcadas", "Rechazadas" },
+                new object?[] { g.prPres, g.prMarc, g.prRech });
+
+            AddSection("Hembras VIP",
+                new[] { "Presentadas", "Marcadas", "Rechazadas" },
+                new object?[] { g.vipPres, g.vipMarc, g.vipRech });
+
+            // Machos
+            AddSection("Machos SCP (Sin Control)",
+                new[] { "Presentados", "Marcados", "Rechazadas" },
+                new object?[] { g.scpPres, g.scpMarc, g.scpRech });
+
+            AddSection("Machos CP (Con Control)",
+                new[] { "Presentados", "Marcados", "Rechazadas", "S/" },
+                new object?[] { g.cpPres, g.cpMarc, g.cpRech, g.cpSBarra });
+
+            ws.Cells[1, 1, r - 1, 10].AutoFitColumns();
         }
 
-        int row = 1;
-
-        void AddSection(string title, string[] headers, object?[] values)
+        // ==== Sheet 2: Por Provincia ====
         {
-            ws.Cells[row, 1].Value = title;
-            ws.Cells[row, 1, row, headers.Length].Merge = true;
-            ws.Cells[row, 1].Style.Font.Bold = true;
-            ws.Cells[row, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-            row++;
+            var ws = wb.Worksheets.Add("Por Provincia");
+            string[] headers = {
+                "Provincia",
+                "PR Pres","PR Marc","PR Rech",
+                "VIP Pres","VIP Marc","VIP Rech",
+                "SCP Pres","SCP Marc","SCP Rech",
+                "CP Pres","CP Marc","CP Rech","CP S/",
+                "Total Presentadas"
+        };
 
             for (int i = 0; i < headers.Length; i++)
             {
-                ws.Cells[row, i + 1].Value = headers[i];
-                ws.Cells[row, i + 1].Style.Font.Bold = true;
-                ws.Cells[row, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                ws.Cells[row, i + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
-                ws.Cells[row, i + 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                ws.Cells[1, i + 1].Value = headers[i];
+                ws.Cells[1, i + 1].Style.Font.Bold = true;
+                ws.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
             }
-            row++;
 
-            for (int i = 0; i < values.Length; i++)
+            int r = 2;
+            foreach (var kv in byProvince
+                .Where(kv => !kv.Value.IsAllZero)
+                .OrderByDescending(kv => kv.Value.TotalPresentadas))
             {
-                ws.Cells[row, i + 1].Value = values[i] ?? "-";
+                var name = SafeProvName(kv.Key);
+                var c = kv.Value;
+                int col = 1;
+
+                ws.Cells[r, col++].Value = name;
+                ws.Cells[r, col++].Value = c.prPres;
+                ws.Cells[r, col++].Value = c.prMarc;
+                ws.Cells[r, col++].Value = c.prRech;
+
+                ws.Cells[r, col++].Value = c.vipPres;
+                ws.Cells[r, col++].Value = c.vipMarc;
+                ws.Cells[r, col++].Value = c.vipRech;
+
+                ws.Cells[r, col++].Value = c.scpPres;
+                ws.Cells[r, col++].Value = c.scpMarc;
+                ws.Cells[r, col++].Value = c.scpRech;
+
+                ws.Cells[r, col++].Value = c.cpPres;
+                ws.Cells[r, col++].Value = c.cpMarc;
+                ws.Cells[r, col++].Value = c.cpRech;
+                ws.Cells[r, col++].Value = c.cpSBarra;
+
+                ws.Cells[r, col++].Value = c.TotalPresentadas;
+                r++;
             }
 
-            row += 2; // Espacio entre secciones
+            ws.Cells[1, 1, Math.Max(2, r - 1), headers.Length].AutoFitColumns();
         }
 
-        AddSection("Vaquillas PR",
-            new[] { "Presentadas", "Marcadas", "Astadas" },
-            new object?[] { hdp, hdpM, hdpAs });
-
-        AddSection("Vacas y Vaquillonas VIP",
-            new[] { "Vacas Presentadas", "Vacas Total", "Vaquillonas Presentadas", "Vaquillonas Total" },
-            new object?[] { hgvp, hgvb, hgqp, hgqb });
-
-        AddSection("SCP / CP",
-            new[] { "SCP Presentados", "SCP Mochos", "SCP Astados", "CP Presentados", "CP Mochos", "CP Astados", "CP Control S" },
-            new object?[] { mcp, mcpM, mcpAs, msp, mspM, mspAs, mspsb });
-
-        ws.Cells[1, 1, row - 1, 10].AutoFitColumns();
-
-        // ===== Hoja 2: Inspecciones tomadas en cuenta =====
-        var ws2 = excelPackage.Workbook.Worksheets.Add("Inspecciones");
-
-        var resin1ConDetalles = listaDatos.Values
-            .SelectMany(v => v)
-            .Where(x => x.Resin1 != null)
-            .GroupBy(x => x.Resin1.Id)
-            .Select(g => new
-            {
-                Inspeccion = g.First().Resin1,
-                Detalles = g.ToList()
-            })
-            .OrderBy(x => x.Inspeccion.Freali)
-            .ToList();
-
-        var mapInspect = (Inspects ?? new List<InspectDTO>())
-            .GroupBy(i => i.Icod)
-            .ToDictionary(g => g.Key, g => g.First().Nombre ?? "");
-
-        // Encabezados
-        ws2.Cells[1, 1].Value = "Nro Inspección (Id)";
-        ws2.Cells[1, 2].Value = "Nro Solicitud";
-        ws2.Cells[1, 3].Value = "Fecha";
-        ws2.Cells[1, 4].Value = "Inspector";
-        ws2.Cells[1, 5].Value = "Provincia";
-        ws2.Cells[1, 6].Value = "Establecimiento (Codest)";
-        ws2.Cells[1, 7].Value = "PR Presentadas (Hdp)";
-        ws2.Cells[1, 8].Value = "VIP Vacas Presentadas (Hgvp)";
-        ws2.Cells[1, 9].Value = "VIP Vaquillonas Presentadas (Hgqp)";
-        ws2.Cells[1, 10].Value = "SCP Presentados (Mcp)";
-        ws2.Cells[1, 11].Value = "CP Presentados (Msp)";
-
-        int r2 = 2;
-        foreach (var item in resin1ConDetalles)
+        // ==== Sheet 3: Por Inspector ====
         {
-            var r = item.Inspeccion;
-            var det = item.Detalles;
+            var ws = wb.Worksheets.Add("Por Inspector");
+            string[] headers = {
+                "Inspector",
+                "PR Pres","PR Marc","PR Rech",
+                "VIP Pres","VIP Marc","VIP Rech",
+                "SCP Pres","SCP Marc","SCP Rech",
+                "CP Pres","CP Marc","CP Rech","CP S/",
+                "Total Presentadas"
+        };
 
-            var totalHdp = det.Sum(x => x.Hdp);
-            var totalHgvp = det.Sum(x => x.Hgvp);
-            var totalHgqp = det.Sum(x => x.Hgqp);
-            var totalMcp = det.Sum(x => x.Mcp);
-            var totalMsp = det.Sum(x => x.Msp);
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cells[1, i + 1].Value = headers[i];
+                ws.Cells[1, i + 1].Style.Font.Bold = true;
+                ws.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+            }
 
-            ws2.Cells[r2, 1].Value = r.Id;
+            int r = 2;
+            foreach (var kv in byInspector
+                .Where(kv => !kv.Value.IsAllZero)
+                .OrderByDescending(kv => kv.Value.TotalPresentadas))
+            {
+                var name = SafeInspName(kv.Key);
+                var c = kv.Value;
+                int col = 1;
 
-            if (!string.IsNullOrWhiteSpace(r.Nrores) && r.Nrores.Trim().Length <= 10)
-                ws2.Cells[r2, 2].Value = r.Nrores.Trim();
-            else
-                ws2.Cells[r2, 2].Value = "Sin solicitud";
+                ws.Cells[r, col++].Value = name;
+                ws.Cells[r, col++].Value = c.prPres;
+                ws.Cells[r, col++].Value = c.prMarc;
+                ws.Cells[r, col++].Value = c.prRech;
 
-            ws2.Cells[r2, 3].Value = r.Freali?.ToString("dd/MM/yyyy");
-            ws2.Cells[r2, 4].Value = mapInspect.TryGetValue(r.Icod ?? "", out var nomInspector) ? nomInspector : "";
-            ws2.Cells[r2, 5].Value = traductorProvinciaInverso.TryGetValue(r.Establecimiento?.Codpro ?? "", out var nomProv) ? nomProv : "";
-            ws2.Cells[r2, 6].Value = r.Establecimiento?.Ecod;
-            ws2.Cells[r2, 7].Value = totalHdp;
-            ws2.Cells[r2, 8].Value = totalHgvp;
-            ws2.Cells[r2, 9].Value = totalHgqp;
-            ws2.Cells[r2, 10].Value = totalMcp;
-            ws2.Cells[r2, 11].Value = totalMsp;
+                ws.Cells[r, col++].Value = c.vipPres;
+                ws.Cells[r, col++].Value = c.vipMarc;
+                ws.Cells[r, col++].Value = c.vipRech;
 
-            r2++;
+                ws.Cells[r, col++].Value = c.scpPres;
+                ws.Cells[r, col++].Value = c.scpMarc;
+                ws.Cells[r, col++].Value = c.scpRech;
+
+                ws.Cells[r, col++].Value = c.cpPres;
+                ws.Cells[r, col++].Value = c.cpMarc;
+                ws.Cells[r, col++].Value = c.cpRech;
+                ws.Cells[r, col++].Value = c.cpSBarra;
+
+                ws.Cells[r, col++].Value = c.TotalPresentadas;
+                r++;
+            }
+
+            ws.Cells[1, 1, Math.Max(2, r - 1), headers.Length].AutoFitColumns();
         }
 
-        ws2.Cells[1, 1, 1, 11].Style.Font.Bold = true;
-        ws2.Cells[1, 1, r2 - 1, 11].AutoFitColumns();
+        // ==== Sheet 4: Mensual (General) ====
+        {
+            var ws = wb.Worksheets.Add("Mensual - General");
+            string[] headers = {
+                "Mes (YYYY-MM)",
+                "PR Pres","PR Marc","PR Rech",
+                "VIP Pres","VIP Marc","VIP Rech",
+                "SCP Pres","SCP Marc","SCP Rech",
+                "CP Pres","CP Marc","CP Rech","CP S/",
+                "Total Presentadas"
+        };
 
-        var fileContents = excelPackage.GetAsByteArray();
-        var fileName = $"Reporte_{DateTime.Now:dd_MM}.xlsx";
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cells[1, i + 1].Value = headers[i];
+                ws.Cells[1, i + 1].Style.Font.Bold = true;
+                ws.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+            }
+
+            int r = 2;
+            foreach (var kv in byMonth
+                .Where(kv => !kv.Value.IsAllZero)
+                .OrderBy(kv => kv.Key))
+            {
+                var key = kv.Key;
+                var c = kv.Value;
+                int col = 1;
+
+                ws.Cells[r, col++].Value = key;
+                ws.Cells[r, col++].Value = c.prPres;
+                ws.Cells[r, col++].Value = c.prMarc;
+                ws.Cells[r, col++].Value = c.prRech;
+
+                ws.Cells[r, col++].Value = c.vipPres;
+                ws.Cells[r, col++].Value = c.vipMarc;
+                ws.Cells[r, col++].Value = c.vipRech;
+
+                ws.Cells[r, col++].Value = c.scpPres;
+                ws.Cells[r, col++].Value = c.scpMarc;
+                ws.Cells[r, col++].Value = c.scpRech;
+
+                ws.Cells[r, col++].Value = c.cpPres;
+                ws.Cells[r, col++].Value = c.cpMarc;
+                ws.Cells[r, col++].Value = c.cpRech;
+                ws.Cells[r, col++].Value = c.cpSBarra;
+
+                ws.Cells[r, col++].Value = c.TotalPresentadas;
+                r++;
+            }
+
+            ws.Cells[1, 1, Math.Max(2, r - 1), headers.Length].AutoFitColumns();
+        }
+
+        // ==== Sheet 5: Mensual por Provincia ====
+        {
+            var ws = wb.Worksheets.Add("Mensual - Provincia");
+            string[] headers = {
+                "Mes (YYYY-MM)","Provincia",
+                "PR Pres","PR Marc","PR Rech",
+                "VIP Pres","VIP Marc","VIP Rech",
+                "SCP Pres","SCP Marc","SCP Rech",
+                "CP Pres","CP Marc","CP Rech","CP S/",
+                "Total Presentadas"
+        };
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cells[1, i + 1].Value = headers[i];
+                ws.Cells[1, i + 1].Style.Font.Bold = true;
+                ws.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+            }
+
+            int r = 2;
+            foreach (var kv in byMonthProvince
+                .Where(kv => !kv.Value.IsAllZero)
+                .OrderBy(kv => kv.Key.month)
+                .ThenByDescending(kv => kv.Value.TotalPresentadas))
+            {
+                var (month, prov) = kv.Key;
+                var c = kv.Value;
+                int col = 1;
+
+                ws.Cells[r, col++].Value = month;
+                ws.Cells[r, col++].Value = SafeProvName(prov);
+
+                ws.Cells[r, col++].Value = c.prPres;
+                ws.Cells[r, col++].Value = c.prMarc;
+                ws.Cells[r, col++].Value = c.prRech;
+
+                ws.Cells[r, col++].Value = c.vipPres;
+                ws.Cells[r, col++].Value = c.vipMarc;
+                ws.Cells[r, col++].Value = c.vipRech;
+
+                ws.Cells[r, col++].Value = c.scpPres;
+                ws.Cells[r, col++].Value = c.scpMarc;
+                ws.Cells[r, col++].Value = c.scpRech;
+
+                ws.Cells[r, col++].Value = c.cpPres;
+                ws.Cells[r, col++].Value = c.cpMarc;
+                ws.Cells[r, col++].Value = c.cpRech;
+                ws.Cells[r, col++].Value = c.cpSBarra;
+
+                ws.Cells[r, col++].Value = c.TotalPresentadas;
+                r++;
+            }
+
+            ws.Cells[1, 1, Math.Max(2, r - 1), headers.Length].AutoFitColumns();
+        }
+
+        // ==== Sheet 6: Mensual por Inspector ====
+        {
+            var ws = wb.Worksheets.Add("Mensual - Inspector");
+            string[] headers = {
+                "Mes (YYYY-MM)","Inspector",
+                "PR Pres","PR Marc","PR Rech",
+                "VIP Pres","VIP Marc","VIP Rech",
+                "SCP Pres","SCP Marc","SCP Rech",
+                "CP Pres","CP Marc","CP Rech","CP S/",
+                "Total Presentadas"
+        };
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cells[1, i + 1].Value = headers[i];
+                ws.Cells[1, i + 1].Style.Font.Bold = true;
+                ws.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+            }
+
+            int r = 2;
+            foreach (var kv in byMonthInspector
+                .Where(kv => !kv.Value.IsAllZero)
+                .OrderBy(kv => kv.Key.month)
+                .ThenByDescending(kv => kv.Value.TotalPresentadas))
+            {
+                var (month, insp) = kv.Key;
+                var c = kv.Value;
+                int col = 1;
+
+                ws.Cells[r, col++].Value = month;
+                ws.Cells[r, col++].Value = SafeInspName(insp);
+
+                ws.Cells[r, col++].Value = c.prPres;
+                ws.Cells[r, col++].Value = c.prMarc;
+                ws.Cells[r, col++].Value = c.prRech;
+
+                ws.Cells[r, col++].Value = c.vipPres;
+                ws.Cells[r, col++].Value = c.vipMarc;
+                ws.Cells[r, col++].Value = c.vipRech;
+
+                ws.Cells[r, col++].Value = c.scpPres;
+                ws.Cells[r, col++].Value = c.scpMarc;
+                ws.Cells[r, col++].Value = c.scpRech;
+
+                ws.Cells[r, col++].Value = c.cpPres;
+                ws.Cells[r, col++].Value = c.cpMarc;
+                ws.Cells[r, col++].Value = c.cpRech;
+                ws.Cells[r, col++].Value = c.cpSBarra;
+
+                ws.Cells[r, col++].Value = c.TotalPresentadas;
+                r++;
+            }
+
+            ws.Cells[1, 1, Math.Max(2, r - 1), headers.Length].AutoFitColumns();
+        }
+
+        var fileBytes = excel.GetAsByteArray();
+        var fileName = $"Reporte_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
         var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-        var url = $"data:{contentType};base64,{Convert.ToBase64String(fileContents)}";
-
+        var url = $"data:{contentType};base64,{Convert.ToBase64String(fileBytes)}";
         await _js.InvokeVoidAsync("saveAsFile", fileName, url);
     }
 
@@ -617,13 +983,17 @@
         FechaInicial = DateTime.Now.AddDays(-700);
         FechaFinal = DateTime.Now;
 
-        seleccion = "";
         provinciasSeleccionadas = new List<string>();
         inspectoresSeleccionadosCods = new List<string>();
 
-        listaDatos.Clear();
-        datosActuales.Clear();
-        reportes.Clear();
+        listaFiltrada.Clear();
+        totalesGeneral = new();
+        byProvince.Clear();
+        byInspector.Clear();
+        byMonth.Clear();
+        byMonthProvince.Clear();
+        byMonthInspector.Clear();
+
         confirmado = false;
         terminado = true;
         loading = false;
@@ -647,4 +1017,97 @@
 
     private async Task Print()
         => await _js.InvokeVoidAsync("window.print");
+
+    /* ======== MÉTRICAS NORMALIZADAS ======== */
+    class Counters
+    {
+        // PR
+        public double prPres, prMarc;
+        // VIP
+        public double vipPres, vipMarc;
+        // SCP
+        public double scpPres, scpMarc;
+        // CP
+        public double cpPres, cpMarc, cpSBarra;
+
+        public double prRech => Math.Max(0, prPres - prMarc);
+        public double vipRech => Math.Max(0, vipPres - vipMarc);
+        public double scpRech => Math.Max(0, scpPres - scpMarc);
+        public double cpRech => Math.Max(0, cpPres - cpMarc);
+
+        public double TotalPresentadas => prPres + vipPres + scpPres + cpPres;
+
+        public void AddFrom(Resin6DTO x)
+        {
+            prPres += x.Hdp ?? 0;
+            prMarc += (x.HdpM ?? 0) + (x.HdpAs ?? 0);
+
+            vipPres += (x.Hgvp ?? 0) + (x.Hgqp ?? 0);
+            vipMarc += (x.Hgvb ?? 0) + (x.Hgqb ?? 0);
+
+            scpPres += x.Mcp ?? 0;
+            scpMarc += (x.McpM ?? 0) + (x.McpAs ?? 0);
+
+            cpPres += x.Msp ?? 0;
+            cpMarc += (x.MspM ?? 0) + (x.MspAs ?? 0);
+            cpSBarra += x.Mspsb ?? 0;
+        }
+
+        public bool IsAllZero =>
+            prPres == 0 && prMarc == 0 &&
+            vipPres == 0 && vipMarc == 0 &&
+            scpPres == 0 && scpMarc == 0 &&
+            cpPres == 0 && cpMarc == 0 && cpSBarra == 0;
+    }
+
+    /* ======== DICCIONARIOS DE PIVOTE ======== */
+    Counters totalesGeneral = new();
+    Dictionary<string, Counters> byProvince = new();             // provCode -> Counters
+    Dictionary<string, Counters> byInspector = new();            // inspCode -> Counters
+    Dictionary<string, Counters> byMonth = new();                // "yyyy-MM" -> Counters
+    Dictionary<(string month, string prov), Counters> byMonthProvince = new();
+    Dictionary<(string month, string insp), Counters> byMonthInspector = new();
+
+    /* ======== HELPERS ======== */
+    static TTarget GetOrCreate<TKey, TTarget>(Dictionary<TKey, TTarget> dict, TKey key)
+        where TKey : notnull
+        where TTarget : new()
+    {
+        if (!dict.TryGetValue(key, out var val))
+        {
+            val = new TTarget();
+            dict[key] = val;
+        }
+        return val;
+    }
+
+    string MonthKey(DateTime? dt)
+    {
+        if (!dt.HasValue) return "(Sin fecha)";
+        return dt.Value.ToString("yyyy-MM");
+    }
+
+    string SafeProvName(string? code)
+    {
+        var c = (code ?? "").Trim();
+        if (traductorProvinciaInverso.TryGetValue(c, out var name) && !string.IsNullOrWhiteSpace(name))
+            return name;
+        return "(Sin provincia)";
+    }
+
+    string SafeInspName(string? code)
+    {
+        var mapInspect = (Inspects ?? new List<InspectDTO>()).GroupBy(i => i.Icod)
+            .ToDictionary(g => g.Key ?? "", g => g.First().Nombre ?? "");
+        return mapInspect.TryGetValue((code ?? "").Trim(), out var n) && !string.IsNullOrWhiteSpace(n)
+            ? n : "(Sin inspector)";
+    }
+
+    // Helper para “Por Provincia (del inspector)”
+    Counters Aggregate(IEnumerable<Resin6DTO> items)
+    {
+        var c = new Counters();
+        foreach (var x in items) c.AddFrom(x);
+        return c;
+    }
 }

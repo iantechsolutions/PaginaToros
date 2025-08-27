@@ -194,46 +194,41 @@ namespace PaginaToros.Server.Controllers
         [Route("Editar")]
         public async Task<IActionResult> Editar([FromBody] SocioDTO request)
         {
-            Respuesta<SocioDTO> _Respuesta = new Respuesta<SocioDTO>();
+            var resp = new Respuesta<SocioDTO>();
             try
             {
-                Socio _Socio = _mapper.Map<Socio>(request);
-                Socio _SocioParaEditar = await _SocioRepositorio.Obtener(u => u.Id == _Socio.Id);
+                var socioReq = _mapper.Map<Socio>(request);
+                var socioDb = await _SocioRepositorio.Obtener(u => u.Id == socioReq.Id);
 
-                if (_SocioParaEditar != null)
-                {
-                    _SocioParaEditar.Scod = _Socio.Scod;
-                    _SocioParaEditar.Nombre = _Socio.Nombre;
-                    _SocioParaEditar.Direcc1 = _Socio.Direcc1;
-                    _SocioParaEditar.Telefo1 = _Socio.Telefo1;
-                    _SocioParaEditar.Telefo2 = _Socio.Telefo2;
-                    _SocioParaEditar.Locali1 = _Socio.Locali1;
-                    _SocioParaEditar.Codpos1 = _Socio.Codpos1;
-                    _SocioParaEditar.Codpro1 = _Socio.Codpro1;
-                    _SocioParaEditar.Telefo2 = _Socio.Telefo2;
-                    _SocioParaEditar.Criador = _Socio.Criador;
-                    _SocioParaEditar.Mail = _Socio.Mail;
-                    _SocioParaEditar.Fecing = _Socio.Fecing;
-                    _SocioParaEditar.Placod = _Socio.Placod;
+                if (socioDb == null)
+                    return NotFound(new Respuesta<SocioDTO> { Exito = 0, Mensaje = "No se encontró el identificador" });
 
-                    bool respuesta = await _SocioRepositorio.Editar(_SocioParaEditar);
+                socioDb.Scod = socioReq.Scod;
+                socioDb.Nombre = socioReq.Nombre;
+                socioDb.Direcc1 = socioReq.Direcc1;
+                socioDb.Telefo1 = socioReq.Telefo1;
+                socioDb.Telefo2 = socioReq.Telefo2;
+                socioDb.Locali1 = socioReq.Locali1;
+                socioDb.Codpos1 = socioReq.Codpos1;
+                socioDb.Codpro1 = socioReq.Codpro1;
+                socioDb.Criador = socioReq.Criador;
+                socioDb.Mail = socioReq.Mail;
+                socioDb.Fecing = socioReq.Fecing;
+                socioDb.Placod = socioReq.Placod;
 
-                    if (respuesta)
-                        _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<SocioDTO>(_SocioParaEditar) };
-                    else
-                        _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
-                }
-                else
-                {
-                    _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
-                }
+                var ok = await _SocioRepositorio.Editar(socioDb);
 
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                if (!ok)
+                    return StatusCode(StatusCodes.Status500InternalServerError,
+                        new Respuesta<SocioDTO> { Exito = 0, Mensaje = "No se pudo editar el socio" });
+
+                resp = new Respuesta<SocioDTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<SocioDTO>(socioDb) };
+                return Ok(resp);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new Respuesta<SocioDTO> { Exito = 0, Mensaje = ex.Message });
             }
         }
     }

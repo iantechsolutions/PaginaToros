@@ -1392,7 +1392,7 @@
 
             // Buscá por (Anioex, Nrocri) – si existe, se actualiza; si no, se crea
             var planDestino = Planteles.FirstOrDefault(x => x.Anioex == anioDestino && x.Nrocri == socio.Scod);
-
+        var ultimoDigito = anioDestino.Last();
             if (planDestino != null)
             {
                 planDestino.Varede = estadoFinal.Ea1;
@@ -1416,7 +1416,7 @@
                         Vqcsrp = estadoFinal.Ea5,
                         Vqssrp = estadoFinal.Ea6,
                         Nrocri = planViejo.Nrocri,
-                        Placod = $"{anioDestino}{socio.Placod}",
+                        Placod = $"{ultimoDigito}{socio.Placod}",
                         Estado = planViejo.Estado,
                         Fecing = planViejo.Fecing ?? "",
                         Nroins = planViejo.Nroins

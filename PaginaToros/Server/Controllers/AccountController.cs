@@ -306,9 +306,6 @@ namespace PaginaToros.Server.Controllers
                                     <td style='padding: 20px; padding-top: 10px; color: #000;'>
                                         <h2>Buenos Aires, {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-ES"))}</h2>
                                         <p>Señor Criador:</p>
-                                        <p>Tenemos el agrado de dirigirnos a usted con el objeto de enviarle la documentación relacionada con los controles de procreos y las nuevas tarifas vigentes a partir del 1 de enero de 2025.</p>
-                                        <p>Recuerde que, para una mejor organización de los controles, las <strong>SOLICITUDES DE INSPECCIÓN</strong> junto con el correspondiente <strong>ADELANTO</strong> deberán enviarse <strong>HASTA EL 15 DE MARZO PRÓXIMO</strong>, para evitar recargos por presentación fuera de término. Además, es importante regularizar cualquier saldo pendiente para evitar inconvenientes.</p>
-                                        <p>En la <strong>SOLICITUD DE INSPECCIÓN</strong> adjunta, el adelanto se calcula automáticamente, por lo que sólo se debe completar los campos requeridos en cantidad de animales solicitados y su año de nacimiento.</p>
                                         <p>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar:1050/'>aquí</a>.</p>
                                         <p><strong>Detalles de inicio de sesión:</strong></p>
                                         <p>Correo electrónico registrado: {model.Email}<br>Contraseña: '{password}'</p>
@@ -540,9 +537,6 @@ namespace PaginaToros.Server.Controllers
                                     <td style='padding: 20px; padding-top: 10px; color: #000;'>
                                         <h2>Buenos Aires, 26 de enero de 2025</h2>
                                         <p>Señor {model.Names}:</p>
-                                        <p>Tenemos el agrado de dirigirnos a usted con el objeto de enviarle la documentación relacionada con los controles de procreos y las nuevas tarifas vigentes a partir del 1 de enero de 2025.</p>
-                                        <p>Recuerde que, para una mejor organización de los controles, las <strong>SOLICITUDES DE INSPECCIÓN</strong> junto con el correspondiente <strong>ADELANTO</strong> deberán enviarse <strong>HASTA EL 15 DE MARZO PRÓXIMO</strong>, para evitar recargos por presentación fuera de término. Además, es importante regularizar cualquier saldo pendiente para evitar inconvenientes.</p>
-                                        <p>En la <strong>SOLICITUD DE INSPECCIÓN</strong> adjunta, el adelanto se calcula automáticamente, por lo que sólo se debe completar los campos requeridos en cantidad de animales solicitados y su año de nacimiento.</p>
                                         <p>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar:1050/'>aquí</a>.</p>
                                         <p><strong>Detalles de inicio de sesión:</strong></p>
                                         <p>Correo electrónico registrado: {model.Email}<br>Contraseña: '{nuevaContraseña}'</p>
