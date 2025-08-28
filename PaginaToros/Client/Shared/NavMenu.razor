@@ -165,41 +165,38 @@
                             </div>
 
                         </li>
-                        <li class="nav-item-content rounded-full">
-
-                        </li>
+                      
                         </li>
 
-                        <li class="nav-item group text-black group-hover:bg-green-500 rounded-2xl flex items-center gap-2" style="left:10.6%">
-                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl flex items-center gap-2"> 
-                                <FeatherUser Color="Black"></FeatherUser> 
-                                <p>@userName</p></span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD;right:0px">
-                            <div style="position:relative">
-                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="usuarios">
+                      <li class="nav-item group text-black group-hover:bg-green-500 rounded-2xl flex items-center gap-2">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl flex items-center gap-2">
+                                <FeatherUser Color="Black"></FeatherUser>
+                                <p>@displayUser</p>
+                            </span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <div>
+                                <NavLink class="dropdown nav-link text-black bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="usuarios">
                                     &nbspVer usuarios
                                 </NavLink>
                             </div>
-                            <div style="position:relative">
-                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="registrousuario">
+                            <div>
+                                <NavLink class="dropdown nav-link text-black bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="registrousuario">
                                     &nbspCrear usuario
                                 </NavLink>
                             </div>
-                            <div style="position:relative">
-                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="logout">
+                            <div>
+                                <NavLink class="dropdown nav-link text-black bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="logout">
                                     &nbspCerrar sesion
                                 </NavLink>
                             </div>
-                             <div style="position:relative">
-                            <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="CambiarPassword">
-                                &nbspCambiar Contraseña
-                            </NavLink>
+                            <div>
+                                <NavLink class="dropdown nav-link text-black bg-green-500 hover:bg-green-400 rounded-md" href="CambiarPassword">
+                                    &nbspCambiar Contraseña
+                                </NavLink>
                             </div>
                         </li>
-                        </li>
-                        <li>
-                           
-                        </li>
+                     </li>
+
                     </ul>
                 </div>
             </div>
@@ -340,21 +337,25 @@
                                 Animales Para Control
                             </NavLink>
                         </li>
-                        <li class="nav-item group text-black group-hover:bg-green-500 rounded-2xl flex items-center gap-2" style="left:10.6%">
-                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl flex items-center gap-2">   <FeatherUser Color="Black"></FeatherUser> <p>@userName</p></span>
-                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD;right:0px">
-                            <div style="position:relative">
-                                <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="logout">
+                        <li class="nav-item group text-black group-hover:bg-green-500 rounded-2xl flex items-center gap-2">
+                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl flex items-center gap-2">
+                                <FeatherUser Color="Black"></FeatherUser>
+                                <p>@displayUser</p>
+                            </span>
+                        <li class="nav-item-content rounded-xl" style="background-color:#93C5FD">
+                            <div>
+                                <NavLink class="dropdown nav-link text-black bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="logout">
                                     &nbspCerrar sesion
                                 </NavLink>  
                             </div>
-                            <div style="position:relative">
-                                    <NavLink class="dropdown nav-link text-black  bg-green-500 hover:bg-green-400 rounded-md" href="CambiarPassword">
-                                        &nbspCambiar Contraseña
-                                    </NavLink>
+                            <div>
+                                <NavLink class="dropdown nav-link text-black bg-green-500 hover:bg-green-400 rounded-md" href="CambiarPassword">
+                                    &nbspCambiar Contraseña
+                                </NavLink>
                             </div>
                         </li>
                         </li>
+
                     </ul>
                 </div>
             </div>
@@ -366,10 +367,9 @@
     private bool collapseNavMenu = true;
     private string? NavBarCssClass => collapseNavMenu ? null : "show";
     private string? NavButtonCssClass => collapseNavMenu ? "collapsed" : null;
-    
 
-    
     private string userName = "Usuario no identificado";
+    private string displayUser = "Usuario no identificado";
 
     protected override async Task OnInitializedAsync()
     {
@@ -378,10 +378,22 @@
 
         if (user.Identity?.IsAuthenticated == true)
         {
-            userName = user.FindFirst(ClaimTypes.Name)?.Value.Split(' ').Distinct().Aggregate((a, b) => $"{a} {b}") ?? "Usuario sin nombre";
+            var email = user.FindFirst(ClaimTypes.Email)?.Value;
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                displayUser = email.Split('@')[0];
+                userName = email;
+                return;
+            }
+
+            var name = user.FindFirst(ClaimTypes.Name)?.Value;
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                userName = name.Split(' ').Distinct().Aggregate((a, b) => $"{a} {b}");
+                displayUser = userName;
+            }
         }
     }
-
 
     private void ToggleNavMenu()
     {
