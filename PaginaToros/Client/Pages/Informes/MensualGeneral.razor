@@ -611,15 +611,15 @@
             {
                 totalesGeneral.AddFrom(x);
 
-                var provCode = (x.Resin1.Establecimiento?.Codpro ?? "").Trim();
-                var inspCode = (x.Resin1.Icod ?? "").Trim();
+                var provKey = NormalizeProvKey(x.Resin1.Establecimiento?.Codpro);
+                var inspKey = NormalizeInspKey(x.Resin1.Icod);
                 var mKey = MonthKey(x.Resin1.Freali);
 
-                GetOrCreate(byProvince, provCode).AddFrom(x);
-                GetOrCreate(byInspector, inspCode).AddFrom(x);
+                GetOrCreate(byProvince, provKey).AddFrom(x);
+                GetOrCreate(byInspector, inspKey).AddFrom(x);
                 GetOrCreate(byMonth, mKey).AddFrom(x);
-                GetOrCreate(byMonthProvince, (mKey, provCode)).AddFrom(x);
-                GetOrCreate(byMonthInspector, (mKey, inspCode)).AddFrom(x);
+                GetOrCreate(byMonthProvince, (mKey, provKey)).AddFrom(x);
+                GetOrCreate(byMonthInspector, (mKey, inspKey)).AddFrom(x);
             }
 
             confirmado = true;
@@ -1102,7 +1102,23 @@
         return mapInspect.TryGetValue((code ?? "").Trim(), out var n) && !string.IsNullOrWhiteSpace(n)
             ? n : "(Sin inspector)";
     }
+    string NormalizeProvKey(string? code)
+    {
+        var c = (code ?? "").Trim();
+        // Si existe en el traductor y tiene nombre, uso el código real
+        if (traductorProvinciaInverso.TryGetValue(c, out var name) && !string.IsNullOrWhiteSpace(name))
+            return c;
+        // Si no, mando a una clave canónica
+        return "__NONE_PROV__";
+    }
 
+    string NormalizeInspKey(string? code)
+    {
+        var c = (code ?? "").Trim();
+        var exists = (Inspects ?? new List<InspectDTO>())
+            .Any(i => ((i.Icod ?? "").Trim()) == c && !string.IsNullOrWhiteSpace(i.Nombre));
+        return (exists && c != "") ? c : "__NONE_INSP__";
+    }
     // Helper para “Por Provincia (del inspector)”
     Counters Aggregate(IEnumerable<Resin6DTO> items)
     {
