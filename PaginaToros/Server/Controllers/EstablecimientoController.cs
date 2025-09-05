@@ -25,26 +25,22 @@ namespace PaginaToros.Server.Controllers
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
         {
-
-            Respuesta<List<EstableDTO>> _ResponseDTO = new Respuesta<List<EstableDTO>>();
+            var _ResponseDTO = new Respuesta<List<EstableDTO>>();
 
             try
             {
-                List<EstableDTO> listaPedido = new List<EstableDTO>();
-                var a = await _EstableRepositorio.Lista(skip, take);
+                var entities = await _EstableRepositorio.Lista(skip, take);
 
+           
 
-                listaPedido = _mapper.Map<List<EstableDTO>>(a);
+                var listaPedido = _mapper.Map<List<EstableDTO>>(entities);
 
-                _ResponseDTO = new Respuesta<List<EstableDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
-
+                _ResponseDTO = new Respuesta<List<EstableDTO>> { Exito = 1, Mensaje = "Exito", List = listaPedido };
                 return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
-
-
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<EstableDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                _ResponseDTO = new Respuesta<List<EstableDTO>> { Exito = 0, Mensaje = ex.Message, List = null };
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }

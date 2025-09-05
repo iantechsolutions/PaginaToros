@@ -1,4 +1,9 @@
-﻿    
+﻿    @using PaginaToros.Shared.Models
+@using PaginaToros.Shared.Models.Response
+@using PaginaToros.Client.Servicios.Contrato
+
+@inject ISocioServicio _socioServicio
+@inject IEstableServicio _estableServicio
 <style>
     .blink {
         text-align: center;
@@ -44,25 +49,25 @@
         <RadzenCard Variant="Variant.Filled" Class="rz-my-2 rz-mx-0">
             <RadzenText>Establecimientos</RadzenText>
             <br/>
-            <RadzenDataList AllowVirtualization=false
-                            WrapItems=true AllowPaging=false
-                            Data="@(establecimientos.GetRange(0,3))" TItem="Estable" PageSize="3" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
+            <RadzenDataList AllowVirtualization="false"
+                            WrapItems="true" AllowPaging="false"
+                            Data="@establecimientos" TItem="EstableDTO" PageSize="3" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
                 <Template Context="data">
                     <RadzenColumn Size="6" class="rz-p-0 rz-p-md-0">
                         <RadzenCard Style="@(data.Activo=="S"?"background-color: rgba(45, 255, 125, 0.5);":"background-color: rgba(255, 55, 46, 0.5);")">
                             <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Nombre</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H4" class="rz-display-flex rz-mt-0 rz-my-0">@(data.Nombre)</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Provincia</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H4" class="rz-display-flex rz-mt-0 rz-my-0">@data.Nombre</RadzenText>
+
+                            <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Provincia</RadzenText>
                             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H4" class="rz-display-flex rz-mt-0 rz-my-0">
-                                @traductorProvincia.ContainsKey(socio.Codpro1) ? traductorProvincia[socio.Codpro1] : "Provincia desconocida"
+                                @(traductorProvincia.TryGetValue(data.Codpro ?? "", out var prov) ? prov : "Provincia desconocida")
                             </RadzenText>
-                            </RadzenCard>
-                        </RadzenColumn>
-                    </Template>
-                </RadzenDataList>
+                        </RadzenCard>
+                    </RadzenColumn>
+                </Template>
+            </RadzenDataList>
                 <br />
 
-                <RadzenButton Variant="Variant.Text" Text="ver más" ButtonStyle="ButtonStyle.Secondary" Style="color:black;" />
             </RadzenCard>
         </RadzenColumn>
         <RadzenColumn>
@@ -71,29 +76,29 @@
                 <br />
                 
                
-                <RadzenRow class="rz-text-align-center " Gap="1rem">
+                <RadzenRow class="rz-text-align-center " Gap="3rem">
                     <RadzenColumn Size="4" >
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Nombre</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Prenom @socio.Nombre @socio.Posnom</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socioDet.Prenom @socioDet.Nombre @socioDet.Posnom</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Telefono</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Telefo1</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socioDet.Telefo1</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Plantel</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Placod</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socioDet.Placod</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Mail</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Mail</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">
+                            @(traductorProvincia.TryGetValue(socioDet.Codpro1 ?? "", out var provSoc) ? provSoc : "Provincia desconocida")
+                        </RadzenText>
 
                     </RadzenColumn>
                     <RadzenColumn >
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Domicilio</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Direcc1</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socioDet.Direcc1</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Localidad</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Locali1</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socioDet.Locali1</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Codigo Postal</RadzenText>
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socio.Codpos1</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socioDet.Codpos1</RadzenText>
                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Provincia</RadzenText>
-                    <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">
-                        @traductorProvincia.ContainsKey(socio.Codpro1) ? traductorProvincia[socio.Codpro1] : "Provincia desconocida"
-                    </RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1" class="rz-display-flex rz-mt-0 rz-my-0">@socioDet.Mail</RadzenText>
                     </RadzenColumn>
                     
                 </RadzenRow>
@@ -105,51 +110,54 @@
    
 
 
-    @code {
-    [Parameter] public int id { get; set; }
-    Socio socio = new();
-    bool activo = true;
-    List<Estable> establecimientos = new() { new Estable { Id = 0, Nombre = "IANTech", Activo = "S", Codpro = "02", Encargado = "Juan" }, new Estable { Id = 0, Nombre = "IANTech", Activo = "S", Codpro = "04", Encargado = "Juan" }, new Estable { Id = 0, Nombre = "IANTech", Activo = "S", Codpro = "08", Encargado = "Juan" }, new Estable { Id = 0, Nombre = "IANTech", Activo = "S", Codpro = "18", Encargado = "Juan" }, new Estable { Id = 0, Nombre = "IANTech", Activo = "N", Codpro = "14", Encargado = "Juan" }, };
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public string Cod { get; set; } = "";
 
-    Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
+    SocioDTO socioDet = new();
+    List<EstableDTO> establecimientos = new();
+    bool activo;
+
+
+
+    Dictionary<string, string> traductorProvincia = new()
     {
-        {"01", "Chaco"},
-        {"02", "Corrientes"},
-        {"03", "Entre Rios"},
-        {"04", "Santa Fe"},
-        {"05", "Cordoba"},
-        {"06", "La pampa"},
-        {"07", "San Luis"},
-        {"08", "Santa Cruz"},
-        {"09", "Tierra del fuego"},
-        {"10", "Chubut"},
-        {"11", "Neuquen"},
-        {"12", "Rio negro"},
-        {"13", "Buenos Aires"},
-        {"14", "Capital Federal"},
-        {"15", "Catamarca"},
-        {"16", "Formosa"},
-        {"17", "Jujuy"},
-        {"18", "La rioja"},
-        {"19", "Mendoza"},
-        {"20", "Misiones"},
-        {"21", "Salta"},
-        {"22", "San Juan"},
-        {"23", "Santiago Del Estero"},
-        {"24", "Tucuman"},
-        {"",""}
+        {"01","Chaco"},{"02","Corrientes"},{"03","Entre Rios"},{"04","Santa Fe"},{"05","Cordoba"},
+        {"06","La pampa"},{"07","San Luis"},{"08","Santa Cruz"},{"09","Tierra del fuego"},{"10","Chubut"},
+        {"11","Neuquen"},{"12","Rio negro"},{"13","Buenos Aires"},{"14","Capital Federal"},{"15","Catamarca"},
+        {"16","Formosa"},{"17","Jujuy"},{"18","La rioja"},{"19","Mendoza"},{"20","Misiones"},{"21","Salta"},
+        {"22","San Juan"},{"23","Santiago Del Estero"},{"24","Tucuman"},{"",""}
     };
 
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        if (id != 0)
+        if (Id <= 0) return;
+
+        try
         {
-            var rta = await Http.GetFromJsonAsync<Respuesta<List<Estable>>>($"/api/Establecimiento");
-            establecimientos = rta.List;
-            var rt = await Http.GetFromJsonAsync<Respuesta<Socio>>($"/api/Socio/{id}");
-            socio = rt.List;
+            var socioResp = await _socioServicio.LimitadosFiltradoTodos(
+                skip: 0,
+                take: 1,
+                expression: $"Id == {Id}");
+
+            socioDet = socioResp?.List?.FirstOrDefault() ?? new SocioDTO();
+
+            var estabResp = await _estableServicio.GetBySocioId(Id);
+            establecimientos = estabResp?.List ?? new List<EstableDTO>();
+
+            // 3) Estado
+            activo = (socioDet?.Criador == "S");
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[InfoSocio] Error: {ex}");
+            socioDet = new SocioDTO();
+            establecimientos = new List<EstableDTO>();
         }
     }
 
+    
 }

@@ -17,22 +17,28 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         }
         public async Task<List<Estable>> Lista(int skip, int take)
         {
+            var baseQuery = _dbContext.Estables
+                .AsNoTracking()
+                .OrderByDescending(e => e.Id);
 
-            try
-            {
+            var pageIds = await baseQuery
+                .Select(e => e.Id)
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
 
-                // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Estables.Include(t => t.Socio)
-                                                 .Include(x=>x.Provincia)
-                                                 .OrderByDescending(t => t.Id)
-                                                 .Skip(skip)
-                                                 .Take(take)
-                                                 .ToListAsync();
-            }
-            catch
-            {
-                throw;
-            }
+            var result = await _dbContext.Estables
+                .AsNoTracking()
+                .Where(e => pageIds.Contains(e.Id))
+                .Include(e => e.Socio)
+                .Include(e => e.Provincia)
+                .ToListAsync();
+
+            return result
+                .GroupBy(e => e.Id)
+                .Select(g => g.First())
+                .OrderByDescending(e => e.Id) 
+                .ToList();
         }
 
 

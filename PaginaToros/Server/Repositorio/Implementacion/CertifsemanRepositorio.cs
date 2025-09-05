@@ -53,37 +53,49 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Certifseman> a; 
-                if(filtro is not null) {
-                    a = await _dbContext.Certifsemen.OrderByDescending(x => x.Id).Include(t => t.Socio).Include(t => t.Centro).Where(filtro).Skip(skip).ToListAsync();
-                }
-                else
-                {
-                    a = await _dbContext.Certifsemen.OrderByDescending(x => x.Id).Include(t => t.Socio).Include(t => t.Centro).Skip(skip).ToListAsync();
-                }
+                IQueryable<Certifseman> query = _dbContext.Certifsemen
+                    .AsNoTracking();
+
+                if (!string.IsNullOrWhiteSpace(filtro))
+                    query = query.Where(filtro); 
+
+                var ordered = query.OrderByDescending(x => x.Id); 
+
                 if (take == 0)
                 {
-                    a = a.ToList();
+                    return await ordered
+                        .Skip(skip)
+                        .Include(x => x.Socio)
+                        .Include(x => x.Centro)
+                        .ToListAsync();
                 }
-                else
-                {
-                    
-                    a = a.Take(take).ToList();
-                }
-                Console.WriteLine("cantidad pre");
-                Console.WriteLine(a.Count());
-                a = RemoveDuplicates(a);
-                Console.WriteLine("cantidad post");
-                Console.WriteLine(a.Count());
 
+                var pageIds = await ordered
+                    .Select(x => x.Id)
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
 
-                return a;
+                if (pageIds.Count == 0)
+                    return new List<Certifseman>();
+
+                var page = await _dbContext.Certifsemen
+                    .AsNoTracking()
+                    .Where(x => pageIds.Contains(x.Id))
+                    .Include(x => x.Socio)
+                    .Include(x => x.Centro)
+                    .ToListAsync();
+
+                return page
+                    .OrderByDescending(x => x.Id)
+                    .ToList();
             }
             catch
             {
                 throw;
             }
         }
+
 
         public async Task<List<Certifseman>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null)
         {

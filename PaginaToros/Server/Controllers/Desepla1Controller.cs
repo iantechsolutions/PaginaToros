@@ -23,26 +23,38 @@ namespace PaginaToros.Server.Controllers
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
         {
-
             Respuesta<List<Desepla1DTO>> _ResponseDTO = new Respuesta<List<Desepla1DTO>>();
 
             try
             {
-                List<Desepla1DTO> listaPedido = new List<Desepla1DTO>();
                 var a = await _Desepla1Repositorio.Lista(skip, take);
 
+                // Map
+                var listaPedido = _mapper.Map<List<Desepla1DTO>>(a);
 
-                listaPedido = _mapper.Map<List<Desepla1DTO>>(a);
+                listaPedido = listaPedido
+                    .GroupBy(x => x.Nrodec)
+                    .Select(g => g.OrderByDescending(x => x.Id).First())
+                    .OrderByDescending(x => x.Nrodec)
+                    .ToList();
 
-                _ResponseDTO = new Respuesta<List<Desepla1DTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+                _ResponseDTO = new Respuesta<List<Desepla1DTO>>()
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = listaPedido
+                };
 
                 return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
-
-
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<Desepla1DTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                _ResponseDTO = new Respuesta<List<Desepla1DTO>>()
+                {
+                    Exito = 1,
+                    Mensaje = ex.Message,
+                    List = null
+                };
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }

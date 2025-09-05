@@ -227,7 +227,7 @@
                     <tr class="bg-gray-50">
                         <th class="border px-2 py-1">Presentados</th>
                         <th class="border px-2 py-1">Marcados</th>
-                        <th class="border px-2 py-1">Rechazadas</th>
+                        <th class="border px-2 py-1">Rechazados</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -248,7 +248,7 @@
                     <tr class="bg-gray-50">
                         <th class="border px-2 py-1">Presentados</th>
                         <th class="border px-2 py-1">Marcados</th>
-                        <th class="border px-2 py-1">Rechazadas</th>
+                        <th class="border px-2 py-1">Rechazados</th>
                         <th class="border px-2 py-1">S/</th>
                     </tr>
                 </thead>
@@ -685,11 +685,11 @@
 
             // Machos
             AddSection("Machos SCP (Sin Control)",
-                new[] { "Presentados", "Marcados", "Rechazadas" },
+                new[] { "Presentados", "Marcados", "Rechazados" },
                 new object?[] { g.scpPres, g.scpMarc, g.scpRech });
 
             AddSection("Machos CP (Con Control)",
-                new[] { "Presentados", "Marcados", "Rechazadas", "S/" },
+                new[] { "Presentados", "Marcados", "Rechazados", "S/" },
                 new object?[] { g.cpPres, g.cpMarc, g.cpRech, g.cpSBarra });
 
             ws.Cells[1, 1, r - 1, 10].AutoFitColumns();
@@ -750,58 +750,58 @@
         }
 
         // ==== Sheet 3: Por Inspector ====
-        {
-            var ws = wb.Worksheets.Add("Por Inspector");
-            string[] headers = {
-                "Inspector",
-                "PR Pres","PR Marc","PR Rech",
-                "VIP Pres","VIP Marc","VIP Rech",
-                "SCP Pres","SCP Marc","SCP Rech",
-                "CP Pres","CP Marc","CP Rech","CP S/",
-                "Total Presentadas"
-        };
+        // {
+        //     var ws = wb.Worksheets.Add("Por Inspector");
+        //     string[] headers = {
+        //         "Inspector",
+        //         "PR Pres","PR Marc","PR Rech",
+        //         "VIP Pres","VIP Marc","VIP Rech",
+        //         "SCP Pres","SCP Marc","SCP Rech",
+        //         "CP Pres","CP Marc","CP Rech","CP S/",
+        //         "Total Presentadas"
+        // };
 
-            for (int i = 0; i < headers.Length; i++)
-            {
-                ws.Cells[1, i + 1].Value = headers[i];
-                ws.Cells[1, i + 1].Style.Font.Bold = true;
-                ws.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                ws.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
-            }
+        //     for (int i = 0; i < headers.Length; i++)
+        //     {
+        //         ws.Cells[1, i + 1].Value = headers[i];
+        //         ws.Cells[1, i + 1].Style.Font.Bold = true;
+        //         ws.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+        //         ws.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+        //     }
 
-            int r = 2;
-            foreach (var kv in byInspector
-                .Where(kv => !kv.Value.IsAllZero)
-                .OrderByDescending(kv => kv.Value.TotalPresentadas))
-            {
-                var name = SafeInspName(kv.Key);
-                var c = kv.Value;
-                int col = 1;
+        //     int r = 2;
+        //     foreach (var kv in byInspector
+        //         .Where(kv => !kv.Value.IsAllZero)
+        //         .OrderByDescending(kv => kv.Value.TotalPresentadas))
+        //     {
+        //         var name = SafeInspName(kv.Key);
+        //         var c = kv.Value;
+        //         int col = 1;
 
-                ws.Cells[r, col++].Value = name;
-                ws.Cells[r, col++].Value = c.prPres;
-                ws.Cells[r, col++].Value = c.prMarc;
-                ws.Cells[r, col++].Value = c.prRech;
+        //         ws.Cells[r, col++].Value = name;
+        //         ws.Cells[r, col++].Value = c.prPres;
+        //         ws.Cells[r, col++].Value = c.prMarc;
+        //         ws.Cells[r, col++].Value = c.prRech;
 
-                ws.Cells[r, col++].Value = c.vipPres;
-                ws.Cells[r, col++].Value = c.vipMarc;
-                ws.Cells[r, col++].Value = c.vipRech;
+        //         ws.Cells[r, col++].Value = c.vipPres;
+        //         ws.Cells[r, col++].Value = c.vipMarc;
+        //         ws.Cells[r, col++].Value = c.vipRech;
 
-                ws.Cells[r, col++].Value = c.scpPres;
-                ws.Cells[r, col++].Value = c.scpMarc;
-                ws.Cells[r, col++].Value = c.scpRech;
+        //         ws.Cells[r, col++].Value = c.scpPres;
+        //         ws.Cells[r, col++].Value = c.scpMarc;
+        //         ws.Cells[r, col++].Value = c.scpRech;
 
-                ws.Cells[r, col++].Value = c.cpPres;
-                ws.Cells[r, col++].Value = c.cpMarc;
-                ws.Cells[r, col++].Value = c.cpRech;
-                ws.Cells[r, col++].Value = c.cpSBarra;
+        //         ws.Cells[r, col++].Value = c.cpPres;
+        //         ws.Cells[r, col++].Value = c.cpMarc;
+        //         ws.Cells[r, col++].Value = c.cpRech;
+        //         ws.Cells[r, col++].Value = c.cpSBarra;
 
-                ws.Cells[r, col++].Value = c.TotalPresentadas;
-                r++;
-            }
+        //         ws.Cells[r, col++].Value = c.TotalPresentadas;
+        //         r++;
+        //     }
 
-            ws.Cells[1, 1, Math.Max(2, r - 1), headers.Length].AutoFitColumns();
-        }
+        //     ws.Cells[1, 1, Math.Max(2, r - 1), headers.Length].AutoFitColumns();
+        // }
 
         // ==== Sheet 4: Mensual (General) ====
         {

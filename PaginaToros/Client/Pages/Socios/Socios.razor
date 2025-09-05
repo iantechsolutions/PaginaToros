@@ -389,22 +389,23 @@ else
     async Task gotoinfo(int id, string cod)
     {
         currentPage = grid.CurrentPage;
+
         var parameters = new ModalParameters();
-        var options = new ModalOptions()
+        parameters.Add(nameof(InfoSocio.Id), id);   
+        parameters.Add(nameof(InfoSocio.Cod), cod); 
+
+        var options = new ModalOptions
             {
                 HideHeader = true,
                 HideCloseButton = true,
                 Size = ModalSize.ExtraLarge
             };
-        parameters.Add(nameof(InfoSocio.id), id);
-        var formModal = Modal.Show<InfoSocio>("", parameters, options);
+
+        var formModal = Modal.Show<InfoSocio>(string.Empty, parameters, options);
         var result = await formModal.Result;
 
         if (result.Cancelled)
-        {
-            Console.WriteLine("Modal was cancelled");
             await grid.GoToPage(currentPage);
-        }
         else
         {
             await Get();

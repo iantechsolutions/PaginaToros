@@ -20,21 +20,28 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             try
             {
                 var ids = await _dbContext.Desepla1s
+                    .AsNoTracking()
                     .OrderByDescending(t => t.Nrodec)
                     .Select(x => x.Id)
                     .Skip(skip)
                     .Take(take)
+                    .Distinct()           
                     .ToListAsync();
 
                 var result = await _dbContext.Desepla1s
+                    .AsNoTracking()
                     .Where(x => ids.Contains(x.Id))
                     .Include(x => x.Plantel)
                     .Include(x => x.Socio)
                     .ToListAsync();
 
-                return result;
+                return result
+                    .GroupBy(e => e.Id)
+                    .Select(g => g.First())
+                    .OrderByDescending(e => e.Nrodec)
+                    .ToList();
             }
-            catch (Exception ex)
+            catch
             {
                 throw;
             }

@@ -368,35 +368,19 @@ else
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
-        if(socioSeleccionado==null){
-            if (!string.IsNullOrEmpty(args.Filter))
-            {
-                oRespuesta = await _certifsemanServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
-                oRespuesta.List = RemoveDuplicates(oRespuesta.List);
-                // oRespuesta.List = oRespuesta.List.Where(args.Filter)
-            }
-            else
-            {
-                oRespuesta = await _certifsemanServicio.Lista(args.Skip.Value, args.Top.Value);
-                oRespuesta.List = RemoveDuplicates(oRespuesta.List);
 
-            }
-        }
-        else
+        var skip = args.Skip ?? 0;
+        var take = args.Top ?? 15;
+        string filtro = args.Filter;
+
+        if (socioSeleccionado != null)
         {
-            if (!string.IsNullOrEmpty(args.Filter))
-            {
-                oRespuesta = await _certifsemanServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
-                oRespuesta.List = RemoveDuplicates(oRespuesta.List);
-                // oRespuesta.List = oRespuesta.List.Where(args.Filter)
-            }
-            else
-            {
-                string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 60,filtro);
-                oRespuesta.List = RemoveDuplicates(oRespuesta.List);
-            }
+            filtro = string.IsNullOrWhiteSpace(filtro)
+                ? $"Socio.Id={socioSeleccionado.Id}"
+                : $"({filtro}) AND Socio.Id={socioSeleccionado.Id}";
         }
+
+        oRespuesta = await _certifsemanServicio.LimitadosFiltrados(skip, take, filtro);
 
         isLoading = false;
     }
