@@ -522,6 +522,11 @@
         {"24", "Tucuman"},
         {"",""}
     };
+    static int Activos<TKey, TValue>(
+     IDictionary<TKey, TValue> dict,
+     Func<TValue, bool> isAllZero
+     ) => dict.Count(kv => !isAllZero(kv.Value));
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -631,6 +636,8 @@
         loading = false;
     }
 
+    
+
     private async Task DescargarExcel()
     {
         if (!byProvince.Any() && !byInspector.Any() && !byMonth.Any())
@@ -642,6 +649,8 @@
         using var stream = new MemoryStream();
         using var excel = new ExcelPackage();
         var wb = excel.Workbook;
+
+        
 
         // ==== Sheet 1: General ====
         {
@@ -705,7 +714,7 @@
                 "SCP Pres","SCP Marc","SCP Rech",
                 "CP Pres","CP Marc","CP Rech","CP S/",
                 "Total Presentadas"
-        };
+    };
 
             for (int i = 0; i < headers.Length; i++)
             {
@@ -750,70 +759,71 @@
         }
 
         // ==== Sheet 3: Por Inspector ====
-        // {
-        //     var ws = wb.Worksheets.Add("Por Inspector");
-        //     string[] headers = {
-        //         "Inspector",
-        //         "PR Pres","PR Marc","PR Rech",
-        //         "VIP Pres","VIP Marc","VIP Rech",
-        //         "SCP Pres","SCP Marc","SCP Rech",
-        //         "CP Pres","CP Marc","CP Rech","CP S/",
-        //         "Total Presentadas"
-        // };
-
-        //     for (int i = 0; i < headers.Length; i++)
-        //     {
-        //         ws.Cells[1, i + 1].Value = headers[i];
-        //         ws.Cells[1, i + 1].Style.Font.Bold = true;
-        //         ws.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-        //         ws.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
-        //     }
-
-        //     int r = 2;
-        //     foreach (var kv in byInspector
-        //         .Where(kv => !kv.Value.IsAllZero)
-        //         .OrderByDescending(kv => kv.Value.TotalPresentadas))
-        //     {
-        //         var name = SafeInspName(kv.Key);
-        //         var c = kv.Value;
-        //         int col = 1;
-
-        //         ws.Cells[r, col++].Value = name;
-        //         ws.Cells[r, col++].Value = c.prPres;
-        //         ws.Cells[r, col++].Value = c.prMarc;
-        //         ws.Cells[r, col++].Value = c.prRech;
-
-        //         ws.Cells[r, col++].Value = c.vipPres;
-        //         ws.Cells[r, col++].Value = c.vipMarc;
-        //         ws.Cells[r, col++].Value = c.vipRech;
-
-        //         ws.Cells[r, col++].Value = c.scpPres;
-        //         ws.Cells[r, col++].Value = c.scpMarc;
-        //         ws.Cells[r, col++].Value = c.scpRech;
-
-        //         ws.Cells[r, col++].Value = c.cpPres;
-        //         ws.Cells[r, col++].Value = c.cpMarc;
-        //         ws.Cells[r, col++].Value = c.cpRech;
-        //         ws.Cells[r, col++].Value = c.cpSBarra;
-
-        //         ws.Cells[r, col++].Value = c.TotalPresentadas;
-        //         r++;
-        //     }
-
-        //     ws.Cells[1, 1, Math.Max(2, r - 1), headers.Length].AutoFitColumns();
-        // }
-
-        // ==== Sheet 4: Mensual (General) ====
         {
-            var ws = wb.Worksheets.Add("Mensual - General");
+            var ws = wb.Worksheets.Add("Por Inspector");
             string[] headers = {
-                "Mes (YYYY-MM)",
+                "Inspector",
                 "PR Pres","PR Marc","PR Rech",
                 "VIP Pres","VIP Marc","VIP Rech",
                 "SCP Pres","SCP Marc","SCP Rech",
                 "CP Pres","CP Marc","CP Rech","CP S/",
                 "Total Presentadas"
-        };
+    };
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cells[1, i + 1].Value = headers[i];
+                ws.Cells[1, i + 1].Style.Font.Bold = true;
+                ws.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+            }
+
+            int r = 2;
+            foreach (var kv in byInspector
+                .Where(kv => !kv.Value.IsAllZero)
+                .OrderByDescending(kv => kv.Value.TotalPresentadas))
+            {
+                var name = SafeInspName(kv.Key);
+                var c = kv.Value;
+                int col = 1;
+
+                ws.Cells[r, col++].Value = name;
+                ws.Cells[r, col++].Value = c.prPres;
+                ws.Cells[r, col++].Value = c.prMarc;
+                ws.Cells[r, col++].Value = c.prRech;
+
+                ws.Cells[r, col++].Value = c.vipPres;
+                ws.Cells[r, col++].Value = c.vipMarc;
+                ws.Cells[r, col++].Value = c.vipRech;
+
+                ws.Cells[r, col++].Value = c.scpPres;
+                ws.Cells[r, col++].Value = c.scpMarc;
+                ws.Cells[r, col++].Value = c.scpRech;
+
+                ws.Cells[r, col++].Value = c.cpPres;
+                ws.Cells[r, col++].Value = c.cpMarc;
+                ws.Cells[r, col++].Value = c.cpRech;
+                ws.Cells[r, col++].Value = c.cpSBarra;
+
+                ws.Cells[r, col++].Value = c.TotalPresentadas;
+                r++;
+            }
+
+            ws.Cells[1, 1, Math.Max(2, r - 1), headers.Length].AutoFitColumns();
+        }
+       
+        // ==== Sheet 4: Mensual (General) ====
+        if (Activos(byInspector, v => v.IsAllZero) != 1)
+                    {
+                        var ws = wb.Worksheets.Add("Mensual - General");
+                        string[] headers = {
+                    "Mes (YYYY-MM)",
+                    "PR Pres","PR Marc","PR Rech",
+                    "VIP Pres","VIP Marc","VIP Rech",
+                    "SCP Pres","SCP Marc","SCP Rech",
+                    "CP Pres","CP Marc","CP Rech","CP S/",
+                    "Total Presentadas"
+                   };
 
             for (int i = 0; i < headers.Length; i++)
             {
@@ -867,7 +877,7 @@
                 "SCP Pres","SCP Marc","SCP Rech",
                 "CP Pres","CP Marc","CP Rech","CP S/",
                 "Total Presentadas"
-        };
+    };
 
             for (int i = 0; i < headers.Length; i++)
             {
@@ -924,7 +934,7 @@
                 "SCP Pres","SCP Marc","SCP Rech",
                 "CP Pres","CP Marc","CP Rech","CP S/",
                 "Total Presentadas"
-        };
+    };
 
             for (int i = 0; i < headers.Length; i++)
             {
