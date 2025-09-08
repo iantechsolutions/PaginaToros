@@ -42,8 +42,8 @@
     }
 </style>
 
-<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
-    <Authorized>
+    
+
 <h3 class="pb-3 font-bold text-xl no-print" style="position:relative;left:3.33%">Toros</h3>
 
 
@@ -53,24 +53,27 @@
 
 @if (oRespuesta.List != null)
 {
-    <div class="row">
-        <div class="col-3"/>
-        <div class="col-4">
-            <BlazoredTypeahead SearchMethod="BusquedaSocios" class="max-w-sm" placeholder="Buscar por socio" EnableDropDown="true" @bind-Value="socioSeleccionado">
-                <SelectedTemplate Context="eleccion">
-                    @eleccion.Nombre
-                </SelectedTemplate>
-                <ResultTemplate Context="eleccion">
-                    @eleccion.Nombre
-                </ResultTemplate>
-            </BlazoredTypeahead>
-        </div>
-        <div class="col-5">
-            <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="outline:none; float: right;margin-right:3%;height:100%;" @onclick="()=>PaginaReporte()">Reporte x socio</button>
-            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="no-print px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-            <button class="font-bold px-8 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="outline:none; float: right;margin-right:3%;height:100%;" @onclick="()=>BuscarPorSocio()">Buscar</button>
-        </div>
-    </div>
+                @if (!esSocio)
+                {
+                <div class="row">
+                    <div class="col-3"/>
+                    <div class="col-4">
+                        <BlazoredTypeahead SearchMethod="BusquedaSocios" class="max-w-sm" placeholder="Buscar por socio" EnableDropDown="true" @bind-Value="socioSeleccionado">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                    </div>
+                    <div class="col-5">
+                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="outline:none; float: right;margin-right:3%;height:100%;" @onclick="()=>PaginaReporte()">Reporte x socio</button>
+                        <button style="outline:none; float: right;margin-right:3%;height:100%;" class="no-print px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+                        <button class="font-bold px-8 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="outline:none; float: right;margin-right:3%;height:100%;" @onclick="()=>BuscarPorSocio()">Buscar</button>
+                    </div>
+                </div>
+                }
     <br class="no-print" />
     <br class="no-print" />
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
@@ -122,11 +125,7 @@
                     </Template>
                 </RadzenDataGridColumn>
                 
-                @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
-            <Template Context="data">
-            <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
-            </Template>
-            </RadzenDataGridColumn>*@
+             
             </Columns>
         </RadzenDataGrid>
         
@@ -143,76 +142,9 @@ else
         </div>
     </center>
 }
-</Authorized>
-</AuthorizeView>
 
-<AuthorizeView Roles="Socio">
-    <Authorized>
-        <h3 class="pb-3 font-bold text-xl no-print" style="position:relative;left:3.33%">Toros</h3>
 
-        @if (oRespuesta.List != null)
-        {
-            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="no-print px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-            <br class="no-print" />
-            <br class="no-print" />
-            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-                <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading=@isLoading AllowColumnResize="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-                                FilterDelay="0" Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                                Count="@cantidad" Data="@oRespuesta.List" TItem="TorosuniDTO" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Estado" Title="Estado" Width="3.6%">
-                            <Template Context="data">
-                                @traductor[data.CodEstado]
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipoToro" Title="Tipo de toro" Width="5%">
-                            <Template Context="data">
-                                @traductor[data.TipToro]
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Variedad" Title="Variedad" Width="4%" />
-                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
-                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Sbcod" Title="Nro de orden" Width="4%" />
-                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Fechasba" Title="Fecha S/" Width="4%" />
-                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="4%" />
-                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4%" />
-                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Criador" Title="Criador" Width="4%" />
-                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Socio.Nombre" Title="Propietario" Width="7.34%">
-                            <Template Context="data">
-                                <a>
-                                    @data.Socio.Nombre
-                                </a>
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="NrTsan" Title="Tip./ADN" Width="4%" />
-                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Nacido" Title="Fecha de Nacimiento" Filterable="true" Width="6%">
-                            <Template Context="data">
-                                @if (data.Nacido.HasValue)
-                                {
-                                    <a>
-                                        @data.Nacido.Value.ToString("dd/MM/yyyy")
-                                    </a>
-                                }
-                            </Template>
-                        </RadzenDataGridColumn>
-                    </Columns>
-                </RadzenDataGrid>
 
-            </div>
-            <br />
-        }
-        else
-        {
-            <br />
-            <center>
-                <div class="mb-2">
-                    <br />
-                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-                </div>
-            </center>
-        }
-    </Authorized>
-</AuthorizeView>
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
@@ -235,6 +167,7 @@ else
     };
     public bool isLoading = false;
     public bool allowFiltering = false;
+    public bool esSocio = true;
     public Respuesta<List<TorosuniDTO>> oRespuesta = new Respuesta<List<TorosuniDTO>>();
     protected override async Task OnInitializedAsync()
     {
@@ -242,7 +175,7 @@ else
     }
     async Task Get()
     {
-        var esSocio = await UserHasRole("Socio");
+        esSocio = await UserHasRole("Socio");
 
         if (!esSocio){
 
@@ -402,10 +335,7 @@ else
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
-        Console.WriteLine(socioSeleccionado);
-        Console.WriteLine(socioSeleccionado == null);
         if(socioSeleccionado==null){
-            Console.WriteLine("Entro aca");
             if (args!=null && !string.IsNullOrEmpty(args.Filter))
             {
                 oRespuesta = await _torosServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
@@ -459,55 +389,6 @@ else
             await LoadData(coso);
         }
     }
-    // public async Task ChangeInfo()
-    // {
-    //     terminado = false;
-    //     string filtro = $"(Socio.Scod == null ? \"\" : Socio.Scod).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
-    //     oRespuesta = await _torosServicio.LimitadosFiltrados(0, 0, filtro);
-    //     terminado = true;
-    // }
-
-
-    // async Task gotoinfo(int id)
-    // {
-    //     currentPage = grid.CurrentPage;
-    //     var parameters = new ModalParameters();
-    //     var options = new ModalOptions()
-    //         {
-    //             HideHeader = true,
-    //             HideCloseButton = true,
-    //             Size = ModalSize.ExtraLarge
-    //         };
-    //     parameters.Add(nameof(InfoEstablecimiento.id), id);
-    //     var formModal = Modal.Show<InfoEstablecimiento>("", parameters, options);
-    //     var result = await formModal.Result;
-
-    //     if (result.Cancelled)
-    //     {
-    //         Console.WriteLine("Modal was cancelled");
-    //         await grid.GoToPage(currentPage);
-    //     }
-    //     else
-    //     {
-    //         await Get();
-    //         await grid.GoToPage(currentPage);
-    //     }
-    // }
-
-    //public class TorosuniDTO
-    //{
-    //    public int Id { get; set; }
-    //    public string? Estado { get; set; }
-    //    public string? TipoToro { get; set; }
-    //    public string? Variedad { get; set; }
-    //    public string? NomDad { get; set; }
-    //    public int? Sbcod { get; set; }
-    //    public string? Fechasba { get; set; }
-    //    public string? Hba { get; set; }
-    //    public string? Tatpart { get; set; }
-    //    public string? NombreSocio { get; set; }
-    //    public DateTime? Nacido { get; set; }
-    //    public string? CircEscrotal { get; set; }
-    //}
+    
 
 }
