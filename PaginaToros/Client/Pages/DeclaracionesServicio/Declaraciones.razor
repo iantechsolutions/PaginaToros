@@ -213,10 +213,47 @@
     {
         isLoading = true;
 
-        if (!string.IsNullOrEmpty(args.Filter))
-            oRespuesta = await _desepla1Servicio.LimitadosFiltrados(args.Skip ?? 0, args.Top ?? 15, args.Filter);
+        if (esSocio)
+        {
+
+            var usuarioId = 0;
+            var authState = await AuthenticationStateProvider
+            .GetAuthenticationStateAsync();
+            var user = authState.User;
+            foreach (var claim in user.Claims)
+            {
+                if (claim.Type == "SocioId")
+                {
+                    usuarioId = Int32.Parse(claim.Value);
+                    Console.WriteLine(usuarioId);
+                }
+
+            }
+
+
+            if (!string.IsNullOrWhiteSpace(args.Filter))
+            {
+                oRespuesta = await _desepla1Servicio.GetBySocioId(usuarioId);
+            }
+            else
+            {
+                oRespuesta = await _desepla1Servicio.GetBySocioId(usuarioId);
+
+
+            }
+
+            cantidad = oRespuesta.List?.Count ?? 0;
+        }
         else
-            oRespuesta = await _desepla1Servicio.Lista(args.Skip ?? 0, args.Top ?? 15);
+        {
+            if (!string.IsNullOrWhiteSpace(args.Filter))
+                oRespuesta = await _desepla1Servicio.LimitadosFiltrados(args.Skip ?? 0, args.Top ?? 15, args.Filter);
+            else
+                oRespuesta = await _desepla1Servicio.Lista(args.Skip ?? 0, args.Top ?? 15);
+
+            var c = await _desepla1Servicio.CantidadTotal();
+            cantidad = c.List;
+        }
 
         oRespuesta.List = oRespuesta.List?
             .GroupBy(x => x.Id)

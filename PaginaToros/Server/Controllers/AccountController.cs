@@ -585,12 +585,7 @@ namespace PaginaToros.Server.Controllers
                     mail.AlternateViews.Add(htmlView);
                     mail.IsBodyHtml = true;
 
-                    //string filePath = Path.Combine(projectRoot, "wwwroot", "images", "Tarifas Registros 2025.docx");
-                    //if (System.IO.File.Exists(filePath))
-                    //{
-                    //    Attachment attachment = new Attachment(filePath);
-                    //    mail.Attachments.Add(attachment);
-                    //}
+                    
 
                     using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
                     {
