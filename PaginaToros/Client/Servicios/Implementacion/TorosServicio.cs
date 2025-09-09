@@ -17,6 +17,11 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var result = await _http.GetFromJsonAsync<Respuesta<List<TorosuniDTO>>>($"api/toros/lista?skip={skip}&take={take}");
             return result!;
         }
+        public async Task<Respuesta<TorosuniDTO>> GetById(int id)
+        {
+            return await _http.GetFromJsonAsync<Respuesta<TorosuniDTO>>(
+                $"api/toros/ById/{id}");
+        }
 
         public async Task<Respuesta<int>> CantidadTotal()
         {

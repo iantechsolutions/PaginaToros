@@ -157,10 +157,10 @@ else
         {
             try
             {
-                string filtro = $"Id = {Id}";
-                var rt = await _torosServicio.LimitadosFiltradosNoInclude(0,1,filtro);
-                oTorosuni = rt.List.FirstOrDefault();
-                socioSeleccionado = socios.Where(x => x.Scod == oTorosuni.Criador).First();
+                var rt = await _torosServicio.GetById(Id);
+                oTorosuni = rt.List;
+                socioSeleccionado = socios.FirstOrDefault(x => x.Scod == oTorosuni.Criador);
+
                 if (traductorCarga.ContainsKey(oTorosuni.CodEstado))
                 {
                     estadoTemp = traductorCarga[oTorosuni.CodEstado];

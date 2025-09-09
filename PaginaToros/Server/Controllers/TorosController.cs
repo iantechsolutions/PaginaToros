@@ -77,15 +77,35 @@ namespace PaginaToros.Server.Controllers
         [Route("LimitadosFiltrados")]
         public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string? expression = null)
         {
-            var entidades = await _torosRepositorio.LimitadosFiltrados(skip, take, expression);
+            try
+            {
+                var entidades = await _torosRepositorio.LimitadosFiltrados(skip, take, expression);
 
-            var listaFiltrada = _mapper.Map<List<TorosuniDTO>>(entidades)
-                .GroupBy(x => x.Id)
-                .Select(g => g.First())
-                .ToList();
+                var listaFiltrada = _mapper.Map<List<TorosuniDTO>>(entidades)
+                    .GroupBy(x => x.Id)
+                    .Select(g => g.First())
+                    .ToList();
 
-            var resp = new Respuesta<List<TorosuniDTO>> { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
-            return StatusCode(StatusCodes.Status200OK, resp);
+                var resp = new Respuesta<List<TorosuniDTO>>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = listaFiltrada
+                };
+
+                return Ok(resp);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[TorosController] Error: {ex}");
+                return StatusCode(StatusCodes.Status400BadRequest,
+                    new Respuesta<List<TorosuniDTO>>
+                    {
+                        Exito = 0,
+                        Mensaje = $"Error en filtro: {ex.Message}",
+                        List = null
+                    });
+            }
         }
 
         [HttpGet]
@@ -114,6 +134,46 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
+        [HttpGet("ById/{id:int}")]
+        public async Task<IActionResult> ById(int id)
+        {
+            Console.WriteLine($"=== ENTRO Toros/ById/{id} ===");
+            try
+            {
+                var repo = await _torosRepositorio.GetById(id);
+                Console.WriteLine($"[Ctrl] Repo.Exito={repo.Exito}, HasObj={repo.List != null}");
+
+                if (repo.Exito == 0 || repo.List == null)
+                {
+                    Console.WriteLine($"[Ctrl] NOT FOUND Id={id}. Msg={repo.Mensaje}");
+                    return NotFound(new Respuesta<TorosuniDTO>
+                    {
+                        Exito = 0,
+                        Mensaje = repo.Mensaje
+                    });
+                }
+
+                var dto = _mapper.Map<TorosuniDTO>(repo.List);
+                Console.WriteLine($"[Ctrl] Map OK -> DTO Id={dto?.Id}");
+
+                var resp = new Respuesta<TorosuniDTO>
+                {
+                    Exito = 1,
+                    Mensaje = "Éxito",
+                    List = dto
+                };
+
+                Console.WriteLine("=== SALIO OK Toros/ById ===");
+                return Ok(resp);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Ctrl] EX ById {id}: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new Respuesta<TorosuniDTO> { Exito = 0, Mensaje = ex.Message });
+            }
+        }
         [HttpDelete]
         [Route("Eliminar/{id:int}")]
         public async Task<IActionResult> Eliminar(int id)

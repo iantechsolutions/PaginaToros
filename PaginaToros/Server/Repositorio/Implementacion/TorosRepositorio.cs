@@ -2,8 +2,10 @@
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
+using PaginaToros.Shared.Models.Response;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace PaginaToros.Server.Repositorio.Implementacion
 {
@@ -16,24 +18,21 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             _dbContext = dbContext;
         }
 
-        // ========= Helpers =========
         private static string NormalizeDynamicFilter(string? filtro)
         {
-            if (string.IsNullOrWhiteSpace(filtro)) return null!;
+            if (string.IsNullOrWhiteSpace(filtro))
+                return null!;
 
-            var f = filtro
-                .Replace("!=", "!=")
-                .Replace(">=", ">=")
-                .Replace("<=", "<=");
+            var f = filtro.Trim();
 
-            f = f.Replace(" = ", " == ");
-            f = f.Replace("= ", "== ");
-            f = f.Replace(" =", " ==");
 
-            f = f.Replace("Socio.Id=", "Socio.Id == ");
-            f = f.Replace("CodEstado=", "CodEstado == ");
-            f = f.Replace("TipToro=", "TipToro == ");
-            f = f.Replace("Variedad=", "Variedad == ");
+            f = Regex.Replace(f, @"(?<!=)=(?!=)", "==");
+
+            f = f.Replace("Socio.Id==", "Socio.Id == ")
+                 .Replace("CodEstado==", "CodEstado == ")
+                 .Replace("TipToro==", "TipToro == ")
+                 .Replace("Variedad==", "Variedad == ");
+
             return f;
         }
 
@@ -53,7 +52,6 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             return q;
         }
 
-        // ========= CRUD/Queries =========
 
         public async Task<List<Torosuni>> Lista(int skip, int take)
         {
@@ -71,6 +69,23 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+        public async Task<Respuesta<Torosuni>> GetById(int id)
+        {
+            Console.WriteLine($"[Repo] GetById({id})");
+            var toro = await BaseQuery(includeSocio: false)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            var resp = new Respuesta<Torosuni>
+            {
+                Exito = toro != null ? 1 : 0,
+                Mensaje = toro != null ? "Éxito" : $"No existe toro con Id {id}",
+                List = toro 
+            };
+            Console.WriteLine($"[Repo] GetById Exito={resp.Exito}, HasObj={resp.List != null}");
+            return resp;
+        }
+
 
         public async Task<Torosuni> Obtener(Expression<Func<Torosuni, bool>> filtro = null!)
         {
@@ -95,43 +110,42 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 if (!string.IsNullOrWhiteSpace(filtro))
                 {
                     var f = NormalizeDynamicFilter(filtro);
-                    q = q.Where(f);
+
+                    Console.WriteLine($"[TorosRepo] Filtro recibido: {f}");
+
+                    try
+                    {
+                        q = q.Where(f);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[TorosRepo] Error aplicando filtro '{f}': {ex.Message}");
+                        throw;
+                    }
                 }
 
-                return await q
-                    .Skip(skip)
-                    .Take(take)
-                    .ToListAsync();
+                return await q.Skip(skip).Take(take).ToListAsync();
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[TorosRepo] Excepción general: {ex}");
                 throw;
             }
         }
 
         public async Task<List<Torosuni>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null!)
         {
-            try
+            if (take == 0) take = int.MaxValue;
+
+            var q = BaseQuery(includeSocio: false);
+
+            if (!string.IsNullOrWhiteSpace(filtro))
             {
-                if (take == 0) take = int.MaxValue;
-
-                var q = BaseQuery(includeSocio: false);
-
-                if (!string.IsNullOrWhiteSpace(filtro))
-                {
-                    var f = NormalizeDynamicFilter(filtro);
-                    q = q.Where(f);
-                }
-
-                return await q
-                    .Skip(skip)
-                    .Take(take)
-                    .ToListAsync();
+                var f = NormalizeDynamicFilter(filtro);
+                q = q.Where(f);
             }
-            catch
-            {
-                throw;
-            }
+
+            return await q.Skip(skip).Take(take).ToListAsync();
         }
 
         public async Task<bool> Eliminar(Torosuni entidad)

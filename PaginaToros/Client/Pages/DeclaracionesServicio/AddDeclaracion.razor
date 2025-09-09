@@ -595,7 +595,8 @@ else
             var socioIdClaim = user.Claims.FirstOrDefault(c => c.Type == "SocioId")?.Value;
             if (int.TryParse(socioIdClaim, out int socioId))
             {
-                string filtro = $"Id = {socioId}";
+                string filtro = $"Id == {socioId}";
+
                 var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
                 socioSeleccionado = socio.List.FirstOrDefault();
 
@@ -630,26 +631,27 @@ else
             tipoTemp = traductor[oDeclaracion.Tipse];
             previousTipoTemp = tipoTemp;
             
-            
+           
             Console.WriteLine(4);
             socioSeleccionado = socios.Where(x => x.Scod == oDeclaracion.Nrocri).FirstOrDefault();
-            Console.WriteLine(5);
-            filtro = $"(Placod == null ? \"\" : Placod).ToLower().Contains(\"{oDeclaracion.Nroplan}\".ToLower())";
-            Console.WriteLine(6);
+            // Si Placod es string:
+            filtro = $"Placod == \"{oDeclaracion.Nroplan}\"";
+            // Si Placod NO es string (ej. int): filtro = $"Placod == {oDeclaracion.Nroplan}";
             var rta = await _plantelServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-            Console.WriteLine(7);
-            Plantelseleccionado = rta.List.FirstOrDefault();
-            Console.WriteLine(8);
-            filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecLower}\"";
 
-            Console.WriteLine(9);
+            // Nrodec es string en tus DTOs → igualdad directa
+            filtro = $"Nrodec == \"{oDeclaracion.Nrodec}\"";
             var rt = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
-            Console.WriteLine(10);
-            deseplasViejos = rt.List;
-            filtro = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
+
+            // Criador normalmente es numérico (Scod):
+            filtro = $"Criador == \"{socioSeleccionado.Scod}\"";
+
+            // Si CRIADOR fuera string: filtro = $"Criador == \"{socioSeleccionado.Scod}\"";
             var torosrta = await _torosServicio.LimitadosFiltrados(0, 0, filtro);
-            toros = torosrta.List.ToList();
-            filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
+
+            // Nrocri idem:
+            filtro = $"Nrocri == \"{socioSeleccionado.Scod}\"";
+
             var certrta = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
             certificados = certrta.List.ToList();
 
@@ -1068,16 +1070,23 @@ else
         await ResetForSocioChange();
 
         string filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socio.Scod}\".ToLower())";
+        filtro = $"Nrocri == \"{socio.Scod}\"";
+        // Si Nrocri fuera string: $"Nrocri == \"{socio.Scod}\"";
         var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         Planteles = rt.List;
 
-        filtro = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{socio.Scod}\".ToLower())";
+        filtro = $"Criador == \"{socio.Scod}\"";
+
+        // Si Criador fuera string: $"Criador == \"{socio.Scod}\"";
         var rta = await _torosServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         toros = rta.List;
 
-        filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socio.Scod}\".ToLower())";
+        filtro = $"Nrocri == \"{socio.Scod}\"";
+        // Si Nrocri fuera string: $"Nrocri == \"{socio.Scod}\"";
         var rtaa = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         certificados = rtaa.List;
+
+
 
         StateHasChanged();
     }
