@@ -36,7 +36,7 @@
 {
     <div class="card">
         <div class="card-body">
-            <EditForm Model="@oDeclaracion" OnValidSubmit="Guardar">
+            <EditForm Model="@oDeclaracion" OnSubmit="HandleSubmit">
                 <DataAnnotationsValidator />
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
@@ -523,7 +523,7 @@ else
 
 
     bool esSocio = false;
-
+    bool _isEdit => Id != 0;
 
     public string nrodec = "";
     SocioDTO? socioSeleccionado = null;
@@ -619,85 +619,51 @@ else
 
         if (Id != 0)
         {
+            // 1) Cabecera
+            var rtaD = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
+            oDeclaracion = rtaD.List.FirstOrDefault() ?? new();
 
-            string filtro = $"Id = {Id}";
-            Console.WriteLine(1);
-            var rtaD = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-            Console.WriteLine(2);
-            oDeclaracion = rtaD.List.FirstOrDefault();
-            var nrodecLower = oDeclaracion.Nrodec.ToLower();
-            Console.WriteLine(3);
+            nrodec = oDeclaracion.Nrodec;
+            socioSeleccionado = socios.FirstOrDefault(x => x.Scod == oDeclaracion.Nrocri);
 
-            tipoTemp = traductor[oDeclaracion.Tipse];
-            previousTipoTemp = tipoTemp;
-            
-           
-            Console.WriteLine(4);
-            socioSeleccionado = socios.Where(x => x.Scod == oDeclaracion.Nrocri).FirstOrDefault();
-            // Si Placod es string:
-            filtro = $"Placod == \"{oDeclaracion.Nroplan}\"";
-            // Si Placod NO es string (ej. int): filtro = $"Placod == {oDeclaracion.Nroplan}";
-            var rta = await _plantelServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
+            // 2) Listas dependientes del socio (NO pisar cabecera)
+            if (socioSeleccionado != null)
+                await UpdateValores(socioSeleccionado);
 
-            // Nrodec es string en tus DTOs → igualdad directa
-            filtro = $"Nrodec == \"{oDeclaracion.Nrodec}\"";
-            var rt = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
+            // 3) Reponer selecciones de UI tomadas de la cabecera
+            Plantelseleccionado = Planteles.FirstOrDefault(p => p.Placod == oDeclaracion.Nroplan);
+            tipoTemp = ToLabel(oDeclaracion.Tipse);
+            previousTipoTemp = tipoTemp; // por la lógica de multiplicadores
 
-            // Criador normalmente es numérico (Scod):
-            filtro = $"Criador == \"{socioSeleccionado.Scod}\"";
+            // 4) Detalles (toros/certifs) y reconstrucción de seleccionados
+            var rt = await _desepla3Servicio.LimitadosFiltrados(0, 0, $"Nrodec == \"{oDeclaracion.Nrodec}\"");
+            deseplasViejos = rt.List?.ToList() ?? new();
 
-            // Si CRIADOR fuera string: filtro = $"Criador == \"{socioSeleccionado.Scod}\"";
-            var torosrta = await _torosServicio.LimitadosFiltrados(0, 0, filtro);
+            torosSeleccionados.Clear();
+            certificadosSeleccionados.Clear();
 
-            // Nrocri idem:
-            filtro = $"Nrocri == \"{socioSeleccionado.Scod}\"";
-
-            var certrta = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
-            certificados = certrta.List.ToList();
-
-            Console.WriteLine(certificados);
-            Console.WriteLine(11);
-            if (deseplasViejos != null && deseplasViejos.Count() > 0)
+            foreach (var desepla in deseplasViejos)
             {
-                foreach (var desepla in deseplasViejos)
-                {
-                    DateTime? desde = new();
-                    DateTime? hasta = new();
-
-                    // CLONAR (¡clave!)
-                    var deseplaClonado = CloneDesepla(desepla);
-
-                    var deseplaData = new Desepla3Data
-                        {
-                            LineKey = Guid.NewGuid(),
-                            original = deseplaClonado,
-                            Id = desepla.Id
-                        };
-
-
-                    try
+                var data = new Desepla3Data
                     {
-                        desde = DateTime.ParseExact(desepla.Desde, "yyyy-MM-dd", null);
-                        if (desde.HasValue) deseplaData.Desde = desde.Value;
-                    }
-                    catch { }
+                        LineKey = Guid.NewGuid(),
+                        original = CloneDesepla(desepla),
+                        Id = desepla.Id
+                    };
 
-                    try
-                    {
-                        hasta = DateTime.ParseExact(desepla.Hasta, "yyyy-MM-dd", null);
-                        if (hasta.HasValue) deseplaData.Hasta = hasta.Value;
-                    }
-                    catch { }
+                if (DateTime.TryParseExact(desepla.Desde, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var d1)) data.Desde = d1;
+                if (DateTime.TryParseExact(desepla.Hasta, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var d2)) data.Hasta = d2;
 
-                    if (desepla.Tipo == "insem")
-                        certificadosSeleccionados.Add(deseplaData);
-                    else
-                        torosSeleccionados.Add(deseplaData);
-                }
+                if (string.Equals(desepla.Tipo, "insem", StringComparison.OrdinalIgnoreCase))
+                    certificadosSeleccionados.Add(data);
+                else
+                    torosSeleccionados.Add(data);
             }
 
-
-
+            try { if (gridToro1 != null) await gridToro1.Reload(); } catch { }
+            try { if (gridToro2 != null) await gridToro2.Reload(); } catch { }
+            try { if (gridCertif != null) await gridCertif.Reload(); } catch { }
+            StateHasChanged();
         }
         else
         {
@@ -730,7 +696,6 @@ else
 
 
 
-    // Helpers
     double GetMultiplicador(string tipo) => tipo switch
     {
         "Inseminacion c/celo" => 1.5,
@@ -747,6 +712,7 @@ else
 
         return (int)Math.Round(v * multiplicador, MidpointRounding.AwayFromZero);
     }
+    Dictionary<string, string> errors = new();
 
     // Construye un mapa HBA -> dosis totales usadas en la declaración
     Dictionary<string, int> BuildUsoPorCert(IEnumerable<Desepla3DTO> items, double multiplicador)
@@ -760,7 +726,143 @@ else
             );
     }
 
+    private string CampoLegible(string key) => key switch
+    {
+        "socio" => "Socio",
+        "plantel" => "Plantel",
+        "tipo" => "Tipo de servicio",
+        "NrFolio" => "Nº de folio",
+        "Fchrecepcion" => "Fecha de declaración",
+        "cantv" => "Vientres PR",
+        "cantb" => "Vientres VIP",
+        "periodoNatural" => "Período (Natural)",
+        "torosNatural" => "Toros (Natural)",
+        "torosCorral" => "Toros (Natural a Corral)",
+        "certifs" => "Certificados de semen",
+        _ => key
+    };
 
+
+    private string ToCode(string label)
+    {
+        if (traductor.TryGetValue(label, out var code)) return code;
+        // Fallback: si ya es código o es un label desconocido
+        return label;
+    }
+
+    private string ToLabel(string code)
+    {
+        // Invertimos el diccionario en caliente (o creá otro diccionario inverso fijo)
+        var pair = traductor.FirstOrDefault(kv => kv.Value == code);
+        return string.IsNullOrWhiteSpace(pair.Key) ? code : pair.Key;
+    }
+
+
+
+    private string BuildErrorsHtml()
+    {
+        var items = errors
+            .Select(kv => $"<li><b>{CampoLegible(kv.Key)}:</b> {System.Net.WebUtility.HtmlEncode(kv.Value)}</li>");
+        return $"<ul style='text-align:left;margin-left:1rem'>{string.Join("", items)}</ul>";
+    }
+
+    private async Task HandleSubmit(EditContext _)
+    {
+        if (!ValidateManual())
+        {
+            // Alerta con resumen de errores
+            await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Faltan datos para guardar",
+                    Html = BuildErrorsHtml(),
+                    Icon = SweetAlertIcon.Warning,
+                    ConfirmButtonText = "Revisar"
+                });
+
+            StateHasChanged(); // por si además mostrás mensajes rojos debajo
+            return;
+        }
+
+        await Guardar();
+    }
+
+    private void ClearErrors() => errors.Clear();
+
+
+    private bool ValidateManual()
+    {
+        ClearErrors();
+
+        // 1) Requeridos básicos
+        if (socioSeleccionado is null)
+            errors["socio"] = "Debe seleccionar un socio.";
+
+        if (Plantelseleccionado is null)
+            errors["plantel"] = "Debe seleccionar un plantel.";
+
+        if (string.IsNullOrWhiteSpace(tipoTemp))
+            errors["tipo"] = "Seleccione el tipo de servicio.";
+
+        if (oDeclaracion.NrFolio is null || (oDeclaracion.NrFolio ?? 0) <= 0)
+            errors["NrFolio"] = "Ingrese un número de folio válido.";
+
+        if (oDeclaracion.Fchrecepcion is null)
+            errors["Fchrecepcion"] = "Ingrese la fecha de declaración.";
+
+        // 2) Límites PR/VIP contra el plantel
+        var prTotal = (Plantelseleccionado?.Varede ?? 0)
+                    + (Plantelseleccionado?.Vqssrd ?? 0)
+                    + (Plantelseleccionado?.Vqcsrd ?? 0);
+
+        var vipTotal = (Plantelseleccionado?.Varepr ?? 0)
+                     + (Plantelseleccionado?.Vqssrp ?? 0)
+                     + (Plantelseleccionado?.Vqcsrp ?? 0);
+
+        if ((oDeclaracion.Cantv ?? 0) < 0 || (oDeclaracion.Cantv ?? 0) > prTotal)
+            errors["cantv"] = $"La cantidad PR no puede superar {prTotal}.";
+
+        if ((oDeclaracion.Cantb ?? 0) < 0 || (oDeclaracion.Cantb ?? 0) > vipTotal)
+            errors["cantb"] = $"La cantidad VIP no puede superar {vipTotal}.";
+
+        // 3) Reglas por tipo
+        bool esNatural = tipoTemp == "Natural";
+        bool esNaturalCorral = tipoTemp == "Natural a Corral";
+        bool esAlgunaInsemin = tipoTemp == "Inseminacion c/celo"
+                               || tipoTemp == "Inseminacion c/celo y rep"
+                               || tipoTemp == "Inseminacion c/p y rep"
+                               || tipoTemp == "IATF c/rep";
+
+        // Natural: requiere periodo y al menos 1 toro
+        if (esNatural)
+        {
+            if (oDeclaracion.Desde == null || oDeclaracion.Hasta == null || oDeclaracion.Desde > oDeclaracion.Hasta)
+                errors["periodoNatural"] = "Complete un periodo válido (Desde/Hasta).";
+
+            if (torosSeleccionados.Count == 0)
+                errors["torosNatural"] = "Debe seleccionar al menos un toro.";
+        }
+
+        // Natural a Corral: toros con fechas por fila
+        if (esNaturalCorral)
+        {
+            bool algunaFilaInvalida = torosSeleccionados.Any(t => t.Desde == default || t.Hasta == default || t.Desde > t.Hasta);
+            if (torosSeleccionados.Count == 0 || algunaFilaInvalida)
+                errors["torosCorral"] = "Seleccione toros y complete fechas válidas en cada fila.";
+        }
+
+        // Inseminación: certificados con Cantv > 0 y fechas válidas
+        if (esAlgunaInsemin)
+        {
+            bool faltan = certificadosSeleccionados.Count == 0;
+            bool cantErr = certificadosSeleccionados.Any(c => (c.original.Cantv ?? 0) <= 0);
+            bool fechasErr = certificadosSeleccionados.Any(c => c.Desde == default || c.Hasta == default || c.Desde > c.Hasta);
+
+            if (faltan || cantErr || fechasErr)
+                errors["certifs"] = "Agregue certificados, con vientres > 0 y fechas válidas por fila.";
+        }
+
+        return errors.Count == 0;
+    }
     async Task Guardar()
     {
         Console.WriteLine("1");
@@ -768,7 +870,8 @@ else
 
         oDeclaracion.Nrocri = socioSeleccionado.Scod;
         oDeclaracion.Nroplan = Plantelseleccionado.Placod;
-        oDeclaracion.Tipse = traductor[tipoTemp];
+        oDeclaracion.Tipse = ToCode(tipoTemp);
+
 
         // --- Multiplicadores
         var multActual = GetMultiplicador(tipoTemp);
@@ -1067,59 +1170,52 @@ else
     {
         socioSeleccionado = socio;
 
-        await ResetForSocioChange();
+        // si estoy editando, no quiero que me borre tipo/cantidades/fechas
+        await ResetForSocioChange(preserveCabecera: _isEdit);
 
-        string filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socio.Scod}\".ToLower())";
-        filtro = $"Nrocri == \"{socio.Scod}\"";
-        // Si Nrocri fuera string: $"Nrocri == \"{socio.Scod}\"";
+        var filtro = $"Nrocri == \"{socio.Scod}\"";
         var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         Planteles = rt.List;
 
         filtro = $"Criador == \"{socio.Scod}\"";
-
-        // Si Criador fuera string: $"Criador == \"{socio.Scod}\"";
         var rta = await _torosServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         toros = rta.List;
 
         filtro = $"Nrocri == \"{socio.Scod}\"";
-        // Si Nrocri fuera string: $"Nrocri == \"{socio.Scod}\"";
         var rtaa = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         certificados = rtaa.List;
-
-
 
         StateHasChanged();
     }
 
 
-    private async Task ResetForSocioChange()
+
+
+    private async Task ResetForSocioChange(bool preserveCabecera = false)
     {
-        // Limpiar seleccionados y resultados intermedios
         torosSeleccionados.Clear();
         certificadosSeleccionados.Clear();
         seleccionFinal.Clear();
         deseplasViejos.Clear();
 
-        // Reset de plantel y tipo
         Plantelseleccionado = null;
-        tipoTemp = string.Empty;
 
-        // Reset de campos de la declaración (sin tocar Nrodec ni Id)
-        oDeclaracion.Cantv = 0;
-        oDeclaracion.Cantb = 0;
-        oDeclaracion.Desde = DateTime.Now;
-        oDeclaracion.Hasta = DateTime.Now;
+        if (!preserveCabecera)
+        {
+            tipoTemp = string.Empty;
+            oDeclaracion.Cantv = 0;
+            oDeclaracion.Cantb = 0;
+            oDeclaracion.Desde = DateTime.Now;
+            oDeclaracion.Hasta = DateTime.Now;
+        }
 
-        // (Opcional) Fecha de recepción si querés reiniciarla
-        // oDeclaracion.Fchrecepcion = DateTime.Now;
-
-        // Refrescar grillas si están montadas
         try { if (gridToro1 != null) await gridToro1.Reload(); } catch { }
         try { if (gridToro2 != null) await gridToro2.Reload(); } catch { }
         try { if (gridCertif != null) await gridCertif.Reload(); } catch { }
 
         StateHasChanged();
     }
+
 
 
 
