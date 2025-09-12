@@ -854,11 +854,10 @@ else
         if (esAlgunaInsemin)
         {
             bool faltan = certificadosSeleccionados.Count == 0;
-            bool cantErr = certificadosSeleccionados.Any(c => (c.original.Cantv ?? 0) <= 0);
             bool fechasErr = certificadosSeleccionados.Any(c => c.Desde == default || c.Hasta == default || c.Desde > c.Hasta);
 
             if (faltan || cantErr || fechasErr)
-                errors["certifs"] = "Agregue certificados, con vientres > 0 y fechas válidas por fila.";
+                errors["certifs"] = "Agregue certificados, con vientres mayores a 0 y fechas válidas por fila.";
         }
 
         return errors.Count == 0;
