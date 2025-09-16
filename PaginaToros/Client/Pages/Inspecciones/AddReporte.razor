@@ -1376,66 +1376,91 @@
 
 
 
-        async Task<PlantelDTO> updatePlantel(bool subirDeAnio)
-        {
-            if (Plantelseleccionado is null) throw new InvalidOperationException("No hay plantel seleccionado.");
-            if (socioSeleccionado is null) throw new InvalidOperationException("No hay socio seleccionado.");
+    async Task<PlantelDTO> updatePlantel(bool subirDeAnio)
+    {
+        if (Plantelseleccionado is null) throw new InvalidOperationException("No hay plantel seleccionado.");
+        if (socioSeleccionado is null) throw new InvalidOperationException("No hay socio seleccionado.");
 
-            var planViejo = Plantelseleccionado!;
-            var socio = socioSeleccionado!;
+        var planViejo = Plantelseleccionado!;
+        var socio = socioSeleccionado!;
 
-            int anioBase = ExtraerAnio(planViejo.Anioex);
-            string anioDestino = (subirDeAnio ? anioBase + 1 : anioBase).ToString();
+        int anioBase = ExtraerAnio(planViejo.Anioex);
+        string anioDestino = (subirDeAnio ? anioBase + 1 : anioBase).ToString();
 
-            var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
-            Planteles = plan.List;
+        var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
+        Planteles = plan.List;
 
-            // Buscá por (Anioex, Nrocri) – si existe, se actualiza; si no, se crea
-            var planDestino = Planteles.FirstOrDefault(x => x.Anioex == anioDestino && x.Nrocri == socio.Scod);
+        var planDestino = Planteles.FirstOrDefault(x => x.Anioex == anioDestino && x.Nrocri == socio.Scod);
         var ultimoDigito = anioDestino.Last();
-            if (planDestino != null)
-            {
-                planDestino.Varede = estadoFinal.Ea1;
-                planDestino.Vqcsrd = estadoFinal.Ea2;
-                planDestino.Vqssrd = estadoFinal.Ea3;
-                planDestino.Varepr = estadoFinal.Ea4;
-                planDestino.Vqcsrp = estadoFinal.Ea5;
-                planDestino.Vqssrp = estadoFinal.Ea6;
-                planDestino.Fecing = "";
-                await _plantelServicio.Editar(planDestino);
-            }
-            else
-            {
-                planDestino = new PlantelDTO
-                    {
-                        Anioex = anioDestino,
-                        Varede = estadoFinal.Ea1,
-                        Vqcsrd = estadoFinal.Ea2,
-                        Vqssrd = estadoFinal.Ea3,
-                        Varepr = estadoFinal.Ea4,
-                        Vqcsrp = estadoFinal.Ea5,
-                        Vqssrp = estadoFinal.Ea6,
-                        Nrocri = planViejo.Nrocri,
-                        Placod = $"{ultimoDigito}{socio.Placod}",
-                        Estado = planViejo.Estado,
-                        Fecing = planViejo.Fecing ?? "",
-                        Nroins = planViejo.Nroins
-                    };
 
-                var creado = await _plantelServicio.Crear(planDestino);
-                planDestino = creado?.List ?? planDestino;
-            }
-
-            Plantelseleccionado = planDestino;
-            return planDestino;
-
-            static int ExtraerAnio(string anioex)
-            {
-                if (int.TryParse(anioex, out var y)) return y;
-                var m = Regex.Match(anioex ?? "", @"\d{4}");
-                return m.Success ? int.Parse(m.Value) : DateTime.Now.Year;
-            }
+        if (planDestino != null)
+        {
+            planDestino.Varede = estadoFinal.Ea1;
+            planDestino.Vqcsrd = estadoFinal.Ea2;
+            planDestino.Vqssrd = estadoFinal.Ea3;
+            planDestino.Varepr = estadoFinal.Ea4;
+            planDestino.Vqcsrp = estadoFinal.Ea5;
+            planDestino.Vqssrp = estadoFinal.Ea6;
+            planDestino.Fecing = "";
+            await _plantelServicio.Editar(planDestino);
         }
+        else
+        {
+            var tailAnterior = DerivarTailCodigo(planViejo.Placod);
+
+            if (string.IsNullOrWhiteSpace(tailAnterior))
+                tailAnterior = DerivarTailCodigo(socio.Placod);
+
+            if (string.IsNullOrWhiteSpace(tailAnterior))
+                tailAnterior = planViejo.Placod?.Trim() ?? socio.Placod?.Trim() ?? "";
+
+            var nuevoPlacod = $"{ultimoDigito}{tailAnterior}";
+
+            planDestino = new PlantelDTO
+                {
+                    Anioex = anioDestino,
+                    Varede = estadoFinal.Ea1,
+                    Vqcsrd = estadoFinal.Ea2,
+                    Vqssrd = estadoFinal.Ea3,
+                    Varepr = estadoFinal.Ea4,
+                    Vqcsrp = estadoFinal.Ea5,
+                    Vqssrp = estadoFinal.Ea6,
+                    Nrocri = planViejo.Nrocri,
+                    Placod = nuevoPlacod, 
+                    Estado = planViejo.Estado,
+                    Fecing = planViejo.Fecing ?? "",
+                    Nroins = planViejo.Nroins
+                };
+
+            var creado = await _plantelServicio.Crear(planDestino);
+            planDestino = creado?.List ?? planDestino;
+        }
+
+        Plantelseleccionado = planDestino;
+        return planDestino;
+
+        static int ExtraerAnio(string anioex)
+        {
+            if (int.TryParse(anioex, out var y)) return y;
+            var m = Regex.Match(anioex ?? "", @"\d{4}");
+            return m.Success ? int.Parse(m.Value) : DateTime.Now.Year;
+        }
+
+        static string DerivarTailCodigo(string? codigo)
+        {
+            var c = (codigo ?? "").Trim();
+            if (string.IsNullOrEmpty(c)) return "";
+
+            if (c.Length > 4 && char.IsDigit(c[0]))
+                c = c.Substring(1);
+
+            if (c.Length > 4)
+                c = c.Substring(c.Length - 4);
+
+            return c;
+        }
+    }
+
 
 
 
