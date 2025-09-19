@@ -138,7 +138,7 @@
             </div>
             <br />
             <br />
-            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="submit" class="btn btn-primary mr-2" disabled=@(disabled)>Aceptar</button>
             <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
         </EditForm>
     </div>
@@ -280,6 +280,8 @@
     }
     async Task Guardar()
     {
+            disabled = true;
+
         if(socios.Where(x=>x.Scod==oSocio.Scod).Count()==0){
             oSocio.Codpro1 = traductorProvincia[tempProvincia];
             oSocio.Fecing = FechaTemp;
@@ -301,10 +303,14 @@
                 await _socioServicio.Editar(oSocio);
                 await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
             }
+            disabled = false;
+
         }
         else
         {
             await alertaCodigo();
+            disabled = false;
+
             return;
         }
     }
@@ -404,9 +410,9 @@
         {
             Console.WriteLine("Entro");
 
+
             await Guardar();
 
-            disabled = true;
             var pswd = GenerateRandomPassword(random.Next(7, 11));
 
             Usuario.Email = email;

@@ -4,9 +4,11 @@
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ITranssbServicio _transsbServicio
 @inject ISocioServicio _socioServicio
+@inject HttpClient http
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Net.Http.Json
 
 <style>
-
     .rz-cell-data,
     .rz-column-title-content {
         font-size: 13px !important;
@@ -25,108 +27,135 @@
         border-top: solid #E0E0E0 1px;
     }
 </style>
+
 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
     <Authorized>
 
-
-<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias S/</h3>
-
-
-<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick='()=>add(0)'>Agregar Transferencia</button>
-
-
-
-@if (oRespuesta.List != null)
-{
-
-    <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-    <br />
-    <br />
-    <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-        <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-                        Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Count="cantidad" LoadData="LoadData" Data="@oRespuesta.List" TItem="TranssbDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-            <Columns>
-                <RadzenDataGridColumn TItem="TranssbDTO" Property="NroTrans" Title="Nro Certificado" Width="24%" />
-                <RadzenDataGridColumn TItem="TranssbDTO" Property="NroOrden" Title="Nro Orden" Width="24%" />
-                <RadzenDataGridColumn TItem="TranssbDTO" Property="Vnom" Title="Socio Vendedor" Width="24%"/>
-                <RadzenDataGridColumn TItem="TranssbDTO" Property="Cnom" Title="Socio Comprador" Width="23%" />
-                <RadzenDataGridColumn TItem="TranssbDTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="23%" />
-                <RadzenDataGridColumn TItem="TranssbDTO" Property="" Title="" Filterable="false" Width="3.33%">
-                    <Template Context="data">
-                        <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="TranssbDTO" Property="" Title="" Filterable="false" Width="3.33%">
-                    <Template Context="data">
-                        <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
-                    </Template>
-                </RadzenDataGridColumn>
-                @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
-            <Template Context="data">
-            <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
-            </Template>
-            </RadzenDataGridColumn>*@
-            </Columns>
-
-        </RadzenDataGrid>
-    </div>
-    <br />
-}
-else
-{
-    <br />
-    <center>
-        <div class="mb-2">
-            <br />
-            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-        </div>
-    </center>
-}
-</Authorized>
-</AuthorizeView>
-
-
-<AuthorizeView Roles="Socio">
-    <Authorized>
-
-
         <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias S/</h3>
-        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick='()=>add(0)'>Agregar Transferencia</button>
+        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick='()=>add(0)'>
+            Agregar Transferencia
+        </button>
 
-        @if (oRespuesta.List != null)
+        @if (filas is not null)
         {
-
             <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
             <br />
             <br />
             <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-                <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-                                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                                Count="cantidad" Data="@oRespuesta.List" TItem="TranssbDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                <RadzenDataGrid AllowFiltering="allowFiltering"
+                                IsLoading="isLoading"
+                                AllowColumnResize="true"
+                                AllowAlternatingRows="true"
+                                FilterMode="FilterMode.Simple"
+                                AllowSorting="false"
+                                PageSize="15"
+                                Density="Density.Compact"
+                                AllowPaging="true"
+                                ShowPagingSummary="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                @ref="grid"
+                                Count="cantidad"
+                                LoadData="LoadData"
+                                Data="@filas"
+                                TItem="TranssbRowVM"
+                                ColumnWidth="3.33%"
+                                LogicalFilterOperator="LogicalFilterOperator.Or"
+                                PagerHorizontalAlign="HorizontalAlign.Center">
                     <Columns>
-                        <RadzenDataGridColumn TItem="TranssbDTO" Property="NroTrans" Title="Nro Certificado" Width="24%" />
-                        <RadzenDataGridColumn TItem="TranssbDTO" Property="NroOrden" Title="Nro Orden" Width="24%" />
-                        <RadzenDataGridColumn TItem="TranssbDTO" Property="Vnom" Title="Socio Vendedor" Width="24%" />
-                        <RadzenDataGridColumn TItem="TranssbDTO" Property="Cnom" Title="Socio Comprador" Width="23%" />
-                        <RadzenDataGridColumn TItem="TranssbDTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="23%" />
-                        <RadzenDataGridColumn TItem="TranssbDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="NroTrans" Title="Nro Certificado" Width="24%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="NroOrden" Title="Nro Orden" Width="24%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Vnom" Title="Socio Vendedor" Width="24%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Cnom" Title="Socio Comprador" Width="23%" />
+
+                        <!-- Campos del toro -->
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroHba" Title="HBA" Width="14%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroTatuaje" Title="Tatuaje" Width="14%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroNombre" Title="Nombre Toro" Width="20%" />
+
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Establecimiento.Nombre" Title="Establecimiento" Width="23%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Filterable="false" Width="3.33%">
                             <Template Context="data">
-                                <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                                <button class="btn" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="TranssbDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Filterable="false" Width="3.33%">
                             <Template Context="data">
                                 <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                             </Template>
                         </RadzenDataGridColumn>
-                        @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
-                    <Template Context="data">
-                    <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
-                    </Template>
-                    </RadzenDataGridColumn>*@
                     </Columns>
+                </RadzenDataGrid>
+            </div>
+            <br />
+        }
+        else
+        {
+            <br />
+            <center>
+                <div class="mb-2">
+                    <br />
+                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                </div>
+            </center>
+        }
+    </Authorized>
+</AuthorizeView>
 
+<AuthorizeView Roles="Socio">
+    <Authorized>
+
+        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias S/</h3>
+        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick='()=>add(0)'>
+            Agregar Transferencia
+        </button>
+
+        @if (filas is not null)
+        {
+            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <br />
+            <br />
+            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+                <RadzenDataGrid AllowFiltering="allowFiltering"
+                                IsLoading="isLoading"
+                                AllowColumnResize="true"
+                                AllowAlternatingRows="true"
+                                FilterMode="FilterMode.Simple"
+                                AllowSorting="false"
+                                PageSize="15"
+                                Density="Density.Compact"
+                                AllowPaging="true"
+                                ShowPagingSummary="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                @ref="grid"
+                                Count="cantidad"
+                                Data="@filas"
+                                TItem="TranssbRowVM"
+                                ColumnWidth="3.33%"
+                                LogicalFilterOperator="LogicalFilterOperator.Or"
+                                PagerHorizontalAlign="HorizontalAlign.Center">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="NroTrans" Title="Nro Certificado" Width="15%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="NroOrden" Title="Nro Orden" Width="15%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Vnom" Title="Socio Vendedor" Width="15%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Cnom" Title="Socio Comprador" Width="15%" />
+
+                        <!-- Campos del toro -->
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroHba" Title="HBA" Width="14%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroTatuaje" Title="Tatuaje" Width="14%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroNombre" Title="Nombre Toro" Width="20%" />
+
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Establecimiento.Nombre" Title="Establecimiento" Width="10%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Filterable="false" Width="3.33%">
+                            <Template Context="data">
+                                <button class="btn" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Filterable="false" Width="3.33%">
+                            <Template Context="data">
+                                <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
                 </RadzenDataGrid>
             </div>
             <br />
@@ -146,55 +175,98 @@ else
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<TranssbDTO>? grid;
+    public RadzenDataGrid<TranssbRowVM>? grid;
     int currentPage;
     int socioId;
-    Dictionary<string, string> traductorTipo = new Dictionary<string, string>{
+
+    Dictionary<string, string> traductorTipo = new() {
         {"P","Puro Pedigree (SRA)"},
         {"S","S/"},
         {"GP","Ganador de prueba"},
         {"A","Patagonico"}
     };
+
     public bool allowFiltering = false;
-    bool isLoading=false;
+    bool isLoading = false;
     int cantidad;
-    public Respuesta<List<TranssbDTO>> oRespuesta = new Respuesta<List<TranssbDTO>>();
+
+    // Ahora la respuesta espera items con 'Toro'
+    RespuestaTranssbVM oRespuestaCruda = new();
+    List<TranssbRowVM> filas = new();
     List<Estable> establecimientos = new();
+
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
+
     async Task Get()
     {
         var esSocio = await UserHasRole("Socio");
 
-        if (!esSocio){
+        if (!esSocio)
+        {
             var c = await _transsbServicio.CantidadTotal();
             cantidad = c.List;
-            oRespuesta = await _transsbServicio.Lista(0,15);
+
+            oRespuestaCruda = await http.GetFromJsonAsync<RespuestaTranssbVM>(
+                $"api/transsb/LimitadosFiltrados?skip=0&take=15");
+
+            FusionarFilas();
             StateHasChanged();
         }
         else
         {
-            var usuarioId = 0;
-            var authState = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
-            foreach (var claim in user.Claims)
-            {
-                if (claim.Type == "SocioId")
-                {
-                    usuarioId = Int32.Parse(claim.Value);
-                    Console.WriteLine(usuarioId);
-                }
+            var socioIdClaim = user.Claims.FirstOrDefault(c => c.Type == "SocioId");
+            socioId = socioIdClaim is null ? 0 : int.Parse(socioIdClaim.Value);
 
-            }
-            socioId = usuarioId;
-            string filtro = $"Id = {usuarioId}";
-            var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
-            oRespuesta = await _transsbServicio.GetBySocioCod(socio.List.First().Scod);
-            cantidad = oRespuesta.List.Count();
+            var socio = await _socioServicio.LimitadosFiltrados(0, 0, $"Id = {socioId}");
+            var scod = socio.List.First().Scod;
+
+            oRespuestaCruda = await http.GetFromJsonAsync<RespuestaTranssbVM>(
+                $"api/transsb/GetBySocioCodConToro?scod={scod}");
+
+            cantidad = oRespuestaCruda.List.Count;
+            FusionarFilas();
         }
+    }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        isLoading = true;
+
+        string url = !string.IsNullOrEmpty(args.Filter)
+            ? $"api/transsb/LimitadosFiltrados?skip={args.Skip}&take={args.Top}&expression={Uri.EscapeDataString(args.Filter)}"
+            : $"api/transsb/LimitadosFiltrados?skip={args.Skip}&take={args.Top}";
+
+        oRespuestaCruda = await http.GetFromJsonAsync<RespuestaTranssbVM>(url);
+        FusionarFilas();
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    void FusionarFilas()
+    {
+        // armamos las filas desde los items que incluyen Toro
+        filas = oRespuestaCruda.List.Select(item =>
+        {
+            var row = new TranssbRowVM
+                {
+                    Id = item.Id,
+                    NroTrans = item.NroTrans,
+                    NroOrden = item.NroOrden,
+                    Vnom = item.Vnom,
+                    Cnom = item.Cnom,
+                    Establecimiento = item.Establecimiento,
+                    ToroHba = item.Toro?.Hba,
+                    ToroTatuaje = item.Toro?.Tatpart,
+                    ToroNombre = item.Toro?.ToroNombre
+                };
+            return row;
+        }).ToList();
     }
 
     private async Task<bool> UserHasRole(string role)
@@ -211,23 +283,22 @@ else
 
     async Task delete(int id)
     {
-        currentPage = grid.CurrentPage;
+        currentPage = grid?.CurrentPage ?? 0;
         var response = await _transsbServicio.Eliminar(id);
-        await grid.Reload();
+        await grid!.Reload();
         if (response)
         {
-            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
+            var baseItem = oRespuestaCruda.List.FirstOrDefault(x => x.Id == id);
+            if (baseItem != null) oRespuestaCruda.List.Remove(baseItem);
+
+            var rowItem = filas.FirstOrDefault(x => x.Id == id);
+            if (rowItem != null) filas.Remove(rowItem);
 
             if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
-            {
                 await grid.GoToPage(currentPage - 1);
-            }
             else if (grid.Count != 0)
-            {
                 await grid.GoToPage(currentPage);
-            }
         }
-
     }
 
     public async Task alertaDelete(int id)
@@ -244,12 +315,7 @@ else
 
         if (!string.IsNullOrEmpty(result.Value))
         {
-            delete(id);
-
-        }
-        else if (result.Dismiss == DismissReason.Cancel)
-        {
-
+            await delete(id);
         }
     }
 
@@ -258,7 +324,7 @@ else
         int numero = Id;
         if (numero != 0)
         {
-            currentPage = grid.CurrentPage;
+            currentPage = grid?.CurrentPage ?? 0;
             try
             {
                 var parameters = new ModalParameters();
@@ -267,21 +333,17 @@ else
                 {
                     parameters.Add(nameof(AddTransSb.IdSocio), socioId);
                 }
-                var options = new ModalOptions()
-                    {
-                        Size = ModalSize.ExtraLarge
-                    };
+                var options = new ModalOptions() { Size = ModalSize.ExtraLarge };
                 var formModal = Modal.Show<AddTransSb>("Editar Transaccion", parameters, options);
                 var result = await formModal.Result;
                 if (result.Cancelled)
                 {
-                    Console.WriteLine("Modal was cancelled");
-                    await grid.GoToPage(currentPage);
+                    await grid!.GoToPage(currentPage);
                 }
                 else
                 {
                     await Get();
-                    await grid.GoToPage(currentPage);
+                    await grid!.GoToPage(currentPage);
                 }
             }
             catch (Exception ex)
@@ -296,68 +358,50 @@ else
             {
                 parameters.Add(nameof(AddTransSb.IdSocio), socioId);
             }
-            var options = new ModalOptions()
-                {
-                    Size = ModalSize.ExtraLarge
-                };
+            var options = new ModalOptions() { Size = ModalSize.ExtraLarge };
             var formModal = Modal.Show<AddTransSb>("Agregar Transferencia", parameters, options);
             var result = await formModal.Result;
 
             if (result.Cancelled)
             {
-                Console.WriteLine("Modal was cancelled");
-                await grid.GoToPage(currentPage);
+                await grid!.GoToPage(currentPage);
             }
             else
             {
                 await Get();
-                await grid.GoToPage(currentPage);
+                await grid!.GoToPage(currentPage);
             }
         }
     }
 
-    async Task LoadData(LoadDataArgs args)
-    {
-        isLoading = true;
-        if (!string.IsNullOrEmpty(args.Filter))
-        {
-            oRespuesta = await _transsbServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
-            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
-        }
-        else
-        {
-            oRespuesta = await _transsbServicio.Lista(args.Skip.Value, args.Top.Value);
-        }
+    /* ======== VMs locales ======== */
 
-        isLoading = false;
+    // Lo que devuelve el endpoint ACTUAL: cada item trae 'Toro'
+    public class RespuestaTranssbVM
+    {
+        public int Exito { get; set; }
+        public string? Mensaje { get; set; }
+        public List<TranssbItemVM> List { get; set; } = new();
     }
 
+    // Item con el Toro anidado, mapeable desde el JSON del endpoint
+    public class TranssbItemVM : PaginaToros.Shared.Models.TranssbDTO
+    {
+        public ToroExtraVM? Toro { get; set; }
+    }
 
-    // async Task gotoinfo(int id)
-    // {
-    //     currentPage = grid.CurrentPage;
-    //     var parameters = new ModalParameters();
-    //     var options = new ModalOptions()
-    //         {
-    //             HideHeader = true,
-    //             HideCloseButton = true,
-    //             Size = ModalSize.ExtraLarge
-    //         };
-    //     parameters.Add(nameof(InfoEstablecimiento.id), id);
-    //     var formModal = Modal.Show<InfoEstablecimiento>("", parameters, options);
-    //     var result = await formModal.Result;
+    public class ToroExtraVM
+    {
+        public string? Hba { get; set; }
+        public string? Tatpart { get; set; }
+        public string? ToroNombre { get; set; }
+    }
 
-    //     if (result.Cancelled)
-    //     {
-    //         Console.WriteLine("Modal was cancelled");
-    //         await grid.GoToPage(currentPage);
-    //     }
-    //     else
-    //     {
-    //         await Get();
-    //         await grid.GoToPage(currentPage);
-    //     }
-    // }
-
-
+    // Fila que usará la grilla (propiedades planas para binding)
+    public class TranssbRowVM : PaginaToros.Shared.Models.TranssbDTO
+    {
+        public string? ToroHba { get; set; }
+        public string? ToroTatuaje { get; set; }
+        public string? ToroNombre { get; set; }
+    }
 }

@@ -3,8 +3,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
+using PaginaToros.Server.Repositorio.Implementacion;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
+using System.Dynamic;
+using System.Reflection;
+using System.Text.Json;
 namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
@@ -13,10 +17,15 @@ namespace PaginaToros.Server.Controllers
     {
         private readonly IMapper _mapper;
         private readonly ITranssbRepositorio _TranssbRepositorio;
-        public TranssbController(ITranssbRepositorio TranssbRepositorio, IMapper mapper)
+        private readonly ITorosRepositorio _TorosRepositorio;
+        
+        
+        public TranssbController(ITranssbRepositorio TranssbRepositorio, ITorosRepositorio torosRepositorio, IMapper mapper)
         {
             _mapper = mapper;
             _TranssbRepositorio = TranssbRepositorio;
+            _TorosRepositorio = torosRepositorio;
+
         }
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
@@ -72,27 +81,71 @@ namespace PaginaToros.Server.Controllers
         [Route("LimitadosFiltrados")]
         public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string? expression = null)
         {
-
-            Respuesta<List<TranssbDTO>> _ResponseDTO = new Respuesta<List<TranssbDTO>>();
-
             try
             {
-                var a = await _TranssbRepositorio.LimitadosFiltrados(skip, take, expression);
+                var transfers = await _TranssbRepositorio.LimitadosFiltrados(skip, take, expression);
 
-                var listaFiltrada = _mapper.Map<List<TranssbDTO>>(a);
+                var toroIds = transfers
+                    .Where(t => t.Torovendido.HasValue)
+                    .Select(t => t.Torovendido!.Value)
+                    .Distinct()
+                    .ToList();
 
-                _ResponseDTO = new Respuesta<List<TranssbDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+                var torosTodos = await _TorosRepositorio.LimitadosFiltradosNoInclude(0, 0, null);
 
-                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+                var torosNecesarios = torosTodos.Where(x => x != null && toroIds.Contains(x.Id)).ToList();
+
+                var toroExtras = torosNecesarios.ToDictionary(
+                    t => t.Id,
+                    t => new
+                    {
+                        Hba = t.Hba,
+                        Tatpart = t.Tatpart,
+                        ToroNombre = t.NomDad
+                    }
+                );
 
 
+                var resultList = new List<object>(transfers.Count);
+                var dtoProps = typeof(TranssbDTO).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+                foreach (var t in transfers)
+                {
+                    var dto = _mapper.Map<TranssbDTO>(t);
+
+                    var expando = new ExpandoObject() as IDictionary<string, object?>;
+                    foreach (var p in dtoProps)
+                        expando[p.Name] = p.GetValue(dto);
+
+                    if (t.Torovendido.HasValue && toroExtras.TryGetValue(t.Torovendido.Value, out var te))
+                        expando["Toro"] = te;
+                    else
+                        expando["Toro"] = null;
+
+                    resultList.Add(expando!);
+                }
+
+
+                return Ok(new
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = resultList
+                });
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<TranssbDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                Console.WriteLine($"[TranssbController] Error: {ex}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = (List<TranssbDTO>?)null
+                });
             }
         }
+
+
         [HttpGet]
         [Route("LimitadosFiltradosNoInclude")]
         public async Task<IActionResult> LimitadosFiltradosNoInclude(int skip, int take, string? expression = null)

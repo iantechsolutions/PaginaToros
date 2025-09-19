@@ -46,32 +46,26 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
-        public async Task<List<Transsb>> LimitadosFiltrados(int skip, int take, string filtro = null)
+        public async Task<List<Transsb>> LimitadosFiltrados(int skip, int take, string? expression = null)
         {
-            try
+            IQueryable<Transsb> q = _dbContext.Transsbs
+                .AsNoTracking()
+                .Include(t => t.Establecimiento); 
+                                                  
+
+            if (!string.IsNullOrWhiteSpace(expression))
             {
-                List<Transsb>a;
-                if(filtro is not null) { 
-                    a = await _dbContext.Transsbs.Include(t=>t.Establecimiento).Where(filtro).Skip(skip).ToListAsync();
-                }
-                else
-                {
-                    a =await _dbContext.Transsbs.Include(t=>t.Establecimiento).Skip(skip).ToListAsync();
-                }
-                if (take == 0)
-                {
-                    return a.OrderByDescending(t => t.Id).ToList();
-                }
-                else
-                {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
-                }
+                q = q.Where(expression);
             }
-            catch
+
+            if (take > 0)
             {
-                throw;
+                q = q.OrderByDescending(x => x.Id).Skip(skip).Take(take);
             }
+
+            return await q.ToListAsync();
         }
+
 
         public async Task<List<Transsb>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null)
         {

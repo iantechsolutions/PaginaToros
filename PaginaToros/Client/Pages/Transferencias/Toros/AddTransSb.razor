@@ -16,31 +16,7 @@
     <div class="card-body">
         <EditForm Model="@oTranssb" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
-            <div class="row" style="width=100%;">
-                <div class="col-sm">
-                    <label class="col-sm">Nro Certificado</label>
-                    <InputText @bind-Value="@oTranssb.NroTrans" class="form-control" placeholder=""></InputText>
-                    <ValidationMessage For="(()=> oTranssb.NroTrans)" style="color:red;" />
-                </div>
-                <div class="col-sm">
-                    <label class="col-sm">Nro de orden</label>
-                    <InputText @bind-Value="@oTranssb.NroOrden" class="form-control" placeholder=""></InputText>
-                    <ValidationMessage For="(()=> oTranssb.NroOrden)" style="color:red;" />
-                </div>
-                    <div class="col-sm">
-                        <label class="col-sm">Toro Seleccionado</label>
-                        <br/>
-                        <RadzenDropDownDataGrid TValue="string" Data=@toros.Where(x=>x.Criador==socioVendedor.Scod) TextProperty="Hba" ValueProperty="NomDad">
-                            <Columns>
-                                <RadzenDropDownDataGridColumn Property="NomDad" Title="Nombre" Width="30%" />
-                                <RadzenDropDownDataGridColumn Property="Hba" Title="HBA" Width="30%" />
-                                <RadzenDropDownDataGridColumn Property="Tatpart" Title="Tatuaje" Width="30%" />
-                            </Columns>
-                        </RadzenDropDownDataGrid>
-                        <p>*La busqueda del toro se realiza por Nro de Identificacion</p>
-                    </div>
-            </div>
-            <br />
+           
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Socio Vendedor</label><br />
@@ -77,6 +53,34 @@
                 </div>
             </div>
             <br />
+                <div class="row" style="width=100%;">
+                    <div class="col-sm">
+                        <label class="col-sm">Nro Certificado</label>
+                        <InputText @bind-Value="@oTranssb.NroTrans" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oTranssb.NroTrans)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Nro de orden</label>
+                        <InputText @bind-Value="@oTranssb.NroOrden" class="form-control" placeholder=""></InputText>
+                        <ValidationMessage For="(()=> oTranssb.NroOrden)" style="color:red;" />
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Toro Seleccionado</label>
+                        <br />
+
+
+                        <BlazoredTypeahead SearchMethod="BusquedaToros" placeholder="Busque por nombre" EnableDropDown="true" TItem="TorosuniDTO" TValue="TorosuniDTO" Value="toroSeleccionado" ValueChanged="updateToro" ValueExpression="@(() => toroSeleccionado)">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.NomDad
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.NomDad
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                        <p>*La busqueda del toro se realiza por Nro de Identificacion</p>
+                    </div>
+                </div>
+                <br />
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
                         <label class="col-sm">Mail</label>
@@ -169,8 +173,23 @@ else
         oTranssb.Sven = socioVendedor.Scod;
         oTranssb.Scom = socioComprador.Scod;
         oTranssb.Ecod = establecimientoSeleccionado.Ecod;
-        oTranssb.Torovendido = toroSeleccionado?.Id;
+        oTranssb.Torovendido = toroSeleccionado.Id;
         toroSeleccionado.Criador = socioComprador.Scod;
+
+        if (toroSeleccionado == null)
+        {
+            Console.WriteLine("!!!");
+            return;
+        }
+
+        Console.WriteLine("Entro");
+        Console.WriteLine(oTranssb.Vnom);
+        Console.WriteLine(oTranssb.Torovendido);
+        Console.WriteLine(oTranssb.Vnom);
+        Console.WriteLine(socioVendedor.Id);
+        Console.WriteLine(socioComprador.Id);
+        Console.WriteLine(socioVendedor.Nombre);
+
         await _torosServicio.Editar(toroSeleccionado);
         if (Id == 0)
         {
@@ -216,6 +235,7 @@ else
         return await Task.FromResult(result);
     }
 
+
     private async Task<IEnumerable<EstableDTO>> BusquedaEstablecimientos(string searchText)
     {
         var result = establecimientos.Where(x => x.Codsoc==socioComprador.Scod && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -231,5 +251,11 @@ else
         socioComprador = socio;
         var usuarioComprador = Usuarios.Where(x => x.SocioId == socio.Id).ToList().First();
         direccionCompra = usuarioComprador.Email;
+    }
+
+    protected async Task updateToro(TorosuniDTO toro)
+    {
+        toroSeleccionado = toro;
+
     }
 }
