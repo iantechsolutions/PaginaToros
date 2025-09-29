@@ -1,5 +1,28 @@
 ﻿@inject AuthenticationStateProvider AuthenticationStateProvider
 @using System.Security.Claims
+
+<style>
+    .nav-link {
+        font-weight: 700;
+    }
+
+    .navbar {
+        position: relative; 
+        background-color: #059669; 
+    }
+
+        .navbar::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: -100vw; 
+            right: -100vw; 
+            background-color: #059669; 
+            z-index: -1; 
+        }
+</style>
+
 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
     <Authorized>
         <nav class="navbar navbar-expand-md bg-green-600 mb-4">
@@ -13,12 +36,12 @@
                 <div class="collapse navbar-collapse @NavBarCssClass" id="navbarCollapse" @onclick="ToggleNavMenu">
                     <ul class="navbar-nav me-auto mb-2 mb-md-0">
                         <li class="hover:bg-green-500 rounded-2xl">
-                            <NavLink class="nav-link text-black" href="" Match="NavLinkMatch.All" style="color:#133c62">
+                            <NavLink class="nav-link text-black text-lg font-bold" href="" Match="NavLinkMatch.All" style="color:#133c62">
                                 Inicio
                             </NavLink>
                         </li>
                         <li class="nav-item group ">
-                            <span class="nav-link group text-black group-hover:bg-green-500 rounded-2xl">Socios</span>
+                            <span class="nav-link text-black text-lg font-bold">Socios</span>
                         <li class="nav-item-content rounded-xl" style="background-color:#10B981">
                             <div>
                                 <NavLink class="dropdown nav-link text-black bg-green-500 hover:bg-green-400 rounded-md" style="color:#133c62" href="socios">
