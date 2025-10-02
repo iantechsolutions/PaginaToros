@@ -231,77 +231,58 @@ namespace PaginaToros.Server.Controllers
         [Route("Editar")]
         public async Task<IActionResult> Editar([FromBody] TorosuniDTO request)
         {
-            Respuesta<TorosuniDTO> _Respuesta = new Respuesta<TorosuniDTO>();
+            var resp = new Respuesta<TorosuniDTO>();
+
             try
             {
-                Torosuni _Toro = _mapper.Map<Torosuni>(request);
-                Torosuni _ToroParaEditar = await _torosRepositorio.Obtener(u => u.Id == _Toro.Id);
+                Torosuni entidad;
 
-                if (_ToroParaEditar != null)
+                if (request.Id != 0)
                 {
+                    // EDITAR
+                    entidad = await _torosRepositorio.Obtener(t => t.Id == request.Id);
 
-                    _ToroParaEditar.Apodo = _Toro.Apodo;
-                    _ToroParaEditar.Nombre = _Toro.Nombre;
-                    _ToroParaEditar.EstDoc = _Toro.EstDoc;
-                    _ToroParaEditar.ResInsp = _Toro.ResInsp;
-                    _ToroParaEditar.SbcodOld = _Toro.SbcodOld;
-                    _ToroParaEditar.Sbcod = _Toro.Sbcod;
-                    _ToroParaEditar.TipToro = _Toro.TipToro;
-                    _ToroParaEditar.Tatpart = _Toro.Tatpart;
-                    _ToroParaEditar.NomDad = _Toro.NomDad;
-                    _ToroParaEditar.NrInsc = _Toro.NrInsc;
-                    _ToroParaEditar.NrTsan = _Toro.NrTsan;
-                    _ToroParaEditar.NrInsd = _Toro.NrInsd;
-                    _ToroParaEditar.Fecha = _Toro.Fecha;
-                    _ToroParaEditar.Hba = _Toro.Hba;
-                    _ToroParaEditar.Variedad = _Toro.Variedad;
-                    _ToroParaEditar.Criador = _Toro.Criador;
-                    _ToroParaEditar.Catego = _Toro.Catego;
-                    _ToroParaEditar.Plantel = _Toro.Plantel;
-                    _ToroParaEditar.Estcod = _Toro.Estcod;
-                    _ToroParaEditar.FchBaja = _Toro.FchBaja;
-                    _ToroParaEditar.Activo = _Toro.Activo;
-                    _ToroParaEditar.MotivoBaj = _Toro.MotivoBaj;
-                    _ToroParaEditar.Nacido = _Toro.Nacido;
-                    _ToroParaEditar.Actualizado = _Toro.Actualizado;
-                    _ToroParaEditar.CircEscrotal = _Toro.CircEscrotal;
-                    _ToroParaEditar.CodEstado = _Toro.CodEstado;
-                    _ToroParaEditar.IdTipo = _Toro.IdTipo;
-                    _ToroParaEditar.Fecing = _Toro.Fecing;
-                    _ToroParaEditar.Fechasba = _Toro.Fechasba;
-                    _ToroParaEditar.Pnac = _Toro.Pnac;
-                    _ToroParaEditar.Pajudest = _Toro.Pajudest;
-                    _ToroParaEditar.Pajufinal = _Toro.Pajufinal;
-                    _ToroParaEditar.Gdpostdest = _Toro.Gdpostdest;
-                    _ToroParaEditar.Indicedest = _Toro.Indicedest;
-                    _ToroParaEditar.Cescrot = _Toro.Cescrot;
-                    _ToroParaEditar.Otros1 = _Toro.Otros1;
-                    _ToroParaEditar.Promgrupo1 = _Toro.Promgrupo1;
-                    _ToroParaEditar.Promgrupo2 = _Toro.Promgrupo2;
-                    _ToroParaEditar.Gdvida = _Toro.Gdvida;
-                    _ToroParaEditar.Indicefinal = _Toro.Indicefinal;
-                    _ToroParaEditar.Frame = _Toro.Frame;
-                    _ToroParaEditar.Otros2 = _Toro.Otros2;
-                    _ToroParaEditar.Comentario = _Toro.Comentario;
+                    if (entidad == null)
+                    {
+                        resp = new Respuesta<TorosuniDTO> { Exito = 0, Mensaje = "No se encontró el identificador" };
+                        return StatusCode(StatusCodes.Status404NotFound, resp);
+                    }
 
-                    bool respuesta = await _torosRepositorio.Editar(_ToroParaEditar);
+                    if (!string.IsNullOrWhiteSpace(request.Criador))
+                        request.Criador = request.Criador.Trim();
 
-                    if (respuesta)
-                        _Respuesta = new Respuesta<TorosuniDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TorosuniDTO>(_ToroParaEditar) };
-                    else
-                        _Respuesta = new Respuesta<TorosuniDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
+                    _mapper.Map(request, entidad);
+
+
+                    var ok = await _torosRepositorio.Editar(entidad);
+                    if (!ok)
+                    {
+                        resp = new Respuesta<TorosuniDTO> { Exito = 0, Mensaje = "No se pudo editar el identificador" };
+                        return StatusCode(StatusCodes.Status200OK, resp);
+                    }
                 }
                 else
                 {
-                    _Respuesta = new Respuesta<TorosuniDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                    if (!string.IsNullOrWhiteSpace(request.Criador))
+                        request.Criador = request.Criador.Trim();
+
+                    entidad = _mapper.Map<Torosuni>(request);
+                    entidad = await _torosRepositorio.Crear(entidad);
+
+                    if (entidad.Id == 0)
+                    {
+                        resp = new Respuesta<TorosuniDTO> { Exito = 0, Mensaje = "No se pudo crear el identificador" };
+                        return StatusCode(StatusCodes.Status200OK, resp);
+                    }
                 }
 
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                resp = new Respuesta<TorosuniDTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<TorosuniDTO>(entidad) };
+                return StatusCode(StatusCodes.Status200OK, resp);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<TorosuniDTO>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                resp = new Respuesta<TorosuniDTO> { Exito = 0, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, resp);
             }
         }
     }
