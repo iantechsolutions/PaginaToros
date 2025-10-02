@@ -45,8 +45,8 @@
                         Count="cantidad" Data="@oRespuesta.List" LoadData="LoadData" TItem="TransanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
 
-                <RadzenDataGridColumn TItem="TransanDTO" Property="NroCert" Title="Nro Certificado" Width="5.3%" />
-                <RadzenDataGridColumn TItem="TransanDTO" Property="Fecvta" Title="Fecha de Venta" Width="6.6%">
+                <RadzenDataGridColumn TItem="TransanDTO" Property="NroCert" Title="Nro Certificado" Width="4.5%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="Fecvta" Title="Fecha de Venta" Width="6%">
                     <Template Context="data">
                         @if (data.Fecvta.HasValue)
                         {
@@ -58,10 +58,10 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="TransanDTO" Property="Vnom" Title="Socio Vendedor" Width="6.6%"/>
-                <RadzenDataGridColumn TItem="TransanDTO" Property="Cnom" Title="Socio Comprador" Width="6.6%"/>
-                <RadzenDataGridColumn TItem="TransanDTO" Property="Plant" Title="De Plantel" Width="6.6%" />
-                <RadzenDataGridColumn TItem="TransanDTO" Property="NvoPla" Title="A Plantel" Width="6.6%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="Vnom" Title="Socio Vendedor" Width="6%"/>
+                <RadzenDataGridColumn TItem="TransanDTO" Property="Cnom" Title="Socio Comprador" Width="6%"/>
+                <RadzenDataGridColumn TItem="TransanDTO" Property="Plant" Title="De Plantel" Width="6%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="NvoPla" Title="A Plantel" Width="6%" />
                 <RadzenDataGridColumn TItem="TransanDTO" Property="CantHem" Title="Cant Hembras" Width="6.6%" />
                 <RadzenDataGridColumn TItem="TransanDTO" Property="CantMach" Title="Cant Machos" Width="6.6%" />
                 <RadzenDataGridColumn TItem="TransanDTO" Property="Tiphac" Title="Tipo de hacienda" Width="6.6%" />

@@ -62,17 +62,17 @@
                                 LogicalFilterOperator="LogicalFilterOperator.Or"
                                 PagerHorizontalAlign="HorizontalAlign.Center">
                     <Columns>
-                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="NroTrans" Title="Nro Certificado" Width="24%" />
-                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="NroOrden" Title="Nro Orden" Width="24%" />
-                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Vnom" Title="Socio Vendedor" Width="24%" />
-                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Cnom" Title="Socio Comprador" Width="23%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="NroTrans" Title="Nro Certificado" Width="12%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="NroOrden" Title="Nro Orden" Width="12%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Vnom" Title="Socio Vendedor" Width="18%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Cnom" Title="Socio Comprador" Width="18%" />
 
                         <!-- Campos del toro -->
                         <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroHba" Title="HBA" Width="14%" />
                         <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroTatuaje" Title="Tatuaje" Width="14%" />
-                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroNombre" Title="Nombre Toro" Width="20%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroNombre" Title="Nombre Toro" Width="16%" />
 
-                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Establecimiento.Nombre" Title="Establecimiento" Width="23%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Establecimiento.Nombre" Title="Establecimiento" Width="16%" />
                         <RadzenDataGridColumn TItem="TranssbRowVM" Filterable="false" Width="3.33%">
                             <Template Context="data">
                                 <button class="btn" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
@@ -134,15 +134,15 @@
                                 LogicalFilterOperator="LogicalFilterOperator.Or"
                                 PagerHorizontalAlign="HorizontalAlign.Center">
                     <Columns>
-                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="NroTrans" Title="Nro Certificado" Width="15%" />
-                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="NroOrden" Title="Nro Orden" Width="15%" />
-                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Vnom" Title="Socio Vendedor" Width="15%" />
-                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Cnom" Title="Socio Comprador" Width="15%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="NroTrans" Title="Nro Certificado" Width="12%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="NroOrden" Title="Nro Orden" Width="12%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Vnom" Title="Socio Vendedor" Width="12%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="Cnom" Title="Socio Comprador" Width="12%" />
 
                         <!-- Campos del toro -->
                         <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroHba" Title="HBA" Width="14%" />
                         <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroTatuaje" Title="Tatuaje" Width="14%" />
-                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroNombre" Title="Nombre Toro" Width="20%" />
+                        <RadzenDataGridColumn TItem="TranssbRowVM" Property="ToroNombre" Title="Nombre Toro" Width="16%" />
 
                         <RadzenDataGridColumn TItem="TranssbRowVM" Property="Establecimiento.Nombre" Title="Establecimiento" Width="10%" />
                         <RadzenDataGridColumn TItem="TranssbRowVM" Filterable="false" Width="3.33%">
