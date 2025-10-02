@@ -280,40 +280,42 @@
     }
     async Task Guardar()
     {
-            disabled = true;
+        disabled = true;
 
-        if(socios.Where(x=>x.Scod==oSocio.Scod).Count()==0){
-            oSocio.Codpro1 = traductorProvincia[tempProvincia];
-            oSocio.Fecing = FechaTemp;
-            if (activo)
-            {
-                oSocio.Criador = "S";
-            }
-            else
-            {
-                oSocio.Criador = "N";
-            }
-            if (Id == 0)
-            {
-                await _socioServicio.Crear(oSocio);
-                await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-            }
-            else
-            {
-                await _socioServicio.Editar(oSocio);
-                await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-            }
+        if (!await ValidarObligatorios())
+        {
             disabled = false;
-
+            return;
         }
-        else
+
+        var existeOtroConMismoCodigo = socios.Any(x => x.Scod == oSocio.Scod && x.Id != Id);
+        if (existeOtroConMismoCodigo)
         {
             await alertaCodigo();
             disabled = false;
-
             return;
         }
+
+        oSocio.Codpro1 = traductorProvincia[tempProvincia];
+
+        oSocio.Fecing  = FechaTemp;
+        oSocio.Criador = activo ? "S" : "N";
+
+        if (Id == 0)
+        {   
+            await _socioServicio.Crear(oSocio);
+        }
+        else
+        {   
+        await _socioServicio.Editar(oSocio);
+        }
+
+    await ModalInstance.CloseAsync(ModalResult.Ok("Form was submitted successfully."));
+    disabled = false;
     }
+
+
+
     async Task cancel()
     {
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
@@ -513,7 +515,69 @@
 
 
 
+private async Task<bool> ValidarObligatorios()
+{
+    var faltantes = new List<string>();
 
+    if (string.IsNullOrWhiteSpace(oSocio.Nombre))   faltantes.Add("Nombre");
+    if (string.IsNullOrWhiteSpace(oSocio.Mail))     faltantes.Add("Mail");
+    if (string.IsNullOrWhiteSpace(oSocio.Direcc1))  faltantes.Add("Domicilio");
+    if (string.IsNullOrWhiteSpace(tempProvincia))   faltantes.Add("Provincia");
+    if (string.IsNullOrWhiteSpace(oSocio.Placod))   faltantes.Add("Plantel");
+
+    if (faltantes.Count > 0)
+    {
+        // Lista en HTML prolija
+        var html = "<ul style='text-align:left;margin:0 auto;max-width:320px'>" +
+                   string.Join("", faltantes.Select(f => $"<li><b>{f}</b></li>")) +
+                   "</ul>";
+
+        await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Faltan datos obligatorios",
+            Html  = $"Por favor, completá: {html}",
+            Icon  = "error",
+            ConfirmButtonText = "Aceptar"
+        });
+
+        return false;
+    }
+
+    // Validación mínima de email (opcional)
+    try
+    {
+        var addr = new System.Net.Mail.MailAddress(oSocio.Mail);
+        if (addr.Address != oSocio.Mail)
+            throw new FormatException();
+    }
+    catch
+    {
+        await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Mail inválido",
+            Text  = "Revisá el formato del correo electrónico.",
+            Icon  = "error",
+            ConfirmButtonText = "Aceptar"
+        });
+        return false;
+    }
+
+    // Provincia debe mapear a un código válido
+    if (!traductorProvincia.ContainsKey(tempProvincia) ||
+        string.IsNullOrWhiteSpace(traductorProvincia[tempProvincia]))
+    {
+        await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Provincia inválida",
+            Text  = "Seleccioná una provincia de la lista.",
+            Icon  = "error",
+            ConfirmButtonText = "Aceptar"
+        });
+        return false;
+    }
+
+    return true;
+}
 
 
 
