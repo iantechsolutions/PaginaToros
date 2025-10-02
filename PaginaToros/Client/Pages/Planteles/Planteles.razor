@@ -93,11 +93,11 @@
             @* <RadzenDataGridColumn TItem="PlantelDTO" Property="Nroins" Title="Nro ultima inspeccion" Width="6.6%" /> *@
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" />
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Varede" Title="Vacas PR" Width="4%" />
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaquillonas PR C/S" Width="5%" />
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaquillonas PR S/S" Width="5%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaq. PR C/S" Width="5%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaq PR S/S" Width="5%" />
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Varepr" Title="Vacas VIP" Width="4%" />
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrp" Title="Vaquillonas VIP C/S o preñadas" Width="6.6%" />
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrp" Title="Vaquillonas VIP S/S" Width="4.6%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrp" Title="Vaq VIP C/S o preñadas" Width="6.6%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrp" Title="Vaq VIP S/S" Width="4.6%" />
             <RadzenDataGridColumn TItem="PlantelDTO" Property="" Title="" Filterable="false" Width="2.3%">
                 <Template Context="data">
                     <button class="btn" position="absolute" title="Editar Plantel @data.Id" @onclick="() => add(data.Id,false)"><FeatherEdit Size="16" Color="green" /></button>
@@ -159,11 +159,11 @@ else
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Anioex" Title="Año de Existencia" Width="4.6%" />
                     @* <RadzenDataGridColumn TItem="PlantelDTO" Property="Nroins" Title="Nro ultima inspeccion" Width="6.6%" /> *@
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Varede" Title="Vacas PR" Width="4%" />
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaquillonas PR C/S" Width="5%" />
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaquillonas PR S/S" Width="5%" />
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaq PR C/S" Width="5%" />
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaq PR S/S" Width="5%" />
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Varepr" Title="Vacas VIP" Width="4%" />
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrp" Title="Vaquillonas VIP C/S o preñadas" Width="6.6%" />
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrp" Title="Vaquillonas VIP S/S" Width="4.6%" />
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrp" Title="Vaq VIP C/S o preñadas" Width="6.6%" />
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrp" Title="Vaq VIP S/S" Width="4.6%" />
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="" Title="" Filterable="false" Width="2.3%">
                         <Template Context="data">
                             <button class="btn" position="absolute" title="Editar Plantel @data.Id" @onclick="() => add(data.Id,true)"><FeatherEdit Size="16" Color="green" /></button>
