@@ -47,8 +47,13 @@
 <h3 class="pb-3 font-bold text-xl no-print" style="position:relative;left:3.33%">Toros</h3>
 
 
-<button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0)">Agregar Toro</button>
-
+@if (!esSocio)
+{
+    <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
+            style="position:relative;left:3.33%" @onclick="()=>add(0)">
+        Agregar Toro
+    </button>
+}
 
 
 @if (oRespuesta.List != null)
@@ -152,6 +157,9 @@ else
     int currentPage;
     bool terminado = true;
     int cantidad = 0;
+
+    public bool esSocio = true;
+    private int socioIdActual = 0;
     SocioDTO socioSeleccionado;
     List<SocioDTO> socios = new List<SocioDTO>();
     Dictionary<string, string> traductor = new Dictionary<string, string>{
@@ -167,7 +175,6 @@ else
     };
     public bool isLoading = false;
     public bool allowFiltering = false;
-    public bool esSocio = true;
     public Respuesta<List<TorosuniDTO>> oRespuesta = new Respuesta<List<TorosuniDTO>>();
     protected override async Task OnInitializedAsync()
     {
@@ -177,8 +184,8 @@ else
     {
         esSocio = await UserHasRole("Socio");
 
-        if (!esSocio){
-
+        if (!esSocio)
+        {
             var rta = await _socioServicio.LimitadosFiltrados(0, 0);
             socios = rta.List;
             var cant = await _torosServicio.CantidadTotal();
@@ -187,23 +194,23 @@ else
         }
         else
         {
-            var usuarioId = 0;
-            var authState = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
+
             foreach (var claim in user.Claims)
             {
                 if (claim.Type == "SocioId")
                 {
-                    usuarioId = Int32.Parse(claim.Value);
-                    Console.WriteLine(usuarioId);
+                    socioIdActual = int.Parse(claim.Value); 
+                    break;
                 }
-
             }
 
-            //CAMBIAR ID
-            oRespuesta = await _torosServicio.GetBySocioId(usuarioId);
-            oRespuesta.List = oRespuesta.List.OrderBy(x => x.CodEstado != "1").ThenBy(x=> x.CodEstado != "3").ToList();
+            oRespuesta = await _torosServicio.GetBySocioId(socioIdActual);
+            oRespuesta.List = oRespuesta.List
+                .OrderBy(x => x.CodEstado != "1")
+                .ThenBy(x => x.CodEstado != "3")
+                .ToList();
             cantidad = oRespuesta.List.Count();
         }
     }
@@ -266,6 +273,18 @@ else
     async Task add(int Id)
     {
         int numero = Id;
+
+        if (Id == 0 && esSocio)
+        {
+            await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Acción no permitida",
+                    Text = "Como socio solo podés editar tus toros. No podés agregar nuevos.",
+                    Icon = SweetAlertIcon.Info,
+                    ConfirmButtonText = "Entendido"
+                });
+            return;
+        }
         if (numero != 0)
         {
             currentPage = grid.CurrentPage;
@@ -335,23 +354,32 @@ else
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
-        if(socioSeleccionado==null){
-            if (args!=null && !string.IsNullOrEmpty(args.Filter))
+
+        if (esSocio)
+        {
+            // Ignoramos filtros/paginación de Radzen y traemos SIEMPRE los del socio
+            oRespuesta = await _torosServicio.GetBySocioId(socioIdActual);
+            cantidad = oRespuesta.List?.Count ?? 0;
+            isLoading = false;
+            return;
+        }
+
+        if (socioSeleccionado == null)
+        {
+            if (args != null && !string.IsNullOrEmpty(args.Filter))
             {
-                oRespuesta = await _torosServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
-                // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+                oRespuesta = await _torosServicio.LimitadosFiltrados(args.Skip ?? 0, args.Top ?? 15, args.Filter);
             }
             else
             {
-                oRespuesta = await _torosServicio.Lista(args.Skip.Value,args.Top.Value);
+                oRespuesta = await _torosServicio.Lista(args.Skip ?? 0, args.Top ?? 15);
             }
         }
         else
         {
             if (args != null && !string.IsNullOrEmpty(args.Filter))
             {
-                oRespuesta = await _torosServicio.LimitadosFiltrados(0, args.Top.Value, args.Filter);
-                // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+                oRespuesta = await _torosServicio.LimitadosFiltrados(0, args.Top ?? 15, args.Filter);
             }
             else
             {
@@ -359,9 +387,10 @@ else
                 oRespuesta = await _torosServicio.LimitadosFiltrados(0, 60, filtro);
             }
         }
-        isLoading = false;
 
+        isLoading = false;
     }
+
 
     public async Task PaginaReporte()
     {
