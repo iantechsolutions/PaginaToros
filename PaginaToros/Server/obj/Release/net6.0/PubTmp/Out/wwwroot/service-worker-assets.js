@@ -53,7 +53,7 @@
       "url": "css\/open-iconic\/README.md"
     },
     {
-      "hash": "sha256-\/cf0tOskhyMj3VS4IXu62SE1kHd7kP8qbPUjizg0Ddg=",
+      "hash": "sha256-NRQdd5lVb70fbktC\/J3NeubdfyzD6vUkKk7PqCZnIok=",
       "url": "Excel_Solicitud.xls"
     },
     {
@@ -1001,5 +1001,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "HTt6nqVD"
+  "version": "MgxHu\/IC"
 };
