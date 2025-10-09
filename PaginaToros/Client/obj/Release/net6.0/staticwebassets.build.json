@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "ie4OAn8QcLakyLhB/fZ2V69NJVsDQ2hp7ewMoCjHpoQ=",
+  "Hash": "+37ayKH1wGC4uWudiwbOSdtOAZKPtLUAjsIpqV9q734=",
   "Source": "PaginaToros.Client",
   "BasePath": "/",
   "Mode": "Root",
@@ -11056,12 +11056,12 @@
       "OriginalItemSpec": "wwwroot\\css\\open-iconic\\README.md"
     },
     {
-      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\Excel_Solicitud.xlsx",
+      "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\Excel_Solicitud.xls",
       "SourceId": "PaginaToros.Client",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\",
       "BasePath": "/",
-      "RelativePath": "Excel_Solicitud.xlsx",
+      "RelativePath": "Excel_Solicitud.xls",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -11072,7 +11072,7 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\Excel_Solicitud.xlsx"
+      "OriginalItemSpec": "wwwroot\\Excel_Solicitud.xls"
     },
     {
       "Identity": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\wwwroot\\favicon.ico",
