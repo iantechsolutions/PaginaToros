@@ -49,7 +49,7 @@
       "url": "css\/open-iconic\/README.md"
     },
     {
-      "hash": "sha256-\/cf0tOskhyMj3VS4IXu62SE1kHd7kP8qbPUjizg0Ddg=",
+      "hash": "sha256-4HIeldyyHlbMtP5hEeaLUtkf2HRNCQEtBCFU7Ur+TH4=",
       "url": "Excel_Solicitud.xls"
     },
     {
@@ -1081,15 +1081,15 @@
       "url": "_framework\/PaginaToros.Shared.pdb"
     },
     {
-      "hash": "sha256-GpnvvXiZHUHDxJyccGZUmw\/yIzt8PVG9RWTVLBYfMy0=",
+      "hash": "sha256-asu8UMy\/oj4sCcMZ3hXIlXSD56OV07jrwzJ4wJJuByc=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-dLWat4Ov7j8tkijnpXgANXvH6sGBJN4mhQEwHZ5WFSc=",
+      "hash": "sha256-9zpIDcN3Uz30F\/tiHOXEbDWr+h7LdyizeVo9+EnUGAg=",
       "url": "_framework\/PaginaToros.Client.pdb"
     },
     {
-      "hash": "sha256-0CxAU729zF1+8Hn4IZWP4KtgF4aYCTf+8\/UMV5JkFew=",
+      "hash": "sha256-d6M7Gsw4I+vwpVumIWUVKzHTsH0dfQUHr0b4EbT8dh4=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -1377,5 +1377,5 @@
       "url": "_content\/Blazored.Modal\/Blazored.Modal.bundle.scp.css"
     }
   ],
-  "version": "wKRSYKnw"
+  "version": "nbZ0lG+K"
 };

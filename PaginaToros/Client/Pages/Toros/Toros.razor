@@ -119,16 +119,20 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
+
+
                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Editar" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
                     </Template>
                 </RadzenDataGridColumn>
+                @if (!esSocio){
                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
                     </Template>
                 </RadzenDataGridColumn>
+                }
                 
              
             </Columns>
