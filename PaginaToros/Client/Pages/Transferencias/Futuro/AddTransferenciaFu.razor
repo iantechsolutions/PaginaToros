@@ -21,11 +21,13 @@
 @if(planteles.Count>0){
 <div class="card">
     <div class="card-body">
-        <EditForm Model="@oFutcontrol" OnValidSubmit="Guardar">
+            <EditForm EditContext="@editContext" OnSubmit="OnSubmitAsync">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
             <DataAnnotationsValidator />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
-                    <label class="col-sm">Nro de transferencia</label>
+                    <label class="col-sm">Nro de Certificado</label>
                     <InputText @bind-Value="@oFutcontrol.NroTrans" class="form-control" placeholder=""></InputText>
                     <ValidationMessage For="(()=> oFutcontrol.NroTrans)" style="color:red;" />
                 </div>
@@ -37,33 +39,34 @@
             <br />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
-                    <label>Socio Vendedor</label><br />
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" Disabled="IdSocio!=null" @bind-Value="socioVendedor">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
+                        <label>Socio Vendedor</label><br />
+                        <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true"
+                                           Disabled="IdSocio!=null"
+                                           TItem="SocioDTO" TValue="SocioDTO"
+                                           Value="socioVendedor" ValueChanged="OnVendedorChanged" ValueExpression="@(() => socioVendedor)">
+                            <SelectedTemplate Context="eleccion">@eleccion.Nombre</SelectedTemplate>
+                            <ResultTemplate Context="eleccion">@eleccion.Nombre</ResultTemplate>
+                        </BlazoredTypeahead>
+
+
                 </div>
                 <div class="col-sm">
-                    <label>Socio Comprador</label>
-                        <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioComprador" ValueChanged="updateComprador" ValueExpression="@(() => socioComprador)">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
+                        <label>Socio Comprador</label>
+                        <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true"
+                                           TItem="SocioDTO" TValue="SocioDTO"
+                                           Value="socioComprador" ValueChanged="OnCompradorChanged" ValueExpression="@(() => socioComprador)">
+                            <SelectedTemplate Context="eleccion">@eleccion.Nombre</SelectedTemplate>
+                            <ResultTemplate Context="eleccion">@eleccion.Nombre</ResultTemplate>
+                        </BlazoredTypeahead>
                 </div>
             </div>
             <br/>
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Plantel Origen</label><br />
-                    <BlazoredTypeahead SearchMethod="BusquedaPlantelesVendedor" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="plantelOrigen">
+                        <BlazoredTypeahead SearchMethod="BusquedaPlantelesVendedor" EnableDropDown="true"
+                                           TItem="PlantelDTO" TValue="PlantelDTO"
+                                           Value="plantelOrigen" ValueChanged="OnPlantelOrigenChanged" ValueExpression="@(() => plantelOrigen)">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Placod
                         </SelectedTemplate>
@@ -74,7 +77,10 @@
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Plantel Destino</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaPlantelesComprador" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="plantelDestino">
+                        <BlazoredTypeahead SearchMethod="BusquedaPlantelesComprador" EnableDropDown="true"
+                                           TItem="PlantelDTO" TValue="PlantelDTO"
+                                           Value="plantelDestino" ValueChanged="OnPlantelDestinoChanged" ValueExpression="@(() => plantelDestino)">
+
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Placod
                         </SelectedTemplate>
@@ -112,6 +118,12 @@
                 </div>
             </div>
             <br />
+                <div class="row" style="width=100%;margin-top:10px">
+                    <div class="col-sm">
+                        <RadzenCheckBox @bind-Value="enviarMail" />
+                        <label style="margin-left:6px">Enviar mail al guardar</label>
+                    </div>
+                </div>
             <br />
 
             <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
@@ -132,138 +144,308 @@ else
 }
 @code {
     FutcontrolDTO oFutcontrol = new();
-    SocioDTO socioComprador = new();
-    SocioDTO socioVendedor = new();
+    EditContext editContext;
+    ValidationMessageStore messageStore;
+    SocioDTO socioComprador = null;
+    SocioDTO socioVendedor = null;
     List<SocioDTO> socios = new();
     string direccionCompra = "";
     IList<User> Usuarios;
     List<PlantelDTO> planteles = new();
     PlantelDTO? plantelOrigen = null;
     PlantelDTO? plantelDestino = null;
+
+    bool enviarMail = true; // por defecto enviar
+
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public int? IdSocio { get; set; }
-    List<string> estadosHembra = new List<string> {"CC" ,"CCP", "SS","PR" };
+
+    List<string> estadosHembra = new() { "CC", "CCP", "SS", "PR" };
     private ClaimsPrincipal? user;
-
-
 
     protected override async Task OnInitializedAsync()
     {
-
-
+        editContext = new EditContext(oFutcontrol);
+        messageStore = new ValidationMessageStore(editContext);
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         user = authState.User;
 
-
-
         var rta = await _sociosServicio.LimitadosFiltrados(0, 0);
-        socios = rta.List;
-        Console.WriteLine("1");
+        socios = rta.List ?? new();
+
         var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
-        planteles = rt.List;
-        Console.WriteLine("2");
+        planteles = rt.List ?? new();
+
         var result = await http.GetAsync($"api/Account/GetUsers/TODO/TODO/1");
-        var response = JsonSerializer.Deserialize<ResponseForList>(result.Content.ReadAsStringAsync().Result);
-        Usuarios = JsonSerializer.Deserialize<IList<User>>(response.EntitiesPricipal);
-        Console.WriteLine("3");
-        if (IdSocio != null || IdSocio != 0)
+        var response = JsonSerializer.Deserialize<ResponseForList>(await result.Content.ReadAsStringAsync());
+        Usuarios = JsonSerializer.Deserialize<IList<User>>(response.EntitiesPricipal) ?? new List<User>();
+
+        // Si viene IdSocio, precargo vendedor
+        if (IdSocio != null && IdSocio != 0)
         {
-            socioVendedor = socios.Where(x => x.Id == IdSocio).FirstOrDefault();
+            var vend = socios.FirstOrDefault(x => x.Id == IdSocio.Value);
+            if (vend != null) await OnVendedorChanged(vend);
         }
-        Console.WriteLine("4");
+
+        // Edición
         if (Id != 0)
         {
             try
             {
                 string filtro = $"Id = {Id}";
-                var r = await _futcontrolServicio.LimitadosFiltrados(0,1,filtro);
-                oFutcontrol = r.List.FirstOrDefault();
-                socioComprador = socios.Where(x => x.Scod == oFutcontrol.Scom).First();
-                socioVendedor = socios.Where(x => x.Scod == oFutcontrol.Sven).First();
-                plantelOrigen = planteles.Where(x=>x.Placod == oFutcontrol.Plantel).FirstOrDefault();
-                plantelDestino = planteles.Where(x => x.Placod == oFutcontrol.PlantDest).FirstOrDefault();
+                var r = await _futcontrolServicio.LimitadosFiltrados(0, 1, filtro);
+                oFutcontrol = r.List?.FirstOrDefault() ?? new();
+
+                // cargar vendedor (OBLIGATORIO)
+                var vend = socios.FirstOrDefault(x => x.Scod == oFutcontrol.Sven);
+                if (vend != null) await OnVendedorChanged(vend);
+
+                // comprador (OPCIONAL)
+                var comp = socios.FirstOrDefault(x => x.Scod == oFutcontrol.Scom);
+                if (comp != null) await OnCompradorChanged(comp);
+
+                plantelOrigen = planteles.FirstOrDefault(x => x.Placod == oFutcontrol.Plantel);
+                plantelDestino = planteles.FirstOrDefault(x => x.Placod == oFutcontrol.PlantDest);
             }
-            catch (Exception ex)
-            {
-            }
+            catch { }
         }
     }
-    async Task Guardar()
+
+    // ===== Handlers de selección =====
+    private Task OnVendedorChanged(SocioDTO socio)
     {
-        oFutcontrol.Vnom = socioVendedor.Nombre;
-        oFutcontrol.Cnom = socioComprador.Nombre;
-        oFutcontrol.Sven = socioVendedor.Scod.ToString();
-        oFutcontrol.Scom = socioComprador.Scod.ToString();
-        try{
-            oFutcontrol.Plantel = plantelOrigen.Placod;
-        }
-        catch{}
-        try
-        {
-            oFutcontrol.PlantDest = plantelDestino.Placod;
-        }
-        catch{}
-        if (Id == 0)
-        {
-            await _futcontrolServicio.Crear(oFutcontrol);
-
-
-            var mail = $"Aviso de nueva transferencia futura \nNroCertificado: {oFutcontrol.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Cantidad total de animales: {(oFutcontrol.CantHem + oFutcontrol.CantMach)} ";
-            var request = new
-            {
-                Tipo = socioVendedor.Id,
-                Clase = socioComprador.Id,
-                Mail = mail,
-                Nombre = socioVendedor.Nombre
-            };
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-        }
-        else
-        {
-            await _futcontrolServicio.Editar(oFutcontrol);
-            
-            var mail = $"Aviso de edición transferencia futura \nNroCertificado: {oFutcontrol.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Cantidad total de animales: {(oFutcontrol.CantHem + oFutcontrol.CantMach)} ";
-            var request = new
-            {
-                Tipo = socioVendedor.Id,
-                Clase = socioComprador.Id,
-                Mail = mail,
-                Nombre = socioVendedor.Nombre
-            };
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-        }
-    }
-    async Task cancel()
-    {
-        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
-
+        socioVendedor = socio;
+        oFutcontrol.Sven = socio?.Scod;
+        oFutcontrol.Vnom = socio?.Nombre;
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
-    protected async Task updateComprador(SocioDTO socio)
+
+    private Task OnCompradorChanged(SocioDTO socio)
     {
         socioComprador = socio;
-        var usuarioComprador = Usuarios.Where(x => x.SocioId == socio.Id).ToList().First();
-        direccionCompra = usuarioComprador.Email;
+        oFutcontrol.Scom = socio?.Scod;     // opcional
+        oFutcontrol.Cnom = socio?.Nombre;   // opcional
+
+        // intento mail de usuario; si no, el del socio
+        var usuarioComprador = Usuarios?.FirstOrDefault(x => x.SocioId == socio?.Id);
+        if (usuarioComprador != null && !string.IsNullOrWhiteSpace(usuarioComprador.Email))
+            direccionCompra = usuarioComprador.Email;
+        else if (!string.IsNullOrWhiteSpace(socio?.Mail))
+            direccionCompra = socio.Mail;
+        else
+            direccionCompra = string.Empty;
+
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
+    private Task OnPlantelOrigenChanged(PlantelDTO p)
+    {
+        plantelOrigen = p;
+        oFutcontrol.Plantel = p?.Placod;
+        return Task.CompletedTask;
+    }
 
-    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
+    private Task OnPlantelDestinoChanged(PlantelDTO p)
     {
-        var result = socios.Where(x => x.Criador=="S" &&  x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-        return await Task.FromResult(result);
+        plantelDestino = p;
+        oFutcontrol.PlantDest = p?.Placod;
+        return Task.CompletedTask;
     }
-    private async Task<IEnumerable<PlantelDTO>> BusquedaPlantelesComprador(string searchText)
+
+    private async Task OnSubmitAsync(EditContext _)
     {
-        var result = planteles.Where(x => x.Nrocri == socioComprador.Scod && x.Placod.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-        return await Task.FromResult(result);
+        // Limpio mensajes previos
+        messageStore.Clear();
+
+        // === Validaciones ===
+
+        var hem = oFutcontrol.CantHem;
+        var mach = oFutcontrol.CantMach;
+
+
+    // 1) NroTrans
+        if (string.IsNullOrWhiteSpace(oFutcontrol.NroTrans))
+            messageStore.Add(new FieldIdentifier(oFutcontrol, nameof(oFutcontrol.NroTrans)), "Nro de Certificado es obligatorio.");
+
+        // 2) Fecha
+        if (!oFutcontrol.Fectrans.HasValue)
+            messageStore.Add(new FieldIdentifier(oFutcontrol, nameof(oFutcontrol.Fectrans)), "Fecha de transferencia es obligatoria.");
+
+        // 3) Estado hembras
+        if (string.IsNullOrWhiteSpace(oFutcontrol.Hemsta))
+            messageStore.Add(new FieldIdentifier(oFutcontrol, nameof(oFutcontrol.Hemsta)), "Estado de las hembras es obligatorio.");
+
+        // 4) Socio vendedor (Sven)
+        if (socioVendedor == null || string.IsNullOrWhiteSpace(socioVendedor.Scod))
+            messageStore.Add(new FieldIdentifier(oFutcontrol, nameof(oFutcontrol.Sven)), "Debe seleccionar un Socio Vendedor.");
+
+        // 5) Cantidades: al menos una
+        if (hem <= 0 && mach <= 0)
+        {
+            messageStore.Add(new FieldIdentifier(oFutcontrol, nameof(oFutcontrol.CantHem)), "Debe ingresar Hembras o Machos (al menos uno).");
+            messageStore.Add(new FieldIdentifier(oFutcontrol, nameof(oFutcontrol.CantMach)), "Debe ingresar Hembras o Machos (al menos uno).");
+        }
+
+        editContext.NotifyValidationStateChanged();
+
+        if (editContext.GetValidationMessages().Any())
+            return;
+
+        if (socioVendedor != null)
+        {
+            oFutcontrol.Sven = socioVendedor.Scod;
+            oFutcontrol.Vnom = socioVendedor.Nombre;
+        }
+        if (socioComprador != null)
+        {
+            oFutcontrol.Scom = socioComprador.Scod;
+            oFutcontrol.Cnom = socioComprador.Nombre;
+        }
+
+        oFutcontrol.Plantel = plantelOrigen?.Placod ?? oFutcontrol.Plantel;
+        oFutcontrol.PlantDest = plantelDestino?.Placod ?? oFutcontrol.PlantDest;
+        try
+        {
+            if (Id == 0)
+            {
+                await _futcontrolServicio.Crear(oFutcontrol);
+
+                if (enviarMail)
+                {
+                    var mail = $"Aviso de nueva transferencia futura" +
+                               $"\nNroCertificado: {oFutcontrol.NroTrans}" +
+                               $"\nSocio Vendedor: {oFutcontrol.Vnom}" +
+                               $"\nSocio Comprador: {(oFutcontrol.Cnom ?? "—")}" +
+                               $"\nCantidad de hembras: {(oFutcontrol.CantHem ?? 0)}" +
+                               $"\nCantidad de machos: {(oFutcontrol.CantMach ?? 0)}" +
+                               $"\nCantidad total de animales: {(hem + mach)}" +
+                               $"\nEstado hembras: {oFutcontrol.Hemsta}" +
+                               $"\nFecha: {oFutcontrol.Fectrans?.ToString("dd/MM/yyyy")}";
+
+                    var request = new
+                    {
+                        Tipo = socioVendedor?.Id,
+                        Clase = socioComprador?.Id,
+                        Mail = mail,
+                        Nombre = socioVendedor?.Nombre,
+                        MailCompra = direccionCompra,
+                        MailVendedor = socioVendedor?.Mail
+                    };
+
+                    var resp = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
+                    var ok = resp.IsSuccessStatusCode;
+                    await Swal.FireAsync(new SweetAlertOptions
+                        {
+                            Title = ok ? "Listo" : "Atención",
+                            Text = ok ? "Guardado y mail enviado." : "Guardado, pero no se pudo enviar el mail.",
+                            Icon = ok ? SweetAlertIcon.Success : SweetAlertIcon.Warning,
+                            ConfirmButtonText = "Aceptar"
+                        });
+                }
+                else
+                {
+                    await Swal.FireAsync(new SweetAlertOptions
+                        {
+                            Title = "Listo",
+                            Text = "Guardado correctamente (sin enviar mail).",
+                            Icon = SweetAlertIcon.Success,
+                            ConfirmButtonText = "Aceptar"
+                        });
+                }
+
+                await ModalInstance.CloseAsync(ModalResult.Ok("Creado OK"));
+            }
+            else
+            {
+                await _futcontrolServicio.Editar(oFutcontrol);
+
+                if (enviarMail)
+                {
+                    var mail = $"Aviso de edición transferencia futura" +
+                               $"\nNroCertificado: {oFutcontrol.NroTrans}" +
+                               $"\nSocio Vendedor: {oFutcontrol.Vnom}" +
+                               $"\nSocio Comprador: {(oFutcontrol.Cnom ?? "—")}" +
+                               $"\nCantidad de hembras: {(oFutcontrol.CantHem ?? 0)}" +
+                               $"\nCantidad de machos: {(oFutcontrol.CantMach ?? 0)}" +
+                               $"\nCantidad total de animales: {(hem + mach)}" +
+                               $"\nEstado hembras: {oFutcontrol.Hemsta}" +
+                               $"\nFecha: {oFutcontrol.Fectrans?.ToString("dd/MM/yyyy")}";
+
+                    var request = new
+                    {
+                        Tipo = socioVendedor?.Id,
+                        Clase = socioComprador?.Id,
+                        Mail = mail,
+                        Nombre = socioVendedor?.Nombre,
+                        MailCompra = direccionCompra,
+                        MailVendedor = socioVendedor?.Mail
+                    };
+
+                    var resp = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
+                    var ok = resp.IsSuccessStatusCode;
+                    await Swal.FireAsync(new SweetAlertOptions
+                        {
+                            Title = ok ? "Listo" : "Atención",
+                            Text = ok ? "Editado y mail enviado." : "Editado, pero no se pudo enviar el mail.",
+                            Icon = ok ? SweetAlertIcon.Success : SweetAlertIcon.Warning,
+                            ConfirmButtonText = "Aceptar"
+                        });
+                }
+                else
+                {
+                    await Swal.FireAsync(new SweetAlertOptions
+                        {
+                            Title = "Listo",
+                            Text = "Editado correctamente (sin enviar mail).",
+                            Icon = SweetAlertIcon.Success,
+                            ConfirmButtonText = "Aceptar"
+                        });
+                }
+
+                await ModalInstance.CloseAsync(ModalResult.Ok("Editado OK"));
+            }
+        }
+        catch (Exception ex)
+        {
+            await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Error",
+                    Text = $"No se pudo guardar: {ex.Message}",
+                    Icon = SweetAlertIcon.Error,
+                    ConfirmButtonText = "Aceptar"
+                });
+        }
     }
-    private async Task<IEnumerable<PlantelDTO>> BusquedaPlantelesVendedor(string searchText)
+
+    async Task cancel() => await ModalInstance.CloseAsync(ModalResult.Ok("Cancelado"));
+
+    // === Búsquedas ===
+
+    private Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        var result = planteles.Where(x => x.Nrocri==socioVendedor.Scod  && x.Placod.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-        return await Task.FromResult(result);
+        var q = socios
+            .Where(x => x.Criador == "S" && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        return Task.FromResult<IEnumerable<SocioDTO>>(q);
     }
+
+    private Task<IEnumerable<PlantelDTO>> BusquedaPlantelesComprador(string searchText)
+    {
+        if (socioComprador?.Scod == null) return Task.FromResult<IEnumerable<PlantelDTO>>(Array.Empty<PlantelDTO>());
+        var q = planteles.Where(x => x.Nrocri == socioComprador.Scod && x.Placod.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return Task.FromResult<IEnumerable<PlantelDTO>>(q);
+    }
+
+    private Task<IEnumerable<PlantelDTO>> BusquedaPlantelesVendedor(string searchText)
+    {
+        if (socioVendedor?.Scod == null) return Task.FromResult<IEnumerable<PlantelDTO>>(Array.Empty<PlantelDTO>());
+        var q = planteles.Where(x => x.Nrocri == socioVendedor.Scod && x.Placod.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        return Task.FromResult<IEnumerable<PlantelDTO>>(q);
+    }
+
 }
 
