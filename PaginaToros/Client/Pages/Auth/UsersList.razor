@@ -41,6 +41,7 @@
                     <RadzenDataGridColumn TItem="User" Property="Dni" Filterable="true" Title="DNI" Width="15%" />
                     <RadzenDataGridColumn TItem="User" Property="Phone" Filterable="true" Title="Número" Width="15%" />
                     <RadzenDataGridColumn TItem="User" Property="Rol" Filterable="true" Title="Rol" Width="15%" />
+                    <RadzenDataGridColumn TItem="User" Property="Email" Filterable="true" Title="Email" Width="20%" />
                     <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="8%">
                         <Template Context="data">
                             <button class="btn" title="Eliminar" @onclick="@(()=>nav.NavigateTo($"/EliminarUsuario/{data.Id}"))">

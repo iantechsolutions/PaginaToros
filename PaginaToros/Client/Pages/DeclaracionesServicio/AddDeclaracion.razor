@@ -193,7 +193,7 @@
                         <br />
                         <div class="row">
                             <div style="flex: 0 0 40%; max-width: 40%;">
-                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros</RadzenText>
+                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros (Activos)</RadzenText>
                                 <br />
 
 
@@ -201,7 +201,7 @@
                                 <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod).Where(x=>x.CodEstado=="1")" TItem="TorosuniDTO" SelectionMode="DataGridSelectionMode.Single"
                                                 RowClick="@((args) => AddToSelectedToros(args))" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                                     <Columns>
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="Estado" Width="3.6%">
+                                        @* <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="Estado" Width="3.6%">
                                             <Template Context="data">
                                                 @switch (data.CodEstado)
                                                 {
@@ -225,16 +225,20 @@
                                                         break;
                                                 }
                                             </Template>
-                                        </RadzenDataGridColumn>
+                                        </RadzenDataGridColumn> *@
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo" Width="7.34%" />
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo de toro" Width="5%">
+                                            <Template Context="data">
+                                                @traductorToros[data.TipToro]
+                                            </Template>
+                                        </RadzenDataGridColumn>
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="7.34%" />
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4.6%" />
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hasta" Title="Fecha Nac." Width="4.6%">
                                             <Template Context="data">
                                                 @if (data.Nacido.HasValue)
                                                 {
-                                                    <a>@data.Nacido.Value.ToString("MM/yyyy")</a>
+                                                    <a>@data.Nacido.Value.ToString("dd/MM/yyyy")</a>
                                                 }
                                                 else
                                                 {
@@ -258,7 +262,14 @@
                                         </RadzenDataGridColumn>
                                         <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tipo" Width="4.6%">
                                             <Template Context="data">
-                                                @data.original.Tipo
+                                                @if (!string.IsNullOrWhiteSpace(data.TipToro) && traductorToros.ContainsKey(data.TipToro))
+                                                {
+                                                    @traductorToros[data.TipToro]
+                                                }
+                                                else
+                                                {
+                                                    <span>-</span>
+                                                }
                                             </Template>
                                         </RadzenDataGridColumn>
                                        @*  <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cantv" Width="4.6%">
@@ -271,6 +282,8 @@
                                                 @data.original.Tatpart
                                             </Template>
                                         </RadzenDataGridColumn>
+                                       
+                                        
                                         <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="3%">
                                             <Template Context="data">
 
@@ -293,7 +306,7 @@
                                 <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod).Where(x=>x.CodEstado=="1")" TItem="TorosuniDTO" ColumnWidth="3.33%" SelectionMode="DataGridSelectionMode.Single"
                                                 RowClick="@((args) => AddToSelectedToros(args))" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                                     <Columns>
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="Estado" Width="3.6%">
+@*                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="Estado" Width="3.6%">
                                             <Template Context="data">
                                                 @switch (data.CodEstado)
                                                 {
@@ -317,8 +330,13 @@
                                                         break;
                                                 }
                                             </Template>
-                                        </RadzenDataGridColumn>
+                                        </RadzenDataGridColumn> *@
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo de toro" Width="5%">
+                                            <Template Context="data">
+                                                @traductorToros[data.TipToro]
+                                            </Template>
+                                        </RadzenDataGridColumn>
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="7.34%" />
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4.6%" />
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hasta" Title="Fecha Nac." Width="4.6%">
@@ -345,6 +363,11 @@
                                         <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="3%">
                                             <Template Context="data">
                                                 @data.original.Hardb
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo de toro" Width="5%">
+                                            <Template Context="data">
+                                                @traductorToros[data.TipToro]
                                             </Template>
                                         </RadzenDataGridColumn>
                                         <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="7%">
@@ -556,7 +579,17 @@ else
         {"ANUAL", "Inseminacion c/celo y rep"}
     };
 
-
+    Dictionary<string, string> traductorToros = new Dictionary<string, string>{
+        {"P","Puro Pedigree (SRA)"},
+        {"S","S/"},
+        {"GP","Ganador de prueba"},
+        {"A","Patagonico"},
+        {"1","Activo"},
+        {"2","Inactivo"},
+        {"3","Inexistente"},
+        {"4","Muerto"},
+        {"5","Vendido"}
+    };
     private ClaimsPrincipal? user;
 
 
@@ -651,13 +684,21 @@ else
                         Id = desepla.Id
                     };
 
-                if (DateTime.TryParseExact(desepla.Desde, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var d1)) data.Desde = d1;
-                if (DateTime.TryParseExact(desepla.Hasta, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var d2)) data.Hasta = d2;
+                if (DateTime.TryParseExact(desepla.Desde, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var d1))
+                    data.Desde = d1;
+                if (DateTime.TryParseExact(desepla.Hasta, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var d2))
+                    data.Hasta = d2;
 
                 if (string.Equals(desepla.Tipo, "insem", StringComparison.OrdinalIgnoreCase))
+                {
                     certificadosSeleccionados.Add(data);
+                }
                 else
+                {
+                    // <- importante: recuperar el TipToro para mostrarlo
+                    data.TipToro = GetTipToroByHba(desepla.Hardb);
                     torosSeleccionados.Add(data);
+                }
             }
 
             try { if (gridToro1 != null) await gridToro1.Reload(); } catch { }
@@ -679,6 +720,12 @@ else
 
 
         }
+    }
+
+    private string? GetTipToroByHba(string? hba)
+    {
+        if (string.IsNullOrWhiteSpace(hba)) return null;
+        return toros.FirstOrDefault(t => t.Hba == hba)?.TipToro;
     }
     private async Task<bool> UserHasRole(string role)
     {
@@ -1053,9 +1100,7 @@ else
         var toro = args.Data;
 
         bool yaExiste = torosSeleccionados.Any(t => t.original.Hardb == toro.Hba);
-
-        if (yaExiste)
-            return;
+        if (yaExiste) return;
 
         torosSeleccionados.Add(
             new Desepla3Data
@@ -1066,22 +1111,16 @@ else
                         Nrodec = nrodec,
                         Tatpart = toro.Tatpart,
                         Tipo = "toro"
-                    }
+                    },
+                    TipToro = toro.TipToro
                 }
         );
 
-        try
-        {
-            await InvokeAsync(gridToro1.Reload);
-        }
-        catch { }
-
-        try
-        {
-            await InvokeAsync(gridToro2.Reload);
-        }
-        catch { }
+        try { await InvokeAsync(gridToro1.Reload); } catch { }
+        try { await InvokeAsync(gridToro2.Reload); } catch { }
     }
+
+
     private async Task RemoveToro(Desepla3Data data)
     {
         torosSeleccionados = torosSeleccionados
@@ -1229,6 +1268,7 @@ else
         public Desepla3DTO original { get; set; }
         public DateTime Desde { get; set; } = DateTime.Now;
         public DateTime Hasta { get; set; } = DateTime.Now;
+        public string? TipToro { get; set; } = "";
         public int Id { get; set; }
     }
 

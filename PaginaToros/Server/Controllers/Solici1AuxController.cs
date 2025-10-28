@@ -39,7 +39,7 @@ namespace PaginaToros.Server.Controllers
             {
                 List<Solici1AuxDTO> listaPedido = new List<Solici1AuxDTO>();
                 var a = await _solicitudRepositorio.Lista(skip, take);
-                
+
 
                 listaPedido = _mapper.Map<List<Solici1AuxDTO>>(a);
 
@@ -277,9 +277,9 @@ namespace PaginaToros.Server.Controllers
             {
                 using (hereford_prContext db = new hereford_prContext())
                 {
-                    
+
                     Solici1Aux _SolicitudParaEditar = new Solici1Aux();
-                    
+
                     db.SaveChanges();
                     oRespuesta.Exito = 1;
                 }
@@ -351,52 +351,60 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                var tempFilePath = Path.Combine(Path.GetTempPath(), $"Excel_Solicitud_{DateTime.Now.ToString("dd_MM_yyyy")}.xls");
+                if (socioId <= 0)
+                    return BadRequest("Falta socioId.");
 
-                using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(fileStream);
-                }
+                if (file == null || file.Length == 0)
+                    return BadRequest("No se recibió el archivo o está vacío.");
 
+                // Intentá buscar por Id; si tu repositorio filtra por otro campo (p. ej. Scod),
+                // cambiá a: string filtro = $"Scod = {socioId}";
                 string filtro = $"Id = {socioId}";
                 var rta = await _socioRepositorio.LimitadosFiltrados(0, 1, filtro);
-                Socio socio = rta.FirstOrDefault();
+                var socio = rta.FirstOrDefault();
+                if (socio == null)
+                    return BadRequest($"No se encontró el socio para el filtro: {filtro}");
 
-                using (MailMessage mail = new MailMessage())
+                // Guardar a un temp con la extensión real del archivo
+                var safeExt = Path.GetExtension(file.FileName);
+                if (string.IsNullOrWhiteSpace(safeExt)) safeExt = ".xls";
+                var tempFilePath = Path.Combine(Path.GetTempPath(), $"Excel_Solicitud_{DateTime.Now:yyyyMMdd_HHmmss}{safeExt}");
+
+                using (var fs = new FileStream(tempFilePath, FileMode.Create))
                 {
-                    mail.From = new MailAddress("planteles@hereford.org.ar");
+                    await file.CopyToAsync(fs);
+                }
+
+                using (var mail = new MailMessage())
+                {
+                    var from = "planteles@hereford.org.ar";
+                    mail.From = new MailAddress(from);
                     mail.To.Add("puroregistradohereford@gmail.com");
                     mail.To.Add("planteles@hereford.org.ar");
 
                     mail.Subject = $"Solicitud de Inspección de: {socio.Nombre}";
                     mail.Body = $"Nueva solicitud de inspección\nSocio: {socio.Nombre}";
+                    mail.IsBodyHtml = false;
 
                     mail.Attachments.Add(new Attachment(tempFilePath, MediaTypeNames.Application.Octet));
 
-                    using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
+                    using (var smtp = new SmtpClient("mail.hereford.org.ar", 587))
                     {
                         smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"); 
-                        smtp.EnableSsl = true; 
-                        smtp.Send(mail);
+                        smtp.Credentials = new System.Net.NetworkCredential(from, "Hereford.2033");
+                        smtp.EnableSsl = true;
+                        await smtp.SendMailAsync(mail);
                     }
                 }
 
-                if (System.IO.File.Exists(tempFilePath))
-                {
-                    System.IO.File.Delete(tempFilePath);
-                }
-                Console.WriteLine("Subido");
+                System.IO.File.Delete(tempFilePath);
                 return Ok("Correo enviado correctamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
                 return BadRequest($"Error al enviar el correo: {ex.Message}");
             }
         }
-
-
     }
 }
 

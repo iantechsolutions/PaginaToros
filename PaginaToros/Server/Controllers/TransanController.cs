@@ -197,76 +197,71 @@ namespace PaginaToros.Server.Controllers
             {
                 try
                 {
-                    // Verificar si las direcciones de correo son válidas y agregarlas
-                    if (IsValidEmail("planteles@hereford.org.ar"))
-                    {
-                        mail.To.Add("planteles@hereford.org.ar");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Correo de 'planteles' no válido");
-                        return BadRequest("Correo de 'planteles' no válido");
-                    }
-
-                    if (IsValidEmail(request.MailCompra)) // Verifica si el correo del comprador es válido
-                    {
-                        mail.To.Add(request.MailCompra);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Correo del comprador '{request.MailCompra}' no válido");
-                    }
-
-                    if (IsValidEmail(request.MailVendedor)) // Verifica si el correo del vendedor es válido
-                    {
-                        mail.To.Add(request.MailVendedor);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Correo del vendedor '{request.MailVendedor}' no válido");
-                        return BadRequest($"Correo del vendedor '{request.MailVendedor}' no válido");
-                    }
-
-                    // Configurar el mensaje
-                    mail.From = new MailAddress("planteles@hereford.org.ar");
-                    mail.Subject = "El socio " + request.Nombre + " ha modificado una transferencia";
-                    mail.Body = request.Mail;
-
-                    // Configurar SMTP (Aquí debes cambiar por el servidor y las credenciales adecuadas)
-                    string smtpHost = "mail.hereford.org.ar"; // Reemplazar por el servidor SMTP de tu proveedor
-                    int smtpPort = 587;  // O el puerto que corresponda
-
-                    // Obtención de credenciales de manera segura (por ejemplo, variables de entorno)
+                    string correoPuroRegistrado = "planteles@hereford.org.ar";
+                    string smtpHost = "mail.hereford.org.ar";
+                    int smtpPort = 587;
                     string smtpUsername = "planteles@hereford.org.ar";
-                    string smtpPassword = "Hereford.2033"; // Agregar tu variable de entorno para la contraseña
+                    string smtpPassword = "Hereford.2033"; // ideal: usar variable de entorno
 
-                    if (string.IsNullOrEmpty(smtpPassword))
+                    // Siempre agregar planteles
+                    TryAddRecipient(mail, correoPuroRegistrado);
+
+                    // Vendedor: si vino MailVendedor y es válido, usarlo. Si no, resolver por SocioId (Tipo)
+                    if (!string.IsNullOrWhiteSpace(request.MailVendedor) && IsValidEmail(request.MailVendedor))
                     {
-                        Console.WriteLine("La contraseña del servidor SMTP no está configurada.");
-                        return BadRequest("Error al enviar el correo. Falta la configuración de la contraseña.");
+                        TryAddRecipient(mail, request.MailVendedor);
+                    }
+                    else if (request.Tipo > 0)
+                    {
+                        var socioVendedor = db.User.FirstOrDefault(x => x.SocioId == request.Tipo);
+                        if (socioVendedor != null && IsValidEmail(socioVendedor.Email))
+                            TryAddRecipient(mail, socioVendedor.Email);
+                        else
+                            Console.WriteLine("No se pudo resolver mail del vendedor.");
                     }
 
-                    // Configuración del cliente SMTP
+                    // Comprador: idem con MailCompra o SocioId (Clase)
+                    if (!string.IsNullOrWhiteSpace(request.MailCompra) && IsValidEmail(request.MailCompra))
+                    {
+                        TryAddRecipient(mail, request.MailCompra);
+                    }
+                    else if (request.Clase > 0)
+                    {
+                        var socioComprador = db.User.FirstOrDefault(x => x.SocioId == request.Clase);
+                        if (socioComprador != null && IsValidEmail(socioComprador.Email))
+                            TryAddRecipient(mail, socioComprador.Email);
+                        else
+                            Console.WriteLine("No se pudo resolver mail del comprador.");
+                    }
+
+                    // Mensaje
+                    mail.From = new MailAddress(correoPuroRegistrado);
+                    mail.Subject = "El socio " + (request.Nombre ?? "N/D") + " ha modificado una transferencia";
+                    mail.Body = request.Mail ?? "(sin cuerpo)";
+
                     using (SmtpClient smtp = new SmtpClient(smtpHost, smtpPort))
                     {
                         smtp.UseDefaultCredentials = false;
                         smtp.Credentials = new System.Net.NetworkCredential(smtpUsername, smtpPassword);
                         smtp.EnableSsl = true;
-
-                        // Enviar el correo de forma asincrónica
                         await smtp.SendMailAsync(mail);
                     }
 
-                    Console.WriteLine("Transferencia modificada");
+                    Console.WriteLine("Transferencia modificada - mail enviado");
+                    return Ok("Correo enviado correctamente.");
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error al enviar el correo: {ex.Message}");
                     return BadRequest("Error al enviar el correo.");
                 }
-
-                return Ok("Correo enviado correctamente.");
             }
+        }
+
+        private void TryAddRecipient(MailMessage mail, string email)
+        {
+            if (IsValidEmail(email))
+                mail.To.Add(email);
         }
 
 

@@ -11,48 +11,52 @@
         font-weight: bold;
     }
 </style>
-@if(establecimientos.Count>0){
-<div class="card">
-    <div class="card-body">
-        <EditForm Model="@oTranssb" OnValidSubmit="Guardar">
-            <DataAnnotationsValidator />
-           
-            <div class="row" style="width=100%;">
-                <div class="col-sm">
-                    <label>Socio Vendedor</label><br />
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" Disabled="IdSocio!=null" EnableDropDown="true" @bind-Value="socioVendedor">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
+
+@if (establecimientos.Count > 0)
+{
+    <div class="card">
+        <div class="card-body">
+            <EditForm Model="@oTranssb" OnValidSubmit="Guardar">
+                <DataAnnotationsValidator />
+
+                <div class="row" style="width=100%;">
+                    <div class="col-sm">
+                        <label>Socio Vendedor</label><br />
+                        <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" Disabled="IdSocio!=null" EnableDropDown="true" @bind-Value="socioVendedor">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                    </div>
+                    <div class="col-sm">
+                        <label>Socio Comprador</label>
+                        <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioComprador" ValueChanged="updateComprador" ValueExpression="@(() => socioComprador)">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Establecimiento</label>
+                        <BlazoredTypeahead SearchMethod="BusquedaEstablecimientos" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="establecimientoSeleccionado">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                    </div>
                 </div>
-                <div class="col-sm">
-                    <label>Socio Comprador</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioComprador" ValueChanged="updateComprador" ValueExpression="@(() => socioComprador)">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
-                </div>
-                <div class="col-sm">
-                    <label class="col-sm">Establecimiento</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaEstablecimientos" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="establecimientoSeleccionado">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
-                </div>
-            </div>
-            <br />
+
+                <br />
+
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
                         <label class="col-sm">Nro Certificado</label>
@@ -67,8 +71,6 @@
                     <div class="col-sm">
                         <label class="col-sm">Toro Seleccionado</label>
                         <br />
-
-
                         <BlazoredTypeahead SearchMethod="BusquedaToros" placeholder="Busque por nombre" EnableDropDown="true" TItem="TorosuniDTO" TValue="TorosuniDTO" Value="toroSeleccionado" ValueChanged="updateToro" ValueExpression="@(() => toroSeleccionado)">
                             <SelectedTemplate Context="eleccion">
                                 @eleccion.NomDad
@@ -80,7 +82,9 @@
                         <p>*La busqueda del toro se realiza por Nro de Identificacion</p>
                     </div>
                 </div>
+
                 <br />
+
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
                         <label class="col-sm">Mail</label>
@@ -89,13 +93,14 @@
                         <p>*Una vez seleccionado el socio se llenara este campo</p>
                     </div>
                 </div>
-                <br />
-                <br />
-            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
-            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
-        </EditForm>
+
+                <br /><br />
+
+                <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+                <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+            </EditForm>
+        </div>
     </div>
-</div>
 }
 else
 {
@@ -107,6 +112,7 @@ else
         </div>
     </center>
 }
+
 @code {
     TranssbDTO oTranssb = new();
     SocioDTO? socioComprador = null;
@@ -115,147 +121,293 @@ else
     List<EstableDTO> establecimientos = new();
     List<TorosuniDTO> toros = new();
     EstableDTO establecimientoSeleccionado = new();
-    TorosuniDTO toroSeleccionado = null;
-    IList<User> Usuarios;
+    TorosuniDTO? toroSeleccionado = null;
+    IList<User> Usuarios = new List<User>();
 
     string direccionCompra = "";
-    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; } = default!;
     [Parameter] public int Id { get; set; }
-    [Parameter] public int?  IdSocio { get; set; }
+    [Parameter] public int? IdSocio { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var rta = await _sociosServicio.LimitadosFiltrados(0, 0);
-        socios = rta.List;
-        Console.WriteLine(1);
-        var rt = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
-        establecimientos = rt.List;
-        Console.WriteLine(2);
-        var result = await http.GetAsync($"api/Account/GetUsers/TODO/TODO/1");
-        var response = JsonSerializer.Deserialize<ResponseForList>(result.Content.ReadAsStringAsync().Result);
-        Usuarios = JsonSerializer.Deserialize<IList<User>>(response.EntitiesPricipal);
-        Console.WriteLine(3);
-        var rtt = await _torosServicio.LimitadosFiltradosNoInclude(0, 0);
-        toros = rtt.List;
-        toros = toros.Where(x=>x.TipToro=="S" && x.CodEstado=="1").ToList();
-        Console.WriteLine(4);
-        if (IdSocio != null || IdSocio != 0)
+        try
         {
-            socioVendedor = socios.Where(x => x.Id == IdSocio).FirstOrDefault();
-        }
-        if (Id != 0)
-        {
-            try
+            var rta = await _sociosServicio.LimitadosFiltrados(0, 0);
+            socios = rta.List;
+
+            var rt = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
+            establecimientos = rt.List;
+
+            var result = await http.GetAsync($"api/Account/GetUsers/TODO/TODO/1");
+            var response = JsonSerializer.Deserialize<ResponseForList>(await result.Content.ReadAsStringAsync());
+            if (response != null && !string.IsNullOrWhiteSpace(response.EntitiesPricipal))
+            {
+                Usuarios = JsonSerializer.Deserialize<IList<User>>(response.EntitiesPricipal) ?? new List<User>();
+            }
+
+            var rtt = await _torosServicio.LimitadosFiltradosNoInclude(0, 0);
+            toros = rtt.List.Where(x => x.TipToro == "S" && x.CodEstado == "1").ToList();
+
+            if (IdSocio.HasValue && IdSocio.Value != 0)
+            {
+                socioVendedor = socios.FirstOrDefault(x => x.Id == IdSocio.Value);
+            }
+
+            if (Id != 0)
             {
                 string filtro = $"Id = {Id}";
                 var r = await _transsbServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-                oTranssb = r.List.FirstOrDefault() ;
-                try{
-                    socioComprador = socios.Where(x => x.Scod == oTranssb.Scom).First();
-                    socioVendedor = socios.Where(x => x.Scod == oTranssb.Sven).First();
-                    establecimientoSeleccionado = establecimientos.Where(x => x.Ecod == oTranssb.Ecod).First();
-                    toroSeleccionado = toros.Where(x => x.Id == oTranssb.Torovendido).FirstOrDefault() ?? new TorosuniDTO();
-                }
-                catch
-                {
+                oTranssb = r.List.FirstOrDefault() ?? new TranssbDTO();
 
+                try
+                {
+                    if (!string.IsNullOrEmpty(oTranssb.Scom))
+                        socioComprador = socios.FirstOrDefault(x => x.Scod == oTranssb.Scom);
+                    if (!string.IsNullOrEmpty(oTranssb.Sven))
+                        socioVendedor = socios.FirstOrDefault(x => x.Scod == oTranssb.Sven);
+                    if (!string.IsNullOrEmpty(oTranssb.Ecod))
+                        establecimientoSeleccionado = establecimientos.FirstOrDefault(x => x.Ecod == oTranssb.Ecod) ?? new EstableDTO();
+                    if (oTranssb.Torovendido.HasValue)
+                        toroSeleccionado = toros.FirstOrDefault(x => x.Id == oTranssb.Torovendido.Value);
                 }
-            }
-            catch (Exception ex)
-            {
+                catch { /* nada */ }
             }
         }
+        catch (Exception ex)
+        {
+            await Swal.FireAsync("Error", $"No se pudo cargar datos iniciales: {ex.Message}", SweetAlertIcon.Error);
+        }
     }
+
     async Task Guardar()
     {
+        // 1) VALIDACIONES FRONT
+        if (socioVendedor is null)
+        {
+            await Swal.FireAsync("Datos incompletos", "Debés seleccionar el socio Vendedor.", SweetAlertIcon.Warning);
+            return;
+        }
+        if (socioComprador is null)
+        {
+            await Swal.FireAsync("Datos incompletos", "Debés seleccionar el socio Comprador.", SweetAlertIcon.Warning);
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(oTranssb.NroTrans))
+        {
+            await Swal.FireAsync("Datos incompletos", "El campo Nro Certificado es obligatorio.", SweetAlertIcon.Warning);
+            return;
+        }
+        if (toroSeleccionado is null)
+        {
+            await Swal.FireAsync("Datos incompletos", "Debés seleccionar el Toro.", SweetAlertIcon.Warning);
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(establecimientoSeleccionado?.Ecod))
+        {
+            await Swal.FireAsync("Datos incompletos", "Debés seleccionar el Establecimiento.", SweetAlertIcon.Warning);
+            return;
+        }
+
+        // 2) ARMADO DTO TRANSFERENCIA
         oTranssb.Vnom = socioVendedor.Nombre;
         oTranssb.Cnom = socioComprador.Nombre;
         oTranssb.Sven = socioVendedor.Scod;
         oTranssb.Scom = socioComprador.Scod;
         oTranssb.Ecod = establecimientoSeleccionado.Ecod;
         oTranssb.Torovendido = toroSeleccionado.Id;
-        toroSeleccionado.Criador = socioComprador.Scod;
+        oTranssb.Fectrans ??= DateTime.Now; // fecha de la transferencia
+        oTranssb.FchUsu ??= DateTime.Now;   // fecha registro
+        oTranssb.CodUsu ??= 1;              // id de usuario actual si lo tenés
 
-        if (toroSeleccionado == null)
+        try
         {
-            Console.WriteLine("!!!");
-            return;
-        }
+            // 3) CREAR/EDITAR TRANSFERENCIA
+            bool okTransferencia;
+            string errorTransferencia = string.Empty;
 
-        Console.WriteLine("Entro");
-        Console.WriteLine(oTranssb.Vnom);
-        Console.WriteLine(oTranssb.Torovendido);
-        Console.WriteLine(oTranssb.Vnom);
-        Console.WriteLine(socioVendedor.Id);
-        Console.WriteLine(socioComprador.Id);
-        Console.WriteLine(socioVendedor.Nombre);
-
-        await _torosServicio.Editar(toroSeleccionado);
-        if (Id == 0)
-        {
-            await _transsbServicio.Crear(oTranssb);
-
-
-            var mail = $"Aviso de  transferencia S/ \nNro de transaccion: {oTranssb.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Informacion del toro seleccionado: \n-Tatuaje: {toroSeleccionado.Tatpart} \n-HBA: {toroSeleccionado.Hba} \n-Nombre: {toroSeleccionado.NomDad}";
-            var request = new
+            if (Id == 0)
             {
-                Tipo = socioVendedor.Id,
-                Clase = socioComprador.Id,
-                Mail = mail,
-                Nombre = socioVendedor.Nombre
-            };
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-        }
-        else
-        {
-
-            var mail = $"Aviso de edición transferencia S/ \nNro de transaccion: {oTranssb.NroTrans} \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \n Informacion del toro seleccionado: \n-Tatuaje: {toroSeleccionado.Tatpart} \n-HBA: {toroSeleccionado.Hba} \n-Nombre: {toroSeleccionado.NomDad}";
-            var request = new
+                var respCrear = await _transsbServicio.Crear(oTranssb); // Respuesta<TranssbDTO>
+                okTransferencia = EsOk<TranssbDTO>(respCrear) && respCrear.List is not null;
+                if (!okTransferencia) errorTransferencia = MensajeError<TranssbDTO>(respCrear);
+            }
+            else
             {
-                Tipo = socioVendedor.Id,
-                Clase = socioComprador.Id,
-                Mail = mail,
-                Nombre = socioVendedor.Nombre
-            };
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
-            await _transsbServicio.Editar(oTranssb);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+                okTransferencia = await _transsbServicio.Editar(oTranssb); // bool
+                if (!okTransferencia) errorTransferencia = "No se pudo editar la transferencia.";
+            }
+
+            if (!okTransferencia)
+            {
+                await Swal.FireAsync("Error",
+                    string.IsNullOrWhiteSpace(errorTransferencia)
+                        ? "No se pudo guardar la transferencia. El toro no fue modificado."
+                        : errorTransferencia + " | El toro no fue modificado.",
+                    SweetAlertIcon.Error);
+                return;
+            }
+
+            // 4) ENVIAR MAIL (si falla, NO editar toro)
+            var mailOk = await EnviarMailAsync(esAlta: Id == 0);
+            if (!mailOk)
+            {
+                await Swal.FireAsync(
+                    "Aviso",
+                    "La transferencia se guardó, pero hubo un error al enviar el correo. No se actualizó el dueño del toro.",
+                    SweetAlertIcon.Warning
+                );
+                return;
+            }
+
+            // 5) ACTUALIZAR TORO (recién si el mail salió OK)
+            toroSeleccionado.Criador = socioComprador.Scod;
+            var okToro = await _torosServicio.Editar(toroSeleccionado);
+            if (!okToro)
+            {
+                await Swal.FireAsync(
+                    "Atención",
+                    "La transferencia y el correo se procesaron, pero no se pudo actualizar el toro.",
+                    SweetAlertIcon.Warning
+                );
+                await ModalInstance.CloseAsync(ModalResult.Ok("Parcial: sin actualización de toro"));
+                return;
+            }
+
+            // 6) TODO OK
+            await Swal.FireAsync(
+                "Éxito",
+                Id == 0 ? "Transferencia creada, correo enviado y toro actualizado." : "Transferencia editada, correo enviado y toro actualizado.",
+                SweetAlertIcon.Success
+            );
+            await ModalInstance.CloseAsync(ModalResult.Ok("OK"));
+        }
+        catch (Exception ex)
+        {
+            await Swal.FireAsync("Error inesperado", ex.Message, SweetAlertIcon.Error);
         }
     }
+
+    /// <summary>
+    /// Envía mail de alta (SendMail) o edición (SendMailChange).
+    /// Devuelve false si hay cualquier problema (no corta la app).
+    /// </summary>
+    private async Task<bool> EnviarMailAsync(bool esAlta)
+    {
+        var mailBody = string.Join(Environment.NewLine, new[]
+        {
+            $"Aviso de {(esAlta ? "transferencia" : "edición de transferencia")} S/",
+            $"Nro de transacción: {oTranssb.NroTrans}",
+            $"Socio Vendedor: {socioVendedor?.Nombre}",
+            $"Socio Comprador: {socioComprador?.Nombre}",
+            "Información del toro:",
+            $"- Tatuaje: {toroSeleccionado?.Tatpart}",
+            $"- HBA: {toroSeleccionado?.Hba}",
+            $"- Nombre: {toroSeleccionado?.NomDad}"
+        });
+
+        try
+        {
+            if (esAlta)
+            {
+                var reqAlta = new
+                {
+                    Vendedor = socioVendedor?.Id ?? 0,
+                    Comprador = socioComprador?.Id ?? 0,
+                    Mail = mailBody,
+                    Direccion = string.IsNullOrWhiteSpace(direccionCompra) ? null : direccionCompra
+                };
+
+                var res = await http.PostAsJsonAsync("api/Transan/SendMail", reqAlta);
+                if (!res.IsSuccessStatusCode)
+                {
+                    var txt = await res.Content.ReadAsStringAsync();
+                    Console.WriteLine($"SendMail error: {txt}");
+                    return false;
+                }
+            }
+            else
+            {
+                var vendedorUsr = Usuarios?.FirstOrDefault(x => x.SocioId == (socioVendedor?.Id ?? 0));
+                var compradorUsr = Usuarios?.FirstOrDefault(x => x.SocioId == (socioComprador?.Id ?? 0));
+
+                var reqEdit = new
+                {
+                    Tipo = socioVendedor?.Id ?? 0,
+                    Clase = socioComprador?.Id ?? 0,
+                    Mail = mailBody,
+                    Nombre = socioVendedor?.Nombre,
+                    MailCompra = compradorUsr?.Email ?? (string.IsNullOrWhiteSpace(direccionCompra) ? null : direccionCompra),
+                    MailVendedor = vendedorUsr?.Email
+                };
+
+                var res = await http.PostAsJsonAsync("api/Transan/SendMailChange", reqEdit);
+                if (!res.IsSuccessStatusCode)
+                {
+                    var txt = await res.Content.ReadAsStringAsync();
+                    Console.WriteLine($"SendMailChange error: {txt}");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error enviando mail: {ex.Message}");
+            return false;
+        }
+    }
+
     async Task cancel()
     {
-        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
-
+        await ModalInstance.CloseAsync(ModalResult.Ok("Cancelado"));
     }
 
-    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
+    // ===== BUSQUEDAS c/ null-safety =====
+    private Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.Criador=="S" &&  x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-        return await Task.FromResult(result);
+        var result = socios
+            .Where(x => x.Criador == "S" && x.Nombre.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        return Task.FromResult<IEnumerable<SocioDTO>>(result);
     }
 
+    private Task<IEnumerable<EstableDTO>> BusquedaEstablecimientos(string searchText)
+    {
+        if (socioComprador is null) return Task.FromResult<IEnumerable<EstableDTO>>(Array.Empty<EstableDTO>());
+        var result = establecimientos
+            .Where(x => x.Codsoc == socioComprador.Scod && x.Nombre.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        return Task.FromResult<IEnumerable<EstableDTO>>(result);
+    }
 
-    private async Task<IEnumerable<EstableDTO>> BusquedaEstablecimientos(string searchText)
+    private Task<IEnumerable<TorosuniDTO>> BusquedaToros(string searchText)
     {
-        var result = establecimientos.Where(x => x.Codsoc==socioComprador.Scod && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-        return await Task.FromResult(result);
+        if (socioVendedor is null) return Task.FromResult<IEnumerable<TorosuniDTO>>(Array.Empty<TorosuniDTO>());
+        var result = toros
+            .Where(x => x.Criador == socioVendedor.Scod && x.NomDad.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        return Task.FromResult<IEnumerable<TorosuniDTO>>(result);
     }
-    private async Task<IEnumerable<TorosuniDTO>> BusquedaToros(string searchText)
-    {
-        var result = toros.Where(x => x.Criador==socioVendedor.Scod && x.NomDad.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-        return await Task.FromResult(result);
-    }
-    protected async Task updateComprador(SocioDTO socio)
+
+    protected Task updateComprador(SocioDTO socio)
     {
         socioComprador = socio;
-        var usuarioComprador = Usuarios.Where(x => x.SocioId == socio.Id).ToList().First();
-        direccionCompra = usuarioComprador.Email;
+        var usuarioComprador = Usuarios?.FirstOrDefault(x => x.SocioId == socio.Id);
+        direccionCompra = usuarioComprador?.Email ?? "";
+        return Task.CompletedTask;
     }
 
-    protected async Task updateToro(TorosuniDTO toro)
+    protected Task updateToro(TorosuniDTO toro)
     {
         toroSeleccionado = toro;
-
+        return Task.CompletedTask;
     }
+
+    private static bool EsOk<T>(PaginaToros.Shared.Models.Response.Respuesta<T>? r)
+        => r is not null && r.Exito == 1;
+
+    private static string MensajeError<T>(PaginaToros.Shared.Models.Response.Respuesta<T>? r)
+        => (r?.Mensaje ?? "Ocurrió un error al procesar la transferencia.");
 }

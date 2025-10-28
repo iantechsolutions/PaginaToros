@@ -22,17 +22,18 @@
     <div class="card-body">
         <EditForm Model="@oTransan" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
-            <div class="row" style="width=100%;">
-                @* <div class="col-sm">
-                    <label class="col-sm">Nro Certificado</label>
-                    <InputText @bind-Value="@oTransan.NroCert" class="form-control" placeholder=""></InputText>
-                    <ValidationMessage For="(()=> oTransan.NroCert)" style="color:red;" />
-                </div> *@
-                <div class="col-sm">
-                    <label>Fecha de venta</label><br />
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTransan.Fecvta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                <div class="row" style="width=100%;">
+                    <div class="col-sm">
+                        <label class="col-sm">Nro Certificado</label>
+                        <InputText @bind-Value="@oTransan.NroCert" class="form-control" placeholder="" />
+                    </div>
+                    <div class="col-sm">
+                        <label>Fecha de venta</label><br />
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@oTransan.Fecvta"
+                                          ShowTime="false" ShowSeconds="false"
+                                          DateFormat="dd/MM/yyyy" Class="w-75" />
+                    </div>
                 </div>
-            </div>
             <br />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
@@ -145,6 +146,13 @@
                 </div>
             </div>
             <br />
+                <div class="row mt-2" style="width=100%;">
+                    <div class="col-sm d-flex align-items-center gap-2">
+                        <InputCheckbox @bind-Value="enviarMail" />
+                        <label class="m-0">Enviar mail al socio</label>
+                    </div>
+                </div>
+
             <br />
 
             <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
@@ -181,7 +189,7 @@ else
     string temp4 = "";
     PlantelDTO plantelOrigen = new();
     PlantelDTO plantelDestino = new();
-
+    bool enviarMail = true;
 
 
     private ClaimsPrincipal? user;
@@ -249,8 +257,10 @@ else
 
         var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
         Planteles = rt.List;
-        if(IdSocio != null || IdSocio !=0){
-            socioVendedor = socios.Where(x=>x.Id==IdSocio).FirstOrDefault();
+        if (IdSocio != null && IdSocio != 0)
+        {
+            
+        socioVendedor = socios.FirstOrDefault(x => x.Id == IdSocio);
         }
 
         if (Id != 0)
@@ -277,83 +287,153 @@ else
     }
     async Task Guardar()
     {
-        oTransan.Tiphac = traductor[temp1];
-        oTransan.Tipani = traductor[temp2];
-        oTransan.Hemsta = traductor[temp3];
-        oTransan.Incorp = Convert.ToSByte(traductor[temp4]);
+        // --- Validaciones duras (todo obligatorio) ---
+        var errores = new List<string>();
+
+        if (oTransan.Fecvta == null) errores.Add("La fecha de venta es obligatoria.");
+
+        var hayVendedor = socioVendedor != null && socioVendedor.Id != 0 && !string.IsNullOrWhiteSpace(socioVendedor.Scod);
+        if (!hayVendedor) errores.Add("Debés seleccionar un Socio Vendedor.");
+
+        // >>> Comprador ahora es OPCIONAL
+        var hayComprador = socioComprador != null && socioComprador.Id != 0 && !string.IsNullOrWhiteSpace(socioComprador.Scod);
+
+        var hayPlantelOrigen = plantelOrigen != null && !string.IsNullOrWhiteSpace(plantelOrigen.Placod);
+        if (!hayPlantelOrigen) errores.Add("Debés seleccionar el Plantel Origen.");
+
+        var hayPlantelDestino = plantelDestino != null && !string.IsNullOrWhiteSpace(plantelDestino.Placod);
+        if (!hayPlantelDestino) errores.Add("Debés seleccionar el Plantel Destino.");
+
+        if (string.IsNullOrWhiteSpace(temp1)) errores.Add("Debés seleccionar el Tipo de Hacienda.");
+        if (string.IsNullOrWhiteSpace(temp2)) errores.Add("Debés seleccionar el Sexo de los Animales.");
+        if (string.IsNullOrWhiteSpace(temp3)) errores.Add("Debés seleccionar el Estado de las Hembras.");
+        if (string.IsNullOrWhiteSpace(temp4)) errores.Add("Debés indicar si los animales se incorporan.");
+
+        int cantHem = oTransan.CantHem ?? 0;
+        int cantMach = oTransan.CantMach ?? 0;
+        int cantChem = oTransan.CantChem ?? 0;
+        int cantCmach = oTransan.CantCmach ?? 0;
+
+        if (cantHem < 0 || cantMach < 0 || cantChem < 0 || cantCmach < 0)
+            errores.Add("Las cantidades no pueden ser negativas.");
+
+        if ((cantHem + cantMach + cantChem + cantCmach) == 0)
+            errores.Add("Debés ingresar al menos 1 animal en total.");
+
+        // Si va a enviar mail, necesitamos al menos un destinatario válido
+        if (enviarMail)
+        {
+            var hayMailVendedor = !string.IsNullOrWhiteSpace(socioVendedor?.Mail);
+            var hayMailComprador = hayComprador && (!string.IsNullOrWhiteSpace(direccionCompra) || !string.IsNullOrWhiteSpace(socioComprador?.Mail));
+
+            if (!hayMailVendedor && !hayMailComprador)
+                errores.Add("Para enviar el mail, necesitamos al menos un correo válido (vendedor o comprador).");
+        }
+
+        if (errores.Count > 0)
+        {
+            await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Faltan datos",
+                    Html = $"<ul style='text-align:left;margin-left:12px'>{string.Join("", errores.Select(e => $"<li>{e}</li>"))}</ul>",
+                    Icon = SweetAlertIcon.Warning
+                });
+            return;
+        }
+
+        // --- Mapear selects a códigos internos ---
+        // --- Mapear selects a códigos internos ---
+        oTransan.Tiphac = traductor[temp1];            // PHPR/HPR/PHVIP/HVIP
+        oTransan.Tipani = traductor[temp2];            // H/M
+        oTransan.Hemsta = traductor[temp3];            // CC/CCP/SS/PR
+        oTransan.Incorp = Convert.ToSByte(traductor[temp4]); // 0/1
+
+        // --- Socios
         oTransan.Vnom = socioVendedor.Nombre;
-        oTransan.Cnom = socioComprador.Nombre;
-        oTransan.Sven = socioVendedor.Scod.ToString();
-        oTransan.Scom = socioComprador.Scod.ToString();
+        oTransan.Sven = socioVendedor.Scod?.ToString();
+
+        oTransan.Cnom = hayComprador ? socioComprador.Nombre : null;
+        oTransan.Scom = hayComprador ? socioComprador.Scod?.ToString() : null;
+
+        // --- Planteles
         oTransan.Plant = plantelOrigen.Placod;
         oTransan.NvoPla = plantelDestino.Placod;
 
-
-
-        Console.WriteLine(oTransan);
-
+        // --- Guardar (crear/editar) ---
         if (Id == 0)
         {
-
-
-
-
             await _transanServicio.Crear(oTransan);
-          
-          
-            // await _plantelServicio.Editar(plantelOrigen);
-            // await _plantelServicio.Editar(plantelDestino);
 
-            var mail = $"Aviso de nueva transferencia animal  \nSocio Vendedor: {socioVendedor.Nombre} Plantel: {oTransan.Plant} \nSocio Comprador: {socioComprador.Nombre} plantel: {oTransan.NvoPla} \nCantidad total de animales: {(oTransan.CantHem + oTransan.CantMach + oTransan.CantChem + oTransan.CantCmach)} \nEstado de las hembras: {(oTransan.Hemsta)} \nTipo de hembra: {(oTransan.Tipohem)} \nFecha de venta: {oTransan.Fecvta?.ToString("dd/MM/yyyy")} \nAnimales incorporados: {(string.Join(", ", incorporar))}";
-            var request = new
-            {
-                Tipo = socioVendedor.Id,
-                Clase = socioComprador.Id,
-                Mail = mail,
-                Nombre = socioVendedor.Nombre,
-                MailCompra= socioVendedor.Mail,
-                MailVendedor = direccionCompra
-            };
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
+            if (enviarMail)
+                await EnviarMailNuevaTransferencia();
 
-
-            //Edita los planteles
-
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            await ModalInstance.CloseAsync(ModalResult.Ok("Creado"));
         }
         else
         {
-
-           
-
-
-            var mail = $"Aviso de edición transferencia animal \nSocio Vendedor: {socioVendedor.Nombre} \nSocio Comprador: {socioComprador.Nombre} \nCantidad total de animales: {(oTransan.CantHem + oTransan.CantMach + oTransan.CantChem + oTransan.CantCmach)} \nEstado de las hembras: {(oTransan.Hemsta)} \nTipo de hembra: {(oTransan.Tipohem)}  \nFecha de venta: {oTransan.Fecvta?.ToString("dd/MM/yyyy")} \nAnimales incorporados: {(string.Join(", ", incorporar))}";
-            var request = new
-            {
-                Tipo = socioVendedor.Id,
-                Clase = socioComprador.Id,
-                Mail = mail,
-                Nombre = socioVendedor.Nombre,
-                MailCompra = socioVendedor.Mail,
-                MailVendedor = socioComprador.Mail
-            };
             await _transanServicio.Editar(oTransan);
 
+            if (enviarMail)
+                await EnviarMailEdicionTransferencia();
 
-
-
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
-
-
-
-
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            await ModalInstance.CloseAsync(ModalResult.Ok("Editado"));
         }
     }
 
 
+    private async Task EnviarMailNuevaTransferencia()
+    {
+        int total = (oTransan.CantHem ?? 0) + (oTransan.CantMach ?? 0) + (oTransan.CantChem ?? 0) + (oTransan.CantCmach ?? 0);
+        bool hayComprador = !string.IsNullOrWhiteSpace(oTransan.Scom);
 
+        var mail = $"Aviso de nueva transferencia animal\n" +
+                   $"Socio Vendedor: {socioVendedor.Nombre} - Plantel: {oTransan.Plant}\n" +
+                   $"Socio Comprador: {(hayComprador ? socioComprador.Nombre : "(No informado)")}" +
+                   $"{(hayComprador ? $" - Plantel: {oTransan.NvoPla}" : $" - Plantel: {oTransan.NvoPla}")}\n" +
+                   $"Cantidad total de animales: {total}\n" +
+                   $"Estado de las hembras: {oTransan.Hemsta}\n" +
+                   $"Tipo de hembra: {oTransan.Tipohem}\n" +
+                   $"Fecha de venta: {oTransan.Fecvta?.ToString("dd/MM/yyyy")}\n" +
+                   $"Animales incorporados: {(oTransan.Incorp == 1 ? "SI" : "NO")}";
 
+        var request = new
+        {
+            Vendedor = socioVendedor.Id,
+            Comprador = hayComprador ? socioComprador.Id : 0,  // 0 si no hay
+            Mail = mail,
+            Direccion = hayComprador ? direccionCompra : null  // solo si tenemos mail directo del comprador
+        };
+
+        var response = await http.PostAsJsonAsync("api/Transan/SendMail", request);
+        response.EnsureSuccessStatusCode();
+    }
+    private async Task EnviarMailEdicionTransferencia()
+    {
+        int total = (oTransan.CantHem ?? 0) + (oTransan.CantMach ?? 0) + (oTransan.CantChem ?? 0) + (oTransan.CantCmach ?? 0);
+        bool hayComprador = !string.IsNullOrWhiteSpace(oTransan.Scom);
+
+        var mail = $"Aviso de edición de transferencia animal\n" +
+                   $"Socio Vendedor: {socioVendedor.Nombre}\n" +
+                   $"Socio Comprador: {(hayComprador ? socioComprador.Nombre : "(No informado)")}\n" +
+                   $"Cantidad total de animales: {total}\n" +
+                   $"Estado de las hembras: {oTransan.Hemsta}\n" +
+                   $"Tipo de hembra: {oTransan.Tipohem}\n" +
+                   $"Fecha de venta: {oTransan.Fecvta?.ToString("dd/MM/yyyy")}\n" +
+                   $"Animales incorporados: {(oTransan.Incorp == 1 ? "SI" : "NO")}";
+
+        var request = new
+        {
+            Tipo = socioVendedor.Id,
+            Clase = hayComprador ? socioComprador.Id : 0,
+            Mail = mail,
+            Nombre = socioVendedor.Nombre,
+            MailCompra = hayComprador ? direccionCompra : null,
+            MailVendedor = socioVendedor.Mail
+        };
+
+        var response = await http.PostAsJsonAsync("api/Transan/SendMailChange", request);
+        response.EnsureSuccessStatusCode();
+    }
 
 
 
@@ -412,7 +492,16 @@ else
 
     private async Task<IEnumerable<PlantelDTO>> BusquedaPlantelesComprador(string searchText)
     {
-        return await Task.FromResult(Planteles.Where(x => x.Placod.Contains(searchText) && x.Nrocri == socioComprador.Scod).ToList());
+        if (socioComprador != null && !string.IsNullOrWhiteSpace(socioComprador.Scod))
+        {
+            return await Task.FromResult(
+                Planteles.Where(x => x.Placod.Contains(searchText) && x.Nrocri == socioComprador.Scod).ToList()
+            );
+        }
+
+        return await Task.FromResult(
+            Planteles.Where(x => x.Placod.Contains(searchText)).ToList()
+        );
     }
 
     private async Task<IEnumerable<PlantelDTO>> BusquedaPlantelesVendedor(string searchText)

@@ -75,28 +75,24 @@
         </tr>
         <tr>
             <td><p class="s2">Plantel</p></td>
-            <td><p class="s2">Vacas</p></td>
-            <td><p class="s2">Vaquill. c/servicio</p></td>
-            <td><p class="s2">Vaquill. s/servicio</p></td>
-            <td><p class="s2">Vacas</p></td>
-            <td><p class="s2">Vaquillonas c/servicio</p></td>
-            <td><p class="s2">Vaquillonas s/servicio</p></td>
+            <td colspan="3" style="text-align:center"><p class="s2">PR</p></td>
+            <td colspan="3" style="text-align:center"><p class="s2">VIP</p></td>
             <td><p class="s2">Socio</p></td>
             <td><p class="s2">Estado</p></td>
         </tr>
         <tr>
             <td></td>
-            <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Varede)</p></td>
-            <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqcsrd)</p></td>
-            <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqssrd)</p></td>
-            <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Varepr)</p></td>
-            <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqcsrp)</p></td>
-            <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqssrp)</p></td>
+            <td><p class="s2">Vacas</p></td>
+            <td><p class="s2">Vaquill. c/servicio</p></td>
+            <td><p class="s2">Vaquill. s/servicio</p></td>
+            <td><p class="s2">Vacas</p></td>
+            <td><p class="s2">Vaquill. c/servicio</p></td>
+            <td><p class="s2">Vaquill. s/servicio</p></td>
             <td></td>
             <td></td>
         </tr>
+        <tr> <td></td> <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Varede)</p></td> <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqcsrd)</p></td> <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqssrd)</p></td> <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Varepr)</p></td> <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqcsrp)</p></td> <td><p class="s2">@planteles.Where(x => !string.IsNullOrEmpty(x.Anioex)).Sum(x => x.Vqssrp)</p></td> <td></td> <td></td> </tr>
     </table>
-
     <br />
     <br />
 
@@ -111,12 +107,12 @@
         <table style="border-collapse:collapse;position:relative;left:3%;width:95%" cellspacing="0">
             <tr>
                 <td><p class="s2">Plantel</p></td>
+                <td><p class="s2">Vacas PR</p></td>
+                <td><p class="s2">Vaq. PR C/S</p></td>
+                <td><p class="s2">Vaq. PR S/S</p></td>
                 <td><p class="s2">Vacas</p></td>
-                <td><p class="s2">Vaquill. c/servicio</p></td>
-                <td><p class="s2">Vaquill. s/servicio</p></td>
-                <td><p class="s2">Vacas</p></td>
-                <td><p class="s2">Vaquillonas c/servicio</p></td>
-                <td><p class="s2">Vaquillonas s/servicio</p></td>
+                <td><p class="s2">Vaq. VIP C/S o preñadas</p></td>
+                <td><p class="s2">Vaq. VIP S/S</p></td>
                 <td><p class="s2">Socio</p></td>
                 <td><p class="s2">Estado</p></td>
             </tr>
@@ -248,12 +244,12 @@
         var resumen = package.Workbook.Worksheets.Add("Resumen General");
 
         resumen.Cells[1, 1].Value = "Plantel";
-        resumen.Cells[1, 2].Value = "Vacas";
-        resumen.Cells[1, 3].Value = "Vaquill. c/servicio";
-        resumen.Cells[1, 4].Value = "Vaquill. s/servicio";
-        resumen.Cells[1, 5].Value = "Vacas (pr)";
-        resumen.Cells[1, 6].Value = "Vaquillonas c/servicio (pr)";
-        resumen.Cells[1, 7].Value = "Vaquillonas s/servicio (pr)";
+        resumen.Cells[1, 2].Value = "Vacas PR";
+        resumen.Cells[1, 3].Value = "Vaq. PR c/servicio";
+        resumen.Cells[1, 4].Value = "Vaq. PR s/servicio ";
+        resumen.Cells[1, 5].Value = "Vacas VIP";
+        resumen.Cells[1, 6].Value = "Vaq. VIP c/servicio";
+        resumen.Cells[1, 7].Value = "Vaq. VIP s/servicio";
         resumen.Cells[1, 8].Value = "Socio";
         resumen.Cells[1, 9].Value = "Estado";
         resumen.Cells[1, 10].Value = "Año";
@@ -279,12 +275,12 @@
             var hoja = package.Workbook.Worksheets.Add($"Año {año}");
 
             hoja.Cells[1, 1].Value = "Plantel";
-            hoja.Cells[1, 2].Value = "Vacas";
-            hoja.Cells[1, 3].Value = "Vaquill. c/servicio";
-            hoja.Cells[1, 4].Value = "Vaquill. s/servicio";
-            hoja.Cells[1, 5].Value = "Vacas (pr)";
-            hoja.Cells[1, 6].Value = "Vaquillonas c/servicio (pr)";
-            hoja.Cells[1, 7].Value = "Vaquillonas s/servicio (pr)";
+            hoja.Cells[1, 2].Value = "Vacas PR";
+            hoja.Cells[1, 3].Value = "Vaq.PR c/servicio ";
+            hoja.Cells[1, 4].Value = "Vaq. PR s/servicio";
+            hoja.Cells[1, 5].Value = "Vacas VIP";
+            hoja.Cells[1, 6].Value = "Vaq. VIP c/servicio";
+            hoja.Cells[1, 7].Value = "Vaq. VIP s/servicio";
             hoja.Cells[1, 8].Value = "Socio";
             hoja.Cells[1, 9].Value = "Estado";
 

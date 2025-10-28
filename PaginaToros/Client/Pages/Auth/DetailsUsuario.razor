@@ -1,229 +1,280 @@
-﻿@using System.Text
+﻿@using System.ComponentModel.DataAnnotations
+@using System.Text
 @attribute [Authorize(Roles = "USUARIOMAESTRO, ADMINISTRADOR")]
 @inject HttpClient http
 @inject NavigationManager uriHelper
-<AuthorizeView Roles="USUARIOMAESTRO,ADMINISTRADOR">
-    <div class="row" style="overflow-y: auto; max-height: 63.33%;">
-        @* <UserInfo Usuario="Usuario" /> *@
-        <div class="col-md-6">
-            <dl>
-                <dt>Nombres:</dt>
-                <dd>@Usuario.Names</dd>
 
-                <dt>Apellidos:</dt>
-                <dd>@Usuario.LastNames</dd>
+<AuthorizeView Roles="USUARIOMAESTRO,ADMINISTRADOR" Context="auth">
+    <EditForm Model="@Usuario" OnValidSubmit="@Guardar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-                <dt>Dni:</dt>
-                <dd>@Usuario.Dni</dd>
+        <div class="row" style="overflow-y:auto; max-height:63.33%;">
+            <div class="col-md-6">
+                <div class="mb-2">
+                    <label class="form-label">Nombres</label>
+                    <InputText class="form-control" @bind-Value="Usuario.Names" />
+                </div>
 
-                <dt>Email:</dt>
-                
-                <dd>
-                    <div>
-                        <input type="text" class="form-control" placeholder="example@mail.com" @bind="email">
+                <div class="mb-2">
+                    <label class="form-label">Apellidos</label>
+                    <InputText class="form-control" @bind-Value="Usuario.LastNames" />
+                </div>
 
-                    </div>
-                </dd>
-            </dl>
+                <div class="mb-2">
+                    <label class="form-label">DNI</label>
+                    <InputText class="form-control" @bind-Value="Usuario.Dni" />
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Email</label>
+                    <InputText class="form-control" @bind-Value="Usuario.Email" />
+                    <ValidationMessage For="@(()=>Usuario.Email)" />
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="mb-2">
+                    <label class="form-label">Rol</label>
+                    <InputText class="form-control" @bind-Value="Usuario.Rol" />
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Teléfono</label>
+                    <InputText class="form-control" @bind-Value="Usuario.Phone" />
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Estatus</label>
+                    <InputText class="form-control" @bind-Value="Usuario.Status" />
+                </div>
+            </div>
         </div>
 
-        <div class="col-md-6">
-            <dl>
-                <dt>Rol:</dt>
-                <dd>@Usuario.Rol</dd>
-
-                <dt>Télefono:</dt>
-                <dd>@Usuario.Phone</dd>
-
-                <dt>Estatus:</dt>
-                <dd>@Usuario.Status</dd>
-            </dl>
+        <div class="mt-3 d-flex gap-2">
+            <button type="submit"
+                    class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 transition">
+                Guardar
+            </button>
+            <button type="button"
+                    class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
+                    disabled="@disabled"
+                    @onclick="ChangeEmail">
+                Cambiar mail
+            </button>
+            <button type="button"
+                    class="font-bold px-4 py-3 rounded-2xl bg-gray-100 hover:bg-gray-300 transition"
+                    @onclick="ResetPass">
+                Reiniciar contraseña
+            </button>
         </div>
-    </div>
-    <br />
-    @* <button @onclick="()=>ModalInstance.CancelAsync" class="btn btn-secondary">Cerrar</button> *@
-    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent 
-transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" disabled="@disabled"
-    @onclick="()=>ResetPass()">Reiniciar contraseña</button>
-
-
-    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent
-    transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" 
-    @onclick="()=>ChangeEmail()">Cambiar mail</button>
-
-    @* @if (context.User.Claims.Count()>0 && context.User.Claims.First(x => x.Type == "UserId").Value == Usuario.Id.ToString())
-    {
-        logout = true;
-    } *@
+    </EditForm>
 </AuthorizeView>
 
 @code {
-    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
-    private const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-    Random random = new Random();
+    [CascadingParameter] public IModalService Modal { get; set; } = default!;
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; } = default!;
+    [Parameter] public User Usuario { get; set; } = new();
+
+    bool guardando = false;
     bool disabled = false;
-    [Parameter] public User Usuario { get; set; }
-    [CascadingParameter] public IModalService Modal { get; set; }
     bool logout = false;
-    string email = "";
+    readonly Random random = new();
+    string originalEmail = "";
 
-    protected override async Task OnInitializedAsync()
+
+    protected override void OnInitialized()
     {
-        if(Usuario == null)
+        originalEmail = Usuario.Email;
+    }
+
+    private async Task Guardar()
+    {
+        if (guardando) return;
+        guardando = true;
+
+        var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
+
+        // actualiza tu tabla "User" y el AspNetUser (EditUser debe hacerlo)
+        var result = await http.PostAsJsonAsync("api/Account/EditUser", Usuario);
+
+        modal.Close();
+
+        if (result.IsSuccessStatusCode)
         {
-            Usuario = new User();
-        }
-        email = Usuario.Email;
-        Console.WriteLine(Usuario.Email);
-    }
+            Modal.Show<ModalInfo>("Operación Exitosa",
+                SharedModalOptions.SetParameterModalInfo("Datos actualizados", "alert alert-success"),
+                SharedModalOptions.modalOptionsInfo);
 
-    public class ResetPasswordModel
-    {
-        public int UserId { get; set; }
-        public string Password { get; set; }
-        public string Email { get; set; }
-    }
-    public class ResetEmailModel
-    {
-        public int UserId { get; set; }
-        public string email { get; set; }
-    }
-    public string GenerateRandomPassword(int length)
-    {
-        StringBuilder sb = new StringBuilder();
-
-
-        for (int i = 0; i < length; i++)
-        {
-            int randomIndex = random.Next(validChars.Length);
-            sb.Append(validChars[randomIndex]);
-        }
-
-        return sb.ToString();
-    }
-
-
-    private async Task ChangeEmail()
-    {
-        Console.WriteLine(Usuario.Email);
-        Console.WriteLine(email);
-
-        if(email == Usuario.Email)
-        {
-            await Swal.FireAsync(new SweetAlertOptions
-                {
-                    Title = "Error",
-                    Text = "Modifique el mail para poder realizar el cambio",
-                    ShowCancelButton = true,
-                    ConfirmButtonText = "Aceptar",
-
-                });
+            await ModalInstance.CloseAsync(); // cerrá el popup
         }
         else
         {
-            Console.WriteLine("Entro");
-            disabled = true;
-
-
-            disabled = true;
-            var pswd = GenerateRandomPassword(random.Next(7, 11));
-
-
-            Usuario.Email = email;
-            Console.WriteLine($"Enviando usuario: {JsonSerializer.Serialize(Usuario)}");
-            var result = await http.PostAsJsonAsync($"api/Account/EditUser?password={pswd}", Usuario);
-
-
-            var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
-            Console.WriteLine(2);
-            var payload = new ResetPasswordModel { UserId = Usuario.Id, Password = pswd, Email= Usuario.Email };
-            Console.WriteLine(3);
-            var result3 = await http.PutAsJsonAsync<ResetPasswordModel>("api/Account/ResetPassword", payload);
-            Console.WriteLine(4);
-            var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendResetMail?nuevaContraseña={pswd}", Usuario);
-            Console.WriteLine(5);
-            switch (result3.StatusCode)
-            {
-                case System.Net.HttpStatusCode.OK:
-                    if (logout)
-                    {
-                        uriHelper.NavigateTo("/Logout");
-                    }
-                    else
-                    {
-                        modal.Close();
-                        Modal.Show<ModalInfo>("Operación Exitosa", SharedModalOptions.SetParameterModalInfo(Utilities.MSGSUCCESS, "alert alert-success"), SharedModalOptions.modalOptionsInfo);
-                    }
-                    break;
-                case System.Net.HttpStatusCode.Unauthorized:
-                    uriHelper.NavigateTo("/Logout");
-                    break;
-                default:
-                    modal.Close();
-                    Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(result3.Content.ReadAsStringAsync().Result, "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
-                    break;
-            }
-
-
-
-        await Swal.FireAsync(new SweetAlertOptions
-            {
-                Title = "Exito",
-                Text = "El cambio de mail se realizo con éxito",
-                ShowCancelButton = true,
-                ConfirmButtonText = "Aceptar",
-
-            });
-
+            var msg = await result.Content.ReadAsStringAsync();
+            Modal.Show<ModalInfo>("Error",
+                SharedModalOptions.SetParameterModalInfo(msg, "alert alert-danger"),
+                SharedModalOptions.modalOptionsInfo);
         }
+
+        guardando = false;
     }
 
     private async Task ResetPass()
     {
+        if (disabled) return;
         disabled = true;
-        var pswd = GenerateRandomPassword(random.Next(7, 11));
-        Console.WriteLine(1);
-        var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
-        Console.WriteLine(2);
-        var payload = new ResetPasswordModel { UserId = Usuario.Id, Password = pswd };
-        Console.WriteLine(3);
-        var result = await http.PutAsJsonAsync<ResetPasswordModel>("api/Account/ResetPassword", payload);
-        Console.WriteLine(4);
-        var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendResetMail?nuevaContraseña={pswd}", Usuario);
-        Console.WriteLine(5);
-        switch (result.StatusCode)
+
+        var pswd = GenerateRandomPassword(12); // MAYÚSCULAS + dígitos + símbolos
+
+        // Abro modal de espera
+        var wait = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
+
+        try
         {
-            case System.Net.HttpStatusCode.OK:
-                if (logout)
+            // 1) Resetear contraseña en Identity
+            var payload = new ResetPasswordModel
                 {
-                    uriHelper.NavigateTo("/Logout");
-                }
-                else
+                    UserId = Usuario.Id,
+                    Email = Usuario.Email,
+                    Password = pswd
+                };
+
+            var resetResp = await http.PutAsJsonAsync("api/Account/ResetPassword", payload);
+            if (!resetResp.IsSuccessStatusCode)
+            {
+                wait.Close();
+                var msg = await resetResp.Content.ReadAsStringAsync();
+                Modal.Show<ModalInfo>("Error",
+                    SharedModalOptions.SetParameterModalInfo(
+                        $"No se pudo actualizar la contraseña.\n{msg}",
+                        "alert alert-danger"),
+                    SharedModalOptions.modalOptionsInfo);
+                return;
+            }
+
+            var mailReq = new SendResetMailRequest
                 {
-                    modal.Close();
-                    Modal.Show<ModalInfo>("Operación Exitosa", SharedModalOptions.SetParameterModalInfo(Utilities.MSGSUCCESS, "alert alert-success"), SharedModalOptions.modalOptionsInfo);
-                }
-                break;
-            case System.Net.HttpStatusCode.Unauthorized:
-                uriHelper.NavigateTo("/Logout");
-                break;
-            default:
-                modal.Close();
-                Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(result.Content.ReadAsStringAsync().Result, "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
-                break;
+                    Usuario = Usuario,
+                    NuevaContrasena = pswd
+                };
+
+            var mailResp = await http.PostAsJsonAsync("api/Account/SendResetMail", mailReq);
+
+            wait.Close();
+
+            if (mailResp.IsSuccessStatusCode)
+            {
+                Modal.Show<ModalInfo>("Operación Exitosa",
+                    SharedModalOptions.SetParameterModalInfo(
+                        "Reinicio de contraseña exitoso.",
+                        "alert alert-success"),
+                    SharedModalOptions.modalOptionsInfo);
+
+                await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Éxito",
+                        Text = "La contraseña se actualizó y se envió el correo correctamente.",
+                        ConfirmButtonText = "Aceptar"
+                    });
+            }
+            else
+            {
+                var mailMsg = await mailResp.Content.ReadAsStringAsync();
+                Modal.Show<ModalInfo>("Advertencia",
+                    SharedModalOptions.SetParameterModalInfo(
+                        $"La contraseña se actualizó, pero falló el envío de mail.\n{mailMsg}",
+                        "alert alert-warning"),
+                    SharedModalOptions.modalOptionsInfo);
+            }
+        }
+        catch (Exception ex)
+        {
+            wait.Close();
+            Modal.Show<ModalInfo>("Error inesperado",
+                SharedModalOptions.SetParameterModalInfo(
+                    ex.Message,
+                    "alert alert-danger"),
+                SharedModalOptions.modalOptionsInfo);
+        }
+        finally
+        {
+            disabled = false;
+        }
+    }
+
+    private async Task ChangeEmail()
+    {
+        if (string.IsNullOrWhiteSpace(Usuario.Email) || !Usuario.Email.Contains("@"))
+        {
+            await Swal.FireAsync(new SweetAlertOptions { Title = "Email inválido", Text = "Ingresá un correo válido." });
+            return;
         }
 
-        await Swal.FireAsync(new SweetAlertOptions
-            {
-                Title = "Exito",
-                Text = "Reinicio de contraseña exitoso",
-                ShowCancelButton = true,
-                ConfirmButtonText = "Aceptar",
+        var wait = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
 
-            });
+        var req = new { UserId = Usuario.Id, NewEmail = Usuario.Email };
+        Console.WriteLine($"[FE] ChangeEmailAndReset -> UserId={Usuario.Id}, NewEmail='{Usuario.Email}'");
 
-        disabled = false;
+        var result = await http.PostAsJsonAsync("api/Account/ChangeEmailAndReset", req);
+
+        wait.Close();
+
+        var raw = await result.Content.ReadAsStringAsync();
+        Console.WriteLine($"[FE] ChangeEmailAndReset Status={(int)result.StatusCode} Body='{raw}'");
+
+        if (result.IsSuccessStatusCode)
+        {
+            Modal.Show<ModalInfo>("Operación Exitosa",
+                SharedModalOptions.SetParameterModalInfo("Se actualizó el email y se envió la nueva contraseña.", "alert alert-success"),
+                SharedModalOptions.modalOptionsInfo);
+
+        }
+        else
+        {
+            Modal.Show<ModalInfo>("Error",
+                SharedModalOptions.SetParameterModalInfo(raw, "alert alert-danger"),
+                SharedModalOptions.modalOptionsInfo);
+        }
     }
 
 
+
+    public class ResetPasswordModel
+    {
+        public int UserId { get; set; }
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+    public class SendResetMailRequest
+    {
+        public User Usuario { get; set; }
+        public string NuevaContrasena { get; set; }
+    }
+    public static string GenerateRandomPassword(int length)
+    {
+        const string UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string DIGITS = "0123456789";
+        const string SPECIAL = "!@#$%^*_-=?.";
+        string ALL = UPPER + DIGITS + SPECIAL;
+
+        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+        int Next(int max)
+        {
+            Span<byte> b = stackalloc byte[4];
+            rng.GetBytes(b);
+            return (int)(BitConverter.ToUInt32(b) % (uint)max);
+        }
+
+        var sb = new StringBuilder();
+        sb.Append(UPPER[Next(UPPER.Length)]);
+        sb.Append(DIGITS[Next(DIGITS.Length)]);
+        sb.Append(SPECIAL[Next(SPECIAL.Length)]);
+
+        while (sb.Length < Math.Max(length, 8))
+            sb.Append(ALL[Next(ALL.Length)]);
+
+        var chars = sb.ToString().ToCharArray();
+        Array.Sort(chars, (a, b) => Next(2) * 2 - 1);
+        return new string(chars);
+    }
 }

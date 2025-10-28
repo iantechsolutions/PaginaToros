@@ -5,59 +5,100 @@
 @inject NavigationManager uriHelper
 
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Registro de usuario</h3>
-<br/>
+<br />
 
 <AuthorizeView Roles="USUARIOMAESTRO,ADMINISTRADOR">
-    <UserEditForm User="User" EventCallback="CreateUser" />
+    <UserEditForm User="User"
+                  EventCallback="CreateUser" />
 </AuthorizeView>
 
-
 @code {
-    User User { get; set; } = new User() { Status = "ACTIVO" };
-    [CascadingParameter] public IModalService Modal { get; set; }
-    private const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-    Random random = new Random();
+    User User { get; set; } = new() { Status = "ACTIVO" };
+
+    [CascadingParameter] public IModalService Modal { get; set; } = default!;
+    private readonly Random random = new();
 
     private async Task CreateUser()
     {
-
+        // NO PISAR CAMPOS ACÁ
         Console.WriteLine($"Enviando usuario: {JsonSerializer.Serialize(User)}");
 
-        User.Phone = User.Email;
-        User.Names = User.Email;
-        User.Dni = User.Email;
-        User.LastNames = User.Email;
-        var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
-        var pswd = GenerateRandomPassword(random.Next(7, 11));
-        var result = await http.PostAsJsonAsync<User>($"api/Account/CreateUser?password={pswd}", User);
-        var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendMail2025?password={pswd}", User);
-        switch (result.StatusCode)
+        var wait = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
+
+        try
         {
-            case System.Net.HttpStatusCode.OK:
+            var pswd = GenerateRandomPassword(random.Next(10, 14)); // MAYÚSCULAS
+
+            // crear usuario en Identity + tu tabla User
+            var result = await http.PostAsJsonAsync($"api/Account/CreateUser?password={Uri.EscapeDataString(pswd)}", User);
+
+            if (!result.IsSuccessStatusCode)
+            {
+                wait.Close();
+                var msg = await result.Content.ReadAsStringAsync();
+                Modal.Show<ModalInfo>("Error",
+                    SharedModalOptions.SetParameterModalInfo(msg, "alert alert-danger"),
+                    SharedModalOptions.modalOptionsInfo);
+                return;
+            }
+
+
+            var mailResp = await http.PostAsJsonAsync($"api/Account/SendMail2025?password={Uri.EscapeDataString(pswd)}", User);
+
+            wait.Close();
+
+            if (mailResp.IsSuccessStatusCode)
+            {
+                Modal.Show<ModalInfo>("Operación Exitosa",
+                    SharedModalOptions.SetParameterModalInfo("Usuario creado y correo enviado.", "alert alert-success"),
+                    SharedModalOptions.modalOptionsInfo);
                 uriHelper.NavigateTo("/Usuarios");
-                break;
-            case System.Net.HttpStatusCode.Unauthorized:
-                uriHelper.NavigateTo("/Logout");
-                break;
-            default:
-                modal.Close();
-                Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(result.Content.ReadAsStringAsync().Result, "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
-                break;
+            }
+            else
+            {
+                var m = await mailResp.Content.ReadAsStringAsync();
+                Modal.Show<ModalInfo>("Advertencia",
+                    SharedModalOptions.SetParameterModalInfo($"Usuario creado, pero falló el envío de mail.\n{m}", "alert alert-warning"),
+                    SharedModalOptions.modalOptionsInfo);
+            }
         }
-    }
-
-    public string GenerateRandomPassword(int length)
-    {
-        StringBuilder sb = new StringBuilder();
-        
-
-        for (int i = 0; i < length; i++)
+        catch (Exception ex)
         {
-            int randomIndex = random.Next(validChars.Length);
-            sb.Append(validChars[randomIndex]);
+            wait.Close();
+            Modal.Show<ModalInfo>("Error inesperado",
+                SharedModalOptions.SetParameterModalInfo(ex.Message, "alert alert-danger"),
+                SharedModalOptions.modalOptionsInfo);
         }
-
-        return sb.ToString();
     }
 
+    // Password SIEMPRE en MAYÚSCULAS + dígitos
+    public static string GenerateRandomPassword(int length)
+    {
+        const string UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string DIGITS = "0123456789";
+        string ALL = UPPER + DIGITS;
+
+        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+        int Next(int max)
+        {
+            Span<byte> b = stackalloc byte[4];
+            rng.GetBytes(b);
+            return (int)(BitConverter.ToUInt32(b) % (uint)max);
+        }
+
+        var sb = new StringBuilder();
+        sb.Append(UPPER[Next(UPPER.Length)]);
+        sb.Append(DIGITS[Next(DIGITS.Length)]);
+
+        while (sb.Length < Math.Max(length, 10))
+            sb.Append(ALL[Next(ALL.Length)]);
+
+        var arr = sb.ToString().ToCharArray();
+        for (int i = 0; i < arr.Length; i++)
+        {
+            int j = Next(arr.Length);
+            (arr[i], arr[j]) = (arr[j], arr[i]);
+        }
+        return new string(arr);
+    }
 }

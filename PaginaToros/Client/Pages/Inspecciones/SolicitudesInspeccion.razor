@@ -444,34 +444,53 @@
     {
         var archivos = e.GetMultipleFiles(1);
         cargando = true;
-        var file = archivos.First();
 
-        Console.WriteLine("PASO 1");
-        using (var content = new MultipartFormDataContent())
+        try
         {
-            content.Add(new StreamContent(file.OpenReadStream()), "file", file.Name);
-
-            HttpResponseMessage response = await http.PostAsync($"api/Solici1/SendExcel/{socioId}", content);
-        }
-
-        Console.WriteLine("PASO 2");
-
-        await OnInitializedAsync();
-
-
-        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+            if (socioId <= 0)
             {
-                Title = "Exito",
-                Text = "La solicitud se ha enviado con éxito",
-                ShowCancelButton = true,
-                ConfirmButtonText = "Aceptar",
+                await Swal.FireAsync("Error", "No se pudo determinar el socioId (iniciá sesión como Socio).", SweetAlertIcon.Error);
+                return;
+            }
 
-            });
+            var file = archivos.FirstOrDefault();
+            if (file == null)
+            {
+                await Swal.FireAsync("Error", "No seleccionaste ningún archivo.", SweetAlertIcon.Error);
+                return;
+            }
 
+            using var content = new MultipartFormDataContent();
+            var stream = file.OpenReadStream(20 * 1024 * 1024);
+            var fileContent = new StreamContent(stream);
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+            content.Add(fileContent, "file", file.Name);
+
+            var response = await http.PostAsync($"api/Solici1/SendExcel/{socioId}", content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var serverMsg = await response.Content.ReadAsStringAsync();
+                await Swal.FireAsync("Error", $"No se pudo enviar el mail.\n{serverMsg}", SweetAlertIcon.Error);
+                return;
+            }
+
+            await OnInitializedAsync();
+
+            await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Éxito",
+                    Text = "La solicitud se envió por mail correctamente.",
+                    Icon = SweetAlertIcon.Success
+                });
+        }
+        catch (Exception ex)
+        {
+            await Swal.FireAsync("Error", $"Ocurrió un error al subir el archivo.\n{ex.Message}", SweetAlertIcon.Error);
+        }
+        finally
+        {
             cargando = false;
-
-        
-        
-
+        }
     }
 }
