@@ -40,6 +40,19 @@
     .rz-paginator {
         border-top: solid #E0E0E0 1px;
     }
+
+    .toros-toolbar {
+              display: flex;
+              align-items: center;
+              gap: .75rem;
+              margin: .5rem 3.33% 1rem;
+              width: 93.5%;
+            }
+            .toros-toolbar-left { display: flex; align-items: center; gap: .5rem; }
+            .toros-toolbar-right { margin-left: auto; } 
+            .btn-compact { padding: .375rem .75rem; line-height: 1.1; border-radius: .75rem; }
+            .btn-icon { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border-radius: .75rem; }
+            .toros-typeahead { min-width: 360px; max-width: 520px; }
 </style>
 
     
@@ -47,38 +60,49 @@
 <h3 class="pb-3 font-bold text-xl no-print" style="position:relative;left:3.33%">Toros</h3>
 
 
-@if (!esSocio)
-{
-    <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-            style="position:relative;left:3.33%" @onclick="()=>add(0)">
-        Agregar Toro
-    </button>
-}
+
+   
 
 
 @if (oRespuesta.List != null)
 {
-                @if (!esSocio)
-                {
-                <div class="row">
-                    <div class="col-3"/>
-                    <div class="col-4">
-                        <BlazoredTypeahead SearchMethod="BusquedaSocios" class="max-w-sm" placeholder="Buscar por socio" EnableDropDown="true" @bind-Value="socioSeleccionado">
-                            <SelectedTemplate Context="eleccion">
-                                @eleccion.Nombre
-                            </SelectedTemplate>
-                            <ResultTemplate Context="eleccion">
-                                @eleccion.Nombre
-                            </ResultTemplate>
-                        </BlazoredTypeahead>
+
+    <div class="toros-toolbar no-print">
+        @if (!esSocio)
+        {
+            <div class="toros-toolbar-left">
+                <button class="btn btn-light btn-compact rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent"
+                         @onclick="()=>add(0)">
+                    Agregar Toro
+                </button>
+                <BlazoredTypeahead class="toros-typeahead"
+                                   SearchMethod="BusquedaSocios"
+                                   placeholder="Buscar por socio"
+                                   EnableDropDown="true"
+                                   @bind-Value="socioSeleccionado">
+                    <SelectedTemplate Context="eleccion">@eleccion.Nombre</SelectedTemplate>
+                    <ResultTemplate Context="eleccion">@eleccion.Nombre</ResultTemplate>
+                </BlazoredTypeahead>
+
+                <button class="btn btn-light btn-compact rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent"
+                        @onclick="()=>BuscarPorSocio()">
+                    Buscar
+                </button>
+
+                <button class="btn btn-light btn-compact rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent"
+                        @onclick="()=>PaginaReporte()">
+                    Reporte x socio
+                </button>
+            </div>
+        }
+
+        <div class="toros-toolbar-right">
+                        <button class="btn btn-light btn-icon" title="Filtros" @onclick="() => CambiarModoFiltro()">
+                            <FeatherFilter Color="Black"></FeatherFilter>
+                        </button>
                     </div>
-                    <div class="col-5">
-                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="outline:none; float: right;margin-right:3%;height:100%;" @onclick="()=>PaginaReporte()">Reporte x socio</button>
-                        <button style="outline:none; float: right;margin-right:3%;height:100%;" class="no-print px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-                        <button class="font-bold px-8 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="outline:none; float: right;margin-right:3%;height:100%;" @onclick="()=>BuscarPorSocio()">Buscar</button>
-                    </div>
-                </div>
-                }
+    </div>
+    
     <br class="no-print" />
     <br class="no-print" />
     <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
@@ -296,6 +320,7 @@ else
             {
                 var parameters = new ModalParameters();
                 parameters.Add(nameof(AddToro.Id), Id);
+                parameters.Add(nameof(AddToro.EsSocio), esSocio); 
                 var options = new ModalOptions()
                     {
                         Size = ModalSize.ExtraLarge
@@ -359,37 +384,44 @@ else
     {
         isLoading = true;
 
+        // Normalize: si Radzen no manda string, tomamos vacío
+        var gridFilter = string.IsNullOrWhiteSpace(args?.Filter) ? null : args.Filter.Trim();
+
+        // 1) Armar SIEMPRE un único filtro para backend
+        string? serverFilter = null;
+
         if (esSocio)
         {
-            // Ignoramos filtros/paginación de Radzen y traemos SIEMPRE los del socio
-            oRespuesta = await _torosServicio.GetBySocioId(socioIdActual);
-            cantidad = oRespuesta.List?.Count ?? 0;
-            isLoading = false;
-            return;
+            // Filtrar por el socio logueado + lo que venga de la grilla
+            serverFilter = $"Socio.Id=={socioIdActual}";
+            if (!string.IsNullOrWhiteSpace(gridFilter))
+                serverFilter = $"{serverFilter} and ({gridFilter})";
         }
-
-        if (socioSeleccionado == null)
+        else if (socioSeleccionado != null)
         {
-            if (args != null && !string.IsNullOrEmpty(args.Filter))
-            {
-                oRespuesta = await _torosServicio.LimitadosFiltrados(args.Skip ?? 0, args.Top ?? 15, args.Filter);
-            }
-            else
-            {
-                oRespuesta = await _torosServicio.Lista(args.Skip ?? 0, args.Top ?? 15);
-            }
+            serverFilter = $"Socio.Id=={socioSeleccionado.Id}";
+            if (!string.IsNullOrWhiteSpace(gridFilter))
+                serverFilter = $"{serverFilter} and ({gridFilter})";
         }
         else
         {
-            if (args != null && !string.IsNullOrEmpty(args.Filter))
-            {
-                oRespuesta = await _torosServicio.LimitadosFiltrados(0, args.Top ?? 15, args.Filter);
-            }
-            else
-            {
-                string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                oRespuesta = await _torosServicio.LimitadosFiltrados(0, 60, filtro);
-            }
+            serverFilter = gridFilter;
+        }
+
+        var skip = args?.Skip ?? 0;
+        var take = args?.Top ?? 15;
+
+        if (!string.IsNullOrWhiteSpace(serverFilter))
+        {
+            oRespuesta = await _torosServicio.LimitadosFiltrados(skip, take, serverFilter);
+            var cantResp = await _torosServicio.CantidadFiltrada(serverFilter);
+            cantidad = cantResp.List;
+        }
+        else
+        {
+            oRespuesta = await _torosServicio.Lista(skip, take);
+            var cantResp = await _torosServicio.CantidadFiltrada(serverFilter);
+            cantidad = cantResp.List;
         }
 
         isLoading = false;
@@ -411,7 +443,7 @@ else
         if (socioSeleccionado != null)
         {
             var coso = new LoadDataArgs();
-            coso.Filter = "";
+            await grid.Reload();
             await LoadData(coso);
         }
         else

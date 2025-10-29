@@ -71,7 +71,6 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         }
         public async Task<Respuesta<Torosuni>> GetById(int id)
         {
-            Console.WriteLine($"[Repo] GetById({id})");
             var toro = await BaseQuery(includeSocio: false)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
@@ -82,7 +81,6 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 Mensaje = toro != null ? "Éxito" : $"No existe toro con Id {id}",
                 List = toro 
             };
-            Console.WriteLine($"[Repo] GetById Exito={resp.Exito}, HasObj={resp.List != null}");
             return resp;
         }
 
@@ -111,7 +109,6 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 {
                     var f = NormalizeDynamicFilter(filtro);
 
-                    Console.WriteLine($"[TorosRepo] Filtro recibido: {f}");
 
                     try
                     {
@@ -192,7 +189,6 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
         public async Task<IQueryable<Torosuni>> Consultar(Expression<Func<Torosuni, bool>> filtro = null!)
         {
-            // Alineado al resto de repos: devolvemos la query base con orden estable.
             var q = BaseQuery(includeSocio: true);
             if (filtro != null)
                 q = q.Where(filtro);
@@ -211,12 +207,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
-
-        public async Task<int> CantidadFiltrada(string filtro = null!)
+        public async Task<int> CantidadFiltrada(string? filtro = null)
         {
             try
             {
-                var q = _dbContext.Torosunis.AsNoTracking();
+                var q = BaseQuery(includeSocio: true).AsNoTracking();
 
                 if (!string.IsNullOrWhiteSpace(filtro))
                 {
@@ -231,5 +226,6 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
     }
 }

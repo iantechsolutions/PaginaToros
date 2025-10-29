@@ -73,6 +73,22 @@ namespace PaginaToros.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
+
+        [HttpGet]
+        [Route("CantidadFiltrada")]
+        public async Task<IActionResult> CantidadFiltrada(string? expression = null)
+        {
+            try
+            {
+                var count = await _torosRepositorio.CantidadFiltrada(expression);
+                return Ok(new Respuesta<int> { Exito = 1, Mensaje = "Éxito", List = count });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new Respuesta<int> { Exito = 0, Mensaje = ex.Message, List = 0 });
+            }
+        }
         [HttpGet]
         [Route("LimitadosFiltrados")]
         public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string? expression = null)
@@ -239,7 +255,6 @@ namespace PaginaToros.Server.Controllers
 
                 if (request.Id != 0)
                 {
-                    // EDITAR
                     entidad = await _torosRepositorio.Obtener(t => t.Id == request.Id);
 
                     if (entidad == null)

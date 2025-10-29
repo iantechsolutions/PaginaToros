@@ -53,7 +53,15 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var response = await result.Content.ReadFromJsonAsync<Respuesta<string>>();
             return response!.Exito==1;
         }
+        public async Task<Respuesta<int>> CantidadFiltrada(string? expression = null)
+        {
+            var url = string.IsNullOrWhiteSpace(expression)
+                ? "api/Toros/CantidadFiltrada"
+                : $"api/Toros/CantidadFiltrada?expression={Uri.EscapeDataString(expression)}";
 
+            var resp = await _http.GetFromJsonAsync<Respuesta<int>>(url);
+            return resp ?? new Respuesta<int> { Exito = 0, Mensaje = "Sin respuesta", List = 0 };
+        }
         public async Task<Respuesta<TorosuniDTO>> Crear(TorosuniDTO entidad)
         {
             var result = await _http.PostAsJsonAsync("api/toros/Guardar", entidad);

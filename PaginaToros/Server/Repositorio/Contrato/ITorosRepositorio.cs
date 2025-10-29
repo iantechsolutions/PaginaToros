@@ -10,6 +10,7 @@ namespace PaginaToros.Server.Repositorio.Contrato
         Task<Torosuni> Obtener(Expression<Func<Torosuni, bool>> filtro = null);
         Task<Respuesta<Torosuni>> GetById(int id);
 
+        Task<int> CantidadFiltrada(string? expression = null);
         Task<List<Torosuni>> LimitadosFiltrados(int skip, int take, string filtro = null);
         Task<List<Torosuni>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null);
         Task<bool> Eliminar(Torosuni entidad);

@@ -14,17 +14,20 @@
         <EditForm Model="@oTorosuni" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
             <div class="row" style="width=100%;">
-                <div class="col-sm">
-                    <label class="col-sm">Propietario</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
-                </div>
+                        @if (!EsSocio)
+                        {
+                    <div class="col-sm">
+
+                        <label class="col-sm">Propietario</label>
+                            <BlazoredTypeahead SearchMethod="BusquedaSocios"
+                                               placeholder="Buscar por nombre"
+                                               EnableDropDown="true"
+                                               @bind-Value="socioSeleccionado">
+                                <SelectedTemplate Context="eleccion">@eleccion.Nombre</SelectedTemplate>
+                                <ResultTemplate Context="eleccion">@eleccion.Nombre</ResultTemplate>
+                            </BlazoredTypeahead>
+                    </div>
+                        }
                 <div class="col-sm">
                     <label>Estado</label><br />
                     <RadzenDropDown @bind-Value=@estadoTemp Data=@estados Style="width: 100%; max-width: 400px;" />
@@ -113,12 +116,13 @@ else
     }
 @code {
     TorosuniDTO oTorosuni = new();
-    List<string> estados = new List<string> { "Activo", "Inexistente", "Muerto","Vendido" };
+    List<string> estados = new List<string> { "Activo", "Inactivo","Inexistente", "Muerto","Vendido" };
     List<string> variedades = new List<string> { "H", "PH" };
     List<string> tiposToro = new List<string> { "S/", "Puro Pedigree (SRA)","Patagonico" ,"Ganador de prueba" };
 
     Dictionary<string, string> traductor = new Dictionary<string, string>{
         {"Activo","1"},
+        {"Inactivo", "2"},
         {"Inexistente","3"},
         {"Muerto","4"},
         {"Vendido","5"},
@@ -129,6 +133,7 @@ else
     };
     Dictionary<string, string> traductorCarga = new Dictionary<string, string>{
         {"1","Activo"},
+        {"2", "Inactivo"},
         {"3","Inexistente"},
         {"4","Muerto"},
         {"5","Vendido"},
@@ -147,6 +152,8 @@ else
 
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
+    [Parameter] public bool EsSocio { get; set; }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -186,44 +193,38 @@ else
     }
     async Task Guardar()
     {
-        oTorosuni.Criador = socioSeleccionado.Scod;
+        if (!EsSocio)
+        {
+            oTorosuni.Criador = socioSeleccionado?.Scod;
+        }
 
         if (traductor.ContainsKey(estadoTemp))
-        {
             oTorosuni.CodEstado = traductor[estadoTemp];
-        }
-        if (traductor.ContainsKey(tipoTemp))
-        {
-            oTorosuni.TipToro = traductor[tipoTemp];
-        }
-        try{
-            if(dateTemp.HasValue){
-                oTorosuni.Fechasba = dateTemp.Value.ToString("dd/MM/yyyy");
-            }
-            else
-            {
-                oTorosuni.Fechasba = null;
-            }
-        }
-        catch
-        {
 
-        }
-        if (oTorosuni.Fecing == null)
+        if (traductor.ContainsKey(tipoTemp))
+            oTorosuni.TipToro = traductor[tipoTemp];
+
+        try
         {
-            oTorosuni.Fecing = "";
+            oTorosuni.Fechasba = dateTemp.HasValue
+                ? dateTemp.Value.ToString("dd/MM/yyyy")
+                : null;
         }
+        catch { }
+
+        oTorosuni.Fecing ??= "";
+
         if (Id == 0)
-        {
-            _torosServicio.Crear(oTorosuni);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-        }
+           {
+               _torosServicio.Crear(oTorosuni);
+           }
         else
-        {
-            _torosServicio.Editar(oTorosuni);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-        }
+            {
+                _torosServicio.Editar(oTorosuni);
+            }
+        await ModalInstance.CloseAsync(ModalResult.Ok("Form was submitted successfully."));
     }
+
     async Task cancel()
     {
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
