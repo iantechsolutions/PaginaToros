@@ -110,11 +110,12 @@
                         FilterDelay="0" Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                         Count="@cantidad" Data="@oRespuesta.List" LoadData="LoadData" TItem="TorosuniDTO" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Estado" Title="Estado" Width="3.6%">
-                    <Template Context="data">
-                        @traductor[data.CodEstado]
-                    </Template>    
-                </RadzenDataGridColumn>
+                @if (!esSocio)
+                {
+                    <RadzenDataGridColumn TItem="TorosuniDTO" Property="Estado" Title="Estado" Width="3.6%">
+                        <Template Context="data">@traductor[data.CodEstado]</Template>
+                    </RadzenDataGridColumn>
+                }
                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo de toro" Width="5%">
                     <Template Context="data">
                         @traductor[data.TipToro]
@@ -229,16 +230,18 @@ else
             {
                 if (claim.Type == "SocioId")
                 {
-                    socioIdActual = int.Parse(claim.Value); 
+                    socioIdActual = int.Parse(claim.Value);
                     break;
                 }
             }
 
             oRespuesta = await _torosServicio.GetBySocioId(socioIdActual);
+
             oRespuesta.List = oRespuesta.List
-                .OrderBy(x => x.CodEstado != "1")
-                .ThenBy(x => x.CodEstado != "3")
+                .Where(x => x.CodEstado == "1")
+                .OrderBy(x => x.NomDad) 
                 .ToList();
+
             cantidad = oRespuesta.List.Count();
         }
     }
@@ -384,16 +387,13 @@ else
     {
         isLoading = true;
 
-        // Normalize: si Radzen no manda string, tomamos vacío
         var gridFilter = string.IsNullOrWhiteSpace(args?.Filter) ? null : args.Filter.Trim();
 
-        // 1) Armar SIEMPRE un único filtro para backend
         string? serverFilter = null;
 
         if (esSocio)
         {
-            // Filtrar por el socio logueado + lo que venga de la grilla
-            serverFilter = $"Socio.Id=={socioIdActual}";
+            serverFilter = $"Socio.Id=={socioIdActual} and CodEstado=='1'";
             if (!string.IsNullOrWhiteSpace(gridFilter))
                 serverFilter = $"{serverFilter} and ({gridFilter})";
         }
