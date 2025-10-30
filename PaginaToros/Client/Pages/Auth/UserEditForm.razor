@@ -1,10 +1,34 @@
 ﻿@using PaginaToros.Client.Servicios.Contrato
 @using Blazored.Typeahead
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Linq.Expressions
 @inject HttpClient Http
 @inject ISocioServicio _socioServicio
 
-<EditForm Context="ctx" Model="@User" OnValidSubmit="@EventCallback">
-    <DataAnnotationsValidator />
+<style>
+    .req-asterisk {
+        margin-left: 4px;
+        font-weight: 700;
+    }
+
+    .req-red {
+        color: #dc3545;
+    }
+    /* rojo */
+    .req-green {
+        color: #198754;
+    }
+    /* verde */
+    .is-valid {
+        border-color: #198754 !important;
+    }
+
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+</style>
+
+<EditForm EditContext="_editContext" OnValidSubmit="HandleSubmit">
     <ValidationSummary />
 
     <div style="overflow-y:auto;height:600px">
@@ -12,40 +36,55 @@
 
             <div class="col-md-6">
                 <div class="form-group mb-3">
-                    <label>Nombre</label>
-                    <InputText class="form-control" @bind-Value="User.Names" />
-                    <ValidationMessage For="@(()=>User.Names)" />
+                    <label>
+                        Nombre <span class="@AsteriskClass(()=>User.Names)">*</span>
+                    </label>
+                    <InputText class="@InputCss(()=>User.Names)" @bind-Value="User.Names" @onblur="(_)=>ValidateField(()=>User.Names)" />
+                    <div class="text-danger small">@FirstError(() => User.Names)</div>
                 </div>
 
                 <div class="form-group mb-3">
                     <label>Apellido</label>
                     <InputText class="form-control" @bind-Value="User.LastNames" />
-                    <ValidationMessage For="@(()=>User.LastNames)" />
                 </div>
 
                 <div class="form-group mb-3">
-                    <label>DNI</label>
-                    <InputText class="form-control" @bind-Value="User.Dni" />
-                    <ValidationMessage For="@(()=>User.Dni)" />
+                    <label>
+                        DNI <span class="@AsteriskClass(()=>User.Dni)">*</span>
+                    </label>
+                    <InputText class="@InputCss(()=>User.Dni)" @bind-Value="User.Dni" @onblur="(_)=>ValidateField(()=>User.Dni)" />
+                    <div class="text-danger small">@FirstError(() => User.Dni)</div>
                 </div>
 
                 <div class="form-group mb-3">
-                    <label>Teléfono</label>
-                    <InputText class="form-control" @bind-Value="User.Phone" />
-                    <ValidationMessage For="@(()=>User.Phone)" />
+                    <label>
+                        Teléfono <span class="@AsteriskClass(()=>User.Phone)">*</span>
+                    </label>
+                    <InputText class="@InputCss(()=>User.Phone)" @bind-Value="User.Phone" @onblur="(_)=>ValidateField(()=>User.Phone)" />
+                    <div class="text-danger small">@FirstError(() => User.Phone)</div>
                 </div>
 
                 <div class="form-group mb-3">
-                    <label>Email</label>
-                    <InputText class="form-control" @bind-Value="User.Email" />
-                    <ValidationMessage For="@(()=>User.Email)" />
+                    <label>
+                        Email <span class="@AsteriskClass(()=>User.Email)">*</span>
+                    </label>
+                    <InputText class="@InputCss(()=>User.Email)" @bind-Value="User.Email" @onblur="CheckEmailUniqueAsync" />
+                    <div class="text-danger small">@FirstError(() => User.Email)</div>
+                    @if (_emailExists)
+                    {
+                        <div class="text-warning small mt-1">
+                            Este mail ya esta registrado en el sistema, por favor hacer el restablecimiento de contraseña.
+                        </div>
+                    }
                 </div>
             </div>
 
             <div class="col-md-6">
                 <div class="form-group mb-3">
-                    <label>Rol</label>
-                    <InputSelect required class="form-control" @bind-Value="User.Rol">
+                    <label>
+                        Rol <span class="@AsteriskClass(()=>User.Rol)">*</span>
+                    </label>
+                    <InputSelect class="@InputCss(()=>User.Rol)" @bind-Value="User.Rol" @onchange="(_)=>ValidateField(()=>User.Rol)">
                         <option value=""></option>
                         <option value="Inspector">Inspector</option>
                         @if (oRespuestaRoles?.List == null)
@@ -63,14 +102,18 @@
                             }
                         }
                     </InputSelect>
+                    <div class="text-danger small">@FirstError(() => User.Rol)</div>
                 </div>
 
                 <div class="form-group mb-3">
-                    <label>Estado</label>
-                    <InputSelect required class="form-control" @bind-Value="User.Status">
+                    <label>
+                        Estado <span class="@AsteriskClass(()=>User.Status)">*</span>
+                    </label>
+                    <InputSelect class="@InputCss(()=>User.Status)" @bind-Value="User.Status" @onchange="(_)=>ValidateField(()=>User.Status)">
                         <option value="ACTIVO">ACTIVO</option>
                         <option value="SUSPENDIDO">SUSPENDIDO</option>
                     </InputSelect>
+                    <div class="text-danger small">@FirstError(() => User.Status)</div>
                 </div>
 
                 <div class="form-group mb-3">
@@ -86,15 +129,13 @@
                     </BlazoredTypeahead>
                     @* SocioId queda guardado en User.SocioId desde updateSocio *@
                 </div>
-
-                
             </div>
 
             <div class="col-12 d-flex gap-2 mt-3">
                 <a class="btn btn-info" href="Users">
                     <span class="oi oi-arrow-left" aria-hidden="true"></span> Volver
                 </a>
-                <button class="btn btn-primary" type="submit">
+                <button class="btn btn-primary" type="submit" disabled="@(!_canSubmit)">
                     <span class="oi oi-check" aria-hidden="true"></span> Guardar
                 </button>
             </div>
@@ -108,12 +149,30 @@
 
     Respuesta<List<AspNetRole>>? oRespuestaRoles = new();
     List<SocioDTO> socios = new();
-    public SocioDTO? socioSeleccionado = null;
 
-   
+    // Hacelo no-nullable para que machée con TValue="SocioDTO"
+    public SocioDTO socioSeleccionado { get; set; } = new SocioDTO();
+
+    private EditContext? _editContext;
+    private ValidationMessageStore? _messages;
+    private bool _emailExists;
+
+    // Sin forzar Validate(): sólo miramos si hay mensajes y si el mail existe
+    private bool _canSubmit => _editContext is not null
+                               && !_emailExists
+                               && !_editContext.GetValidationMessages().Any();
 
     protected override async Task OnInitializedAsync()
     {
+        _editContext = new EditContext(User);
+        _messages = new ValidationMessageStore(_editContext);
+        _editContext.SetFieldCssClassProvider(new ValidInvalidFieldClassProvider());
+        _editContext.OnFieldChanged += (_, args) =>
+        {
+            ValidateField(args.FieldIdentifier);
+            StateHasChanged();
+        };
+
         try
         {
             oRespuestaRoles = await Http.GetFromJsonAsync<Respuesta<List<AspNetRole>>>("/api/AspNetRole");
@@ -126,6 +185,120 @@
         }
     }
 
+    /* ---------------- VALIDACIÓN MANUAL ---------------- */
+
+    private string InputCss<T>(Expression<Func<T>> exp)
+    {
+        var cls = _editContext!.FieldCssClass(exp);
+        return $"form-control {cls}";
+    }
+
+    private string AsteriskClass<T>(Expression<Func<T>> exp)
+    {
+        var fi = FieldIdentifier.Create(exp);
+        bool hasErrors = _editContext!.GetValidationMessages(fi).Any();
+        bool hasValue = GetValue(fi) switch
+        {
+            string s => !string.IsNullOrWhiteSpace(s),
+            object o => o is not null,
+            _ => false
+        };
+        return $"req-asterisk {(hasErrors || !hasValue ? "req-red" : "req-green")}";
+    }
+
+    private string FirstError<T>(Expression<Func<T>> exp)
+      => _editContext!.GetValidationMessages(FieldIdentifier.Create(exp)).FirstOrDefault() ?? string.Empty;
+
+    private object? GetValue(FieldIdentifier fi)
+      => User.GetType().GetProperty(fi.FieldName)?.GetValue(User);
+
+    private void Clear(FieldIdentifier fi) => _messages!.Clear(fi);
+    private void AddError(FieldIdentifier fi, string message) => _messages!.Add(fi, message);
+
+    private void ValidateField<T>(Expression<Func<T>> exp) => ValidateField(FieldIdentifier.Create(exp));
+
+    private void ValidateField(FieldIdentifier fi)
+    {
+        Clear(fi);
+
+        // requeridos
+        switch (fi.FieldName)
+        {
+            case nameof(User.Names):
+            case nameof(User.Phone):
+            case nameof(User.Dni):
+            case nameof(User.Email):
+            case nameof(User.Rol):
+            case nameof(User.Status):
+                {
+                    var val = GetValue(fi);
+                    bool empty = val switch
+                    {
+                        string s => string.IsNullOrWhiteSpace(s),
+                        _ => val is null
+                    };
+                    if (empty) AddError(fi, "Campo obligatorio");
+                }
+                break;
+        }
+
+        // email formato
+        if (fi.FieldName == nameof(User.Email) && !_editContext!.GetValidationMessages(fi).Any())
+        {
+            var email = User.Email ?? "";
+            if (!email.Contains("@") || !email.Contains("."))
+                AddError(fi, "Formato de email inválido");
+        }
+
+        _editContext!.NotifyValidationStateChanged();
+    }
+
+    /* ---------------- MAIL ÚNICO DE SOCIO ---------------- */
+
+    private async Task CheckEmailUniqueAsync(FocusEventArgs _)
+    {
+        var fi = FieldIdentifier.Create(() => User.Email);
+        ValidateField(fi);
+        if (_editContext!.GetValidationMessages(fi).Any()) { _emailExists = false; StateHasChanged(); return; }
+
+        try
+        {
+            _emailExists = await Http.GetFromJsonAsync<bool>($"api/Socio/exists-by-email?email={Uri.EscapeDataString(User.Email!)}");
+        }
+        catch
+        {
+            _emailExists = false; // si falla, no bloqueamos
+        }
+
+        Clear(fi);
+        if (_emailExists)
+        {
+            AddError(fi, "Este mail ya esta registrado en el sistema, por favor hacer el restablecimiento de contraseña.");
+        }
+        _editContext!.NotifyValidationStateChanged();
+        StateHasChanged();
+    }
+
+    /* ---------------- SUBMIT ---------------- */
+
+    private async Task HandleSubmit()
+    {
+        // Validar requeridos
+        ValidateField(() => User.Names);
+        ValidateField(() => User.Phone);
+        ValidateField(() => User.Dni);
+        ValidateField(() => User.Email);
+        ValidateField(() => User.Rol);
+        ValidateField(() => User.Status);
+
+        await CheckEmailUniqueAsync(new());
+
+        if (_canSubmit)
+            await EventCallback.InvokeAsync();
+    }
+
+    /* ---------------- Typeahead Socio ---------------- */
+
     protected Task updateSocio(SocioDTO socio)
     {
         socioSeleccionado = socio;
@@ -136,8 +309,21 @@
     private Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         var result = socios
-            .Where(x => x.Nombre.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+          .Where(x => x.Nombre.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+          .ToList();
         return Task.FromResult<IEnumerable<SocioDTO>>(result);
+    }
+
+    /* ---------------- FieldCssClassProvider ---------------- */
+
+    private sealed class ValidInvalidFieldClassProvider : FieldCssClassProvider
+    {
+        public override string GetFieldCssClass(EditContext editContext, in FieldIdentifier fieldIdentifier)
+        {
+            var modified = editContext.IsModified(fieldIdentifier);
+            var hasErrors = editContext.GetValidationMessages(fieldIdentifier).Any();
+            if (!modified) return string.Empty;
+            return hasErrors ? "is-invalid" : "is-valid";
+        }
     }
 }

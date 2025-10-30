@@ -967,7 +967,7 @@ namespace PaginaToros.Server.Controllers
             return new string(chars);
         }
 
-       
+
 
 
         [HttpGet("GetUsers/{search}/{status}/{actualPage}")]
@@ -975,25 +975,31 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
+                if (search == "TODO") search = "";
+                if (status == "TODO") status = "";
 
+                search = (search ?? "").ToUpper();
+                status = (status ?? "");
 
-                if (search == "TODO")
-                    search = "";
-                if (status == "TODO")
-                    status = "";
+                var query = db.User
+                    .Where(x =>
+                       (((x.Names ?? "").ToUpper().Contains(search)) ||
+                        ((x.LastNames ?? "").ToUpper().Contains(search)) ||
+                        ((x.Dni ?? "").Contains(search)) ||
+                        ((x.Email ?? "").ToUpper().Contains(search))) &&
+                       ((x.Status ?? "").Contains(status)) &&
+                       x.Rol != "USUARIOMAESTRO");
 
-                search = search.ToUpper();
-                int allRegisters = db.User.Where(x => (x.Names.Contains(search) || x.LastNames.Contains(search) || x.Dni.Contains(search)) && x.Status.Contains(status) && x.Rol != "USUARIOMAESTRO").Count();
+                int allRegisters = query.Count();
                 if (allRegisters <= 0)
-                {
                     return NotFound(Utilities.MSGNODATA);
-                }
 
-                IList<User> entities = db.User.Where(x => (x.Names.Contains(search) || x.LastNames.Contains(search) || x.Dni.Contains(search)) && x.Status.Contains(status) && x.Rol != "USUARIOMAESTRO")
-                   .OrderByDescending(x => x.Id)
-                   .Skip((actualPage - 1) * Utilities.REGISTERSPERPAGE)
-                   .Take(Utilities.REGISTERSPERPAGE)
-                   .ToList();
+                IList<User> entities = query
+                    .OrderByDescending(x => x.Id)
+                    .Skip((actualPage - 1) * Utilities.REGISTERSPERPAGE)
+                    .Take(Utilities.REGISTERSPERPAGE)
+                    .ToList();
+
                 ResponseForList response = new ResponseForList()
                 {
                     EntitiesPricipal = JsonSerializer.Serialize(entities),
@@ -1002,16 +1008,11 @@ namespace PaginaToros.Server.Controllers
                 };
 
                 return Ok(JsonSerializer.Serialize(response));
-
-
             }
             catch (Exception e)
             {
-
                 return BadRequest(e.Message);
             }
-
-
         }
 
         [HttpGet("GetUserById/{id}")]

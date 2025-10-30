@@ -1,9 +1,12 @@
 ﻿@page "/Usuarios"
-@*@attribute [Authorize(Roles = "USUARIOMAESTRO, ADMINISTRADOR")]*@
 @inject HttpClient http
 @inject NavigationManager uriHelper
-<style>
+@using Radzen
+@using Radzen.Blazor
+@using System.Text.Json
+@using System.Linq
 
+<style>
     .rz-cell-data,
     .rz-column-title-content {
         font-size: 13px !important;
@@ -22,36 +25,53 @@
         border-top: solid #E0E0E0 1px;
     }
 </style>
-<br/>
+
+<br />
 <center>
     <AuthorizeView>
         <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Usuarios</h3>
-        <br/>
+        <br />
+
         <div class="tablacontent" style="position:relative;width:80%;">
-            <button style="outline:none; float: right;height:100%;" class="btn btn-outline" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <button style="outline:none; float: right;height:100%;" class="btn btn-outline" @onclick="CambiarModoFiltro">
+                <FeatherFilter Color="Black"></FeatherFilter>
+            </button>
             <br />
 
-
-            <RadzenDataGrid AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAlternatingRows="true" FilterMode="FilterMode.Simple"
-                            AllowSorting="true" PageSize="5" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            Data="@Usuarios" TItem="User" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
+            <RadzenDataGrid TItem="User"
+                            Data="@Usuarios"
+                            Count="@count"
+                            FilterDelay="500"
+                            LoadData="@LoadUsers"
+                            AllowFiltering="@allowFiltering"
+                            FilterMode="FilterMode.Simple"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="LogicalFilterOperator.Or"
+                            AllowSorting="true"
+                            AllowColumnResize="true"
+                            AllowAlternatingRows="true"
+                            AllowPaging="true"
+                            PageSize="5"
+                            ShowPagingSummary="true"
+                            ColumnWidth="3.33%">
                 <Columns>
-                    <RadzenDataGridColumn TItem="User" Property="Names" Filterable="true" Title="Nombre/s" Width="15%" />
-                    <RadzenDataGridColumn TItem="User" Property="LastNames" Filterable="true" Title="Apellido/s" Width="15%" />
-                    <RadzenDataGridColumn TItem="User" Property="Dni" Filterable="true" Title="DNI" Width="15%" />
-                    <RadzenDataGridColumn TItem="User" Property="Phone" Filterable="true" Title="Número" Width="15%" />
-                    <RadzenDataGridColumn TItem="User" Property="Rol" Filterable="true" Title="Rol" Width="15%" />
-                    <RadzenDataGridColumn TItem="User" Property="Email" Filterable="true" Title="Email" Width="20%" />
-                    <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="8%">
+                    <RadzenDataGridColumn TItem="User" Property="Names" Title="Nombre/s" Width="15%" Filterable="true" />
+                    <RadzenDataGridColumn TItem="User" Property="LastNames" Title="Apellido/s" Width="15%" Filterable="true" />
+                    <RadzenDataGridColumn TItem="User" Property="Dni" Title="DNI" Width="12%" Filterable="true" />
+                    <RadzenDataGridColumn TItem="User" Property="Phone" Title="Número" Width="12%" Filterable="true" />
+                    <RadzenDataGridColumn TItem="User" Property="Rol" Title="Rol" Width="12%" Filterable="true" />
+                    <RadzenDataGridColumn TItem="User" Property="Status" Title="Estado" Width="12%" Filterable="true" />
+                    <RadzenDataGridColumn TItem="User" Property="Email" Title="Email" Width="20%" Filterable="true" />
+                    <RadzenDataGridColumn TItem="User" Title="" Width="7%">
                         <Template Context="data">
-                            <button class="btn" title="Eliminar" @onclick="@(()=>nav.NavigateTo($"/EliminarUsuario/{data.Id}"))">
+                            <button class="btn" title="Eliminar" @onclick="@(()=>uriHelper.NavigateTo($"/EliminarUsuario/{data.Id}"))">
                                 <FeatherTrash2 Color="red" />
                             </button>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="User" Property="" Filterable="false" Title="" Width="8%">
+                    <RadzenDataGridColumn TItem="User" Title="" Width="7%">
                         <Template Context="data">
-                            <button class="btn" title="Info" @onclick="@(() => ShowDetails(data))">
+                            <button class="btn" title="Info" @onclick="@(()=> ShowDetails(data))">
                                 <FeatherInfo Color="blue" />
                             </button>
                         </Template>
@@ -59,109 +79,127 @@
                 </Columns>
             </RadzenDataGrid>
         </div>
-
-        @*<ListComponent OnClickEvent="GetRegisters" Response="response">
-        <SelectOptions>
-        <option value="">Estatus...</option>
-        <option value="ACTIVO">ACTIVOS</option>
-        <option value="SUSPENDIDO">SUSPENDIDOS</option>
-        </SelectOptions>
-        <TableHeader>
-        <th>Nombre Completo</th>
-        <th>Dni</th>
-        <th>Télefono</th>
-        <th>Rol</th>
-        <th></th>
-        </TableHeader>
-        <TableBody>
-        @if (Usuarios != null)
-        {
-        @foreach (Usuario Usuario in Usuarios)
-        {
-        <tr>
-        <td @onclick="@(()=> ShowDetails(Usuario))" style="cursor: pointer; color: blue; ">@Usuario.Names @Usuario.LastNames</td>
-        <td>@Usuario.Dni</td>
-        <td>@Usuario.Phone</td>
-        <td>@Usuario.Rol</td>
-        <td>
-        <a href="/ActualizarUsuario/@Usuario.Id" class="btn btn-warning" title="Editar">
-        <span class="oi oi-pencil" aria-hidden="true"></span>
-        </a> |
-        <a href="/EliminarUsuario/@Usuario.Id" class="btn btn-danger" title="Eliminar">
-        <span class="oi oi-trash" aria-hidden="true"></span>
-        </a>
-        </td>
-        </tr>
-        }
-        }
-        </TableBody>
-        </ListComponent>*@
     </AuthorizeView>
 </center>
 
 @code {
-
     [CascadingParameter] public IModalService Modal { get; set; }
 
-    ResponseForList response = new ResponseForList() { AllRegisters = 0 };
-    private IList<User> Usuarios;
+    private IList<User> Usuarios = new List<User>();
+    private int count = 0;
 
-    bool allowFiltering = false;
-
-
-    protected override async Task OnInitializedAsync()
-    {
-
-        GetRegisters("", "", 1, DateTime.UtcNow, DateTime.UtcNow);
-    }
-
-    private async void GetRegisters(string search, string status, int pageLocal, DateTime startDate, DateTime endDate)
-    {
-        if (search == "")
-            search = "TODO";
-        if (status == "")
-            status = "TODO";
-
-        var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
-        var result = await http.GetAsync($"api/Account/GetUsers/{search}/{status}/{pageLocal}");
-        switch (result.StatusCode)
-        {
-            case System.Net.HttpStatusCode.OK:
-                response = JsonSerializer.Deserialize<ResponseForList>(result.Content.ReadAsStringAsync().Result);
-                Usuarios = JsonSerializer.Deserialize<IList<User>>(response.EntitiesPricipal);
-                modal.Close();
-                break;
-            case System.Net.HttpStatusCode.NotFound:
-                response = new ResponseForList() { AllRegisters = 0 };
-                modal.Close();
-                break;
-            case System.Net.HttpStatusCode.Unauthorized:
-                uriHelper.NavigateTo("/Logout");
-                break;
-            default:
-                modal.Close();
-                Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(result.Content.ReadAsStringAsync().Result, "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
-                break;
-        }
-        StateHasChanged();
-    }
+    private bool allowFiltering = false;
 
     public void CambiarModoFiltro()
     {
         allowFiltering = !allowFiltering;
         StateHasChanged();
     }
+    private static string FirstNonEmpty(params string?[] values)
+    => values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? string.Empty;
 
-    private void ShowDetails(User Usuario)
+    private async Task LoadUsers(LoadDataArgs args)
     {
-        var modalOptions = new ModalOptions()
+        
+        // --- FIX CS0266: args.Top/Skip son int? ---
+        var top = args.Top ?? 5;  // debe coincidir con PageSize
+        var skip = args.Skip ?? 0;
+
+        int pageLocal = (skip > 0 && top > 0) ? (skip / top) + 1 : 1;
+
+        // --- FIX CS8121: no usamos CompositeFilterDescriptor, leemos desde args.Columns ---
+        var emailFilter = GetColumnFilter(args, "Email") ?? string.Empty;
+        var namesFilter = GetColumnFilter(args, "Names") ?? string.Empty;
+        var lastFilter = GetColumnFilter(args, "LastNames") ?? string.Empty;
+        var dniFilter = GetColumnFilter(args, "Dni") ?? string.Empty;
+        var statusFilter = GetColumnFilter(args, "Status") ?? string.Empty;
+        var globalFilter = args.Filter ?? string.Empty;
+
+        string search = FirstNonEmpty(emailFilter, namesFilter, lastFilter, dniFilter, globalFilter);
+
+        string searchParam = string.IsNullOrWhiteSpace(search) ? "TODO" : search;
+        string statusParam = string.IsNullOrWhiteSpace(statusFilter) ? "TODO" : statusFilter;
+
+        // El filtro global (si lo usás) lo consideramos como 'search' solo si no hay email específico
+
+        if (!string.IsNullOrWhiteSpace(search) && search.Length < 2)
         {
-        };
+            return;
+        }
 
-        var parameters = new ModalParameters();
-        parameters.Add(nameof(DetailsUsuario.Usuario), Usuario);
+        try
+        {
+            var resp = await http.GetAsync($"api/Account/GetUsers/{Uri.EscapeDataString(searchParam)}/{Uri.EscapeDataString(statusParam)}/{pageLocal}");
+            var payload = await resp.Content.ReadAsStringAsync();
 
-        Modal.Show<DetailsUsuario>("Detalles Del Usuario", parameters, modalOptions);
+            if (resp.IsSuccessStatusCode)
+            {
+                var wrapper = JsonSerializer.Deserialize<ResponseForList>(payload);
+                if (wrapper is null)
+                {
+                    Usuarios = new List<User>();
+                    count = 0;
+                }
+                else
+                {
+                    Usuarios = JsonSerializer.Deserialize<IList<User>>(wrapper.EntitiesPricipal) ?? new List<User>();
+                    count = wrapper.AllRegisters;
+                }
+            }
+            else if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                Usuarios = new List<User>();
+                count = 0;
+            }
+            else if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                uriHelper.NavigateTo("/Logout");
+            }
+            else
+            {
+                Modal.Show<ModalInfo>("Error",
+                    SharedModalOptions.SetParameterModalInfo(payload, "alert alert-danger"),
+                    SharedModalOptions.modalOptionsInfo);
+            }
+        }
+        catch (Exception ex)
+        {
+            Modal.Show<ModalInfo>("Error",
+                SharedModalOptions.SetParameterModalInfo(ex.Message, "alert alert-danger"),
+                SharedModalOptions.modalOptionsInfo);
+        }
+        finally
+        {
+
+            StateHasChanged();
+        }
     }
 
+    private static string? GetColumnFilter(LoadDataArgs args, string propertyName)
+    {
+        if (args.Filters == null) return null;
+
+        foreach (var fd in args.Filters.OfType<FilterDescriptor>())
+        {
+            if (string.Equals(fd.Property, propertyName, StringComparison.OrdinalIgnoreCase))
+                return fd.FilterValue?.ToString();
+        }
+
+        return null;
+    }
+
+    private void ShowDetails(User usuario)
+    {
+        var parameters = new ModalParameters();
+        parameters.Add(nameof(DetailsUsuario.Usuario), usuario);
+
+        Modal.Show<DetailsUsuario>("Detalles Del Usuario", parameters, new ModalOptions { });
+    }
+
+    private class ResponseForList
+    {
+        public string EntitiesPricipal { get; set; } = "[]";
+        public int AllRegisters { get; set; }
+        public int ActualPage { get; set; }
+    }
 }

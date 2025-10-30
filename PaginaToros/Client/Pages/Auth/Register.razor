@@ -35,12 +35,28 @@
             if (!result.IsSuccessStatusCode)
             {
                 wait.Close();
-                var msg = await result.Content.ReadAsStringAsync();
-                Modal.Show<ModalInfo>("Error",
-                    SharedModalOptions.SetParameterModalInfo(msg, "alert alert-danger"),
-                    SharedModalOptions.modalOptionsInfo);
+
+                var raw = await result.Content.ReadAsStringAsync();
+                var friendly = MapIdentityErrorToFriendly(raw);
+
+                if (friendly == "DUPLICATE_EMAIL")
+                {
+                    Modal.Show<ModalInfo>("Advertencia",
+                        SharedModalOptions.SetParameterModalInfo(
+                            "Este mail ya esta registrado en el sistema, por favor hacer el restablecimiento de contraseña.",
+                            "alert alert-warning"),
+                        SharedModalOptions.modalOptionsInfo);
+                }
+                else
+                {
+                    // fallback: mostramos lo que vino del backend (limpio)
+                    Modal.Show<ModalInfo>("Error",
+                        SharedModalOptions.SetParameterModalInfo(friendly, "alert alert-danger"),
+                        SharedModalOptions.modalOptionsInfo);
+                }
                 return;
             }
+
 
 
             var mailResp = await http.PostAsJsonAsync($"api/Account/SendMail2025?password={Uri.EscapeDataString(pswd)}", User);
@@ -100,5 +116,48 @@
             (arr[i], arr[j]) = (arr[j], arr[i]);
         }
         return new string(arr);
+    }
+
+
+    private sealed class IdentityErrorDto
+    {
+        public string? Code { get; set; }
+        public string? Description { get; set; }
+    }
+
+    private static string MapIdentityErrorToFriendly(string raw)
+    {
+        try
+        {
+            // Identity a veces devuelve: [{"code":"DuplicateUserName","description":"..."}]
+            var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var list = JsonSerializer.Deserialize<List<IdentityErrorDto>>(raw, opts);
+
+            if (list != null && list.Count > 0)
+            {
+                if (list.Any(e =>
+                    string.Equals(e.Code, "DuplicateUserName", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(e.Code, "DuplicateEmail", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return "DUPLICATE_EMAIL";
+                }
+
+                // Otros errores: devolvemos descripciones concatenadas
+                return string.Join("<br/>", list.Where(e => !string.IsNullOrWhiteSpace(e?.Description))
+                                                .Select(e => e!.Description));
+            }
+        }
+        catch
+        {
+            // Si no era JSON de Identity, seguimos abajo con heurística simple
+        }
+
+        if (raw.Contains("DuplicateUserName", StringComparison.OrdinalIgnoreCase) ||
+            raw.Contains("DuplicateEmail", StringComparison.OrdinalIgnoreCase))
+        {
+            return "DUPLICATE_EMAIL";
+        }
+
+        return raw; 
     }
 }
