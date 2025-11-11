@@ -1,151 +1,220 @@
 ﻿@using Blazored.Typeahead
-@using PaginaToros.Client.Servicios.Contrato;
+@using PaginaToros.Client.Servicios.Contrato
+@using System.ComponentModel.DataAnnotations
+
 @inject IResin3Servicio _resin3Servicio
+
 <style>
-    .bm-title{
-        font-size:25px;
+    .bm-title {
+        font-size: 25px;
         font-weight: bold;
     }
+
+    .text-danger {
+        color: red;
+        font-size: 0.9rem;
+    }
 </style>
-<div class="card" >
+
+<div class="card">
     <div class="card-body">
-        <EditForm Model="@oResin3" OnValidSubmit="Guardar">
+        <EditForm Model="@formVM" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
+
             <div class="row" style="width=100%;">
                 <div class="col-sm-5">
                     <label>Tipo de Movimiento</label>
-                    <RadzenDropDown @bind-Value=@movimiento Placeholder="Seleccione el movimiento" Data=@movimientos Style="width: 100%; max-width: 400px;" />
+                    <RadzenDropDown @bind-Value="@formVM.Movimiento"
+                                    Placeholder="Seleccione el movimiento"
+                                    Data="@movimientos"
+                                    Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="()=>formVM.Movimiento" class="text-danger" />
                 </div>
-                <div class="col-sm-2"/>
+
+                <div class="col-sm-2" />
+
                 <div class="col-sm-5">
                     <label>Motivo del movimiento</label>
-                    <RadzenDropDown @bind-Value=@motivo Placeholder="Seleccione el motivo" Data=@motivos Style="width: 100%; max-width: 400px;" />
-                </div>
-            </div>
-            <br/>
-            <div class="row" style="width=100%;">
-                <div class="col-sm-3" />
-                <div class="col-sm-6" >
-                    <RadzenText TextStyle="TextStyle.H5" Style="background:#008000;color:white;text-align:center">PURO REGISTRADO</RadzenText>
-                </div>
-                <div class="col-sm-3" />
-            </div>
-            <br />
-            <div class="row" style="width=100%;">
-                <div class="col-sm-4">
-                    <label>Vacas</label>
-                    <RadzenNumeric @bind-Value=@oResin3.Rdvac Style="width: 100%; max-width: 400px;" />
-                </div>
-                <div class="col-sm-4">
-                    <label>Vaquillonas c/Servicio:</label>
-                    <RadzenNumeric @bind-Value=@oResin3.Rdvaqcs Style="width: 100%; max-width: 400px;" />
-                </div>
-                <div class="col-sm-4">
-                    <label>Vaquillonas sin servicio</label>
-                    <RadzenNumeric @bind-Value=@oResin3.Rdvaqss Style="width: 100%; max-width: 400px;" />
-                </div>
-            </div>
-            <br/>
-            <br/>
-            <div class="row" style="width=100%;">
-                <div class="col-sm-3" />
-                <div class="col-sm-6">
-                    <RadzenText TextStyle="TextStyle.H5" Style="background:#008000;color:white;text-align:center">VIP</RadzenText>
-                </div>
-                <div class="col-sm-3" />
-            </div>
-            <br/>
-            <div class="row" style="width=100%;">
-                <div class="col-sm-4">
-                    <label>Vacas</label>
-                    <RadzenNumeric @bind-Value=@oResin3.Rpvac Style="width: 100%; max-width: 400px;" />
-                </div>
-                <div class="col-sm-4">
-                    <label>Vaquillonas con servicio o preñadas </label>
-                    <RadzenNumeric @bind-Value=@oResin3.Rpvaqcs Style="width: 100%; max-width: 400px;" />
-                </div>
-                <div class="col-sm-4">
-                    <label>Vaquillonas sin servicio</label>
-                    <RadzenNumeric @bind-Value=@oResin3.Rpvaqss Style="width: 100%; max-width: 400px;" />
+                    <RadzenDropDown @bind-Value="@formVM.Motivo"
+                                    Placeholder="Seleccione el motivo"
+                                    Data="@motivos"
+                                    Style="width: 100%; max-width: 400px;" />
+                    <ValidationMessage For="()=>formVM.Motivo" class="text-danger" />
                 </div>
             </div>
 
             <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm-3" />
+                <div class="col-sm-6">
+                    <RadzenText TextStyle="TextStyle.H5"
+                                Style="background:#008000;color:white;text-align:center">
+                        PURO REGISTRADO
+                    </RadzenText>
+                </div>
+                <div class="col-sm-3" />
+            </div>
+
             <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm-4">
+                    <label>Vacas</label>
+                    <RadzenNumeric @bind-Value="@formVM.Rdvac" Style="width: 100%; max-width: 400px;" />
+                </div>
+                <div class="col-sm-4">
+                    <label>Vaquillonas c/Servicio</label>
+                    <RadzenNumeric @bind-Value="@formVM.Rdvaqcs" Style="width: 100%; max-width: 400px;" />
+                </div>
+                <div class="col-sm-4">
+                    <label>Vaquillonas sin servicio</label>
+                    <RadzenNumeric @bind-Value="@formVM.Rdvaqss" Style="width: 100%; max-width: 400px;" />
+                </div>
+            </div>
+
+            <br /><br />
+
+            <div class="row" style="width=100%;">
+                <div class="col-sm-3" />
+                <div class="col-sm-6">
+                    <RadzenText TextStyle="TextStyle.H5"
+                                Style="background:#008000;color:white;text-align:center">
+                        VIP
+                    </RadzenText>
+                </div>
+                <div class="col-sm-3" />
+            </div>
+
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm-4">
+                    <label>Vacas</label>
+                    <RadzenNumeric @bind-Value="@formVM.Rpvac" Style="width: 100%; max-width: 400px;" />
+                </div>
+                <div class="col-sm-4">
+                    <label>Vaquillonas con servicio o preñadas</label>
+                    <RadzenNumeric @bind-Value="@formVM.Rpvaqcs" Style="width: 100%; max-width: 400px;" />
+                </div>
+                <div class="col-sm-4">
+                    <label>Vaquillonas sin servicio</label>
+                    <RadzenNumeric @bind-Value="@formVM.Rpvaqss" Style="width: 100%; max-width: 400px;" />
+                </div>
+            </div>
+
+            <ValidationMessage For="()=>formVM.Rdvac" class="text-danger" />
+
+            <br /><br />
             <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
             <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
         </EditForm>
     </div>
 </div>
+
 @code {
-    Resin3DTO oResin3 = new()
-    {
-        Rdvac = 0,
-        Rdvaqcs = 0,
-        Rdvaqss = 0,
-        Rpvac = 0,
-        Rpvaqcs = 0,
-        Rpvaqss = 0 
-    };
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public string numeroRes { get; set; }
-    List<string> movimientos = new List<string> { "Entrada","Salida"};
-    string movimiento = "";
-    List<string> motivos = new List<string> { "Compras", "Ventas", "Cambio Categoria", "Por Inspeccion", "Epidemias", "Rechazos", "Otros", "Reinspeccion","Ajuste" };
-    string motivo = "";
-    Dictionary<string, string> traductorMotivos = new Dictionary<string, string>{
-        {"Compras","CO"},
-        {"Ventas","VE"},
-        {"Cambio Categoria","CC"},
-        {"Por Inspeccion","PI"},
-        {"Epidemias","EP"},
-        {"Rechazos","RE"},
-        {"Otros","OT"},
-        {"Reinspeccion","RI"},
-        {"Ajuste","AJ"},
-        {"E","Entrada"},
-        {"S","Salida"}
+
+    Resin3DTO oResin3 = new();
+    MovimientoFormVM formVM = new();
+
+    List<string> movimientos = new() { "Entrada", "Salida" };
+    List<string> motivos = new()
+    {
+        "Compras", "Ventas", "Cambio Categoria", "Por Inspeccion", "Epidemias",
+        "Rechazos", "Otros", "Reinspeccion", "Ajuste"
     };
-    Dictionary<string, string> traductorInverso;
+
+    Dictionary<string, string> traductorMotivos = new()
+    {
+        {"Compras","CO"}, {"Ventas","VE"}, {"Cambio Categoria","CC"},
+        {"Por Inspeccion","PI"}, {"Epidemias","EP"}, {"Rechazos","RE"},
+        {"Otros","OT"}, {"Reinspeccion","RI"}, {"Ajuste","AJ"},
+        {"E","Entrada"}, {"S","Salida"}
+    };
+
+    Dictionary<string, string> traductorInverso = new();
 
     protected override async Task OnInitializedAsync()
     {
-        traductorInverso = traductorMotivos.ToDictionary(pair => pair.Value, pair => pair.Key);
+        traductorInverso = traductorMotivos.ToDictionary(x => x.Value, x => x.Key);
+
         if (Id != 0)
         {
             try
             {
                 string filtro = $"Id = {Id}";
-                var rt = await _resin3Servicio.LimitadosFiltrados(0, 0,filtro);
-                oResin3 = rt.List.FirstOrDefault();
-                movimiento = traductorMotivos[oResin3.Tipmov];
-                motivo = traductorInverso[oResin3.Ctomov];
+                var rt = await _resin3Servicio.LimitadosFiltrados(0, 0, filtro);
+                oResin3 = rt.List.FirstOrDefault() ?? new Resin3DTO();
+
+                formVM = new MovimientoFormVM
+                    {
+                        Movimiento = oResin3.Tipmov == "E" ? "Entrada" : "Salida",
+                        Motivo = traductorInverso.ContainsKey(oResin3.Ctomov) ? traductorInverso[oResin3.Ctomov] : "",
+                        Rdvac = oResin3.Rdvac,
+                        Rdvaqcs = oResin3.Rdvaqcs,
+                        Rdvaqss = oResin3.Rdvaqss,
+                        Rpvac = oResin3.Rpvac,
+                        Rpvaqcs = oResin3.Rpvaqcs,
+                        Rpvaqss = oResin3.Rpvaqss
+                    };
             }
-            catch (Exception ex)
-            {
-            }
+            catch { }
         }
     }
+
     async Task Guardar()
     {
+        // Mapear de VM a DTO
         oResin3.Nrores = numeroRes;
-        oResin3.Tipmov = movimiento.Substring(0, 1);
-        oResin3.Ctomov = traductorMotivos[motivo];
+        oResin3.Tipmov = formVM.Movimiento == "Entrada" ? "E" : "S";
+        oResin3.Ctomov = traductorMotivos[formVM.Motivo];
+
+        oResin3.Rdvac = formVM.Rdvac;
+        oResin3.Rdvaqcs = formVM.Rdvaqcs;
+        oResin3.Rdvaqss = formVM.Rdvaqss;
+        oResin3.Rpvac = formVM.Rpvac;
+        oResin3.Rpvaqcs = formVM.Rpvaqcs;
+        oResin3.Rpvaqss = formVM.Rpvaqss;
+
         if (Id == 0)
-        {
             await _resin3Servicio.Crear(oResin3);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-        }
         else
-        {
             await _resin3Servicio.Editar(oResin3);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-        }
+
+        await ModalInstance.CloseAsync(ModalResult.Ok("Form submitted successfully."));
     }
+
     async Task cancel()
     {
-        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+        await ModalInstance.CloseAsync(ModalResult.Ok("Form cancelled"));
+    }
 
+    // === ViewModel con validaciones ===
+    public class MovimientoFormVM : IValidatableObject
+    {
+        [Required(ErrorMessage = "El tipo de movimiento es obligatorio.")]
+        public string Movimiento { get; set; } = "";
+
+        [Required(ErrorMessage = "El motivo del movimiento es obligatorio.")]
+        public string Motivo { get; set; } = "";
+
+        public double? Rdvac { get; set; }
+        public double? Rdvaqcs { get; set; }
+        public double? Rdvaqss { get; set; }
+        public double? Rpvac { get; set; }
+        public double? Rpvaqcs { get; set; }
+        public double? Rpvaqss { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            double? total = Rdvac + Rdvaqcs + Rdvaqss + Rpvac + Rpvaqcs + Rpvaqss;
+            if (total <= 0)
+            {
+                yield return new ValidationResult(
+                    "Debe ingresar al menos un valor mayor a 0 en alguno de los campos numéricos.",
+                    new[] { nameof(Rdvac) }
+                );
+            }
+        }
     }
 }
