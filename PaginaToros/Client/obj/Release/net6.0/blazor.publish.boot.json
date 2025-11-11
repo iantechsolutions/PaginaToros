@@ -1,7 +1,7 @@
 {
   "entryAssembly": "PaginaToros.Client",
   "resources": {
-    "hash": "sha256-UHPJXnRpRolh8/RBdMozQIFxsKBhzgwkzHLW20fdNAA=",
+    "hash": "sha256-WNlEuJqw9vssmg1qWknqp96U9q9VXglcivrbQLxjmR4=",
     "runtime": {
       "dotnet.6.0.30.ya1fxxfwsd.js": "sha256-45+wyMAt9YjYwF4PikeWhYvv/KKuYEMhwoXqAPu6iQM=",
       "dotnet.timezones.blat": "sha256-vrFYQt55a4tGoDGoyRfjjGa1nSecx646RK78iTzPWCM=",
@@ -29,9 +29,9 @@
       "Microsoft.AspNetCore.Authentication.dll": "sha256-DFfNBJMZfGVkHC93DoJ07/nLtUo9ZomWWrRGKVnRTII=",
       "Microsoft.AspNetCore.Authorization.dll": "sha256-uXLoDDsOOarcr8aUMBjBirztSgmX3FeCjMvwf0xFIfE=",
       "Microsoft.AspNetCore.Components.Authorization.dll": "sha256-s9oU5uJ4O8kvzkW+22IkSPAHRaVs2p0kaDUq6W/iCfc=",
-      "Microsoft.AspNetCore.Components.dll": "sha256-h6/Pq/gqDMsuwJNVWoL/HjvzsBeqURFQFfD/SInenjE=",
-      "Microsoft.AspNetCore.Components.Forms.dll": "sha256-W7PmOTOYgV938bFIxLMK8dqTAd8XDrRJCdJ1OB9wLiM=",
-      "Microsoft.AspNetCore.Components.Web.dll": "sha256-WISj/7IS0JBrsFCr/5tSeCrYkUFrb6HNNBYYn/RIFEI=",
+      "Microsoft.AspNetCore.Components.dll": "sha256-O9pXTs0YnVOtToVepnIbhSu7S7DfK+EBXDKCeD/oiSs=",
+      "Microsoft.AspNetCore.Components.Forms.dll": "sha256-srACdXWkxXnsQ65jVv0STIJf1b/cwgLRoF2Y4SKAZN0=",
+      "Microsoft.AspNetCore.Components.Web.dll": "sha256-OzVLt6TfqcOcMWZH6ZWQiO8JzKkGBu32bb+v4tlRw/I=",
       "Microsoft.AspNetCore.Components.WebAssembly.dll": "sha256-MXlWxuUgTFsCaAF0SJWXcB2cnb5Bo8p3LZu2Pzp4jug=",
       "Microsoft.AspNetCore.Cryptography.Internal.dll": "sha256-qvEKQrMxMRYjghAfz7fNse3mq59lZAkKr1QXQARn9jo=",
       "Microsoft.AspNetCore.DataProtection.Abstractions.dll": "sha256-5WvGaHLGBQmy36Y6mUYp9pYXH8o8TuUf2NXH0QwStX8=",
@@ -70,7 +70,7 @@
       "Microsoft.Win32.Registry.dll": "sha256-Gud3JZRqExGKPm2u9sjxynPWv8Af6qXMY4pue7j0DOk=",
       "netstandard.dll": "sha256-kiRAudjkQSnONvj+6wS3qimAU8FMkHuveTw+ohixrTQ=",
       "Newtonsoft.Json.dll": "sha256-IsZJ91/OW+fHzNqIgEc7Y072ns8z9dGritiSyvR9Wgc=",
-      "PaginaToros.Client.dll": "sha256-hcMMApZYrEpq+ltdlyAFKrLFRZFRIQFCOowVUj0JmK4=",
+      "PaginaToros.Client.dll": "sha256-rFloRZJjdMYvpAnDWGGGNeLUSAO+LUcB+IS+g389qQs=",
       "PaginaToros.Shared.dll": "sha256-6hUGmen3qc+zM7JU7ENSRkHqrtHSKgqJpiIvA8uIftc=",
       "Radzen.Blazor.dll": "sha256-d5FYbYnR0OiuOlYZfKhRTnUlGeYEwPHi4n6Fmg3xTP4=",
       "RBush.dll": "sha256-RtD7+x2yCF3B3T5Cuk3GGfSMYSg/DuxLgNfQ/N7PG7Y=",

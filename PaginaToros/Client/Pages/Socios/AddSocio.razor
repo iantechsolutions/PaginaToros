@@ -1,6 +1,8 @@
 ﻿@using Blazored.Typeahead
 @using PaginaToros.Client.Servicios.Contrato;
 @using System.Text
+@using System.Security.Cryptography;
+
 @inject HttpClient http
 @inject NavigationManager uriHelper
 @inject ISocioServicio _socioServicio
@@ -354,165 +356,159 @@
 
 
 
-    public class ResetPasswordModel
-    {
-        public int UserId { get; set; }
-        public string Password { get; set; }
-        public string Email { get; set; }
-    }
-    public class ResetEmailModel
-    {
-        public int UserId { get; set; }
-        public string email { get; set; }
-    }
-    public string GenerateRandomPassword(int length)
-    {
-        StringBuilder sb = new StringBuilder();
+            public class SendResetMailRequest
+            {
+                public User Usuario { get; set; }
+                public string NuevaContrasena { get; set; }
+            }
+           public class ResetPasswordModel
+            {
+                public int UserId { get; set; }
+                public string Email { get; set; }
+                public string Password { get; set; }
+            }
 
-
-        for (int i = 0; i < length; i++)
+         private async Task ChangeEmail()
         {
-            int randomIndex = random.Next(validChars.Length);
-            sb.Append(validChars[randomIndex]);
-        }
+            if (email == Usuario.Email)
+            {
+                await Swal.FireAsync(new SweetAlertOptions {
+                    Title = "Error",
+                    Text = "Modifique el mail para poder realizar el cambio",
+                    ConfirmButtonText = "Aceptar",
+                });
+                return;
+            }
 
-        return sb.ToString();
-    }
+            var confirm = await Swal.FireAsync(new SweetAlertOptions {
+                Title = "Confirmación",
+                Text = "¿Está seguro de enviar el mail de inscripción?",
+                Icon = "warning",
+                ShowCancelButton = true,
+                ConfirmButtonText = "Sí, enviar",
+                CancelButtonText = "Cancelar"
+            });
+            if (!confirm.IsConfirmed) return;
 
-    private async Task ChangeEmail()
-{
-    Console.WriteLine(Usuario.Email);
-    Console.WriteLine(email);
+            // Opcional: guardar cambios del socio antes de operar
+            await Guardar(); // si esto cierra el modal actual, no hay drama, seguimos el flujo.
 
-    if (email == Usuario.Email)
-    {
-        await Swal.FireAsync(new SweetAlertOptions
-        {
-            Title = "Error",
-            Text = "Modifique el mail para poder realizar el cambio",
-            ShowCancelButton = true,
-            ConfirmButtonText = "Aceptar",
-        });
-    }
-    else
-    {
-        // Alerta de confirmación antes de enviar el mail
-        var confirmResult = await Swal.FireAsync(new SweetAlertOptions
-        {
-            Title = "Confirmación",
-            Text = "¿Está seguro de enviar el mail de inscripción?",
-            Icon = "warning",
-            ShowCancelButton = true,
-            ConfirmButtonText = "Sí, enviar",
-            CancelButtonText = "Cancelar"
-        });
-
-        // Si el usuario confirma, se procede con el envío
-        if (confirmResult.IsConfirmed)
-        {
-            Console.WriteLine("Entro");
-
-
-            await Guardar();
-
-            var pswd = GenerateRandomPassword(random.Next(7, 11));
-
+            var pswd = GenerateRandomPassword(random.Next(10, 14));
+            // Completar datos del usuario
             Usuario.Email = email;
             Usuario.Phone = oSocio.Telefo1;
             Usuario.Names = oSocio.Nombre;
-            Usuario.Dni = oSocio.Mail;
             Usuario.LastNames = oSocio.Nombre;
+            Usuario.Dni = "0";
             Usuario.Rol = "Socio";
             Usuario.SocioId = oSocio.Id;
 
-            Console.WriteLine($"Enviando usuario: {JsonSerializer.Serialize(Usuario)}");
+            var wait = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
 
-            var result = await http.PostAsJsonAsync<User>($"api/Account/CreateUser?password={pswd}", Usuario);
-
-              if (result.IsSuccessStatusCode)
+            try
             {
-                var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendMail2025?password={pswd}", Usuario);
-            }
-           else
-            {
-                Console.WriteLine("Error al crear usuario. No se enviará el correo.");
+                // 1) Crear usuario (flujo inscripción)
+                var createResp = await http.PostAsJsonAsync($"api/Account/CreateUser?password={pswd}", Usuario);
 
-                var errorMail = await Swal.FireAsync(new SweetAlertOptions
+                if (createResp.IsSuccessStatusCode)
                 {
-                    Title = "Mail registrado!",
-                    Text = "Desea cambiar la contraseña y enviar un mail de restablecimiento?",
+                    // 1.a) Enviar mail de inscripción
+                    var mailInscripcion = await http.PostAsJsonAsync($"api/Account/SendMail2025?password={pswd}", Usuario);
+                    wait.Close();
+
+                    if (mailInscripcion.IsSuccessStatusCode)
+                    {
+                        await Swal.FireAsync(new SweetAlertOptions {
+                            Title = "Éxito",
+                            Text = "Usuario creado y mail de inscripción enviado.",
+                            Icon = "success",
+                            ConfirmButtonText = "Aceptar"
+                        });
+                    }
+                    else
+                    {
+                        var msg = await mailInscripcion.Content.ReadAsStringAsync();
+                        await Swal.FireAsync(new SweetAlertOptions {
+                            Title = "Advertencia",
+                            Text = $"Usuario creado, pero falló el envío del correo de inscripción.\n{msg}",
+                            Icon = "warning",
+                            ConfirmButtonText = "Aceptar"
+                        });
+                    }
+                    return;
+                }
+
+                // 2) Usuario existente → resetear contraseña y enviar mail de reset
+                var askReset = await Swal.FireAsync(new SweetAlertOptions {
+                    Title = "Usuario registrado",
+                    Text = "¿Desea cambiar la contraseña y enviar un mail de restablecimiento?",
                     Icon = "warning",
                     ShowCancelButton = true,
                     ConfirmButtonText = "Sí, enviar",
                     CancelButtonText = "Cancelar"
                 });
+                if (!askReset.IsConfirmed) { wait.Close(); return; }
 
-                if (errorMail.IsConfirmed)
+               var resetPayload = new ResetPasswordModel
                 {
+                    UserId  = Usuario.Id,          
+                    Email   = Usuario.Email,
+                    Password = pswd
+                };
 
-
-                        var payload = new ResetPasswordModel { UserId = Usuario.Id, Password = pswd, Email= Usuario.Email };
-                    Console.WriteLine(3);
-                    var resultReset = await http.PutAsJsonAsync<ResetPasswordModel>("api/Account/ResetPassword", payload);
-                    var resetResult = await http.PostAsJsonAsync<User>($"api/Account/SendResetMail?nuevaContraseña={pswd}", Usuario);
-
-                    if (resetResult.IsSuccessStatusCode)
-                    {
-                        await Swal.FireAsync(new SweetAlertOptions
-                        {
-                            Title = "Éxito",
-                            Text = "El mail de restablecimiento ha sido enviado.",
-                            Icon = "success",
-                            ConfirmButtonText = "Aceptar",
-                        });
-                    }
-                    else
-                    {
-                        await Swal.FireAsync(new SweetAlertOptions
-                        {
-                            Title = "Error",
-                            Text = "No se pudo enviar el mail de restablecimiento.",
-                            Icon = "error",
-                            ConfirmButtonText = "Aceptar",
-                        });
-                    }
+                var resetResp = await http.PutAsJsonAsync("api/Account/ResetPassword", resetPayload);
+                if (!resetResp.IsSuccessStatusCode)
+                {
+                    wait.Close();
+                    var msg = await resetResp.Content.ReadAsStringAsync();
+                    await Swal.FireAsync(new SweetAlertOptions {
+                        Title = "Error",
+                        Text = $"No se pudo actualizar la contraseña.\n{msg}",
+                        Icon = "error",
+                        ConfirmButtonText = "Aceptar"
+                    });
+                    return;
                 }
-}
-            // var result2 = await http.PostAsJsonAsync<User>($"api/Account/SendMail2025?password={pswd}", Usuario);
-            var modal = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
 
-            Console.WriteLine(5);
-            switch (result.StatusCode)
-            {
-                case System.Net.HttpStatusCode.OK:
-                    if (logout)
-                    {
-                        uriHelper.NavigateTo("/Logout");
-                    }
-                    else
-                    {
-                        modal.Close();
-                    }
-                    break;
-                case System.Net.HttpStatusCode.Unauthorized:
-                    uriHelper.NavigateTo("/Logout");
-                    break;
-                default:
-                    modal.Close();
-                    break;
+                var mailReq = new SendResetMailRequest {
+                    Usuario = Usuario,
+                    NuevaContrasena = pswd
+                };
+                var mailResetResp = await http.PostAsJsonAsync("api/Account/SendResetMail", mailReq);
+
+                wait.Close();
+
+                if (mailResetResp.IsSuccessStatusCode)
+                {
+                    await Swal.FireAsync(new SweetAlertOptions {
+                        Title = "Éxito",
+                        Text = "La contraseña se actualizó y se envió el correo de restablecimiento.",
+                        Icon = "success",
+                        ConfirmButtonText = "Aceptar"
+                    });
+                }
+                else
+                {
+                    var msg = await mailResetResp.Content.ReadAsStringAsync();
+                    await Swal.FireAsync(new SweetAlertOptions {
+                        Title = "Advertencia",
+                        Text = $"La contraseña se actualizó, pero falló el envío del correo.\n{msg}",
+                        Icon = "warning",
+                        ConfirmButtonText = "Aceptar"
+                    });
+                }
             }
-
-            await Swal.FireAsync(new SweetAlertOptions
+            catch (Exception ex)
             {
-                Title = "Éxito",
-                Text = "El cambio de mail se realizó con éxito",
-                Icon = "success",
-                ConfirmButtonText = "Aceptar",
-            });
+                wait.Close();
+                await Swal.FireAsync(new SweetAlertOptions {
+                    Title = "Error inesperado",
+                    Text = ex.Message,
+                    Icon = "error",
+                    ConfirmButtonText = "Aceptar"
+                });
+            }
         }
-    }
-}
-
 
 
 private async Task<bool> ValidarObligatorios()
@@ -582,5 +578,34 @@ private async Task<bool> ValidarObligatorios()
 
 
 
+// Password SIEMPRE en MAYÚSCULAS + dígitos
+    public static string GenerateRandomPassword(int length)
+    {
+        const string UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string DIGITS = "0123456789";
+        string ALL = UPPER + DIGITS;
 
+        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+        int Next(int max)
+        {
+            Span<byte> b = stackalloc byte[4];
+            rng.GetBytes(b);
+            return (int)(BitConverter.ToUInt32(b) % (uint)max);
+        }
+
+        var sb = new StringBuilder();
+        sb.Append(UPPER[Next(UPPER.Length)]);
+        sb.Append(DIGITS[Next(DIGITS.Length)]);
+
+        while (sb.Length < Math.Max(length, 10))
+            sb.Append(ALL[Next(ALL.Length)]);
+
+        var arr = sb.ToString().ToCharArray();
+        for (int i = 0; i < arr.Length; i++)
+        {
+            int j = Next(arr.Length);
+            (arr[i], arr[j]) = (arr[j], arr[i]);
+        }
+        return new string(arr);
+    }
 }

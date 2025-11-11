@@ -137,7 +137,7 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-1\/Kr\/q9wSSu3NVooA6G\/G29tzpI+mlUKoC72Sitzbdg=",
+      "hash": "sha256-eTNmLMosM3F+XynmStEX50gBRzjdyfoOh1Uweiv\/0Js=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -213,15 +213,15 @@
       "url": "_framework\/Microsoft.AspNetCore.Components.Authorization.dll"
     },
     {
-      "hash": "sha256-h6\/Pq\/gqDMsuwJNVWoL\/HjvzsBeqURFQFfD\/SInenjE=",
+      "hash": "sha256-O9pXTs0YnVOtToVepnIbhSu7S7DfK+EBXDKCeD\/oiSs=",
       "url": "_framework\/Microsoft.AspNetCore.Components.dll"
     },
     {
-      "hash": "sha256-W7PmOTOYgV938bFIxLMK8dqTAd8XDrRJCdJ1OB9wLiM=",
+      "hash": "sha256-srACdXWkxXnsQ65jVv0STIJf1b\/cwgLRoF2Y4SKAZN0=",
       "url": "_framework\/Microsoft.AspNetCore.Components.Forms.dll"
     },
     {
-      "hash": "sha256-WISj\/7IS0JBrsFCr\/5tSeCrYkUFrb6HNNBYYn\/RIFEI=",
+      "hash": "sha256-OzVLt6TfqcOcMWZH6ZWQiO8JzKkGBu32bb+v4tlRw\/I=",
       "url": "_framework\/Microsoft.AspNetCore.Components.Web.dll"
     },
     {
@@ -377,7 +377,7 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-hcMMApZYrEpq+ltdlyAFKrLFRZFRIQFCOowVUj0JmK4=",
+      "hash": "sha256-rFloRZJjdMYvpAnDWGGGNeLUSAO+LUcB+IS+g389qQs=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
@@ -1001,5 +1001,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "HMJCseUF"
+  "version": "sUkmGhOy"
 };
