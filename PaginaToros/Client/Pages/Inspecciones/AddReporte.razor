@@ -1232,7 +1232,7 @@
 
                 if (createNewPlantel)
                 {
-                    var destino = await updatePlantel(subirDeAnio: true);
+                var destino = await updatePlantel(_subirDeAnioNoSeUsa: true);
                     oResin1.Nropla = destino.Placod;
                     await _resin1Servicio.Editar(oResin1);
                     await EsperarActualizacionNropla(Id, destino.Placod);
@@ -1347,7 +1347,7 @@
                 await updateMovimientos(nrores, "si");
 
                 // Persistir en plantel: solo subir de año si todavía está tildado
-                var destino = await updatePlantel(subirDeAnio: createNewPlantel);
+            var destino = await updatePlantel(_subirDeAnioNoSeUsa: createNewPlantel);
 
                 // Si acabo de crear/migrar, apunto el informe al nuevo plantel y APAGO el flag
                 if (createNewPlantel && !string.IsNullOrWhiteSpace(oResin1?.Nrores))
@@ -1376,7 +1376,7 @@
 
 
 
-    async Task<PlantelDTO> updatePlantel(bool subirDeAnio)
+    async Task<PlantelDTO> updatePlantel(bool _subirDeAnioNoSeUsa)
     {
         if (Plantelseleccionado is null) throw new InvalidOperationException("No hay plantel seleccionado.");
         if (socioSeleccionado is null) throw new InvalidOperationException("No hay socio seleccionado.");
@@ -1384,13 +1384,17 @@
         var planViejo = Plantelseleccionado!;
         var socio = socioSeleccionado!;
 
-        int anioBase = ExtraerAnio(planViejo.Anioex);
-        string anioDestino = (subirDeAnio ? anioBase + 1 : anioBase).ToString();
+        var inspectionYear = GetInspectionYear();
+        var anioDestino = inspectionYear.ToString();
 
+        // Refrescamos listado de planteles
         var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
         Planteles = plan.List;
 
+        // Buscamos si ya existe plantel del socio para ese año
         var planDestino = Planteles.FirstOrDefault(x => x.Anioex == anioDestino && x.Nrocri == socio.Scod);
+
+        // El prefijo del código = último dígito del año de inspección (2024 => '4')
         var ultimoDigito = anioDestino.Last();
 
         if (planDestino != null)
@@ -1407,10 +1411,8 @@
         else
         {
             var tailAnterior = DerivarTailCodigo(planViejo.Placod);
-
             if (string.IsNullOrWhiteSpace(tailAnterior))
                 tailAnterior = DerivarTailCodigo(socio.Placod);
-
             if (string.IsNullOrWhiteSpace(tailAnterior))
                 tailAnterior = planViejo.Placod?.Trim() ?? socio.Placod?.Trim() ?? "";
 
@@ -1418,7 +1420,8 @@
 
             planDestino = new PlantelDTO
                 {
-                    Anioex = anioDestino,
+                    Anioex = anioDestino,        
+                    Placod = nuevoPlacod,       
                     Varede = estadoFinal.Ea1,
                     Vqcsrd = estadoFinal.Ea2,
                     Vqssrd = estadoFinal.Ea3,
@@ -1426,7 +1429,6 @@
                     Vqcsrp = estadoFinal.Ea5,
                     Vqssrp = estadoFinal.Ea6,
                     Nrocri = planViejo.Nrocri,
-                    Placod = nuevoPlacod, 
                     Estado = planViejo.Estado,
                     Fecing = planViejo.Fecing ?? "",
                     Nroins = planViejo.Nroins
@@ -1439,24 +1441,12 @@
         Plantelseleccionado = planDestino;
         return planDestino;
 
-        static int ExtraerAnio(string anioex)
-        {
-            if (int.TryParse(anioex, out var y)) return y;
-            var m = Regex.Match(anioex ?? "", @"\d{4}");
-            return m.Success ? int.Parse(m.Value) : DateTime.Now.Year;
-        }
-
         static string DerivarTailCodigo(string? codigo)
         {
             var c = (codigo ?? "").Trim();
             if (string.IsNullOrEmpty(c)) return "";
-
-            if (c.Length > 4 && char.IsDigit(c[0]))
-                c = c.Substring(1);
-
-            if (c.Length > 4)
-                c = c.Substring(c.Length - 4);
-
+            if (c.Length > 4 && char.IsDigit(c[0])) c = c.Substring(1);
+            if (c.Length > 4) c = c.Substring(c.Length - 4);
             return c;
         }
     }
@@ -1589,7 +1579,7 @@
             if (!string.IsNullOrWhiteSpace(nrores))
             {
                 await updateMovimientos(nrores, "si");
-                await updatePlantel(subirDeAnio: false); 
+            await updatePlantel(_subirDeAnioNoSeUsa: false);
             }
         }
 
@@ -1712,7 +1702,7 @@
             // 5) Crear/actualizar plantel si corresponde
             if (createNewPlantel)
             {
-                var destino = await updatePlantel(subirDeAnio: true); // crea/actualiza 2025D1D1
+                var destino = await updatePlantel(_subirDeAnioNoSeUsa: true); // crea/actualiza 2025D1D1
                 Plantelseleccionado = destino;                         // reflejar en UI
 
                 // Forzar asociación del RESULTADO al NUEVO plantel
@@ -1750,7 +1740,11 @@
 
 
 
-
+    int GetInspectionYear()
+    {
+        var fecha = oResin1?.Freali ?? fechaTemp;
+        return (fecha == default ? DateTime.Now : fecha).Year;
+    }
 
 
         public async Task alertaDeleteRechazo(int id)
