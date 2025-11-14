@@ -1378,27 +1378,36 @@
 
     async Task<PlantelDTO> updatePlantel(bool _subirDeAnioNoSeUsa)
     {
-        if (Plantelseleccionado is null) throw new InvalidOperationException("No hay plantel seleccionado.");
-        if (socioSeleccionado is null) throw new InvalidOperationException("No hay socio seleccionado.");
+        if (socioSeleccionado is null)
+            throw new InvalidOperationException("No hay socio seleccionado.");
 
-        var planViejo = Plantelseleccionado!;
         var socio = socioSeleccionado!;
-
         var inspectionYear = GetInspectionYear();
         var anioDestino = inspectionYear.ToString();
 
-        // Refrescamos listado de planteles
+        // Refrescar listado de planteles
         var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
         Planteles = plan.List;
 
-        // Buscamos si ya existe plantel del socio para ese año
-        var planDestino = Planteles.FirstOrDefault(x => x.Anioex == anioDestino && x.Nrocri == socio.Scod);
+        PlantelDTO? planDestino = null;
 
-        // El prefijo del código = último dígito del año de inspección (2024 => '4')
+        // 1) PRIORIDAD: plantel asociado al resultado
+        if (!string.IsNullOrWhiteSpace(oResin1?.Nropla))
+        {
+            planDestino = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla);
+        }
+
+        // 2) Si no se encontró, recién ahí usar Año + Socio
+        if (planDestino == null)
+        {
+            planDestino = Planteles.FirstOrDefault(x => x.Anioex == anioDestino && x.Nrocri == socio.Scod);
+        }
+
         var ultimoDigito = anioDestino.Last();
 
         if (planDestino != null)
         {
+            // Actualizar plantel existente
             planDestino.Varede = estadoFinal.Ea1;
             planDestino.Vqcsrd = estadoFinal.Ea2;
             planDestino.Vqssrd = estadoFinal.Ea3;
@@ -1410,6 +1419,8 @@
         }
         else
         {
+            // Crear nuevo como ya lo hacías
+            var planViejo = Plantelseleccionado ?? throw new InvalidOperationException("No hay plantel base.");
             var tailAnterior = DerivarTailCodigo(planViejo.Placod);
             if (string.IsNullOrWhiteSpace(tailAnterior))
                 tailAnterior = DerivarTailCodigo(socio.Placod);
@@ -1420,8 +1431,8 @@
 
             planDestino = new PlantelDTO
                 {
-                    Anioex = anioDestino,        
-                    Placod = nuevoPlacod,       
+                    Anioex = anioDestino,
+                    Placod = nuevoPlacod,
                     Varede = estadoFinal.Ea1,
                     Vqcsrd = estadoFinal.Ea2,
                     Vqssrd = estadoFinal.Ea3,
@@ -1572,16 +1583,18 @@
             }
         }
 
-        async Task deleteMovimiento(int id)
+    async Task deleteMovimiento(int id)
+    {
+        await _resin3Servicio.Eliminar(id);
+        var nrores = oResin1?.Nrores ?? solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
+        if (!string.IsNullOrWhiteSpace(nrores))
         {
-            await _resin3Servicio.Eliminar(id);
-            var nrores = solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
-            if (!string.IsNullOrWhiteSpace(nrores))
-            {
-                await updateMovimientos(nrores, "si");
+            await updateEstadoHistorico(nrores);
+            await updateMovimientos(nrores, "si");
             await updatePlantel(_subirDeAnioNoSeUsa: false);
-            }
         }
+    }
+
 
 
 
