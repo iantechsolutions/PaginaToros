@@ -319,5 +319,83 @@ namespace PaginaPlantels.Server.Cont{
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
+
+        [HttpPost]
+        [Route("GetOrCreate")]
+        public async Task<IActionResult> GetOrCreate([FromBody] PlantelGetOrCreateRequest request)
+        {
+            var _Respuesta = new Respuesta<PlantelDTO>();
+            try
+            {
+                // Try to find by Placod
+                Plantel? found = null;
+                if (!string.IsNullOrWhiteSpace(request.Placod))
+                {
+                    found = await _plantelRepositorio.Obtener(p => p.Placod == request.Placod);
+                }
+
+                // If not found, try by Anioex + Nrocri
+                if (found == null)
+                {
+                    found = (await _plantelRepositorio.LimitadosFiltradosNoInclude(0, 0, $"Anioex == \"{request.Anioex}\" && Nrocri == {request.Nrocri}"))
+                            .FirstOrDefault();
+                }
+
+                if (found != null)
+                {
+                    // Update counts and return
+                    found.Varede = request.Varede;
+                    found.Vqcsrd = request.Vqcsrd;
+                    found.Vqssrd = request.Vqssrd;
+                    found.Varepr = request.Varepr;
+                    found.Vqcsrp = request.Vqcsrp;
+                    found.Vqssrp = request.Vqssrp;
+
+                    await _plantelRepositorio.Editar(found);
+
+                    _Respuesta = new Respuesta<PlantelDTO>
+                    {
+                        Exito = 1,
+                        Mensaje = "ok",
+                        List = _mapper.Map<PlantelDTO>(found)
+                    };
+                    return Ok(_Respuesta);
+                }
+
+                // Not found: create new using base tail
+                var tail = request.BasePlacod ?? string.Empty;
+                var nuevoPlacod = (!string.IsNullOrEmpty(request.Anioex) ? request.Anioex[^1].ToString() : "") + tail;
+
+                var nuevo = new Plantel
+                {
+                    Anioex = request.Anioex,
+                    Placod = nuevoPlacod,
+                    Varede = request.Varede,
+                    Vqcsrd = request.Vqcsrd,
+                    Vqssrd = request.Vqssrd,
+                    Varepr = request.Varepr,
+                    Vqcsrp = request.Vqcsrp,
+                    Vqssrp = request.Vqssrp,
+                    Nrocri = request.Nrocri.ToString(),
+                    Estado = "A",
+                    Fecing = string.Empty
+                };
+
+                var creado = await _plantelRepositorio.Crear(nuevo);
+
+                _Respuesta = new Respuesta<PlantelDTO>
+                {
+                    Exito = 1,
+                    Mensaje = "ok",
+                    List = _mapper.Map<PlantelDTO>(creado)
+                };
+                return StatusCode(StatusCodes.Status201Created, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _Respuesta = new Respuesta<PlantelDTO> { Exito = 0, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
+        }
     }
 }

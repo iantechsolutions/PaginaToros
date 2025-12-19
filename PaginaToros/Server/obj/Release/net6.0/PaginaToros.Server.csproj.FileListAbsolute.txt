@@ -220,11 +220,6 @@ C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\Pa
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\PaginaToros.Server.sourcelink.json
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\staticwebassets.build.json
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\staticwebassets.development.json
-C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\staticwebassets\msbuild.PaginaToros.Server.Microsoft.AspNetCore.StaticWebAssets.props
-C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\staticwebassets\msbuild.build.PaginaToros.Server.props
-C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\staticwebassets\msbuild.buildMultiTargeting.PaginaToros.Server.props
-C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\staticwebassets\msbuild.buildTransitive.PaginaToros.Server.props
-C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\staticwebassets.pack.json
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\scopedcss\bundle\PaginaToros.Server.styles.css
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\PaginaTo.C0EA79D3.Up2Date
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\PaginaToros.Server.dll
@@ -255,3 +250,13 @@ C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Release\net6.0\Si
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Release\net6.0\System.IO.Packaging.dll
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Release\net6.0\System.Text.Encodings.Web.dll
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Release\net6.0\System.Text.Json.dll
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Release\net6.0\PaginaToros.Client.staticwebassets.endpoints.json
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\bin\Release\net6.0\PaginaToros.Server.staticwebassets.endpoints.json
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\rpswa.dswa.cache.json
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\rjimswa.dswa.cache.json
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\rjsmrazor.dswa.cache.json
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\rjsmcshtml.dswa.cache.json
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\staticwebassets.build.json.cache
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\staticwebassets.build.endpoints.json
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\swae.build.ex.cache
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\obj\Release\net6.0\staticwebassets.upToDateCheck.txt

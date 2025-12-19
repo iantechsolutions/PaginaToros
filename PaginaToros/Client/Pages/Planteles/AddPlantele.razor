@@ -92,8 +92,18 @@
             </div>
             <br />
             <br />
-            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
-            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+            <button type="submit" class="btn btn-primary mr-2" disabled="@isSaving">
+                @if (isSaving)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span class="ml-2">Guardando...</span>
+                }
+                else
+                {
+                    <span>Aceptar</span>
+                }
+            </button>
+            <button type="button" @onclick="cancel" class="btn btn-light" disabled="@isSaving">Cancelar</button>
         </EditForm>
     </div>
 </div>
@@ -108,6 +118,8 @@
 
     //string CodZona = "  ";
     bool activo = true;
+    // Flag para evitar envíos múltiples desde el cliente
+    bool isSaving = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -142,6 +154,13 @@
     }
     async Task Guardar()
     {
+        // Evita envíos concurrentes
+        if (isSaving)
+            return;
+        
+        isSaving = true;
+        StateHasChanged();
+        
         oPlantel.Nrocri = socioSeleccionado.Scod;
 
 
@@ -163,17 +182,42 @@
             if(oPlantel.Fecing==null){
                 oPlantel.Fecing = "";
             }
-            await _plantelServicio.Crear(oPlantel);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            try
+            {
+                await _plantelServicio.Crear(oPlantel);
+                await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+                return;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                isSaving = false; // permitir reintento
+                StateHasChanged();
+                return;
+            }
         }
         else
         {
-            await _plantelServicio.Editar(oPlantel);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            try
+            {
+                await _plantelServicio.Editar(oPlantel);
+                await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+                return;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                isSaving = false; // permitir reintento
+                StateHasChanged();
+                return;
+            }
         }
     }
     async Task cancel()
     {
+        if (isSaving)
+            return;
+
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
 
     }

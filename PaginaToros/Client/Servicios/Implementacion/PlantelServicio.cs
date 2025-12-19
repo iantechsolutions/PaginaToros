@@ -87,5 +87,12 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var result = await _http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>($"api/plantel/ObtenerPorAnios?anio1={anio1}&anio2={anio2}");
             return result!;
         }
+
+        public async Task<Respuesta<PlantelDTO>> GetOrCreate(object request)
+        {
+            var http = await _http.PostAsJsonAsync("api/plantel/GetOrCreate", request);
+            var resp = await http.Content.ReadFromJsonAsync<Respuesta<PlantelDTO>>();
+            return resp!;
+        }
     }
 }

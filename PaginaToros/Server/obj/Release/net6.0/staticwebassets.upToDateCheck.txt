@@ -1,0 +1,21 @@
+wwwroot\Actualizacion.cs
+wwwroot\Archrural.cs
+wwwroot\Autoriza.cs
+wwwroot\Desepla4NoUsadum.cs
+wwwroot\Desepla5NoUsadum.cs
+wwwroot\DeseUsada.cs
+wwwroot\images\backgroundEnvio.jpg
+wwwroot\images\LOGO.jpg
+wwwroot\images\Mail.docx
+wwwroot\images\Tarifas Registros 2025.docx
+wwwroot\Opcdecserv.cs
+wwwroot\Peg.cs
+wwwroot\Remansol.cs
+wwwroot\Resin9.cs
+wwwroot\Retenida.cs
+wwwroot\Solici4.cs
+wwwroot\Solici6.cs
+wwwroot\Torospr.cs
+wwwroot\TorosRural.cs
+wwwroot\Torosuniestado.cs
+wwwroot\Usuario.cs
