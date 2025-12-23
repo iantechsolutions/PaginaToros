@@ -32,8 +32,20 @@ namespace PaginaPlantels.Server.Cont{
 
 
                 listaPedido = _mapper.Map<List<PlantelDTO>>(a);
+                // Diagnostics: log duplicate Id groups if any
+                var dupGroups = listaPedido.GroupBy(p => p.Id).Where(g => g.Count() > 1).ToList();
+                if (dupGroups.Any())
+                {
+                    Console.WriteLine($"[PlanteController][Lista] Duplicate groups count: {dupGroups.Count}");
+                    foreach (var g in dupGroups)
+                    {
+                        Console.WriteLine($"[PlanteController][Lista] Id={g.Key} Count={g.Count()} Placods=[{string.Join(',', g.Select(x=>x.Placod))}]");
+                    }
+                }
 
-                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+                var deduped = Deduplicate(listaPedido);
+
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Exito", List = deduped };
 
                 return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
 
@@ -81,8 +93,18 @@ namespace PaginaPlantels.Server.Cont{
                 var a = await _plantelRepositorio.LimitadosFiltrados(skip, take, expression);
 
                 var listaFiltrada = _mapper.Map<List<PlantelDTO>>(a);
+                var dupGroups2 = listaFiltrada.GroupBy(p => p.Id).Where(g => g.Count() > 1).ToList();
+                if (dupGroups2.Any())
+                {
+                    Console.WriteLine($"[PlanteController][LimitadosFiltrados] Duplicate groups count: {dupGroups2.Count}");
+                    foreach (var g in dupGroups2)
+                    {
+                        Console.WriteLine($"[PlanteController][LimitadosFiltrados] Id={g.Key} Count={g.Count()} Placods=[{string.Join(',', g.Select(x=>x.Placod))}]");
+                    }
+                }
+                var deduped = Deduplicate(listaFiltrada);
 
-                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Exito", List = deduped };
 
                 return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
 
@@ -106,8 +128,18 @@ namespace PaginaPlantels.Server.Cont{
                 var a = await _plantelRepositorio.LimitadosFiltradosNoInclude(skip, take, expression);
 
                 var listaFiltrada = _mapper.Map<List<PlantelDTO>>(a);
+                var dupGroups3 = listaFiltrada.GroupBy(p => p.Id).Where(g => g.Count() > 1).ToList();
+                if (dupGroups3.Any())
+                {
+                    Console.WriteLine($"[PlanteController][LimitadosFiltradosNoInclude] Duplicate groups count: {dupGroups3.Count}");
+                    foreach (var g in dupGroups3)
+                    {
+                        Console.WriteLine($"[PlanteController][LimitadosFiltradosNoInclude] Id={g.Key} Count={g.Count()} Placods=[{string.Join(',', g.Select(x=>x.Placod))}]");
+                    }
+                }
+                var deduped = Deduplicate(listaFiltrada);
 
-                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Exito", List = deduped };
 
                 return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
 
@@ -141,8 +173,18 @@ namespace PaginaPlantels.Server.Cont{
             {
                 var a = await _plantelRepositorio.ObtenerPorAnios(anio1, anio2);
                 var listaFiltrada = _mapper.Map<List<PlantelDTO>>(a);
+                var dupGroups4 = listaFiltrada.GroupBy(p => p.Id).Where(g => g.Count() > 1).ToList();
+                if (dupGroups4.Any())
+                {
+                    Console.WriteLine($"[PlanteController][ObtenerPorAnios] Duplicate groups count: {dupGroups4.Count}");
+                    foreach (var g in dupGroups4)
+                    {
+                        Console.WriteLine($"[PlanteController][ObtenerPorAnios] Id={g.Key} Count={g.Count()} Placods=[{string.Join(',', g.Select(x=>x.Placod))}]");
+                    }
+                }
+                var deduped = Deduplicate(listaFiltrada);
 
-                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Éxito", List = listaFiltrada };
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = "Éxito", List = deduped };
                 return Ok(_ResponseDTO);
             }
             catch (Exception ex)
@@ -172,12 +214,22 @@ namespace PaginaPlantels.Server.Cont{
             {
                 var lista = await _plantelRepositorio.ObtenerPorRangoFechas(desde, hasta); 
                 var listaDTO = _mapper.Map<List<PlantelDTO>>(lista);
+                var dupGroups5 = listaDTO.GroupBy(p => p.Id).Where(g => g.Count() > 1).ToList();
+                if (dupGroups5.Any())
+                {
+                    Console.WriteLine($"[PlanteController][ObtenerPorRangoFechas] Duplicate groups count: {dupGroups5.Count}");
+                    foreach (var g in dupGroups5)
+                    {
+                        Console.WriteLine($"[PlanteController][ObtenerPorRangoFechas] Id={g.Key} Count={g.Count()} Placods=[{string.Join(',', g.Select(x=>x.Placod))}]");
+                    }
+                }
+                var deduped = Deduplicate(listaDTO);
 
                 _ResponseDTO = new Respuesta<List<PlantelDTO>>()
                 {
                     Exito = 1,
                     Mensaje = "Éxito",
-                    List = listaDTO
+                    List = deduped
                 };
 
                 return Ok(_ResponseDTO);
@@ -396,6 +448,24 @@ namespace PaginaPlantels.Server.Cont{
                 _Respuesta = new Respuesta<PlantelDTO> { Exito = 0, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
+        }
+
+        // Helper to remove duplicates using Placod+Anioex+Nrocri key, fallback to Id
+        private List<PlantelDTO> Deduplicate(List<PlantelDTO> list)
+        {
+            if (list == null) return null;
+            var grouped = list
+                .GroupBy(p =>
+                {
+                    var placod = p.Placod ?? string.Empty;
+                    var anio = p.Anioex ?? string.Empty;
+                    var nrocri = p.Nrocri ?? string.Empty;
+                    var key = (placod + "|" + anio + "|" + nrocri).Trim();
+                    return string.IsNullOrEmpty(key) ? ("ID|" + p.Id.ToString()) : ("P|" + key);
+                })
+                .Select(g => g.First())
+                .ToList();
+            return grouped;
         }
     }
 }

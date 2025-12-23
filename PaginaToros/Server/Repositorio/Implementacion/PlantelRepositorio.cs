@@ -73,22 +73,22 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Plantel> a;
-                if(filtro is not null)
+                // Build query and apply filters on the database side
+                IQueryable<Plantel> query = _dbContext.Planteles.AsNoTracking().Include(x => x.Socio);
+                if (!string.IsNullOrWhiteSpace(filtro))
                 {
-                    a = await _dbContext.Planteles.OrderByDescending(t => t.Id).Include(x => x.Socio).Where(filtro).Skip(skip).ToListAsync();
+                    query = query.Where(filtro);
                 }
-                else
-                {
-                    a= await _dbContext.Planteles.OrderByDescending(t => t.Id).Include(x => x.Socio).Skip(skip).ToListAsync();
-                }
+
+                query = query.OrderByDescending(t => t.Id);
+
                 if (take == 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    return await query.ToListAsync();
                 }
                 else
                 {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                    return await query.Skip(skip).Take(take).ToListAsync();
                 }
             }
             catch
@@ -101,22 +101,21 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Plantel> a;
-                if (filtro is not null)
+                IQueryable<Plantel> query = _dbContext.Planteles.AsNoTracking();
+                if (!string.IsNullOrWhiteSpace(filtro))
                 {
-                    a = await _dbContext.Planteles.OrderByDescending(t => t.Id).Where(filtro).Skip(skip).ToListAsync();
+                    query = query.Where(filtro);
                 }
-                else
-                {
-                    a = await _dbContext.Planteles.OrderByDescending(t => t.Id).Skip(skip).ToListAsync();
-                }
+
+                query = query.OrderByDescending(t => t.Id);
+
                 if (take == 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    return await query.ToListAsync();
                 }
                 else
                 {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
+                    return await query.Skip(skip).Take(take).ToListAsync();
                 }
             }
             catch
