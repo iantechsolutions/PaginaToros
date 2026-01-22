@@ -2213,6 +2213,27 @@
   },
   {
     "ContainingType": "PaginaToros.Server.Controllers.SocioController",
+    "Method": "ExistsCodpos2",
+    "RelativePath": "api/Socio/ExistsCodpos2",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "codpos2",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "excludeId",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PaginaToros.Server.Controllers.SocioController",
     "Method": "Guardar",
     "RelativePath": "api/Socio/Guardar",
     "HttpMethod": "POST",
@@ -2298,6 +2319,26 @@
         "IsRequired": false
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PaginaToros.Server.Controllers.SocioController",
+    "Method": "Reserve",
+    "RelativePath": "api/Socio/Reserve",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PaginaToros.Server.Controllers.SocioController",
+    "Method": "SyncCodpos2",
+    "RelativePath": "api/Socio/SyncCodpos2",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {

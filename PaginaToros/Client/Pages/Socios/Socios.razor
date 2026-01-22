@@ -44,7 +44,7 @@
                 AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                     Density="Density.Compact" Count="cantidad" Data="@oRespuesta.List" TItem="SocioDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
-            <RadzenDataGridColumn TItem="SocioDTO" Property="Scod" Title="Nro Socio" Width="3.6%" />
+                    <RadzenDataGridColumn TItem="SocioDTO" Property="Codpos2" Title="Nro Socio" Width="3.6%" />
 
             <RadzenDataGridColumn TItem="SocioDTO" Property="Placod" Title="Plantel" Width="3%" />
             <RadzenDataGridColumn TItem="SocioDTO" Property="Criador" Title="Activo?" Width="3.33%">
@@ -226,46 +226,89 @@ else
 
         if (!esSocio)
         {
-            var c = await _socioServicio.CantidadTotal();
-            cantidad = c.List;
-            oRespuesta = await _socioServicio.LimitadosFiltradoTodos(0, 15);
+            try
+            {
+                var c = await _socioServicio.CantidadTotal();
+                if (c == null || c.Exito != 1)
+                {
+                    cantidad = 0;
+                    var msg = c?.Mensaje ?? "Error desconocido al obtener cantidad de socios.";
+                    await Swal.FireAsync(new SweetAlertOptions { Title = "Error", Text = msg, Icon = "error", ConfirmButtonText = "Aceptar" });
+                }
+                else
+                {
+                    cantidad = c.List;
+                }
+
+                var listResp = await _socioServicio.LimitadosFiltradoTodos(0, 15, null);
+                if (listResp == null || listResp.Exito != 1)
+                {
+                    oRespuesta = new Respuesta<List<SocioDTO>> { Exito = 0, Mensaje = listResp?.Mensaje ?? "Error al obtener socios", List = new List<SocioDTO>() };
+                }
+                else
+                {
+                    oRespuesta = listResp;
+                }
+            }
+            catch (Exception ex)
+            {
+                cantidad = 0;
+                oRespuesta = new Respuesta<List<SocioDTO>> { Exito = 0, Mensaje = ex.Message, List = new List<SocioDTO>() };
+                await Swal.FireAsync(new SweetAlertOptions { Title = "Error", Text = ex.Message, Icon = "error", ConfirmButtonText = "Aceptar" });
+            }
         }
         else
         {
-            var usuarioId = 0;
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-
-
-           
-
-            foreach (var claim in user.Claims)
+            try
             {
-                Console.WriteLine($"{claim.Type}: {claim.Value}");
-            }
+                var usuarioId = 0;
+                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                var user = authState.User;
 
-            foreach (var claim in user.Claims)
-            {
 
-                if (claim.Type == "SocioId" && int.TryParse(claim.Value, out int parsedId))
+               
+
+                foreach (var claim in user.Claims)
                 {
-                    usuarioId = parsedId;
-                    break;
+                    Console.WriteLine($"{claim.Type}: {claim.Value}");
+                }
+
+                foreach (var claim in user.Claims)
+                {
+
+                    if (claim.Type == "SocioId" && int.TryParse(claim.Value, out int parsedId))
+                    {
+                        usuarioId = parsedId;
+                        break;
+                    }
+                }
+
+
+                var todosLosSocios = await _socioServicio.LimitadosFiltradoTodos(
+                    skip: 0,
+                    take: 15,
+                    expression: $"Id == {usuarioId}");
+
+//
+
+
+                if (todosLosSocios == null || todosLosSocios.Exito != 1)
+                {
+                    oRespuesta = new Respuesta<List<SocioDTO>> { Exito = 0, Mensaje = todosLosSocios?.Mensaje ?? "Error al obtener socio", List = new List<SocioDTO>() };
+                    cantidad = 0;
+                }
+                else
+                {
+                    oRespuesta.List = todosLosSocios.List;
+                    cantidad = oRespuesta.List.Count();
                 }
             }
-
-
-            var todosLosSocios = await _socioServicio.LimitadosFiltradoTodos(
-            skip: 0,
-            take: 15,
-            expression: $"Id == {usuarioId}");
-
-
-            oRespuesta.List = todosLosSocios.List;
-            cantidad = oRespuesta.List.Count();
-
-
-            // Asegurar que la tabla recibe los datos
+            catch (Exception ex)
+            {
+                oRespuesta = new Respuesta<List<SocioDTO>> { Exito = 0, Mensaje = ex.Message, List = new List<SocioDTO>() };
+                cantidad = 0;
+                await Swal.FireAsync(new SweetAlertOptions { Title = "Error", Text = ex.Message, Icon = "error", ConfirmButtonText = "Aceptar" });
+            }
         }
 
         StateHasChanged();
@@ -417,16 +460,27 @@ else
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
-        if (!string.IsNullOrEmpty(args.Filter))
+        try
         {
-            oRespuesta = await _socioServicio.LimitadosFiltradoTodos(args.Skip.Value, args.Top.Value, args.Filter);
-            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+            if (!string.IsNullOrEmpty(args.Filter))
+            {
+                var resp = await _socioServicio.LimitadosFiltradoTodos(args.Skip.Value, args.Top.Value, args.Filter);
+                if (resp == null || resp.Exito != 1) { oRespuesta = new Respuesta<List<SocioDTO>> { Exito = 0, Mensaje = resp?.Mensaje ?? "Error", List = new List<SocioDTO>() }; }
+                else { oRespuesta = resp; }
+            }
+            else
+            {
+                var resp = await _socioServicio.LimitadosFiltradoTodos(args.Skip.Value, args.Top.Value);
+                if (resp == null || resp.Exito != 1) { oRespuesta = new Respuesta<List<SocioDTO>> { Exito = 0, Mensaje = resp?.Mensaje ?? "Error", List = new List<SocioDTO>() }; }
+                else { oRespuesta = resp; }
+            }
         }
-        else
+        catch (Exception ex)
         {
-            oRespuesta = await _socioServicio.LimitadosFiltradoTodos(args.Skip.Value, args.Top.Value);
+            oRespuesta = new Respuesta<List<SocioDTO>> { Exito = 0, Mensaje = ex.Message, List = new List<SocioDTO>() };
+            await Swal.FireAsync(new SweetAlertOptions { Title = "Error", Text = ex.Message, Icon = "error", ConfirmButtonText = "Aceptar" });
         }
-
+ 
         isLoading = false;
     }
 

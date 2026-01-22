@@ -342,11 +342,56 @@ else
         }
 
         // --- Mapear selects a códigos internos ---
-        // --- Mapear selects a códigos internos ---
         oTransan.Tiphac = traductor[temp1];            // PHPR/HPR/PHVIP/HVIP
         oTransan.Tipani = traductor[temp2];            // H/M
         oTransan.Hemsta = traductor[temp3];            // CC/CCP/SS/PR
         oTransan.Incorp = Convert.ToSByte(traductor[temp4]); // 0/1
+
+        // Client-side validation: if animales a incorporar == SI, ensure seller has enough stock for hembras
+        bool incorpor = traductor.ContainsKey(temp4) && traductor[temp4] == "1";
+        if (incorpor)
+        {
+            // Determine field
+            var tiphacCode = traductor.ContainsKey(temp1) ? traductor[temp1] : null;
+            var hemstaCode = traductor.ContainsKey(temp3) ? traductor[temp3] : null;
+            var field = GetHembraFieldClient(tiphacCode, hemstaCode);
+
+            if (!string.IsNullOrEmpty(field))
+            {
+                if (plantelOrigen == null || string.IsNullOrWhiteSpace(plantelOrigen.Placod))
+                {
+                    await Swal.FireAsync(new SweetAlertOptions { Title = "Error", Html = "No hay plantel origen seleccionado.", Icon = SweetAlertIcon.Error });
+                    return;
+                }
+
+                double currentValue = GetPlantelFieldValueClient(plantelOrigen, field);
+                int prevCant = 0;
+                // If editing, previous transfer might have already subtracted from seller; allow adding it back for validation
+                if (Id != 0)
+                {
+                    prevCant = oTransan.CantHem ?? 0;
+                }
+
+                // If editing and origin unchanged, seller can use current + prev
+                double allowed = currentValue + ((Id != 0 && oTransan.Plant == plantelOrigen.Placod) ? prevCant : 0);
+
+                if (cantHem > allowed)
+                {
+                    await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Cantidad inválida",
+                        Html = $"El plantel origen no dispone de {cantHem} hembras en la categoría seleccionada. Disponible: {allowed}.",
+                        Icon = SweetAlertIcon.Warning
+                    });
+                    return;
+                }
+            }
+            else
+            {
+                await Swal.FireAsync(new SweetAlertOptions { Title = "Error", Html = "No se pudo determinar la categoría de hembras para validar.", Icon = SweetAlertIcon.Error });
+                return;
+            }
+        }
 
         // --- Socios
         oTransan.Vnom = socioVendedor.Nombre;
@@ -381,6 +426,33 @@ else
     }
 
 
+    // Client helper: map to same field names used in server
+    private string GetHembraFieldClient(string tiphac, string hemsta)
+    {
+        if (string.IsNullOrWhiteSpace(hemsta) || string.IsNullOrWhiteSpace(tiphac)) return null;
+        var h = hemsta.Trim().ToUpper();
+        var t = tiphac.Trim().ToUpper();
+        bool isPR = t.Contains("PR");
+        if (h == "CC" || h == "CCP") return isPR ? "Varede" : "Varepr";
+        if (h == "PR") return isPR ? "Vqcsrd" : "Vqcsrp";
+        if (h == "SS") return isPR ? "Vqssrd" : "Vqssrp";
+        return null;
+    }
+
+    private double GetPlantelFieldValueClient(PlantelDTO plantel, string field)
+    {
+        return field switch
+        {
+            "Varede" => plantel.Varede ?? 0,
+            "Vqcsrd" => plantel.Vqcsrd ?? 0,
+            "Vqssrd" => plantel.Vqssrd ?? 0,
+            "Varepr" => plantel.Varepr ?? 0,
+            "Vqcsrp" => plantel.Vqcsrp ?? 0,
+            "Vqssrp" => plantel.Vqssrp ?? 0,
+            _ => 0
+        };
+    }
+
     private async Task EnviarMailNuevaTransferencia()
     {
         int total = (oTransan.CantHem ?? 0) + (oTransan.CantMach ?? 0) + (oTransan.CantChem ?? 0) + (oTransan.CantCmach ?? 0);
@@ -394,7 +466,7 @@ else
                    $"Estado de las hembras: {oTransan.Hemsta}\n" +
                    $"Tipo de hembra: {oTransan.Tipohem}\n" +
                    $"Fecha de venta: {oTransan.Fecvta?.ToString("dd/MM/yyyy")}\n" +
-                   $"Animales incorporados: {(oTransan.Incorp == 1 ? "SI" : "NO")}";
+                   $"Animales incorporados: {(oTransan.Incorp == 1 ? "SI" : "NO")}\"";
 
         var request = new
         {

@@ -207,19 +207,19 @@ else
         var rta = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
         if (!esSocio){
-            var c = await _plantelServicio.CantidadTotal();
-            cantidad = c.List;
-            oRespuesta = await _plantelServicio.Lista(0,15);
-            EnsureNoDuplicates(oRespuesta);
+             var c = await _plantelServicio.CantidadTotal();
+             cantidad = c.List;
+             oRespuesta = await _plantelServicio.Lista(0,15);
+             EnsureNoDuplicates(oRespuesta);
             // Diagnostics: log duplicates if any
             LogDuplicatesIfAny(oRespuesta, "Get - Lista(0,15)");
-
-            StateHasChanged();
-        }
-        else
-        {
-            var usuarioId = 0;
-            var authState = await AuthenticationStateProvider
+            OrderPlantelesByFchUsu(oRespuesta);
+             StateHasChanged();
+         }
+         else
+         {
+             var usuarioId = 0;
+             var authState = await AuthenticationStateProvider
             .GetAuthenticationStateAsync();
             var user = authState.User;
             foreach (var claim in user.Claims)
@@ -235,9 +235,10 @@ else
             oRespuesta = await _plantelServicio.GetBySocioId(usuarioId);
             EnsureNoDuplicates(oRespuesta);
             LogDuplicatesIfAny(oRespuesta, "Get - GetBySocioId");
-            cantidad = oRespuesta.List.Count;
-        }
-    }
+            OrderPlantelesByFchUsu(oRespuesta);
+             cantidad = oRespuesta.List.Count;
+         }
+     }
 
 
     private async Task<bool> UserHasRole(string role)
@@ -359,6 +360,7 @@ else
                     string filtro = $"Socio.Id={socioSeleccionado.Id}";
                     oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
                     EnsureNoDuplicates(oRespuesta);
+                    OrderPlantelesByFchUsu(oRespuesta);
                 }
             }
         }
@@ -405,12 +407,14 @@ else
                 EnsureNoDuplicates(oRespuesta);
                 LogDuplicatesIfAny(oRespuesta, $"LoadData - LimitadosFiltrados skip={args.Skip} top={args.Top}");
                 oRespuesta.List = oRespuesta.List.OrderBy(x => x.Id).ToList(); ;
+                OrderPlantelesByFchUsu(oRespuesta);
             }
             else
             {
                 oRespuesta = await _plantelServicio.Lista(args.Skip.Value, args.Top.Value);
                 EnsureNoDuplicates(oRespuesta);
                 LogDuplicatesIfAny(oRespuesta, $"LoadData - Lista skip={args.Skip} top={args.Top}");
+                OrderPlantelesByFchUsu(oRespuesta);
             }
         }
         else
@@ -419,6 +423,7 @@ else
             {
                 oRespuesta = await _plantelServicio.LimitadosFiltrados(0, args.Top.Value, args.Filter);
                 // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+                OrderPlantelesByFchUsu(oRespuesta);
             }
             else
             {
@@ -426,6 +431,7 @@ else
                 oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
                 EnsureNoDuplicates(oRespuesta);
                 LogDuplicatesIfAny(oRespuesta, "LoadData - LimitadosFiltrados for socio");
+                OrderPlantelesByFchUsu(oRespuesta);
             }
         }
 
@@ -486,5 +492,14 @@ else
         {
             Console.WriteLine($"[Diagnostics] Id={g.Key} Count={g.Count()} Placods=[{string.Join(',', g.Select(x=>x.Placod))}]");
         }
+    }
+
+    // Order planteles by FchUsu descending (most recent first)
+    void OrderPlantelesByFchUsu(Respuesta<List<PlantelDTO>> respuesta)
+    {
+        if (respuesta == null || respuesta.List == null) return;
+        respuesta.List = respuesta.List
+            .OrderByDescending(x => x.FchUsu ?? DateTime.MinValue)
+            .ToList();
     }
 }

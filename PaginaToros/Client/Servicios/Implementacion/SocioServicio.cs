@@ -21,8 +21,14 @@ namespace PaginaToros.Client.Servicios.Implementacion
 
         public async Task<Respuesta<int>> CantidadTotal()
         {
-            var result = await _http.GetFromJsonAsync<Respuesta<int>>($"api/Socio/cantidad");
-            return result;
+            var response = await _http.GetAsync("api/Socio/cantidad");
+            if (!response.IsSuccessStatusCode)
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                return new Respuesta<int> { Exito = 0, Mensaje = $"Server error: {(int)response.StatusCode} - {text}", List = 0 };
+            }
+            var result = await response.Content.ReadFromJsonAsync<Respuesta<int>>();
+            return result!;
         }
         public async Task<Respuesta<List<SocioDTO>>> LimitadosFiltrados(int skip, int take, string filter)
         {
@@ -84,5 +90,33 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return dto!;
         }
 
+        public async Task<Respuesta<SocioDTO>> Reserve()
+        {
+            var response = await _http.PostAsync("api/Socio/Reserve", null);
+            if (!response.IsSuccessStatusCode)
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Reserve failed: {(int)response.StatusCode}: {text}");
+            }
+
+            var dto = await response.Content.ReadFromJsonAsync<Respuesta<SocioDTO>>();
+            return dto!;
+        }
+
+        public async Task<Respuesta<bool>> ExistsCodpos2(string codpos2, int? excludeId = null)
+        {
+            var url = new StringBuilder($"api/Socio/ExistsCodpos2?codpos2={Uri.EscapeDataString(codpos2)}");
+            if (excludeId.HasValue) url.Append($"&excludeId={excludeId.Value}");
+
+            var response = await _http.GetAsync(url.ToString());
+            if (!response.IsSuccessStatusCode)
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"ExistsCodpos2 failed: {(int)response.StatusCode}: {text}");
+            }
+
+            var dto = await response.Content.ReadFromJsonAsync<Respuesta<bool>>();
+            return dto!;
+        }
     }
 }

@@ -1,5 +1,5 @@
 self.assetsManifest = {
-  "version": "7HVvvwL/",
+  "version": "rEfZQZPv",
   "assets": [
     {
       "hash": "sha256-4HIeldyyHlbMtP5hEeaLUtkf2HRNCQEtBCFU7Ur+TH4=",
@@ -526,7 +526,7 @@ self.assetsManifest = {
       "url": "_framework/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-gizD1uGOnuQ18FIRSDq6P4A+487PuW5DOuAN5O7OE1M=",
+      "hash": "sha256-mG9Gwm6VrJV4a3ioDPmYhvpgWMMjEejXI6Suas4FajU=",
       "url": "_framework/PaginaToros.Client.dll"
     },
     {
@@ -866,7 +866,7 @@ self.assetsManifest = {
       "url": "_framework/System.dll"
     },
     {
-      "hash": "sha256-uFkDixe0EyX+jrCMk9/SED9iWFbMh9vpfLrcONND9rc=",
+      "hash": "sha256-iUiqqW2NNx18MdNTwyvV+lvpHERfLZ9OUAbMhUDClyE=",
       "url": "_framework/blazor.boot.json"
     },
     {

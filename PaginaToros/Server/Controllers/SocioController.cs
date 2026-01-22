@@ -1,4 +1,4 @@
-﻿ using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
@@ -17,10 +17,12 @@ namespace PaginaToros.Server.Controllers
     {
         private readonly IMapper _mapper;
         private readonly ISocioRepositorio _SocioRepositorio;
-        public SocioController(ISocioRepositorio SocioRepositorio, IMapper mapper)
+        private readonly hereford_prContext _db;
+        public SocioController(ISocioRepositorio SocioRepositorio, IMapper mapper, hereford_prContext db)
         {
             _mapper = mapper;
             _SocioRepositorio = SocioRepositorio;
+            _db = db;
         }
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
@@ -163,9 +165,32 @@ namespace PaginaToros.Server.Controllers
             Respuesta<SocioDTO> _Respuesta = new Respuesta<SocioDTO>();
             try
             {
-                Socio _Socio = _mapper.Map<Socio>(request);
-                
-                Socio _SocioCreado = await _SocioRepositorio.Crear(_Socio);
+                // Validate Codpos2 uniqueness if provided
+                if (!string.IsNullOrWhiteSpace(request.Codpos2))
+                {
+                    var dup = _db.Socios.FirstOrDefault(s => s.Codpos2 == request.Codpos2);
+                    if (dup != null)
+                    {
+                        _Respuesta = new Respuesta<SocioDTO>() { Exito = 0, Mensaje = "Codpos2 duplicado", List = _mapper.Map<SocioDTO>(dup) };
+                        return StatusCode(StatusCodes.Status409Conflict, _Respuesta);
+                    }
+                }
+
+                // Generate next Scod server-side (numeric sequence using numeric Scod values)
+                var allScods = _db.Socios.Select(s => s.Scod).ToList();
+                int max = 0;
+                foreach (var sc in allScods)
+                {
+                    if (int.TryParse(sc, out var v)) if (v > max) max = v;
+                }
+                var nextScod = (max + 1).ToString("D4");
+
+                var nuevoMap = _mapper.Map<Socio>(request);
+                nuevoMap.Scod = nextScod;
+                // ensure Id is 0 so repository will create
+                nuevoMap.Id = 0;
+
+                Socio _SocioCreado = await _SocioRepositorio.Crear(nuevoMap);
 
                 if (_SocioCreado.Id != 0)
                     _Respuesta = new Respuesta<SocioDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<SocioDTO>(_SocioCreado) };
@@ -203,7 +228,18 @@ namespace PaginaToros.Server.Controllers
                 if (socioDb == null)
                     return NotFound(new Respuesta<SocioDTO> { Exito = 0, Mensaje = "No se encontró el identificador" });
 
-                socioDb.Scod = socioReq.Scod;
+                // Do not allow changing Scod from client; keep existing
+
+                // Validate Codpos2 uniqueness if provided and changed
+                if (!string.IsNullOrWhiteSpace(socioReq.Codpos2) && !string.Equals(socioDb.Codpos2, socioReq.Codpos2, StringComparison.Ordinal))
+                {
+                    var conflictCod = _db.Socios.FirstOrDefault(s => s.Codpos2 == socioReq.Codpos2 && s.Id != socioReq.Id);
+                    if (conflictCod != null)
+                    {
+                        return Conflict(new Respuesta<SocioDTO> { Exito = 0, Mensaje = "Codpos2 duplicado", List = _mapper.Map<SocioDTO>(conflictCod) });
+                    }
+                }
+
                 socioDb.Nombre = socioReq.Nombre;
                 socioDb.Direcc1 = socioReq.Direcc1;
                 socioDb.Telefo1 = socioReq.Telefo1;
@@ -215,6 +251,7 @@ namespace PaginaToros.Server.Controllers
                 socioDb.Mail = socioReq.Mail;
                 socioDb.Fecing = socioReq.Fecing;
                 socioDb.Placod = socioReq.Placod;
+                socioDb.Codpos2 = socioReq.Codpos2;
 
                 var ok = await _SocioRepositorio.Editar(socioDb);
 
@@ -229,6 +266,87 @@ namespace PaginaToros.Server.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new Respuesta<SocioDTO> { Exito = 0, Mensaje = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("SyncCodpos2")]
+        public async Task<IActionResult> SyncCodpos2()
+        {
+            try
+            {
+                var all = _db.Socios.ToList();
+                foreach (var s in all)
+                {
+                    if (string.IsNullOrEmpty(s.Scod)) { s.Codpos2 = s.Scod; continue; }
+                    // Codpos2 column has max length 4 in DB. Use rightmost 4 chars to avoid overflow.
+                    s.Codpos2 = s.Scod.Length <= 4 ? s.Scod : s.Scod.Substring(s.Scod.Length - 4);
+                }
+                await _db.SaveChangesAsync();
+                return Ok(new Respuesta<string> { Exito = 1, Mensaje = "OK" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<string> { Exito = 0, Mensaje = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Route("Reserve")]
+        public async Task<IActionResult> Reserve()
+        {
+            try
+            {
+                // Compute next numeric Scod (consider only fully numeric Scod values)
+                var allScods = _db.Socios.Select(s => s.Scod).ToList();
+                int max = 0;
+                foreach (var sc in allScods)
+                {
+                    if (int.TryParse(sc, out var v))
+                    {
+                        if (v > max) max = v;
+                    }
+                }
+                var next = (max + 1).ToString("D4");
+
+                var nuevo = new Socio
+                {
+                    Scod = next,
+                    Criador = "N",
+                    Nombre = string.Empty
+                };
+
+                _db.Socios.Add(nuevo);
+                await _db.SaveChangesAsync();
+
+                var dto = _mapper.Map<SocioDTO>(nuevo);
+                return Ok(new Respuesta<SocioDTO> { Exito = 1, Mensaje = "Reservado", List = dto });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<string> { Exito = 0, Mensaje = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        [Route("ExistsCodpos2")]
+        public async Task<IActionResult> ExistsCodpos2(string codpos2, int? excludeId = null)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(codpos2))
+                    return Ok(new Respuesta<bool> { Exito = 1, Mensaje = "OK", List = false });
+
+                var query = _db.Socios.AsQueryable();
+                if (excludeId.HasValue)
+                    query = query.Where(s => s.Id != excludeId.Value);
+
+                var exists = query.Any(s => s.Codpos2 == codpos2);
+                return Ok(new Respuesta<bool> { Exito = 1, Mensaje = "OK", List = exists });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<string> { Exito = 0, Mensaje = ex.Message });
             }
         }
     }
