@@ -33,3 +33,7 @@ C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\st
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\staticwebassets.build.json
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\staticwebassets.build.json
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\staticwebassets.build.json
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\staticwebassets.build.json
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\staticwebassets.build.json
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\staticwebassets.build.json
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\staticwebassets.build.json
