@@ -24,11 +24,14 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
 
                 // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Planteles.Include(t => t.Socio)
-                                                 .OrderByDescending(t => t.Id)
-                                                 .Skip(skip)
-                                                 .Take(take)
-                                                 .ToListAsync();
+                // Order by Anioex (desc) so newest years appear first, then by Placod
+                return await _dbContext.Planteles
+                                         .Include(t => t.Socio)
+                                         .OrderByDescending(t => t.Anioex)
+                                         .ThenBy(t => t.Placod)
+                                         .Skip(skip)
+                                         .Take(take)
+                                         .ToListAsync();
             }
             catch
             {
@@ -80,7 +83,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = query.Where(filtro);
                 }
 
-                query = query.OrderByDescending(t => t.Id);
+                // Order by Anioex (desc) so newest years appear first, then by Placod
+                query = query.OrderByDescending(t => t.Anioex).ThenBy(t => t.Placod);
 
                 if (take == 0)
                 {
@@ -107,7 +111,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = query.Where(filtro);
                 }
 
-                query = query.OrderByDescending(t => t.Id);
+                // Order by Anioex (desc) so newest years appear first, then by Placod
+                query = query.OrderByDescending(t => t.Anioex).ThenBy(t => t.Placod);
 
                 if (take == 0)
                 {
@@ -193,7 +198,6 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
                 var todos = await _dbContext.Planteles
                     .Include(p => p.Socio)
-                    .OrderByDescending(t => t.Id)
                     .ToListAsync();
 
                 var filtrados = todos
@@ -201,6 +205,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                         !string.IsNullOrEmpty(x.Anioex) &&
                         int.TryParse(x.Anioex, out var anio) &&
                         anio >= anio1 && anio <= anio2)
+                    .OrderByDescending(x => x.Anioex)
+                    .ThenBy(x => x.Placod)
                     .ToList();
 
                 return filtrados;
@@ -214,6 +220,5 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
     }
     
-
 
 }

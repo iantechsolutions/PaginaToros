@@ -207,15 +207,16 @@ else
         var rta = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
         if (!esSocio){
-             var c = await _plantelServicio.CantidadTotal();
-             cantidad = c.List;
-             oRespuesta = await _plantelServicio.Lista(0,15);
-             EnsureNoDuplicates(oRespuesta);
-            // Diagnostics: log duplicates if any
-            LogDuplicatesIfAny(oRespuesta, "Get - Lista(0,15)");
-            OrderPlantelesByFchUsu(oRespuesta);
-             StateHasChanged();
-         }
+              var c = await _plantelServicio.CantidadTotal();
+              cantidad = c.List;
+             // Use server-side filtered method so ordering and any filters are applied in the backend
+             oRespuesta = await _plantelServicio.LimitadosFiltrados(0,15, null);
+              EnsureNoDuplicates(oRespuesta);
+             // Diagnostics: log duplicates if any
+             LogDuplicatesIfAny(oRespuesta, "Get - Lista(0,15)");
+             OrderPlantelesByFchUsu(oRespuesta);
+              StateHasChanged();
+          }
          else
          {
              var usuarioId = 0;
@@ -406,7 +407,8 @@ else
                 oRespuesta = await _plantelServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
                 EnsureNoDuplicates(oRespuesta);
                 LogDuplicatesIfAny(oRespuesta, $"LoadData - LimitadosFiltrados skip={args.Skip} top={args.Top}");
-                oRespuesta.List = oRespuesta.List.OrderBy(x => x.Id).ToList(); ;
+                // Do not re-order here; server returns the correct ordering/pagination.
+                // Still ensure client-side dedupe and optional ordering if needed.
                 OrderPlantelesByFchUsu(oRespuesta);
             }
             else
@@ -421,20 +423,23 @@ else
         {
             if (args != null && !string.IsNullOrEmpty(args.Filter))
             {
-                oRespuesta = await _plantelServicio.LimitadosFiltrados(0, args.Top.Value, args.Filter);
-                // oRespuesta.List = oRespuesta.List.Where(args.Filter)
-                OrderPlantelesByFchUsu(oRespuesta);
+                // Preserve paging when filtering for a selected socio
+                var skip = args.Skip ?? 0;
+                var top = args.Top ?? 15;
+                oRespuesta = await _plantelServicio.LimitadosFiltrados(skip, top, args.Filter);
+                 // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+                 OrderPlantelesByFchUsu(oRespuesta);
             }
             else
             {
                 string filtro = $"Socio.Id={socioSeleccionado.Id}";
+                // Use paged call so backend applies filter + ordering consistently
                 oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
-                EnsureNoDuplicates(oRespuesta);
-                LogDuplicatesIfAny(oRespuesta, "LoadData - LimitadosFiltrados for socio");
-                OrderPlantelesByFchUsu(oRespuesta);
+                 EnsureNoDuplicates(oRespuesta);
+                 LogDuplicatesIfAny(oRespuesta, "LoadData - LimitadosFiltrados for socio");
+                 OrderPlantelesByFchUsu(oRespuesta);
             }
         }
-
 
 
 
@@ -498,8 +503,14 @@ else
     void OrderPlantelesByFchUsu(Respuesta<List<PlantelDTO>> respuesta)
     {
         if (respuesta == null || respuesta.List == null) return;
+        // Primary sort by Anioex (numeric when possible, DESC), secondary by Placod (string, ascending)
         respuesta.List = respuesta.List
-            .OrderByDescending(x => x.FchUsu ?? DateTime.MinValue)
+            .OrderByDescending(x => {
+                if (int.TryParse(x.Anioex, out var y)) return y;
+                // Non-numeric or empty Anioex should appear after numeric years
+                return int.MinValue; // so that when ordering desc they come last
+            })
+            .ThenBy(x => x.Placod ?? string.Empty)
             .ToList();
     }
 }

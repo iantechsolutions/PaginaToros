@@ -68,6 +68,9 @@
 
 </style>
 
+@* Only render the admin/maestro section when the user is NOT a Socio *@
+@if (!esSocio)
+{
 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
     <Authorized>
 
@@ -142,6 +145,7 @@
     }
     </Authorized>
 </AuthorizeView>
+}
 
 <AuthorizeView Roles="Socio">
     <Authorized>
@@ -261,13 +265,14 @@
     int cantidad;
     bool isLoading = false;
     bool cargando = false;
+    bool esSocio = false;
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
     async Task Get()
     {
-        var esSocio = await UserHasRole("Socio");
+        esSocio = await UserHasRole("Socio");
         if (!esSocio)
         {
             var c = await _solici1Servicio.CantidadTotal();
@@ -403,14 +408,36 @@
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
-        if (!string.IsNullOrEmpty(args.Filter))
+        // If the current user is Socio, load only their solicitudes
+        if (await UserHasRole("Socio"))
         {
-            oRespuesta = await _solici1Servicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
-            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+            if (socioId <= 0)
+            {
+                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                var user = authState.User;
+                foreach (var claim in user.Claims)
+                {
+                    if (claim.Type == "SocioId")
+                    {
+                        socioId = Int32.Parse(claim.Value);
+                    }
+                }
+            }
+
+            oRespuesta = await _solici1Servicio.GetBySocioId(socioId);
+            cantidad = oRespuesta.List?.Count ?? 0;
         }
         else
         {
-            oRespuesta = await _solici1Servicio.Lista(args.Skip.Value, args.Top.Value);
+            if (!string.IsNullOrEmpty(args.Filter))
+            {
+                oRespuesta = await _solici1Servicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+                // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+            }
+            else
+            {
+                oRespuesta = await _solici1Servicio.Lista(args.Skip.Value, args.Top.Value);
+            }
         }
 
         isLoading = false;

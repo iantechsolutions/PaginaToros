@@ -1,8 +1,8 @@
 self.assetsManifest = {
-  "version": "X0IwA1o9",
+  "version": "t+wJ49BU",
   "assets": [
     {
-      "hash": "sha256-4HIeldyyHlbMtP5hEeaLUtkf2HRNCQEtBCFU7Ur+TH4=",
+      "hash": "sha256-keRcTxI0vPUrJrbph1n2C8V1qK7iU66XrxN+SCmPfWk=",
       "url": "Excel_Solicitud.xls"
     },
     {
@@ -546,11 +546,11 @@ self.assetsManifest = {
       "url": "_framework/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-hp7Q4LrDH6X7gsKaiB5dUwctKSvs33c7Q6Qs8wLHtS0=",
+      "hash": "sha256-R78DvIOGqdN2P/+i12gAc5xjxOntxIaUqiGJ5cIeoL0=",
       "url": "_framework/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-mlmBLohID43Lp+5ItCbj5adtFlDOAOKsPR0jmfWzth0=",
+      "hash": "sha256-omMVxLlSelk10F3PhE28cQkU1oEM/BWYu16YtiCSqLo=",
       "url": "_framework/PaginaToros.Client.pdb"
     },
     {
@@ -1238,7 +1238,7 @@ self.assetsManifest = {
       "url": "_framework/WindowsBase.dll"
     },
     {
-      "hash": "sha256-UIFngS/lJSiEzGgxrpzdiz7yyUUyBiLc8Y9+xgrXlbU=",
+      "hash": "sha256-pHlOmYAIOYnjQX2KsvjELTlOdixHmYhUmUNBDF7qcrw=",
       "url": "_framework/blazor.boot.json"
     },
     {
