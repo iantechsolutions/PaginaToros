@@ -261,6 +261,11 @@ namespace PaginaToros.Server.Controllers
             var _Respuesta = new Respuesta<CertifsemanDTO>();
             try
             {
+
+                if (nrDosi < 0)
+                    {
+                        return Conflict(new Respuesta<CertifsemanDTO> { Exito = 0, Mensaje = "NrDosi no puede ser negativo" });
+                    }
                 // Validar existencia (si opcional, podés omitir este SELECT y confiar en UpdateNrDosiAsync)
                 var existente = await _CertifsemanRepositorio.Obtener(x => x.Id == id);
                 if (existente == null)

@@ -5,6 +5,10 @@ using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
 using System.Text.Json;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using System.IO;
+using System.Drawing;
 
 namespace PaginaPlantels.Server.Cont{
     [Route("api/[controller]")]
@@ -447,6 +451,157 @@ namespace PaginaPlantels.Server.Cont{
             {
                 _Respuesta = new Respuesta<PlantelDTO> { Exito = 0, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
+        }
+
+        [HttpGet]
+        [Route("ExportarExcel")]
+        public async Task<IActionResult> ExportarExcel(string desde, string hasta, string seleccion = "Todos")
+        {
+            // Parse dates
+            if (!DateTime.TryParse(desde, out var dDesde) || !DateTime.TryParse(hasta, out var dHasta))
+            {
+                return BadRequest("Fechas inválidas");
+            }
+            if (dDesde > dHasta)
+            {
+                return BadRequest("La fecha inicial no puede ser posterior a la fecha final.");
+            }
+
+            try
+            {
+                var lista = await _plantelRepositorio.ObtenerPorRangoFechas(dDesde, dHasta);
+                var listaDTO = _mapper.Map<List<PaginaToros.Shared.Models.PlantelDTO>>(lista);
+                var deduped = Deduplicate(listaDTO);
+
+                // Apply seleccion filter
+                var filtrada = seleccion switch
+                {
+                    "Activos" => deduped.Where(x => x.Estado == "S").ToList(),
+                    "Inactivos" => deduped.Where(x => x.Estado == "N").ToList(),
+                    _ => deduped
+                };
+
+                // Split
+                var conAnio = filtrada.Where(x => !string.IsNullOrEmpty(x.Anioex) && int.TryParse(x.Anioex, out _)).ToList();
+                var sinAnio = filtrada.Where(x => string.IsNullOrEmpty(x.Anioex) || !int.TryParse(x.Anioex, out _)).ToList();
+
+                var años = conAnio.Select(x => int.Parse(x.Anioex!)).Distinct().OrderBy(x => x).ToList();
+
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using var package = new ExcelPackage();
+
+                // Resumen general (solo conAnio)
+                var resumen = package.Workbook.Worksheets.Add("Resumen General");
+                resumen.Cells[1, 1].Value = "Plantel";
+                resumen.Cells[1, 2].Value = "Vacas PR";
+                resumen.Cells[1, 3].Value = "Vaq. PR c/servicio";
+                resumen.Cells[1, 4].Value = "Vaq. PR s/servicio";
+                resumen.Cells[1, 5].Value = "Vacas VIP";
+                resumen.Cells[1, 6].Value = "Vaq. VIP c/servicio";
+                resumen.Cells[1, 7].Value = "Vaq. VIP s/servicio";
+                resumen.Cells[1, 8].Value = "Socio";
+                resumen.Cells[1, 9].Value = "Estado";
+                resumen.Cells[1, 10].Value = "Año";
+
+                resumen.Cells[2, 1].Value = "TOTAL GENERAL";
+                resumen.Cells[2, 2].Value = conAnio.Sum(p => p.Varede ?? 0);
+                resumen.Cells[2, 3].Value = conAnio.Sum(p => p.Vqcsrd ?? 0);
+                resumen.Cells[2, 4].Value = conAnio.Sum(p => p.Vqssrd ?? 0);
+                resumen.Cells[2, 5].Value = conAnio.Sum(p => p.Varepr ?? 0);
+                resumen.Cells[2, 6].Value = conAnio.Sum(p => p.Vqcsrp ?? 0);
+                resumen.Cells[2, 7].Value = conAnio.Sum(p => p.Vqssrp ?? 0);
+
+                resumen.Cells[1, 1, 2, 10].AutoFitColumns();
+
+                // Hojas por año
+                foreach (var año in años)
+                {
+                    var hoja = package.Workbook.Worksheets.Add($"Año {año}");
+                    hoja.Cells[1, 1].Value = "Plantel";
+                    hoja.Cells[1, 2].Value = "Vacas PR";
+                    hoja.Cells[1, 3].Value = "Vaq.PR c/servicio";
+                    hoja.Cells[1, 4].Value = "Vaq. PR s/servicio";
+                    hoja.Cells[1, 5].Value = "Vacas VIP";
+                    hoja.Cells[1, 6].Value = "Vaq. VIP c/servicio";
+                    hoja.Cells[1, 7].Value = "Vaq. VIP s/servicio";
+                    hoja.Cells[1, 8].Value = "Socio";
+                    hoja.Cells[1, 9].Value = "Estado";
+
+                    var datosAnio = conAnio.Where(p => int.TryParse(p.Anioex, out var yy) && yy == año).ToList();
+                    int r = 2;
+                    foreach (var p in datosAnio)
+                    {
+                        hoja.Cells[r, 1].Value = p.Placod;
+                        hoja.Cells[r, 2].Value = p.Varede;
+                        hoja.Cells[r, 3].Value = p.Vqcsrd;
+                        hoja.Cells[r, 4].Value = p.Vqssrd;
+                        hoja.Cells[r, 5].Value = p.Varepr;
+                        hoja.Cells[r, 6].Value = p.Vqcsrp;
+                        hoja.Cells[r, 7].Value = p.Vqssrp;
+                        hoja.Cells[r, 8].Value = p.Socio?.Nombre;
+                        hoja.Cells[r, 9].Value = p.Estado == "S" ? "Activo" : "Inactivo";
+                        r++;
+                    }
+
+                    hoja.Cells[r, 1].Value = $"TOTAL del año {año}";
+                    hoja.Cells[r, 2].Value = datosAnio.Sum(x => x.Varede ?? 0);
+                    hoja.Cells[r, 3].Value = datosAnio.Sum(x => x.Vqcsrd ?? 0);
+                    hoja.Cells[r, 4].Value = datosAnio.Sum(x => x.Vqssrd ?? 0);
+                    hoja.Cells[r, 5].Value = datosAnio.Sum(x => x.Varepr ?? 0);
+                    hoja.Cells[r, 6].Value = datosAnio.Sum(x => x.Vqcsrp ?? 0);
+                    hoja.Cells[r, 7].Value = datosAnio.Sum(x => x.Vqssrp ?? 0);
+
+                    hoja.Cells[1, 1, r, 9].AutoFitColumns();
+                }
+
+                // Hoja sin año (no cuentan para el resumen general)
+                if (sinAnio.Any())
+                {
+                    var hojaSin = package.Workbook.Worksheets.Add("Sin año");
+                    hojaSin.Cells[1, 1].Value = "Plantel";
+                    hojaSin.Cells[1, 2].Value = "Vacas PR";
+                    hojaSin.Cells[1, 3].Value = "Vaq.PR c/servicio";
+                    hojaSin.Cells[1, 4].Value = "Vaq. PR s/servicio";
+                    hojaSin.Cells[1, 5].Value = "Vacas VIP";
+                    hojaSin.Cells[1, 6].Value = "Vaq. VIP c/servicio";
+                    hojaSin.Cells[1, 7].Value = "Vaq. VIP s/servicio";
+                    hojaSin.Cells[1, 8].Value = "Socio";
+                    hojaSin.Cells[1, 9].Value = "Estado";
+
+                    int r = 2;
+                    foreach (var p in sinAnio)
+                    {
+                        hojaSin.Cells[r, 1].Value = p.Placod;
+                        hojaSin.Cells[r, 2].Value = p.Varede;
+                        hojaSin.Cells[r, 3].Value = p.Vqcsrd;
+                        hojaSin.Cells[r, 4].Value = p.Vqssrd;
+                        hojaSin.Cells[r, 5].Value = p.Varepr;
+                        hojaSin.Cells[r, 6].Value = p.Vqcsrp;
+                        hojaSin.Cells[r, 7].Value = p.Vqssrp;
+                        hojaSin.Cells[r, 8].Value = p.Socio?.Nombre;
+                        hojaSin.Cells[r, 9].Value = p.Estado == "S" ? "Activo" : "Inactivo";
+                        r++;
+                    }
+
+                    hojaSin.Cells[r, 1].Value = "TOTAL (Sin año)";
+                    hojaSin.Cells[r, 2].Value = sinAnio.Sum(x => x.Varede ?? 0);
+                    hojaSin.Cells[r, 3].Value = sinAnio.Sum(x => x.Vqcsrd ?? 0);
+                    hojaSin.Cells[r, 4].Value = sinAnio.Sum(x => x.Vqssrd ?? 0);
+                    hojaSin.Cells[r, 5].Value = sinAnio.Sum(x => x.Varepr ?? 0);
+                    hojaSin.Cells[r, 6].Value = sinAnio.Sum(x => x.Vqcsrp ?? 0);
+                    hojaSin.Cells[r, 7].Value = sinAnio.Sum(x => x.Vqssrp ?? 0);
+
+                    hojaSin.Cells[1, 1, r, 9].AutoFitColumns();
+                }
+
+                var bytes = package.GetAsByteArray();
+                var fileName = $"reporte-planteles_{DateTime.Now:yyyyMMdd}.xlsx";
+                return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
 

@@ -2,52 +2,51 @@
 
 <RadzenCard Class="m-3">
     <div class="row">
-        <h4><strong>@oEstablecimiento.Nombre</strong></h4>
+        <h4><strong>@V(oEstablecimiento?.Nombre)</strong></h4>
+
         <div class="col-md-6 col-xl-6">
             <div class="d-flex flex-row p-3">
                 <div>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Activo?</RadzenText>
-                    @if (oEstablecimiento.Activo=="S")
-                    {
-                        <RadzenText TextStyle="TextStyle.Body1"><b>Si</b></RadzenText>
-                    }
-                    else
-                    {
-                        <RadzenText TextStyle="TextStyle.Body1"><b>No</b></RadzenText>
-                    }
-                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Codigo</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Ecod</b></RadzenText>
-                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Encargado</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Encargado</b></RadzenText>
-                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-1 mb-0">Socio</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@socios.Where(x=>x.Scod==oEstablecimiento.Codsoc).FirstOrDefault()</b></RadzenText>
-                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-1 mb-0">Informacion Adicional</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Plano</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@SiNo(oEstablecimiento?.Activo)</b></RadzenText>
 
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Codigo</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@V(oEstablecimiento?.Ecod)</b></RadzenText>
+
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Encargado</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@V(oEstablecimiento?.Encargado)</b></RadzenText>
+
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-1 mb-0">Socio</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@SocioNombre(oEstablecimiento?.Codsoc)</b></RadzenText>
+
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-1 mb-0">Informacion Adicional</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@V(oEstablecimiento?.Plano)</b></RadzenText>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xl-6"> 
+
+        <div class="col-md-6 col-xl-6">
             <div class="d-flex flex-row p-3">
                 <div>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Domicilio</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Direcc</b></RadzenText>
-                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Localidad</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Locali</b></RadzenText>
-                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Codigo Postal</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Codpos</b></RadzenText>
-                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Provincia</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@traductorProvincia[oEstablecimiento.Codpro]</b></RadzenText>
-                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Telefono</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@oEstablecimiento.Tel</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@V(oEstablecimiento?.Direcc)</b></RadzenText>
 
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Localidad</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@V(oEstablecimiento?.Locali)</b></RadzenText>
+
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Codigo Postal</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@V(oEstablecimiento?.Codpos)</b></RadzenText>
+
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Provincia</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@ProvinciaNombre(oEstablecimiento?.Codpro)</b></RadzenText>
+
+                    <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Telefono</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@V(oEstablecimiento?.Tel)</b></RadzenText>
                 </div>
             </div>
         </div>
     </div>
-
 </RadzenCard>
-
 @code {
 
     Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
@@ -86,20 +85,46 @@
     [Parameter] public int id { get; set; }
     protected override async Task OnInitializedAsync()
     {
-        if (id != 0)
-        {
-            oRta = await Http.GetFromJsonAsync<Respuesta<Estable>>($"/api/Establecimiento/{id}");
+        if (id == 0) return;
 
-            oEstablecimiento = oRta.List;
-            var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/Socio/{id}");
-            socios = rta.List;
+        var rtaEst = await Http.GetFromJsonAsync<Respuesta<Estable>>($"/api/Establecimiento/{id}");
+        oEstablecimiento = rtaEst?.List ?? new Estable();
 
-        }
+        var rtaSoc = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/Socio/{id}");
+        socios = rtaSoc?.List ?? new List<Socio>();
     }
+
     async Task cancel()
     {
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
 
+    }
+
+
+
+
+
+    private const string NC = "No cargado";
+
+    private string V(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? NC : value.Trim();
+
+    private string SiNo(string? flagSN) =>
+        flagSN == "S" ? "Si" : flagSN == "N" ? "No" : NC;
+
+    private string ProvinciaNombre(string? codpro)
+    {
+        if (string.IsNullOrWhiteSpace(codpro)) return NC;
+        return traductorProvincia.TryGetValue(codpro, out var nombre) && !string.IsNullOrWhiteSpace(nombre)
+            ? nombre
+            : NC;
+    }
+
+    private string SocioNombre(string? codSoc)
+    {
+        if (string.IsNullOrWhiteSpace(codSoc)) return NC;
+        var socio = socios?.FirstOrDefault(x => x.Scod == codSoc);
+        return socio == null ? NC : V(socio.Nombre);
     }
 
 }

@@ -5,7 +5,7 @@
 
 <div class="card" >
     <div class="card-body">
-        <EditForm Model="@oPlantel" OnValidSubmit="Guardar">
+        <EditForm EditContext="@editContext" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
@@ -16,7 +16,8 @@
                 </div>
                 <div class="col-sm">
                     <label>Fecha de existencia</label><br />
-                    <RadzenDatePicker TValue="DateTime?" Disabled="esSocio" @bind-Value="@FechaTempCreacion" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <RadzenDatePicker TValue="DateTime?" Disabled="esSocio" Value="@FechaTempCreacion" Change="@(args => FechaTempCreacionChanged((DateTime?)args))" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    <ValidationMessage For="(()=> oPlantel.Anioex)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Socio</label>
@@ -28,6 +29,7 @@
                                     @eleccion.Nombre
                                 </ResultTemplate>
                             </BlazoredTypeahead>
+                    <ValidationMessage For="(()=> oPlantel.Nrocri)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Activo?</label><br/>
@@ -57,17 +59,17 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Vacas</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Varede" placeholder="" disabled="@esSocio"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Varede" placeholder="" disabled="@esSocio" min="0"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Varede)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas con servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrd" placeholder="" disabled="@esSocio"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrd" placeholder="" disabled="@esSocio" min="0"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqcsrd)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas sin servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrd" placeholder="" disabled="@esSocio"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrd" placeholder="" disabled="@esSocio" min="0"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqssrd)" style="color:red;" />
                 </div>
             </div>
@@ -76,17 +78,17 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Vacas</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Varepr" placeholder="" disabled="@esSocio"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Varepr" placeholder="" disabled="@esSocio" min="0"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Varepr)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas con servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrp" placeholder="" disabled="@esSocio"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqcsrp" placeholder="" disabled="@esSocio" min="0"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqcsrp)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Vaquillonas sin servicio</label>
-                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrp" placeholder="" disabled="@esSocio"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="@oPlantel.Vqssrp" placeholder="" disabled="@esSocio" min="0"></InputNumber>
                     <ValidationMessage For="(()=> oPlantel.Vqcsrp)" style="color:red;" />
                 </div>
             </div>
@@ -111,6 +113,8 @@
     List<SocioDTO> socios = new();
     SocioDTO? socioSeleccionado = null;
     PlantelDTO oPlantel = new();
+    EditContext editContext;
+    ValidationMessageStore messageStore;
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
     [Parameter] public bool esSocio { get; set; }
@@ -120,6 +124,15 @@
     bool activo = true;
     // Flag para evitar envíos múltiples desde el cliente
     bool isSaving = false;
+
+    protected override void OnInitialized()
+    {
+        // Create EditContext and message store synchronously so EditForm has a valid EditContext on first render
+        editContext = new EditContext(oPlantel);
+        messageStore = new ValidationMessageStore(editContext);
+        // subscribe field change
+        editContext.OnFieldChanged += EditContext_OnFieldChanged;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -151,17 +164,184 @@
                 Console.WriteLine(ex.Message);
             }
         }
+        // Recreate EditContext and message store after model assigned (if replaced)
+        // Unsubscribe previous
+        if (editContext != null)
+        {
+            editContext.OnFieldChanged -= EditContext_OnFieldChanged;
+        }
+        editContext = new EditContext(oPlantel ?? new PlantelDTO());
+        messageStore = new ValidationMessageStore(editContext);
+        editContext.OnFieldChanged += EditContext_OnFieldChanged;
     }
+
+    private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        // Validate only the changed field and clear its errors if valid
+        ValidateField(e.FieldIdentifier);
+    }
+
+    void FechaTempCreacionChanged(DateTime? value)
+    {
+        FechaTempCreacion = value;
+        var fi = new FieldIdentifier(oPlantel, nameof(oPlantel.Anioex));
+        if (FechaTempCreacion.HasValue)
+        {
+            // clear the error for Anioex
+            messageStore.Clear(fi);
+        }
+        else
+        {
+            messageStore.Add(fi, "La fecha de existencia es obligatoria.");
+        }
+        editContext.NotifyValidationStateChanged();
+    }
+
+    bool ValidateModel()
+    {
+        // Clear previous messages
+        messageStore.Clear();
+
+        bool valid = true;
+
+        // Numero de Plantel is required only when not a socio and creating (not editing)
+        if (!(esSocio || Id != 0))
+        {
+            if (string.IsNullOrWhiteSpace(oPlantel.Placod))
+            {
+                messageStore.Add(new FieldIdentifier(oPlantel, nameof(oPlantel.Placod)), "El numero de plantel es obligatorio.");
+                valid = false;
+            }
+        }
+
+        // Fecha de existencia (Anioex) required
+        if (!FechaTempCreacion.HasValue)
+        {
+            messageStore.Add(new FieldIdentifier(oPlantel, nameof(oPlantel.Anioex)), "La fecha de existencia es obligatoria.");
+            valid = false;
+        }
+
+        // Socio required (Nrocri)
+        if (!esSocio && string.IsNullOrWhiteSpace(oPlantel.Nrocri) && socioSeleccionado == null)
+        {
+            messageStore.Add(new FieldIdentifier(oPlantel, nameof(oPlantel.Nrocri)), "Debe seleccionar un socio.");
+            valid = false;
+        }
+
+        // Numero de ultima inspeccion required
+        if (string.IsNullOrWhiteSpace(oPlantel.Nroins))
+        {
+            messageStore.Add(new FieldIdentifier(oPlantel, nameof(oPlantel.Nroins)), "El numero de ultima inspeccion es obligatorio.");
+            valid = false;
+        }
+
+        // No permitir valores negativos en cantidades (si tienen valor)
+        void CheckNegative(double? value, string propName)
+        {
+            if (value.HasValue && value.Value < 0)
+            {
+                messageStore.Add(new FieldIdentifier(oPlantel, propName), "No se permiten valores negativos.");
+                valid = false;
+            }
+        }
+
+        CheckNegative(oPlantel.Varede, nameof(oPlantel.Varede));
+        CheckNegative(oPlantel.Vqcsrd, nameof(oPlantel.Vqcsrd));
+        CheckNegative(oPlantel.Vqssrd, nameof(oPlantel.Vqssrd));
+        CheckNegative(oPlantel.Varepr, nameof(oPlantel.Varepr));
+        CheckNegative(oPlantel.Vqcsrp, nameof(oPlantel.Vqcsrp));
+        CheckNegative(oPlantel.Vqssrp, nameof(oPlantel.Vqssrp));
+
+        editContext.NotifyValidationStateChanged();
+
+        return valid;
+    }
+
+    private void ValidateField(FieldIdentifier fi)
+    {
+        // remove existing messages for this field
+        messageStore.Clear(fi);
+
+        bool valid = true;
+
+        // Check specific fields
+        switch (fi.FieldName)
+        {
+            case nameof(oPlantel.Placod):
+                if (!(esSocio || Id != 0) && string.IsNullOrWhiteSpace(oPlantel.Placod))
+                {
+                    messageStore.Add(fi, "El numero de plantel es obligatorio.");
+                    valid = false;
+                }
+                break;
+            case nameof(oPlantel.Anioex):
+                if (!FechaTempCreacion.HasValue)
+                {
+                    messageStore.Add(fi, "La fecha de existencia es obligatoria.");
+                    valid = false;
+                }
+                break;
+            case nameof(oPlantel.Nrocri):
+                if (!esSocio && string.IsNullOrWhiteSpace(oPlantel.Nrocri) && socioSeleccionado == null)
+                {
+                    messageStore.Add(fi, "Debe seleccionar un socio.");
+                    valid = false;
+                }
+                break;
+            case nameof(oPlantel.Nroins):
+                if (string.IsNullOrWhiteSpace(oPlantel.Nroins))
+                {
+                    messageStore.Add(fi, "El numero de ultima inspeccion es obligatorio.");
+                    valid = false;
+                }
+                break;
+            case nameof(oPlantel.Varede):
+            case nameof(oPlantel.Vqcsrd):
+            case nameof(oPlantel.Vqssrd):
+            case nameof(oPlantel.Varepr):
+            case nameof(oPlantel.Vqcsrp):
+            case nameof(oPlantel.Vqssrp):
+                // numeric negative check
+                var prop = oPlantel.GetType().GetProperty(fi.FieldName);
+                if (prop != null)
+                {
+                    var valObj = prop.GetValue(oPlantel);
+                    if (valObj is double dVal)
+                    {
+                        if (dVal < 0)
+                        {
+                            messageStore.Add(fi, "No se permiten valores negativos.");
+                            valid = false;
+                        }
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+
+        if (!valid)
+        {
+            // nothing else
+        }
+
+        editContext.NotifyValidationStateChanged();
+    }
+
     async Task Guardar()
     {
         // Evita envíos concurrentes
         if (isSaving)
             return;
-        
+
+        // Run custom validation first
+        if (!ValidateModel())
+            return;
+
         isSaving = true;
         StateHasChanged();
-        
-        oPlantel.Nrocri = socioSeleccionado.Scod;
+
+        oPlantel.Nrocri = socioSeleccionado?.Scod;
 
 
         Console.WriteLine(oPlantel.Placod);
@@ -234,6 +414,12 @@
     private async Task HandleSocioSeleccion(SocioDTO socio)
     {
         socioSeleccionado = socio;
+        // set Nrocri on model and clear validation for it
+        oPlantel.Nrocri = socioSeleccionado?.Scod;
+        var fiNrocri = new FieldIdentifier(oPlantel, nameof(oPlantel.Nrocri));
+        messageStore.Clear(fiNrocri);
+        editContext.NotifyValidationStateChanged();
+
         var planteles = await _plantelServicio.GetBySocioId(socio.Id);
 
         if (oPlantel.Placod == null)
@@ -247,6 +433,8 @@
             int nuevoCodigo = codigosValidos.Any() ? codigosValidos.Max() + 1 : 1;
 
             oPlantel.Placod = nuevoCodigo.ToString("D4");
+            // notify edit context that Placod changed
+            editContext?.NotifyFieldChanged(new FieldIdentifier(oPlantel, nameof(oPlantel.Placod)));
         }
     }
 

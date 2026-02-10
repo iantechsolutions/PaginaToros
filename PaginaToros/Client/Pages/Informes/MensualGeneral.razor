@@ -493,6 +493,9 @@
     IEnumerable<string> provinciasSeleccionadas { get; set; } = Array.Empty<string>();
     IEnumerable<string> inspectoresSeleccionadosCods { get; set; } = Array.Empty<string>();
 
+    // Mensaje de validación para mostrar en UI
+    string? validationError = null;
+
     // Diccionario de códigos de provincia a nombre
     Dictionary<string, string> traductorProvinciaInverso = new()
     {
@@ -533,7 +536,7 @@
         try
         {
             var rt = await _resin6Servicio.ObtenerFechas(FechaInicial.Ticks, FechaFinal.Ticks);
-            datos = rt.List;
+            datos = rt.List ?? new List<Resin6DTO>();
 
             var rtaa = await _inspectServicio.LimitadosFiltrados(0, 0);
             Inspects = rtaa.List ?? new List<InspectDTO>();
@@ -545,6 +548,8 @@
                 .ToList();
 
             terminado = true;
+
+            Console.WriteLine($"OnInitializedAsync: cargas iniciales - datos.Count={datos?.Count ?? 0}, Inspects.Count={Inspects?.Count ?? 0}");
         }
         catch (Exception ex)
         {
@@ -579,11 +584,30 @@
 
     public void ConfirmarDatos()
     {
+        // limpiar error previo
+        validationError = null;
         loading = true;
         try
         {
-            // 1) Filtrado por fecha
+            // Validación de rango de fechas
+            if (FechaInicial > FechaFinal)
+            {
+                validationError = "La fecha inicial no puede ser mayor que la fecha final.";
+                Console.WriteLine($"ConfirmarDatos: FechaInicial ({FechaInicial}) es mayor que FechaFinal ({FechaFinal}).");
+                loading = false;
+                return;
+            }
+
+            // Asegurar listas no nulas
+            datos = datos ?? new List<Resin6DTO>();
+            Inspects = Inspects ?? new List<InspectDTO>();
+
+            Console.WriteLine($"ConfirmarDatos: inicio filtrado - datos.Count={datos.Count}");
+
+            // 1) Filtrado por fecha (defensivo: revisar Resin1 nulo)
             var q = datos.Where(x =>
+                x != null &&
+                x.Resin1 != null &&
                 x.Resin1.Freali.HasValue &&
                 x.Resin1.Freali.Value.Date >= FechaInicial.Date &&
                 x.Resin1.Freali.Value.Date <= FechaFinal.Date);
@@ -596,13 +620,20 @@
                 .Select(s => (s ?? "").Trim()).Where(s => s != "").ToHashSet();
 
             if (icodsSel.Count > 0)
-                q = q.Where(x => icodsSel.Contains((x.Resin1.Icod ?? "").Trim()));
+            {
+                q = q.Where(x => icodsSel.Contains(((x.Resin1?.Icod) ?? "").Trim()));
+                Console.WriteLine($"ConfirmarDatos: aplicando filtro inspectores ({icodsSel.Count} seleccionados)");
+            }
 
             if (provSel.Count > 0)
-                q = q.Where(x => provSel.Contains((x.Resin1.Establecimiento?.Codpro ?? "").Trim()));
+            {
+                q = q.Where(x => provSel.Contains(((x.Resin1?.Establecimiento?.Codpro) ?? "").Trim()));
+                Console.WriteLine($"ConfirmarDatos: aplicando filtro provincias ({provSel.Count} seleccionadas)");
+            }
 
             // 3) Materializamos la lista filtrada
             listaFiltrada = q.ToList();
+            Console.WriteLine($"ConfirmarDatos: listaFiltrada.Count={listaFiltrada.Count}");
 
             // 4) Limpiamos pivotes y acumulamos en O(n)
             totalesGeneral = new();
@@ -614,17 +645,30 @@
 
             foreach (var x in listaFiltrada)
             {
-                totalesGeneral.AddFrom(x);
+                try
+                {
+                    if (x?.Resin1 == null)
+                    {
+                        Console.WriteLine("ConfirmarDatos: elemento en listaFiltrada con Resin1 nulo, ignorado.");
+                        continue;
+                    }
 
-                var provKey = NormalizeProvKey(x.Resin1.Establecimiento?.Codpro);
-                var inspKey = NormalizeInspKey(x.Resin1.Icod);
-                var mKey = MonthKey(x.Resin1.Freali);
+                    totalesGeneral.AddFrom(x);
 
-                GetOrCreate(byProvince, provKey).AddFrom(x);
-                GetOrCreate(byInspector, inspKey).AddFrom(x);
-                GetOrCreate(byMonth, mKey).AddFrom(x);
-                GetOrCreate(byMonthProvince, (mKey, provKey)).AddFrom(x);
-                GetOrCreate(byMonthInspector, (mKey, inspKey)).AddFrom(x);
+                    var provKey = NormalizeProvKey(x.Resin1.Establecimiento?.Codpro);
+                    var inspKey = NormalizeInspKey(x.Resin1.Icod);
+                    var mKey = MonthKey(x.Resin1.Freali);
+
+                    GetOrCreate(byProvince, provKey).AddFrom(x);
+                    GetOrCreate(byInspector, inspKey).AddFrom(x);
+                    GetOrCreate(byMonth, mKey).AddFrom(x);
+                    GetOrCreate(byMonthProvince, (mKey, provKey)).AddFrom(x);
+                    GetOrCreate(byMonthInspector, (mKey, inspKey)).AddFrom(x);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ConfirmarDatos: error procesando elemento - {ex.Message}");
+                }
             }
 
             confirmado = true;
@@ -647,6 +691,16 @@
         }
 
         using var stream = new MemoryStream();
+        // Ensure EPPlus license context (defensivo)
+        try
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        }
+        catch (Exception licEx)
+        {
+            Console.WriteLine($"DescargarExcel: fallo al setear LicenseContext de EPPlus - {licEx.Message}");
+        }
+
         using var excel = new ExcelPackage();
         var wb = excel.Workbook;
 
@@ -985,6 +1039,8 @@
         var fileName = $"Reporte_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
         var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         var url = $"data:{contentType};base64,{Convert.ToBase64String(fileBytes)}";
+
+        Console.WriteLine($"DescargarExcel: preparando a invocar saveAsFile - tamaño(bytes)={fileBytes?.Length ?? 0}");
         await _js.InvokeVoidAsync("saveAsFile", fileName, url);
     }
 
@@ -1007,6 +1063,7 @@
         confirmado = false;
         terminado = true;
         loading = false;
+        validationError = null;
     }
 
     private async Task OnGenerarClick()
@@ -1032,35 +1089,36 @@
     class Counters
     {
         // PR
-        public double prPres, prMarc;
+        public int prPres, prMarc;
         // VIP
-        public double vipPres, vipMarc;
+        public int vipPres, vipMarc;
         // SCP
-        public double scpPres, scpMarc;
+        public int scpPres, scpMarc;
         // CP
-        public double cpPres, cpMarc, cpSBarra;
+        public int cpPres, cpMarc, cpSBarra;
 
-        public double prRech => Math.Max(0, prPres - prMarc);
-        public double vipRech => Math.Max(0, vipPres - vipMarc);
-        public double scpRech => Math.Max(0, scpPres - scpMarc);
-        public double cpRech => Math.Max(0, cpPres - cpMarc);
+        public int prRech => Math.Max(0, prPres - prMarc);
+        public int vipRech => Math.Max(0, vipPres - vipMarc);
+        public int scpRech => Math.Max(0, scpPres - scpMarc);
+        public int cpRech => Math.Max(0, cpPres - cpMarc);
 
-        public double TotalPresentadas => prPres + vipPres + scpPres + cpPres;
+        public int TotalPresentadas => prPres + vipPres + scpPres + cpPres;
 
         public void AddFrom(Resin6DTO x)
         {
-            prPres += x.Hdp ?? 0;
-            prMarc += (x.HdpM ?? 0) + (x.HdpAs ?? 0);
+            // defensivo: convertir a int cualquier valor nullable
+            prPres += Convert.ToInt32(x.Hdp ?? 0);
+            prMarc += Convert.ToInt32((x.HdpM ?? 0) + (x.HdpAs ?? 0));
 
-            vipPres += (x.Hgvp ?? 0) + (x.Hgqp ?? 0);
-            vipMarc += (x.Hgvb ?? 0) + (x.Hgqb ?? 0);
+            vipPres += Convert.ToInt32((x.Hgvp ?? 0) + (x.Hgqp ?? 0));
+            vipMarc += Convert.ToInt32((x.Hgvb ?? 0) + (x.Hgqb ?? 0));
 
-            scpPres += x.Mcp ?? 0;
-            scpMarc += (x.McpM ?? 0) + (x.McpAs ?? 0);
+            scpPres += Convert.ToInt32(x.Mcp ?? 0);
+            scpMarc += Convert.ToInt32((x.McpM ?? 0) + (x.McpAs ?? 0));
 
-            cpPres += x.Msp ?? 0;
-            cpMarc += (x.MspM ?? 0) + (x.MspAs ?? 0);
-            cpSBarra += x.Mspsb ?? 0;
+            cpPres += Convert.ToInt32(x.Msp ?? 0);
+            cpMarc += Convert.ToInt32((x.MspM ?? 0) + (x.MspAs ?? 0));
+            cpSBarra += Convert.ToInt32(x.Mspsb ?? 0);
         }
 
         public bool IsAllZero =>
@@ -1119,6 +1177,7 @@
         if (traductorProvinciaInverso.TryGetValue(c, out var name) && !string.IsNullOrWhiteSpace(name))
             return c;
         // Si no, mando a una clave canónica
+        Console.WriteLine($"NormalizeProvKey: codigo de provincia desconocido o vacio ('{c}'), usando __NONE_PROV__");
         return "__NONE_PROV__";
     }
 
@@ -1127,9 +1186,11 @@
         var c = (code ?? "").Trim();
         var exists = (Inspects ?? new List<InspectDTO>())
             .Any(i => ((i.Icod ?? "").Trim()) == c && !string.IsNullOrWhiteSpace(i.Nombre));
-        return (exists && c != "") ? c : "__NONE_INSP__";
+        if (exists && c != "") return c;
+        Console.WriteLine($"NormalizeInspKey: codigo de inspector desconocido o vacio ('{c}'), usando __NONE_INSP__");
+        return "__NONE_INSP__";
     }
-    // Helper para “Por Provincia (del inspector)”
+    // Helper para “Por Provincia (del inspector)"
     Counters Aggregate(IEnumerable<Resin6DTO> items)
     {
         var c = new Counters();

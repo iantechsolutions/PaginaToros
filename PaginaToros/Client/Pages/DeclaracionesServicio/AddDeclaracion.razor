@@ -167,10 +167,11 @@
                         </div>
                         <div class="col-sm">
                             <label>Tipo de servicio</label>
-                            <RadzenDropDown @bind-Value=@tipoTemp
-                                            Data=@tipos
-                                            Change="@(args => CleanSelected())"
+                            <RadzenDropDown @bind-Value="tipoTemp"
+                                            Data="@tipos"
+                                            Change="OnTipoChanged"
                                             Style="width: 100%; max-width: 400px;" />
+
                         </div>
                     </div>
 
@@ -229,9 +230,17 @@
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo de toro" Width="5%">
                                             <Template Context="data">
-                                                @traductorToros[data.TipToro]
+                                                @if (!string.IsNullOrWhiteSpace(data.TipToro) && traductorToros.ContainsKey(data.TipToro))
+                                                {
+                                                    @traductorToros[data.TipToro]
+                                                }
+                                                else
+                                                {
+                                                    <span>-</span>
+                                                }
                                             </Template>
                                         </RadzenDataGridColumn>
+
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="7.34%" />
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4.6%" />
                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hasta" Title="Fecha Nac." Width="4.6%">
@@ -765,7 +774,7 @@ else
     Dictionary<string, int> BuildUsoPorCert(IEnumerable<Desepla3DTO> items, double multiplicador)
     {
         return items
-            .Where(x => x.Tipo == "insem")  // solo inseminación consume dosis
+            .Where(x => x.Tipo == "insem")  
             .GroupBy(x => x.Hardb)
             .ToDictionary(
                 g => g.Key,
@@ -918,11 +927,27 @@ else
         oDeclaracion.Nrocri = socioSeleccionado.Scod;
         oDeclaracion.Nroplan = Plantelseleccionado.Placod;
         oDeclaracion.Tipse = ToCode(tipoTemp);
+        oDeclaracion.Desde ??= DateTime.Now;
+        oDeclaracion.Hasta ??= DateTime.Now;
 
 
         // --- Multiplicadores
         var multActual = GetMultiplicador(tipoTemp);
         var multPrevio = GetMultiplicador(string.IsNullOrWhiteSpace(previousTipoTemp) ? tipoTemp : previousTipoTemp);
+
+
+
+        if (tipoTemp == "Natural")
+        {
+            var d = oDeclaracion.Desde ?? DateTime.Now;
+            var h = oDeclaracion.Hasta ?? DateTime.Now;
+
+            foreach (var t in torosSeleccionados)
+            {
+                t.Desde = d;
+                t.Hasta = h;
+            }
+        }
 
         // --- Armo seleccionFinal como hacías
         foreach (var adaptacion in torosSeleccionados)
@@ -933,8 +958,8 @@ else
 
             if (tipoTemp != "Natural")
             {
-                if (adaptacion.Desde < oDeclaracion.Desde) oDeclaracion.Desde = adaptacion.Desde;
-                if (adaptacion.Hasta > oDeclaracion.Hasta) oDeclaracion.Hasta = adaptacion.Hasta;
+                if (adaptacion.Desde < oDeclaracion.Desde!.Value) oDeclaracion.Desde = adaptacion.Desde;
+                if (adaptacion.Hasta > oDeclaracion.Hasta!.Value) oDeclaracion.Hasta = adaptacion.Hasta;
             }
         }
 
@@ -944,10 +969,12 @@ else
             adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyyy-MM-dd");
             seleccionFinal.Add(adaptacion.original);
 
-            // Ajusto rango general si aplica
-            oDeclaracion.Desde = adaptacion.Desde;
-            oDeclaracion.Hasta = adaptacion.Hasta;
+            // Ajusto rango general con min/max
+            if (adaptacion.Desde < oDeclaracion.Desde!.Value) oDeclaracion.Desde = adaptacion.Desde;
+            if (adaptacion.Hasta > oDeclaracion.Hasta!.Value) oDeclaracion.Hasta = adaptacion.Hasta;
+
         }
+
 
         // --- USO INICIAL (lo que tenía la declaración al cargar)
         //     NOTA: usamos deseplasViejos (traídos de BD). Si estás creando, es lista vacía.
@@ -1098,22 +1125,27 @@ else
     protected async Task AddToSelectedToros(DataGridRowMouseEventArgs<TorosuniDTO> args)
     {
         var toro = args.Data;
+        if (toro == null || string.IsNullOrWhiteSpace(toro.Hba))
+            return;
 
-        bool yaExiste = torosSeleccionados.Any(t => t.original.Hardb == toro.Hba);
+        bool yaExiste = torosSeleccionados.Any(t => t.original?.Hardb == toro.Hba);
         if (yaExiste) return;
 
         torosSeleccionados.Add(
             new Desepla3Data
+            {
+                LineKey = Guid.NewGuid(),
+                original = new Desepla3DTO
                 {
-                    original = new Desepla3DTO
-                    {
-                        Hardb = toro.Hba,
-                        Nrodec = nrodec,
-                        Tatpart = toro.Tatpart,
-                        Tipo = "toro"
-                    },
-                    TipToro = toro.TipToro
-                }
+                    Hardb = toro.Hba,
+                    Nrodec = nrodec,
+                    Tatpart = toro.Tatpart,
+                    Tipo = "toro"
+                },
+                TipToro = toro.TipToro,
+                Desde = DateTime.Now,
+                Hasta = DateTime.Now
+            }
         );
 
         try { await InvokeAsync(gridToro1.Reload); } catch { }
@@ -1121,39 +1153,17 @@ else
     }
 
 
+
     private async Task RemoveToro(Desepla3Data data)
     {
         torosSeleccionados = torosSeleccionados
-            .Where(t => t.original.Hardb != data.original.Hardb)
+            .Where(t => t.LineKey != data.LineKey)
             .ToList();
 
-        if (Id != 0)
-        {
-            Console.WriteLine("ENTRO");
-            try
-            {
-                // await _certifsemanServicio.Eliminar(data.Id);
-                await _desepla3Servicio.Eliminar(data.Id);
-            }
-            catch
-            {
-                Console.WriteLine("error");
-
-            }
-        }
-
-        try
-        {
-            await InvokeAsync(gridToro1.Reload);
-        }
-        catch { }
-
-        try
-        {
-            await InvokeAsync(gridToro2.Reload);
-        }
-        catch { }
+        try { await InvokeAsync(gridToro1.Reload); } catch { }
+        try { await InvokeAsync(gridToro2.Reload); } catch { }
     }
+
 
 
     private async Task RemoveCertif(Desepla3Data data)
@@ -1162,14 +1172,9 @@ else
             .Where(c => c.LineKey != data.LineKey)
             .ToList();
 
-        if (Id != 0 && data.Id > 0)
-        {
-            try { await _desepla3Servicio.Eliminar(data.Id); }
-            catch { Console.WriteLine("Error al eliminar desepla3 (semen)"); }
-        }
-
         try { await InvokeAsync(gridCertif.Reload); } catch { }
     }
+
 
 
 
@@ -1178,32 +1183,45 @@ else
     protected void AddToSelectedCertif(DataGridRowMouseEventArgs<CertifsemanDTO> args)
     {
         var certif = args.Data;
+        if (certif == null || string.IsNullOrWhiteSpace(certif.Hba))
+            return;
+
+        // Evitar duplicados por HBA
+        if (certificadosSeleccionados.Any(c => c.original?.Hardb == certif.Hba))
+            return;
 
         certificadosSeleccionados.Add(
             new Desepla3Data
+            {
+                LineKey = Guid.NewGuid(),
+                original = new Desepla3DTO
                 {
-                    LineKey = Guid.NewGuid(),
-                    original = new Desepla3DTO
-                    {
-                        Hardb = certif.Hba,
-                        Nrodec = nrodec,
-                        Tatpart = certif.Tatpart,
-                        Tipo = "insem",
-                        Cantv = 0 
-                    },
-                    Desde = DateTime.Now,
-                    Hasta = DateTime.Now
-                }
+                    Hardb = certif.Hba,
+                    Nrodec = nrodec,
+                    Tatpart = certif.Tatpart,
+                    Tipo = "insem",
+                    Cantv = 0
+                },
+                Desde = DateTime.Now,
+                Hasta = DateTime.Now
+            }
         );
 
         InvokeAsync(gridCertif.Reload);
     }
 
-    protected void CleanSelected()
+    protected async void CleanSelected()
     {
         torosSeleccionados = new List<Desepla3Data>();
         certificadosSeleccionados = new List<Desepla3Data>();
+
+        try { if (gridToro1 != null) await gridToro1.Reload(); } catch { }
+        try { if (gridToro2 != null) await gridToro2.Reload(); } catch { }
+        try { if (gridCertif != null) await gridCertif.Reload(); } catch { }
+
+        StateHasChanged();
     }
+
 
     protected async Task UpdateValores(SocioDTO socio)
     {
@@ -1395,6 +1413,21 @@ else
             await Swal.FireAsync("Error", "Ocurrió un error al eliminar la declaración.", SweetAlertIcon.Error);
         }
     }
+
+
+
+
+    private void OnTipoChanged(object value)
+    {
+        var nuevo = value?.ToString() ?? "";
+
+        previousTipoTemp = tipoTemp;
+
+        tipoTemp = nuevo;
+
+        CleanSelected();
+    }
+
 }
 
        

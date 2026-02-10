@@ -34,14 +34,36 @@
                     <div class="row" style="width=100%;">
                         <div class="col-sm">
                             <label class="col-sm">Establecimiento</label>
-                                <BlazoredTypeahead SearchMethod="BusquedaEstablecimientos" placeholder="Busque establecimiento por nombre" Disabled="esSocio" EnableDropDown="true" @bind-Value="establecimientoSeleccionado">
-                                    <SelectedTemplate Context="eleccion">
-                                        @eleccion.Nombre
-                                    </SelectedTemplate>
-                                    <ResultTemplate Context="eleccion">
-                                        @eleccion.Nombre
-                                    </ResultTemplate>
-                                </BlazoredTypeahead>
+                            <BlazoredTypeahead TItem="EstableDTO" TValue="EstableDTO"
+                                               SearchMethod="BusquedaEstablecimientos"
+                                               placeholder="Busque establecimiento por nombre"
+                                               EnableDropDown="true"
+                                               Disabled="esSocio"
+                                               Value="establecimientoSeleccionado"
+                                               ValueChanged="OnEstablecimientoChanged"
+                                               ValueExpression="(() => establecimientoSeleccionado)">
+                                <SelectedTemplate Context="e">
+                                    @e?.Nombre
+                                </SelectedTemplate>
+
+                                <ResultTemplate Context="e">
+                                    @{
+                                        var invalido = EstableInvalido(e);
+                                        var tooltip = "No se pueden seleccionar establecimientos sin provincia ni codigo de zona";
+                                    }
+
+                                    <div title="@(invalido? tooltip : null)"
+                                         style="@(invalido ? "opacity:.55; cursor:not-allowed;" : "")">
+                                        @e.Nombre
+                                        @if (invalido)
+                                        {
+                                            <small class="ms-2">(incompleto)</small>
+                                        }
+                                    </div>
+                                </ResultTemplate>
+                            </BlazoredTypeahead>
+
+                            <ValidationMessage For="(() => oSolici1.Codest)" style="color:red;" />
                         </div>
                         <div class="col-sm">
                             <label>Fecha de Solicitud</label><br/>
@@ -228,18 +250,26 @@
             }
         
         }
+
+
+
+
+
+
+
     async Task Guardar()
     {
 
-        if (cargando) return; // Evita doble click
-        cargando = true;
-
-
+        try
+    {
         if (socioSeleccionado == null)
         {
             await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
-            return; return;
+            return;
         }
+
+        if (!await ValidateBeforeSave())
+            return;
 
         if (establecimientoSeleccionado == null || string.IsNullOrWhiteSpace(establecimientoSeleccionado.Nombre))
         {
@@ -345,8 +375,79 @@
                 }
             }
 
+            }
+        finally
+        {
             cargando = false;
         }
+    }
+
+
+
+
+
+
+    private async Task<bool> ValidateBeforeSave()
+    {
+        // 1) Establecimiento
+        if (establecimientoSeleccionado == null || string.IsNullOrWhiteSpace(establecimientoSeleccionado.Ecod))
+        {
+            await Swal.FireAsync("Error", "Debe seleccionar un establecimiento.", SweetAlertIcon.Error);
+            return false;
+        }
+
+        // También aseguramos “completo”
+        if (EstableInvalido(establecimientoSeleccionado))
+        {
+            await Swal.FireAsync("Error",
+                "El establecimiento seleccionado no tiene provincia o código de zona. Debe corregirse antes de continuar.",
+                SweetAlertIcon.Error);
+            return false;
+        }
+
+        // 2) Fecha solicitud
+        if (!oSolici1.Fecsol.HasValue)
+        {
+            await Swal.FireAsync("Error", "Debe ingresar la fecha de solicitud.", SweetAlertIcon.Error);
+            return false;
+        }
+
+        // 3) Fecha autorización (FechaTemp)
+        if (FechaTemp == default)
+        {
+            await Swal.FireAsync("Error", "Debe ingresar la fecha de autorización.", SweetAlertIcon.Error);
+            return false;
+        }
+
+        // 4) Mínimo una soli
+        if (listadoSolicitudes == null || listadoSolicitudes.Count == 0)
+        {
+            await Swal.FireAsync("Error", "Debe ingresar al menos una solicitud (una fila).", SweetAlertIcon.Error);
+            return false;
+        }
+
+        // 5) Año obligatorio en cada soli
+        for (int i = 0; i < listadoSolicitudes.Count; i++)
+        {
+            var anio = listadoSolicitudes[i]?.Anio?.Trim();
+
+            if (string.IsNullOrWhiteSpace(anio))
+            {
+                await Swal.FireAsync("Error", $"El campo Año es obligatorio en la fila #{i + 1}.", SweetAlertIcon.Error);
+                return false;
+            }
+
+            // opcional: validar formato año (4 dígitos)
+            if (anio.Length != 4 || !int.TryParse(anio, out var _))
+            {
+                await Swal.FireAsync("Error", $"El Año de la fila #{i + 1} debe tener 4 dígitos (ej: 2026).", SweetAlertIcon.Error);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 
 
         public class ChangeNotificationModel
@@ -356,6 +457,36 @@
             public string Clase { get; set; }
             public string Detalle { get; set; }
         }
+
+    private bool EstableInvalido(EstableDTO e)
+    {
+        return e == null
+            || string.IsNullOrWhiteSpace(e.Codpro)
+            || string.IsNullOrWhiteSpace(e.Codzon)
+            || e.Codzon.Trim().Length < 2;
+    }
+
+
+    private async Task OnEstablecimientoChanged(EstableDTO e)
+    {
+        if (EstableInvalido(e))
+        {
+            establecimientoSeleccionado = new EstableDTO();
+            oSolici1.Codest = null;
+
+            await Swal.FireAsync("Atención",
+                "No se pueden seleccionar establecimientos sin provincia ni codigo de zona.",
+                SweetAlertIcon.Warning);
+
+            return;
+        }
+
+        establecimientoSeleccionado = e;
+        oSolici1.Codest = e.Ecod;
+
+    }
+
+
 
         async Task cancel()
         {
@@ -375,9 +506,17 @@
             return await Task.FromResult(socios.Where(x => x.Criador=="S" &&  x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
         }
 
-        private async Task<IEnumerable<EstableDTO>> BusquedaEstablecimientos(string searchText)
-        {
-            return await Task.FromResult(establecimientos.Where(x => x.Codsoc==socioSeleccionado.Scod && x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
-        }
+    private async Task<IEnumerable<EstableDTO>> BusquedaEstablecimientos(string searchText)
+    {
+        var list = establecimientos
+            .Where(x => x.Codsoc == socioSeleccionado.Scod
+                     && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => EstableInvalido(x)) 
+            .ThenBy(x => x.Nombre)
+            .ToList();
+
+        return await Task.FromResult(list);
+    }
+
 
     }

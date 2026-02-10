@@ -17,19 +17,30 @@
 @if(socios.Count>0){
 <div class="card" >
     <div class="card-body">
-        <EditForm Model="@oEstablecimiento" OnValidSubmit="Guardar">
+        <EditForm EditContext="@editContext" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Socio</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre"  EnableDropDown="true" @bind-Value="socioSeleccionado" Disabled="Id!=0">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
+                        <BlazoredTypeahead TItem="SocioDTO" TValue="SocioDTO"
+                                           SearchMethod="BusquedaSocios"
+                                           placeholder="Busque socio por nombre"
+                                           EnableDropDown="true"
+                                           Value="socioSeleccionado"
+                                           ValueChanged="HandleSocioSeleccion"
+                                           ValueExpression="(() => socioSeleccionado)"
+                                           Disabled="Id!=0">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+
+
+
+                    <ValidationMessage For="(()=> oEstablecimiento.Codsoc)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label>Codigo de Establecimiento</label>
@@ -75,14 +86,21 @@
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Provincia</label>
-                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,provincias))" placeholder="Busca por nombre" EnableDropDown="true" @bind-Value="provinciaTemp">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
+                        <BlazoredTypeahead TItem="string" TValue="string"
+                                           SearchMethod="@(text => SearchMethod(text, provincias))"
+                                           placeholder="Busca por nombre"
+                                           EnableDropDown="true"
+                                           Value="provinciaTemp"
+                                           ValueChanged="ProvinciaChanged"
+                                           ValueExpression="(() => provinciaTemp)">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                    <ValidationMessage For="(()=> oEstablecimiento.Codpro)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Informacion</label>
@@ -94,13 +112,15 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Codigo de Zona</label>
-                        <BlazoredTypeahead SearchMethod="@(text => SearchMethod(text, zonas))"
+                        <BlazoredTypeahead TItem="string" TValue="string"
+                                           SearchMethod="@(text => SearchMethod(text, zonas))"
                                            placeholder="Busca por nombre"
                                            EnableDropDown="true"
-                                           @bind-Value="CodZona"
+                                           Value="codZonaTemp"
+                                           ValueChanged="CodZonaChanged"
+                                           ValueExpression="(() => codZonaTemp)"
                                            MaxItems="100"
-                                           MaximumSuggestions="100"
-                            >
+                                           MaximumSuggestions="100">
                             <SelectedTemplate Context="eleccion">
                                 @eleccion.Substring(0, 2)
                             </SelectedTemplate>
@@ -108,6 +128,8 @@
                                 @eleccion
                             </ResultTemplate>
                         </BlazoredTypeahead>
+
+                    <ValidationMessage For="(()=> oEstablecimiento.Codzon)" style="color:red;" />
                 </div>
                @*  <div class="col-sm">
                     <label>Fecha de Creacion</label><br/>
@@ -145,12 +167,13 @@ else
     [Parameter] public int Id { get; set; }
     [Parameter] public bool esSocio { get; set; }
     DateTime FechaTemp = DateTime.Now.Date;
-    string CodZona = "  ";
     bool activo = true;
     List<SocioDTO> socios = new();
     List<EstableDTO> estables = new();
+    // simple backing fields (no recursive property setters)
     SocioDTO? socioSeleccionado = null;
     string provinciaTemp = "";
+    string codZonaTemp = "  ";
     List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal","Catamarca","Chaco","Chubut","Cordoba","Corrientes","Entre Rios","Formosa","Jujuy","La pampa","La rioja","Mendoza","Misiones","Neuquen","Rio negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Santiago Del Estero","Tierra del fuego","Tucuman" };
     List<string> zonas = new List<string>
     {
@@ -248,6 +271,9 @@ else
 
     private ClaimsPrincipal? user;
 
+    EditContext editContext;
+    ValidationMessageStore messageStore;
+
     protected override async Task OnInitializedAsync()
     {
     
@@ -289,8 +315,9 @@ else
                     int year = int.Parse(oEstablecimiento.Fechacreacion); 
                     FechaTemp = new DateTime(year, 1, 1); 
                 }
+                // set backing fields directly to avoid triggering handlers before messageStore is ready
                 socioSeleccionado = socios.Where(x => x.Scod == oEstablecimiento.Codsoc).FirstOrDefault();
-                CodZona = oEstablecimiento.Codzon;
+                codZonaTemp = oEstablecimiento.Codzon;
                 provinciaTemp = traductorProvinciaInverso[oEstablecimiento.Codpro];
             }
             catch (Exception ex)
@@ -303,20 +330,235 @@ else
             var codigo = Int32.Parse(estables.First().Ecod);
             oEstablecimiento.Ecod = (codigo + 1).ToString("D6");
         }
+
+        // initialize edit context and message store
+        editContext = new EditContext(oEstablecimiento ?? new EstableDTO());
+        messageStore = new ValidationMessageStore(editContext);
+        editContext.OnFieldChanged += EditContext_OnFieldChanged;
+        // After messageStore is ready, if backing fields were set, sync model and clear messages
+        if (socioSeleccionado != null)
+        {
+            // do not set socioSeleccionado here (it's already set); just sync model
+            oEstablecimiento.Codsoc = socioSeleccionado.Scod;
+        }
+        if (!string.IsNullOrWhiteSpace(provinciaTemp))
+        {
+            if (traductorProvincia.ContainsKey(provinciaTemp))
+            {
+                oEstablecimiento.Codpro = traductorProvincia[provinciaTemp];
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(codZonaTemp))
+        {
+            if (codZonaTemp.Length >= 2)
+                oEstablecimiento.Codzon = codZonaTemp.Substring(0,2);
+        }
     }
+
+    private void EditContext_OnFieldChanged(object sender, FieldChangedEventArgs e)
+    {
+        ValidateField(e.FieldIdentifier);
+    }
+
+    private void HandleSocioSeleccion(SocioDTO socio)
+    {
+        socioSeleccionado = socio; // importante (porque ya no hay bind)
+
+        if (socioSeleccionado != null)
+        {
+            oEstablecimiento.Codsoc = socioSeleccionado.Scod;
+
+            var fi = new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Codsoc));
+            messageStore?.Clear(fi);
+            editContext?.NotifyValidationStateChanged();
+        }
+    }
+
+ 
+    private void ProvinciaChanged(string value)
+    {
+        provinciaTemp = value; // importante (porque ya no hay bind)
+
+        if (!string.IsNullOrWhiteSpace(value) && traductorProvincia.ContainsKey(value))
+        {
+            oEstablecimiento.Codpro = traductorProvincia[value];
+
+            var fi = new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Codpro));
+            messageStore?.Clear(fi);
+        }
+        else
+        {
+            var fi = new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Codpro));
+            messageStore?.Clear(fi);
+            messageStore?.Add(fi, "La provincia es obligatoria.");
+            oEstablecimiento.Codpro = "";
+        }
+
+        editContext?.NotifyValidationStateChanged();
+    }
+
+
+    private void CodZonaChanged(string value)
+    {
+        codZonaTemp = value; 
+
+        if (!string.IsNullOrWhiteSpace(value) && value.Length >= 2)
+        {
+            oEstablecimiento.Codzon = value.Substring(0, 2);
+
+            var fi = new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Codzon));
+            messageStore?.Clear(fi);
+        }
+        else
+        {
+            oEstablecimiento.Codzon = "";
+
+            var fi = new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Codzon));
+            messageStore?.Clear(fi);
+            messageStore?.Add(fi, "El codigo de zona es obligatorio.");
+        }
+
+        editContext?.NotifyValidationStateChanged();
+    }
+
+
+    bool ValidateModel()
+    {
+        messageStore.Clear();
+        bool valid = true;
+
+        // Socio
+        if (socioSeleccionado == null && string.IsNullOrWhiteSpace(oEstablecimiento.Codsoc))
+        {
+            messageStore.Add(new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Codsoc)), "Debe seleccionar un socio.");
+            valid = false;
+        }
+
+        // Ecod
+        if (string.IsNullOrWhiteSpace(oEstablecimiento.Ecod))
+        {
+            messageStore.Add(new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Ecod)), "El codigo es obligatorio.");
+            valid = false;
+        }
+
+        // Nombre
+        if (string.IsNullOrWhiteSpace(oEstablecimiento.Nombre))
+        {
+            messageStore.Add(new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Nombre)), "El nombre es obligatorio.");
+            valid = false;
+        }
+
+        // Encargado
+        if (string.IsNullOrWhiteSpace(oEstablecimiento.Encargado))
+        {
+            messageStore.Add(new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Encargado)), "El encargado es obligatorio.");
+            valid = false;
+        }
+
+        // Direcc
+        if (string.IsNullOrWhiteSpace(oEstablecimiento.Direcc))
+        {
+            messageStore.Add(new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Direcc)), "El domicilio es obligatorio.");
+            valid = false;
+        }
+
+        // Tel
+        if (string.IsNullOrWhiteSpace(oEstablecimiento.Tel))
+        {
+            messageStore.Add(new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Tel)), "El teléfono es obligatorio.");
+            valid = false;
+        }
+
+        // Codpos
+        if (string.IsNullOrWhiteSpace(oEstablecimiento.Codpos))
+        {
+            messageStore.Add(new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Codpos)), "El codigo postal es obligatorio.");
+            valid = false;
+        }
+
+        // Provincia (Codpro)
+        if (string.IsNullOrWhiteSpace(oEstablecimiento.Codpro))
+        {
+            messageStore.Add(new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Codpro)), "La provincia es obligatoria.");
+            valid = false;
+        }
+
+        // Codzon
+        if (string.IsNullOrWhiteSpace(oEstablecimiento.Codzon) || oEstablecimiento.Codzon.Length < 2)
+        {
+            messageStore.Add(new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Codzon)), "El codigo de zona es obligatorio.");
+            valid = false;
+        }
+
+        editContext.NotifyValidationStateChanged();
+        return valid;
+    }
+
+    private void ValidateField(FieldIdentifier fi)
+    {
+        messageStore.Clear(fi);
+
+        switch (fi.FieldName)
+        {
+            case nameof(oEstablecimiento.Codsoc):
+                if (socioSeleccionado == null && string.IsNullOrWhiteSpace(oEstablecimiento.Codsoc))
+                    messageStore.Add(fi, "Debe seleccionar un socio.");
+                break;
+            case nameof(oEstablecimiento.Ecod):
+                if (string.IsNullOrWhiteSpace(oEstablecimiento.Ecod))
+                    messageStore.Add(fi, "El codigo es obligatorio.");
+                break;
+            case nameof(oEstablecimiento.Nombre):
+                if (string.IsNullOrWhiteSpace(oEstablecimiento.Nombre))
+                    messageStore.Add(fi, "El nombre es obligatorio.");
+                break;
+            case nameof(oEstablecimiento.Encargado):
+                if (string.IsNullOrWhiteSpace(oEstablecimiento.Encargado))
+                    messageStore.Add(fi, "El encargado es obligatorio.");
+                break;
+            case nameof(oEstablecimiento.Direcc):
+                if (string.IsNullOrWhiteSpace(oEstablecimiento.Direcc))
+                    messageStore.Add(fi, "El domicilio es obligatorio.");
+                break;
+            case nameof(oEstablecimiento.Tel):
+                if (string.IsNullOrWhiteSpace(oEstablecimiento.Tel))
+                    messageStore.Add(fi, "El teléfono es obligatorio.");
+                break;
+            case nameof(oEstablecimiento.Codpos):
+                if (string.IsNullOrWhiteSpace(oEstablecimiento.Codpos))
+                    messageStore.Add(fi, "El codigo postal es obligatorio.");
+                break;
+            case nameof(oEstablecimiento.Codpro):
+                if (string.IsNullOrWhiteSpace(oEstablecimiento.Codpro))
+                    messageStore.Add(fi, "La provincia es obligatoria.");
+                break;
+            case nameof(oEstablecimiento.Codzon):
+                if (string.IsNullOrWhiteSpace(oEstablecimiento.Codzon) || oEstablecimiento.Codzon.Length < 2)
+                    messageStore.Add(fi, "El codigo de zona es obligatorio.");
+                break;
+            default:
+                break;
+        }
+
+        editContext.NotifyValidationStateChanged();
+    }
+
     async Task Guardar()
     {
+        if (!ValidateModel())
+            return;
+
         if(estables.Where(x=>x.Ecod==oEstablecimiento.Ecod).Count()>0)
         {
             await alertaCodigo();
             return;
         }
         else{
-            oEstablecimiento.Codsoc = socioSeleccionado.Scod;
-            oEstablecimiento.Fecing = (socioSeleccionado.Fecing ?? DateTime.Now).ToString("yyyy/MM/dd");
+            oEstablecimiento.Codsoc = socioSeleccionado?.Scod;
+            oEstablecimiento.Fecing = (socioSeleccionado?.Fecing ?? DateTime.Now).ToString("yyyy/MM/dd");
             oEstablecimiento.Fechacreacion = FechaTemp.ToString("yyyy");
-            oEstablecimiento.Codzon = CodZona.Substring(0,2);
-            oEstablecimiento.Codpro = traductorProvincia[provinciaTemp];
+            oEstablecimiento.Codzon = (string.IsNullOrWhiteSpace(oEstablecimiento.Codzon) && !string.IsNullOrWhiteSpace(codZonaTemp) && codZonaTemp.Length>=2) ? codZonaTemp.Substring(0,2) : oEstablecimiento.Codzon;
+            oEstablecimiento.Codpro = string.IsNullOrWhiteSpace(oEstablecimiento.Codpro) && traductorProvincia.ContainsKey(provinciaTemp) ? traductorProvincia[provinciaTemp] : oEstablecimiento.Codpro;
             @if (activo)
             {
                 oEstablecimiento.Activo = "S";
@@ -365,10 +607,6 @@ else
                         Nombre = socioVendedor.Nombre
                     };
                     HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
-
-
-
-                   
 
                 }
                 catch

@@ -1347,6 +1347,32 @@
   },
   {
     "ContainingType": "PaginaPlantels.Server.Cont.PlantelController",
+    "Method": "ExportarExcel",
+    "RelativePath": "api/Plantel/ExportarExcel",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "desde",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "hasta",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "seleccion",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PaginaPlantels.Server.Cont.PlantelController",
     "Method": "GetOrCreate",
     "RelativePath": "api/Plantel/GetOrCreate",
     "HttpMethod": "POST",
