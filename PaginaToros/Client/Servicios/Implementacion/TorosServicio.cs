@@ -25,25 +25,28 @@ namespace PaginaToros.Client.Servicios.Implementacion
 
         public async Task<Respuesta<int>> CantidadTotal()
         {
-            var result = await _http.GetFromJsonAsync<Respuesta<int>>($"api/toros/cantidad");
+            var result = await _http.GetFromJsonAsync<Respuesta<int>>("api/toros/cantidad");
             return result;
         }
         public async Task<Respuesta<List<TorosuniDTO>>> LimitadosFiltrados(int skip, int take, string filter)
         {
-            var url = $"api/toros/LimitadosFiltrados?skip={skip}&take={take}&expression={filter}";
+            var encoded = Uri.EscapeDataString(filter ?? string.Empty);
+            var url = $"api/toros/LimitadosFiltrados?skip={skip}&take={take}&expression={encoded}";
             var result = await _http.GetFromJsonAsync<Respuesta<List<TorosuniDTO>>>(url);
             return result;
         }
         public async Task<Respuesta<List<TorosuniDTO>>> LimitadosFiltradosNoInclude(int skip, int take, string filter)
         {
-            var url = $"api/toros/LimitadosFiltradosNoInclude?skip={skip}&take={take}&expression={filter}";
+            var encoded = Uri.EscapeDataString(filter ?? string.Empty);
+            var url = $"api/toros/LimitadosFiltradosNoInclude?skip={skip}&take={take}&expression={encoded}";
             var result = await _http.GetFromJsonAsync<Respuesta<List<TorosuniDTO>>>(url);
             return result;
         }
         public async Task<Respuesta<List<TorosuniDTO>>> GetBySocioId(int socioId)
         {
             string filter = $"Socio.Id=={socioId}";
-            var url = $"api/toros/LimitadosFiltradosNoInclude?skip=0&take=0&expression={filter}";
+            var encoded = Uri.EscapeDataString(filter);
+            var url = $"api/toros/LimitadosFiltradosNoInclude?skip=0&take=0&expression={encoded}";
             var result = await _http.GetFromJsonAsync<Respuesta<List<TorosuniDTO>>>(url);
             return result;
         }

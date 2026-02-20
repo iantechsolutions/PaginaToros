@@ -1971,6 +1971,6 @@ C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\sw
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\staticwebassets.upToDateCheck.txt
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\compressed\ypb9z4skn3-{0}-mhhkfc1iwm-mhhkfc1iwm.gz
 C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\compressed\rvuir9euzd-{0}-r2rpnhj4z2-r2rpnhj4z2.gz
-C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\compressed\lykvtfbpfc-{0}-s27yuz7wg8-s27yuz7wg8.gz
-C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\compressed\5z8symjjbz-{0}-jdh0vkcop8-jdh0vkcop8.gz
-C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\compressed\x3tlvgggty-{0}-wx255ufl2e-wx255ufl2e.gz
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\compressed\lykvtfbpfc-{0}-xrondr7ksn-xrondr7ksn.gz
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\compressed\5z8symjjbz-{0}-aaadvwi0f7-aaadvwi0f7.gz
+C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Client\obj\Release\net6.0\compressed\x3tlvgggty-{0}-5hs7rvlv0m-5hs7rvlv0m.gz

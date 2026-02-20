@@ -20,24 +20,27 @@ namespace PaginaToros.Client.Servicios.Implementacion
 
         public async Task<Respuesta<int>> CantidadTotal()
         {
-            var result = await _http.GetFromJsonAsync<Respuesta<int>>($"api/Certifseman/cantidad");
+            var result = await _http.GetFromJsonAsync<Respuesta<int>>("api/Certifseman/cantidad");
             return result;
         }
         public async Task<Respuesta<List<CertifsemanDTO>>> LimitadosFiltrados(int skip, int take, string filter)
         {
-            var result = await _http.GetFromJsonAsync<Respuesta<List<CertifsemanDTO>>>($"api/Certifseman/LimitadosFiltrados?skip={skip}&take={take}&expression={filter}");
-            return result;
+            var encoded = Uri.EscapeDataString(filter ?? string.Empty);
+            var result = await _http.GetFromJsonAsync<Respuesta<List<CertifsemanDTO>>>($"api/Certifseman/LimitadosFiltrados?skip={skip}&take={take}&expression={encoded}");
+            return result!;
         }
         public async Task<Respuesta<List<CertifsemanDTO>>> LimitadosFiltradosNoInclude(int skip, int take, string filter)
         {
-            var result = await _http.GetFromJsonAsync<Respuesta<List<CertifsemanDTO>>>($"api/Certifseman/LimitadosFiltradosNoInclude?skip={skip}&take={take}&expression={filter}");
-            return result;
+            var encoded = Uri.EscapeDataString(filter ?? string.Empty);
+            var result = await _http.GetFromJsonAsync<Respuesta<List<CertifsemanDTO>>>($"api/Certifseman/LimitadosFiltradosNoInclude?skip={skip}&take={take}&expression={encoded}");
+            return result!;
         }
 
         public async Task<Respuesta<List<CertifsemanDTO>>> GetBySocioId(int socioId)
         {
             string filter = $"Socio.Id={socioId}";
-            var result = await _http.GetFromJsonAsync<Respuesta<List<CertifsemanDTO>>>($"api/Certifseman/LimitadosFiltrados?skip=0&take=0&expression={filter}");
+            var encoded = Uri.EscapeDataString(filter);
+            var result = await _http.GetFromJsonAsync<Respuesta<List<CertifsemanDTO>>>($"api/Certifseman/LimitadosFiltrados?skip=0&take=0&expression={encoded}");
             return result;
         }
         public async Task<Respuesta<CertifsemanDTO>> UpdateNrDosi(int id, int nrDosi)

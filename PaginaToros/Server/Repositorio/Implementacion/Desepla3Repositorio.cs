@@ -51,7 +51,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             try
             {
                 List<Desepla3> a;
-                if(filtro is not null) {
+                if(!string.IsNullOrWhiteSpace(filtro)) {
                     a = await _dbContext.Desepla3s.Where(filtro).Skip(skip).ToListAsync();
                 }
                 else
@@ -129,6 +129,27 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             try
             {
                 return _dbContext.Desepla3s.Count();
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        // New: get by Nrodec without dynamic LINQ
+        public async Task<List<Desepla3>> GetByNrodec(string nrodec)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(nrodec)) return new List<Desepla3>();
+
+                // Normalize (trim and uppercase/lowercase depends on DB collation). Use exact match.
+                var normalized = nrodec.Trim();
+
+                return await _dbContext.Desepla3s
+                    .Where(d => (d.Nrodec ?? "") == normalized)
+                    .OrderByDescending(d => d.Id)
+                    .ToListAsync();
             }
             catch
             {

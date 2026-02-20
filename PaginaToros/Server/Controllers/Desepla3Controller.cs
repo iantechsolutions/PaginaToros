@@ -95,6 +95,43 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
+        // New: Get lines by exact Nrodec parameter (avoids dynamic LINQ in querystring)
+        [HttpGet]
+        [Route("GetByNrodec")]
+        public async Task<IActionResult> GetByNrodec(string nrodec)
+        {
+            var resp = new Respuesta<List<Desepla3DTO>>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(nrodec))
+                {
+                    resp.Exito = 1;
+                    resp.Mensaje = "Nrodec vacío";
+                    resp.List = new List<Desepla3DTO>();
+                    return Ok(resp);
+                }
+
+                // Validate length against DB column max length (6)
+                if (nrodec.Length > 6)
+                {
+                    return BadRequest(new Respuesta<List<Desepla3DTO>> { Exito = 0, Mensaje = "Nrodec demasiado largo" });
+                }
+
+                var lista = await _Desepla3Repositorio.GetByNrodec(nrodec.Trim());
+                resp.Exito = 1;
+                resp.Mensaje = "Éxito";
+                resp.List = _mapper.Map<List<Desepla3DTO>>(lista);
+                return Ok(resp);
+            }
+            catch (Exception ex)
+            {
+                resp.Exito = 0;
+                resp.Mensaje = ex.Message;
+                resp.List = null;
+                return StatusCode(StatusCodes.Status500InternalServerError, resp);
+            }
+        }
+
         [HttpDelete]
         [Route("Eliminar/{id:int}")]
         public async Task<IActionResult> Eliminar(int id)

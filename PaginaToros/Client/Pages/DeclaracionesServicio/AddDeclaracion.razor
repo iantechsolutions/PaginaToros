@@ -404,7 +404,6 @@
                                 </RadzenDataGrid>
                             </div>
                         </div>
-                        <br />
                     }
                     if (tipoTemp == "Inseminacion c/celo" || tipoTemp == "Inseminacion c/celo y rep" || tipoTemp == "Inseminacion c/p y rep" || tipoTemp == "IATF c/rep")
                     {
@@ -678,7 +677,9 @@ else
             previousTipoTemp = tipoTemp; // por la lógica de multiplicadores
 
             // 4) Detalles (toros/certifs) y reconstrucción de seleccionados
-            var rt = await _desepla3Servicio.LimitadosFiltrados(0, 0, $"Nrodec == \"{oDeclaracion.Nrodec}\"");
+            // Normalizar Nrodec en el filtro para evitar problemas de mayúsculas/minúsculas o nulos
+            var nrodecFilter = (oDeclaracion.Nrodec ?? "").Replace("\"", "\\\"").ToLower();
+            var rt = await _desepla3Servicio.LimitadosFiltrados(0, 0, $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecFilter}\"");
             deseplasViejos = rt.List?.ToList() ?? new();
 
             torosSeleccionados.Clear();
@@ -1056,12 +1057,24 @@ else
 
         if (Id == 0)
         {
-            // Crear
+            // Crear: primero persistir la cabecera para reducir riesgo de desincronía en Nrodec
+            var createdResp = await _desepla1Servicio.Crear(oDeclaracion);
+            if (createdResp == null || createdResp.Exito != 1 || createdResp.List == null)
+            {
+                await Swal.FireAsync("Error", "No se pudo crear la declaración.", SweetAlertIcon.Error);
+                return;
+            }
+
+            // Asegurar que usamos el Nrodec devuelto por el servidor si lo modificó
+            oDeclaracion = createdResp.List;
+
+            // Persistir detalles con el Nrodec confirmado
             foreach (var dese in seleccionFinal)
             {
+                dese.Nrodec = oDeclaracion.Nrodec;
                 await _desepla3Servicio.Crear(dese);
             }
-            await _desepla1Servicio.Crear(oDeclaracion);
+
             Navigation.NavigateTo("/declaraciones");
             return;
         }
@@ -1334,6 +1347,7 @@ else
             var detallesResp = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
             var detalles = detallesResp?.List?.ToList() ?? new List<Desepla3DTO>();
 
+
             // 2) Calcular cuántas dosis devolver por HBA (solo líneas de inseminación)
             var mult = GetMultiplicadorForCode(oDeclaracion.Tipse ?? "");
             var devolverPorHba = detalles
@@ -1429,5 +1443,3 @@ else
     }
 
 }
-
-       

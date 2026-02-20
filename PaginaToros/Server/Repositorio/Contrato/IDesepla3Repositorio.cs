@@ -15,5 +15,6 @@ namespace PaginaToros.Server.Repositorio.Contrato
         Task<bool> Editar(Desepla3 entidad);
         Task<IQueryable<Desepla3>> Consultar(Expression<Func<Desepla3, bool>> filtro = null);
         Task<int> CantidadTotal();
+        Task<List<Desepla3>> GetByNrodec(string nrodec);
     }
 }
