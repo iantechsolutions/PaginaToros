@@ -68,7 +68,7 @@
             },
             "EPPlus": {
               "target": "Package",
-              "version": "[7.6.1, )"
+              "version": "[6.3.0, )"
             },
             "Feather.Blazor": {
               "target": "Package",
@@ -93,29 +93,21 @@
             },
             "Microsoft.Extensions.Http": {
               "target": "Package",
-              "version": "[8.0.0-preview.4.23259.5, )"
+              "version": "[6.0.0, )"
             },
             "Microsoft.Extensions.Primitives": {
               "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[6.0.0, )"
             },
             "Microsoft.NET.ILLink.Analyzers": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[7.0.100-1.23211.1, )",
-              "autoReferenced": true
+              "version": "[6.0.200-1.24270.5, )"
             },
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[7.0.100-1.23211.1, )",
-              "autoReferenced": true
-            },
-            "Microsoft.NET.Sdk.WebAssembly.Pack": {
-              "suppressParent": "All",
-              "target": "Package",
-              "version": "[8.0.24, )",
-              "autoReferenced": true
+              "version": "[6.0.200-1.24270.5, )"
             },
             "Newtonsoft.Json": {
               "target": "Package",
@@ -148,7 +140,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/8.0.124/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/home/julindo/.dotnet/sdk/6.0.428/RuntimeIdentifierGraph.json"
         }
       },
       "runtimes": {
@@ -274,12 +266,6 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.NETCore.App.Host.linux-x64",
-              "version": "[6.0.36, 6.0.36]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -288,7 +274,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/8.0.124/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/home/julindo/.dotnet/sdk/6.0.428/RuntimeIdentifierGraph.json"
         }
       }
     },
@@ -325,12 +311,6 @@
       "frameworks": {
         "net6.0": {
           "targetAlias": "net6.0",
-          "dependencies": {
-            "Microsoft.AspNetCore.Authentication": {
-              "target": "Package",
-              "version": "[2.2.0, )"
-            }
-          },
           "imports": [
             "net461",
             "net462",
@@ -347,7 +327,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/8.0.124/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/home/julindo/.dotnet/sdk/6.0.428/RuntimeIdentifierGraph.json"
         }
       }
     }
