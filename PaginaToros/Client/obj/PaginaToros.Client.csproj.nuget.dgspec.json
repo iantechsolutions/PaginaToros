@@ -1,39 +1,33 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj": {}
+    "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/PaginaToros.Client.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj": {
+    "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/PaginaToros.Client.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj",
+        "projectUniqueName": "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/PaginaToros.Client.csproj",
         "projectName": "PaginaToros.Client",
-        "projectPath": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\PaginaToros.Client.csproj",
-        "packagesPath": "C:\\Users\\Maxim\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Client\\obj\\",
+        "projectPath": "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/PaginaToros.Client.csproj",
+        "packagesPath": "/home/julindo/.nuget/packages/",
+        "outputPath": "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\Maxim\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/home/julindo/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net6.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net6.0": {
             "targetAlias": "net6.0",
             "projectReferences": {
-              "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
-                "projectPath": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj"
+              "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Shared/PaginaToros.Shared.csproj": {
+                "projectPath": "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Shared/PaginaToros.Shared.csproj"
               }
             }
           }
@@ -42,13 +36,7 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "10.0.100"
+        }
       },
       "frameworks": {
         "net6.0": {
@@ -126,7 +114,7 @@
             "Microsoft.NET.Sdk.WebAssembly.Pack": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[10.0.1, )",
+              "version": "[8.0.24, )",
               "autoReferenced": true
             },
             "Newtonsoft.Json": {
@@ -160,7 +148,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/8.0.124/RuntimeIdentifierGraph.json"
         }
       },
       "runtimes": {
@@ -169,28 +157,22 @@
         }
       }
     },
-    "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj": {
+    "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Shared/PaginaToros.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
+        "projectUniqueName": "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Shared/PaginaToros.Shared.csproj",
         "projectName": "PaginaToros.Shared",
-        "projectPath": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\PaginaToros.Shared.csproj",
-        "packagesPath": "C:\\Users\\Maxim\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Maxim\\source\\repos\\PaginaToros\\PaginaToros\\Shared\\obj\\",
+        "projectPath": "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Shared/PaginaToros.Shared.csproj",
+        "packagesPath": "/home/julindo/.nuget/packages/",
+        "outputPath": "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Shared/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\Maxim\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/home/julindo/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net6.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -203,13 +185,7 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "10.0.100"
+        }
       },
       "frameworks": {
         "net6.0": {
@@ -236,7 +212,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/8.0.124/RuntimeIdentifierGraph.json"
         }
       }
     }

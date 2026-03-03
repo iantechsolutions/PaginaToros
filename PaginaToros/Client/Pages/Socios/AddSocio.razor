@@ -414,6 +414,9 @@
 
     private async Task ChangeEmail()
     {
+        email = (oSocio.Mail ?? string.Empty).Trim();
+        oSocio.Mail = email;
+
         if (email == Usuario.Email)
         {
             await Swal.FireAsync(new SweetAlertOptions {
@@ -557,10 +560,13 @@
             return false;
         }
 
+        var mail = (oSocio.Mail ?? string.Empty).Trim();
+        oSocio.Mail = mail;
+
         try
         {
-            var addr = new System.Net.Mail.MailAddress(oSocio.Mail);
-            if (addr.Address != oSocio.Mail) throw new FormatException();
+            var addr = new System.Net.Mail.MailAddress(mail);
+            if (!string.Equals(addr.Address, mail, StringComparison.OrdinalIgnoreCase)) throw new FormatException();
         }
         catch
         {

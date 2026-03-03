@@ -1,11 +1,11 @@
 ﻿self.assetsManifest = {
   "assets": [
     {
-      "hash": "sha256-PF\/D7c0h6Ea9pQF2I6r6fBROCUYIY4mfiYmrM1diHy0=",
+      "hash": "sha256-gGDBcvY732LXlAfOPG4C1tXLpn+8GEs0cpAOyF\/iQ4o=",
       "url": "css\/app.css"
     },
     {
-      "hash": "sha256-KZf9dy0xH+U0ke52xznlZUZTiEm65GQhLNw1QXA2Z\/8=",
+      "hash": "sha256-Q220wnUwbv4GSj0OGgHvKo6P8Agk5Sejc28y0gGpn3Q=",
       "url": "css\/bootstrap\/bootstrap.min.css"
     },
     {
@@ -13,7 +13,7 @@
       "url": "css\/bootstrap\/bootstrap.min.css.map"
     },
     {
-      "hash": "sha256-jA4J4h\/k76zVxbFKEaWwFKJccmO0voOQ1DbUW+5YNlI=",
+      "hash": "sha256-+Q44zfEaCMmXduni5Td+IgCbk8sSUQwES2nWs+KKQz0=",
       "url": "css\/open-iconic\/FONT-LICENSE"
     },
     {
@@ -29,7 +29,7 @@
       "url": "css\/open-iconic\/font\/fonts\/open-iconic.otf"
     },
     {
-      "hash": "sha256-+P1oQ5jPzOVJGC52E1oxGXIXxxCyMlqy6A9cNxGYzVk=",
+      "hash": "sha256-oUpLdS+SoLJFwf4bzA3iKD7TCm66oLkTpAQlVJ2s1wc=",
       "url": "css\/open-iconic\/font\/fonts\/open-iconic.svg"
     },
     {
@@ -41,15 +41,15 @@
       "url": "css\/open-iconic\/font\/fonts\/open-iconic.woff"
     },
     {
-      "hash": "sha256-aF5g\/izareSj02F3MPSoTGNbcMBl9nmZKDe04zjU\/ss=",
+      "hash": "sha256-s\/Is6Ey6jfNAEfXUIOyHrXXX+RcA8hzchYnuOIWUMl4=",
       "url": "css\/open-iconic\/ICON-LICENSE"
     },
     {
-      "hash": "sha256-rDb1fXbrDo8\/dpt6Gi3UAobONVQv\/lE2bB7lGwRQ0jM=",
+      "hash": "sha256-5ToOztcPXlExcj3+\/PDkGs4F2+hgzAik0DU7AxPp2tc=",
       "url": "css\/open-iconic\/README.md"
     },
     {
-      "hash": "sha256-4HIeldyyHlbMtP5hEeaLUtkf2HRNCQEtBCFU7Ur+TH4=",
+      "hash": "sha256-keRcTxI0vPUrJrbph1n2C8V1qK7iU66XrxN+SCmPfWk=",
       "url": "Excel_Solicitud.xls"
     },
     {
@@ -97,11 +97,11 @@
       "url": "images\/mantenimiento.png"
     },
     {
-      "hash": "sha256-ccqiDXEOmpQTw8ar1\/zeFXzp0Wa\/Ly2XDD99kcuVqek=",
+      "hash": "sha256-Sll2tuZCTnuUJvsGisHT0S9MLwi3IzZiBuxf0T3u8RI=",
       "url": "index.html"
     },
     {
-      "hash": "sha256-UD6vNXYOHJ0vmDeaoYXL\/+nCGP4YVEfJKY2vtOOm5RM=",
+      "hash": "sha256-N0qd37reMzT3XG2hv5E25rF8RP3wf6A0PVYG+CLDq0Y=",
       "url": "manifest.json"
     },
     {
@@ -109,7 +109,7 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-rNm+se6MmTU8hOYoYiTSm6qwAk5Rj5fBgDi+3zE8of0=",
+      "hash": "sha256-cYzcqC3DhkMBSRJj7CP7L1nWsihEc4PuS7vxSGxYXMc=",
       "url": "PaginaToros.Client.styles.css"
     },
     {
@@ -1049,8 +1049,8 @@
       "url": "_framework\/System.Private.CoreLib.dll"
     },
     {
-      "hash": "sha256-45+wyMAt9YjYwF4PikeWhYvv\/KKuYEMhwoXqAPu6iQM=",
-      "url": "_framework\/dotnet.6.0.30.ya1fxxfwsd.js"
+      "hash": "sha256-pu7MO47B6So4jcW6iY2UI11lBZYz2EQnJKiYNsOpNJg=",
+      "url": "_framework\/dotnet.6.0.36.mo6ajz8a6e.js"
     },
     {
       "hash": "sha256-vrFYQt55a4tGoDGoyRfjjGa1nSecx646RK78iTzPWCM=",
@@ -1073,23 +1073,23 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-nHf9caX+w9C+4u4cUrigz0IKA4h8d00vR3O023+M5k0=",
+      "hash": "sha256-U4SOIK7dBe5gBTAcoBRswtQ4JDK6Fad\/TiEMAR1Tp+Q=",
       "url": "_framework\/PaginaToros.Shared.dll"
     },
     {
-      "hash": "sha256-nX7xwYpswb\/t3+FHnnfzXTOaUHLCUofg44sKwX72WWc=",
+      "hash": "sha256-tMv+mIHbojaEvVUW7dgsZNDAPw1eiaZofVGPxQVaoAc=",
       "url": "_framework\/PaginaToros.Shared.pdb"
     },
     {
-      "hash": "sha256-Rs5sIz8y5nwrT5qMhVZXrdV3unsBAnCVz+FcVxUGZkw=",
+      "hash": "sha256-xr3osHuyX6ncxxwhRBMKNVjme\/0XaX3GYp2sbXiTExg=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-LeLbWDRy1j0+YxHnmw6k7XfqKvadyb0LK3roIMAC+XA=",
+      "hash": "sha256-rctAwWv3EoaaYb3SfGX\/TTLvST2du53Tgz\/rUjsJTGc=",
       "url": "_framework\/PaginaToros.Client.pdb"
     },
     {
-      "hash": "sha256-xFxIHgxP5Tno6Z38nWYgIn0w8TL\/5s8ocxBCw8uw57Y=",
+      "hash": "sha256-sx+mWgqlURjOnQvwS63J9zaFPzbNzU6gLSnWo1CZJWA=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -1377,5 +1377,5 @@
       "url": "_content\/Blazored.Modal\/Blazored.Modal.bundle.scp.css"
     }
   ],
-  "version": "XTNNVP9m"
+  "version": "k0TpHbQF"
 };

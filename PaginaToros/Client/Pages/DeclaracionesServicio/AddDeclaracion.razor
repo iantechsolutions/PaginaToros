@@ -176,7 +176,7 @@
                     </div>
 
                     <br />
-                    if (tipoTemp == "Natural")
+                    if (IsNaturalTipo(tipoTemp))
                     {
                         <label style="text-align:center">Periodo de servicio</label>
                         <div class="row">
@@ -305,7 +305,7 @@
                             </div>
                         </div>
                     }
-                    if (tipoTemp == "Natural a Corral" || tipoTemp == "Inseminacion c/celo y rep" || tipoTemp == "Inseminacion c/p y rep" || tipoTemp == "IATF c/rep")
+                    if (IsTipoConToros(tipoTemp))
                     {
 
                         <div class="row">
@@ -405,7 +405,7 @@
                             </div>
                         </div>
                     }
-                    if (tipoTemp == "Inseminacion c/celo" || tipoTemp == "Inseminacion c/celo y rep" || tipoTemp == "Inseminacion c/p y rep" || tipoTemp == "IATF c/rep")
+                    if (IsTipoInseminacion(tipoTemp))
                     {
                         <div class="row">
                             <div style="flex: 0 0 40%; max-width: 40%;">
@@ -600,6 +600,12 @@ else
     };
     private ClaimsPrincipal? user;
 
+    private const string LogPrefix = "[AddDeclaracion]";
+    private void Log(string message) => Console.WriteLine($"{LogPrefix} {DateTime.Now:HH:mm:ss.fff} {message}");
+    private static string Q(string? value) => value is null ? "<null>" : $"'{value}' (len={value.Length})";
+    private static string T(string? value) => (value ?? string.Empty).Trim();
+    private static string EscapeForFilter(string? value) => (value ?? string.Empty).Replace("\"", "\\\"");
+
 
     Desepla3DTO CloneDesepla(Desepla3DTO s) => new Desepla3DTO
         {
@@ -619,6 +625,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        Log($"OnInitializedAsync START | Id={Id}");
         torosSeleccionados.Clear();
         certificadosSeleccionados.Clear();
         seleccionFinal.Clear();
@@ -627,19 +634,24 @@ else
 
         var r = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = r.List;
+        Log($"Socios cargados: {socios?.Count ?? 0}");
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         user = authState.User;
         esSocio = await UserHasRole("Socio");
+        Log($"Usuario autenticado | esSocio={esSocio} | claims={user?.Claims?.Count() ?? 0}");
 
         if (esSocio)
         {
             var socioIdClaim = user.Claims.FirstOrDefault(c => c.Type == "SocioId")?.Value;
+            Log($"Claim SocioId={Q(socioIdClaim)}");
             if (int.TryParse(socioIdClaim, out int socioId))
             {
                 string filtro = $"Id == {socioId}";
+                Log($"Buscando socio por claim con filtro: {filtro}");
 
                 var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
                 socioSeleccionado = socio.List.FirstOrDefault();
+                Log($"Resultado socio por claim | count={socio.List?.Count ?? 0} | seleccionado.Id={socioSeleccionado?.Id} | seleccionado.Scod={Q(socioSeleccionado?.Scod)}");
 
                 if (socioSeleccionado != null)
                 {
@@ -647,40 +659,81 @@ else
                 }
                 else
                 {
-                    Console.WriteLine("No se encontró un socio para el usuario actual.");
+                    Log("No se encontró socio para el usuario actual (claim SocioId).");
                 }
+            }
+            else
+            {
+                Log("No se pudo parsear claim SocioId.");
             }
         }
         else
         {
             var res = await _socioServicio.LimitadosFiltrados(0, 0);
             socios = res.List;
+            Log($"Modo admin/maestro | socios disponibles: {socios?.Count ?? 0}");
         }
 
 
         if (Id != 0)
         {
             // 1) Cabecera
+            Log($"Entrando en edición | buscando cabecera Id={Id}");
             var rtaD = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
             oDeclaracion = rtaD.List.FirstOrDefault() ?? new();
+            Log($"Cabecera cargada | Nrodec={Q(oDeclaracion.Nrodec)} | Nrocri={Q(oDeclaracion.Nrocri)} | Nroplan={Q(oDeclaracion.Nroplan)} | Tipse={Q(oDeclaracion.Tipse)}");
 
             nrodec = oDeclaracion.Nrodec;
             socioSeleccionado = socios.FirstOrDefault(x => x.Scod == oDeclaracion.Nrocri);
+            Log($"Match socio por Scod exacto | encontrado={(socioSeleccionado != null)}");
+            if (socioSeleccionado is null)
+            {
+                var nrocriTrim = T(oDeclaracion.Nrocri);
+                var socioTrim = socios.FirstOrDefault(x => T(x.Scod).Equals(nrocriTrim, StringComparison.OrdinalIgnoreCase));
+                Log($"Match socio por Scod trim/case-insensitive | encontrado={(socioTrim != null)} | scodBuscado={Q(oDeclaracion.Nrocri)}");
+            }
 
             // 2) Listas dependientes del socio (NO pisar cabecera)
             if (socioSeleccionado != null)
                 await UpdateValores(socioSeleccionado);
+            else
+                Log("No se pudieron cargar listas dependientes (socioSeleccionado == null).");
 
             // 3) Reponer selecciones de UI tomadas de la cabecera
             Plantelseleccionado = Planteles.FirstOrDefault(p => p.Placod == oDeclaracion.Nroplan);
+            Log($"Plantel seleccionado por Placod exacto | encontrado={(Plantelseleccionado != null)} | totalPlanteles={Planteles?.Count ?? 0}");
+            if (Plantelseleccionado is null)
+            {
+                var nroplanTrim = T(oDeclaracion.Nroplan);
+                var plantelTrim = Planteles.FirstOrDefault(p => T(p.Placod).Equals(nroplanTrim, StringComparison.OrdinalIgnoreCase));
+                Log($"Plantel por trim/case-insensitive | encontrado={(plantelTrim != null)} | nroplan={Q(oDeclaracion.Nroplan)}");
+                Plantelseleccionado = plantelTrim;
+            }
+            if (Plantelseleccionado is null && !string.IsNullOrWhiteSpace(oDeclaracion.Nroplan))
+            {
+                // Fallback: algunos registros viejos pueden tener Nroplan fuera del set filtrado por socio.
+                var nroplanLower = EscapeForFilter(T(oDeclaracion.Nroplan).ToLower());
+                var filtroPlan = $"(Placod == null ? \"\" : Placod).ToLower() == \"{nroplanLower}\"";
+                var planResp = await _plantelServicio.LimitadosFiltradosNoInclude(0, 1, filtroPlan);
+                Plantelseleccionado = planResp?.List?.FirstOrDefault();
+                Log($"Plantel fallback por API | encontrado={(Plantelseleccionado != null)} | filtro={filtroPlan}");
+                if (Plantelseleccionado != null && !Planteles.Any(p => p.Id == Plantelseleccionado.Id))
+                {
+                    Planteles.Add(Plantelseleccionado);
+                    Log($"Plantel fallback agregado a lista local | plantelesTotal={Planteles.Count}");
+                }
+            }
             tipoTemp = ToLabel(oDeclaracion.Tipse);
             previousTipoTemp = tipoTemp; // por la lógica de multiplicadores
+            Log($"Tipo reconstruido | tipseDB={Q(oDeclaracion.Tipse)} -> tipoUI={Q(tipoTemp)}");
 
             // 4) Detalles (toros/certifs) y reconstrucción de seleccionados
             // Normalizar Nrodec en el filtro para evitar problemas de mayúsculas/minúsculas o nulos
             var nrodecFilter = (oDeclaracion.Nrodec ?? "").Replace("\"", "\\\"").ToLower();
+            Log($"Buscando detalles Desepla3 con filtro Nrodec lower={Q(nrodecFilter)}");
             var rt = await _desepla3Servicio.LimitadosFiltrados(0, 0, $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecFilter}\"");
             deseplasViejos = rt.List?.ToList() ?? new();
+            Log($"Detalles cargados: {deseplasViejos.Count}");
 
             torosSeleccionados.Clear();
             certificadosSeleccionados.Clear();
@@ -710,11 +763,13 @@ else
                     torosSeleccionados.Add(data);
                 }
             }
+            Log($"Reconstrucción listas seleccionadas | toros={torosSeleccionados.Count} | certifs={certificadosSeleccionados.Count}");
 
             try { if (gridToro1 != null) await gridToro1.Reload(); } catch { }
             try { if (gridToro2 != null) await gridToro2.Reload(); } catch { }
             try { if (gridCertif != null) await gridCertif.Reload(); } catch { }
             StateHasChanged();
+            Log("Edición inicializada.");
         }
         else
         {
@@ -726,10 +781,12 @@ else
             oDeclaracion.Desde = DateTime.Now;
             oDeclaracion.Hasta = DateTime.Now;
             oDeclaracion.Tipse = "NA";
+            Log($"Alta nueva | nroDecAnterior={Q(nroDecAnterior)} | nrodecNuevo={Q(nrodec)}");
 
 
 
         }
+        Log("OnInitializedAsync END");
     }
 
     private string? GetTipToroByHba(string? hba)
@@ -758,6 +815,8 @@ else
         "Inseminacion c/celo" => 1.5,
         "Inseminacion c/celo y rep" => 1.0,
         "IATF c/rep" => 1.0,
+        "ANUAL" => 1.0,
+        "Santa Fe" => 1.0,
         "Inseminacion c/p y rep" => 0.8,
         _ => 0.0 // Natural no consume dosis
     };
@@ -802,16 +861,51 @@ else
 
     private string ToCode(string label)
     {
-        if (traductor.TryGetValue(label, out var code)) return code;
+        var normalized = NormalizeTipoLabel(label);
+        if (traductor.TryGetValue(normalized, out var code)) return code;
         // Fallback: si ya es código o es un label desconocido
-        return label;
+        return normalized;
     }
 
     private string ToLabel(string code)
     {
+        if (string.IsNullOrWhiteSpace(code)) return code;
+
+        // Normalización de códigos legacy para que la UI siempre trabaje con labels actuales.
+        if (string.Equals(code, "ANUAL", StringComparison.OrdinalIgnoreCase))
+            return "Inseminacion c/celo y rep";
+        if (string.Equals(code, "IATFR", StringComparison.OrdinalIgnoreCase))
+            return "IATF c/rep";
+
         // Invertimos el diccionario en caliente (o creá otro diccionario inverso fijo)
         var pair = traductor.FirstOrDefault(kv => kv.Value == code);
-        return string.IsNullOrWhiteSpace(pair.Key) ? code : pair.Key;
+        return string.IsNullOrWhiteSpace(pair.Key) ? code : NormalizeTipoLabel(pair.Key);
+    }
+
+    private string NormalizeTipoLabel(string? label)
+    {
+        var v = (label ?? string.Empty).Trim();
+        if (string.Equals(v, "ANUAL", StringComparison.OrdinalIgnoreCase))
+            return "Inseminacion c/celo y rep";
+        if (string.Equals(v, "Santa Fe", StringComparison.OrdinalIgnoreCase))
+            return "IATF c/rep";
+        return v;
+    }
+
+    private bool IsNaturalTipo(string? tipo) => string.Equals(NormalizeTipoLabel(tipo), "Natural", StringComparison.Ordinal);
+    private bool IsNaturalCorralTipo(string? tipo) => string.Equals(NormalizeTipoLabel(tipo), "Natural a Corral", StringComparison.Ordinal);
+    private bool IsTipoInseminacion(string? tipo)
+    {
+        var t = NormalizeTipoLabel(tipo);
+        return t == "Inseminacion c/celo"
+               || t == "Inseminacion c/celo y rep"
+               || t == "Inseminacion c/p y rep"
+               || t == "IATF c/rep";
+    }
+    private bool IsTipoConToros(string? tipo)
+    {
+        var t = NormalizeTipoLabel(tipo);
+        return t == "Natural a Corral" || t == "Inseminacion c/celo y rep" || t == "Inseminacion c/p y rep" || t == "IATF c/rep";
     }
 
 
@@ -825,8 +919,10 @@ else
 
     private async Task HandleSubmit(EditContext _)
     {
+        Log($"HandleSubmit | socio={Q(socioSeleccionado?.Scod)} | plantel={Q(Plantelseleccionado?.Placod)} | tipo={Q(tipoTemp)} | torosSel={torosSeleccionados.Count} | certifsSel={certificadosSeleccionados.Count}");
         if (!ValidateManual())
         {
+            Log($"ValidateManual FAIL | errores={string.Join(" | ", errors.Select(e => $"{e.Key}:{e.Value}"))}");
             // Alerta con resumen de errores
             await Swal.FireAsync(new SweetAlertOptions
                 {
@@ -840,6 +936,7 @@ else
             return;
         }
 
+        Log("ValidateManual OK. Ejecutando Guardar...");
         await Guardar();
     }
 
@@ -882,12 +979,9 @@ else
             errors["cantb"] = $"La cantidad VIP no puede superar {vipTotal}.";
 
         // 3) Reglas por tipo
-        bool esNatural = tipoTemp == "Natural";
-        bool esNaturalCorral = tipoTemp == "Natural a Corral";
-        bool esAlgunaInsemin = tipoTemp == "Inseminacion c/celo"
-                               || tipoTemp == "Inseminacion c/celo y rep"
-                               || tipoTemp == "Inseminacion c/p y rep"
-                               || tipoTemp == "IATF c/rep";
+        bool esNatural = IsNaturalTipo(tipoTemp);
+        bool esNaturalCorral = IsNaturalCorralTipo(tipoTemp);
+        bool esAlgunaInsemin = IsTipoInseminacion(tipoTemp);
 
         // Natural: requiere periodo y al menos 1 toro
         if (esNatural)
@@ -922,7 +1016,7 @@ else
     }
     async Task Guardar()
     {
-        Console.WriteLine("1");
+        Log($"Guardar START | Id={Id} | nrodec={Q(oDeclaracion?.Nrodec)}");
         seleccionFinal.Clear();
 
         oDeclaracion.Nrocri = socioSeleccionado.Scod;
@@ -930,15 +1024,17 @@ else
         oDeclaracion.Tipse = ToCode(tipoTemp);
         oDeclaracion.Desde ??= DateTime.Now;
         oDeclaracion.Hasta ??= DateTime.Now;
+        Log($"Cabecera lista para persistir | Nrocri={Q(oDeclaracion.Nrocri)} | Nroplan={Q(oDeclaracion.Nroplan)} | Tipse={Q(oDeclaracion.Tipse)}");
 
 
         // --- Multiplicadores
         var multActual = GetMultiplicador(tipoTemp);
         var multPrevio = GetMultiplicador(string.IsNullOrWhiteSpace(previousTipoTemp) ? tipoTemp : previousTipoTemp);
+        Log($"Multiplicadores | actual={multActual} (tipo={Q(tipoTemp)}) | previo={multPrevio} (tipoPrev={Q(previousTipoTemp)})");
 
 
 
-        if (tipoTemp == "Natural")
+        if (IsNaturalTipo(tipoTemp))
         {
             var d = oDeclaracion.Desde ?? DateTime.Now;
             var h = oDeclaracion.Hasta ?? DateTime.Now;
@@ -975,6 +1071,7 @@ else
             if (adaptacion.Hasta > oDeclaracion.Hasta!.Value) oDeclaracion.Hasta = adaptacion.Hasta;
 
         }
+        Log($"seleccionFinal armada | total={seleccionFinal.Count} | toros={torosSeleccionados.Count} | certifs={certificadosSeleccionados.Count}");
 
 
         // --- USO INICIAL (lo que tenía la declaración al cargar)
@@ -987,6 +1084,7 @@ else
         // --- Union de HBAs para calcular delta
         var hbAs = new HashSet<string>(usoInicialPorCert.Keys);
         hbAs.UnionWith(usoActualPorCert.Keys);
+        Log($"Uso certificados | inicialHBAs={usoInicialPorCert.Count} | actualHBAs={usoActualPorCert.Count} | unionHBAs={hbAs.Count}");
 
         // --- Calcular delta y preparar edición de certificados
         var certificadosAlterados = new List<CertifsemanDTO>();
@@ -1002,6 +1100,7 @@ else
             var cert = certificados.FirstOrDefault(x => x.Hba == hba);
             if (cert == null)
             {
+                Log($"No se encontró certificado en memoria para HBA={Q(hba)}");
                 await Swal.FireAsync("Atención", $"No se encontró certificado para HBA {hba}", SweetAlertIcon.Warning);
                 continue;
             }
@@ -1010,6 +1109,7 @@ else
             var nuevoNrDosi = cert.NrDosi - delta; // delta positivo resta; delta negativo suma
             if (nuevoNrDosi < 0)
             {
+                Log($"Stock insuficiente | HBA={Q(hba)} | delta={delta} | actualNrDosi={cert.NrDosi}");
                 await Swal.FireAsync("Atención",
                     $"El certificado HBA {hba} no tiene suficientes dosis. " +
                     $"Intento consumir {delta} y quedan {cert.NrDosi}.",
@@ -1037,9 +1137,11 @@ else
         // --- Persistencia de certificados primero (para asegurar stock coherente)
         foreach (var cert in certificadosAlterados)
         {
+            Log($"UpdateNrDosi | certId={cert.Id} | HBA={Q(cert.Hba)} | nuevoNrDosi={cert.NrDosi}");
             var r = await _certifsemanServicio.UpdateNrDosi(cert.Id, cert.NrDosi ?? 0);
             if (r?.Exito != 1)
             {
+                Log($"UpdateNrDosi ERROR | certId={cert.Id} | mensaje={Q(r?.Mensaje)}");
                 await Swal.FireAsync("Error", r?.Mensaje ?? "No se pudo actualizar NrDosi", SweetAlertIcon.Error);
                 return; // abortar guardar si querés consistencia estricta
             }
@@ -1057,47 +1159,150 @@ else
 
         if (Id == 0)
         {
+            Log("Flujo guardar: CREAR cabecera");
             // Crear: primero persistir la cabecera para reducir riesgo de desincronía en Nrodec
-            var createdResp = await _desepla1Servicio.Crear(oDeclaracion);
+            Respuesta<Desepla1DTO>? createdResp = null;
+            try
+            {
+                createdResp = await _desepla1Servicio.Crear(oDeclaracion);
+            }
+            catch (Exception ex)
+            {
+                Log($"Excepción creando cabecera: {ex.Message}");
+                await Swal.FireAsync("Error al crear declaración",
+                    $"Falló la creación de la cabecera.\nDetalle: {ex.Message}",
+                    SweetAlertIcon.Error);
+                return;
+            }
+
             if (createdResp == null || createdResp.Exito != 1 || createdResp.List == null)
             {
-                await Swal.FireAsync("Error", "No se pudo crear la declaración.", SweetAlertIcon.Error);
+                var detalle = createdResp?.Mensaje;
+                Log($"Error creando cabecera | respuestaNull={createdResp is null} | exito={createdResp?.Exito} | mensaje={Q(detalle)}");
+                await Swal.FireAsync("Error al crear declaración",
+                    $"No se pudo crear la cabecera de la declaración.\nDetalle: {(!string.IsNullOrWhiteSpace(detalle) ? detalle : "Sin detalle devuelto por el servidor.")}",
+                    SweetAlertIcon.Error);
                 return;
             }
 
             // Asegurar que usamos el Nrodec devuelto por el servidor si lo modificó
             oDeclaracion = createdResp.List;
+            Log($"Cabecera creada OK | Id={oDeclaracion.Id} | Nrodec={Q(oDeclaracion.Nrodec)}");
 
             // Persistir detalles con el Nrodec confirmado
             foreach (var dese in seleccionFinal)
             {
                 dese.Nrodec = oDeclaracion.Nrodec;
-                await _desepla3Servicio.Crear(dese);
+                try
+                {
+                    var detResp = await _desepla3Servicio.Crear(dese);
+                    if (detResp == null || detResp.Exito != 1)
+                    {
+                        Log($"Error creando detalle | HBA={Q(dese.Hardb)} | tipo={Q(dese.Tipo)} | mensaje={Q(detResp?.Mensaje)}");
+                        await Swal.FireAsync("Error al crear detalle",
+                            $"Falló la creación de un detalle (HBA: {dese.Hardb}, Tipo: {dese.Tipo}).\nDetalle: {detResp?.Mensaje ?? "Sin detalle del servidor."}",
+                            SweetAlertIcon.Error);
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log($"Excepción creando detalle | HBA={Q(dese.Hardb)} | tipo={Q(dese.Tipo)} | ex={ex.Message}");
+                    await Swal.FireAsync("Error al crear detalle",
+                        $"Falló la creación de un detalle (HBA: {dese.Hardb}, Tipo: {dese.Tipo}).\nDetalle: {ex.Message}",
+                        SweetAlertIcon.Error);
+                    return;
+                }
             }
+            Log($"Detalles creados: {seleccionFinal.Count}");
 
             Navigation.NavigateTo("/declaraciones");
             return;
         }
         else
         {
+            Log("Flujo guardar: EDITAR");
             // Editar: borro viejos y recreo (como ya tenías)
             var nrodecLower = oDeclaracion.Nrodec.ToLower();
             var filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecLower}\"";
             var existentes = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
+            Log($"Detalles existentes a reemplazar: {existentes?.List?.Count ?? 0}");
 
             if (existentes?.List != null)
             {
                 foreach (var d in existentes.List)
-                    await _desepla3Servicio.Eliminar(d.Id);
+                {
+                    try
+                    {
+                        var okDelete = await _desepla3Servicio.Eliminar(d.Id);
+                        if (!okDelete)
+                        {
+                            Log($"Error eliminando detalle previo | IdDetalle={d.Id}");
+                            await Swal.FireAsync("Error al actualizar declaración",
+                                $"No se pudo eliminar un detalle previo (Id {d.Id}).",
+                                SweetAlertIcon.Error);
+                            return;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log($"Excepción eliminando detalle previo | IdDetalle={d.Id} | ex={ex.Message}");
+                        await Swal.FireAsync("Error al actualizar declaración",
+                            $"Falló la eliminación de un detalle previo (Id {d.Id}).\nDetalle: {ex.Message}",
+                            SweetAlertIcon.Error);
+                        return;
+                    }
+                }
             }
 
             foreach (var dese in seleccionFinal)
             {
                 dese.Nrodec = oDeclaracion.Nrodec;
-                await _desepla3Servicio.Crear(dese);
+                try
+                {
+                    var detResp = await _desepla3Servicio.Crear(dese);
+                    if (detResp == null || detResp.Exito != 1)
+                    {
+                        Log($"Error recreando detalle | HBA={Q(dese.Hardb)} | tipo={Q(dese.Tipo)} | mensaje={Q(detResp?.Mensaje)}");
+                        await Swal.FireAsync("Error al actualizar declaración",
+                            $"No se pudo guardar un detalle (HBA: {dese.Hardb}, Tipo: {dese.Tipo}).\nDetalle: {detResp?.Mensaje ?? "Sin detalle del servidor."}",
+                            SweetAlertIcon.Error);
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log($"Excepción recreando detalle | HBA={Q(dese.Hardb)} | tipo={Q(dese.Tipo)} | ex={ex.Message}");
+                    await Swal.FireAsync("Error al actualizar declaración",
+                        $"Falló la creación de un detalle (HBA: {dese.Hardb}, Tipo: {dese.Tipo}).\nDetalle: {ex.Message}",
+                        SweetAlertIcon.Error);
+                    return;
+                }
             }
 
-            await _desepla1Servicio.Editar(oDeclaracion);
+            bool okEdit;
+            try
+            {
+                okEdit = await _desepla1Servicio.Editar(oDeclaracion);
+            }
+            catch (Exception ex)
+            {
+                Log($"Excepción editando cabecera | Id={oDeclaracion.Id} | ex={ex.Message}");
+                await Swal.FireAsync("Error al actualizar declaración",
+                    $"Falló la actualización de la cabecera (Id {oDeclaracion.Id}).\nDetalle: {ex.Message}",
+                    SweetAlertIcon.Error);
+                return;
+            }
+
+            if (!okEdit)
+            {
+                Log($"Error editando cabecera | Id={oDeclaracion.Id}");
+                await Swal.FireAsync("Error al actualizar declaración",
+                    $"No se pudo actualizar la cabecera de la declaración (Id {oDeclaracion.Id}).",
+                    SweetAlertIcon.Error);
+                return;
+            }
+            Log($"Declaración editada OK | Id={oDeclaracion.Id} | Nrodec={Q(oDeclaracion.Nrodec)} | detallesNuevos={seleccionFinal.Count}");
             Navigation.NavigateTo("/declaraciones");
             return;
         }
@@ -1132,17 +1337,29 @@ else
     }
     private async Task<IEnumerable<PlantelDTO>> BusquedaPlanteles(string searchText)
     {
-        return await Task.FromResult(Planteles.Where(x => x.Nrocri == socioSeleccionado.Scod && x.Placod.ToLower().Contains(searchText.ToLower())).ToList());
+        var socioScod = socioSeleccionado?.Scod;
+        var result = Planteles
+            .Where(x => x.Nrocri == socioScod && x.Placod.ToLower().Contains(searchText.ToLower()))
+            .ToList();
+        Log($"BusquedaPlanteles | search={Q(searchText)} | socioScod={Q(socioScod)} | resultados={result.Count}");
+        return await Task.FromResult(result);
     }
 
     protected async Task AddToSelectedToros(DataGridRowMouseEventArgs<TorosuniDTO> args)
     {
         var toro = args.Data;
         if (toro == null || string.IsNullOrWhiteSpace(toro.Hba))
+        {
+            Log("AddToSelectedToros ignorado (toro null o HBA vacío)");
             return;
+        }
 
         bool yaExiste = torosSeleccionados.Any(t => t.original?.Hardb == toro.Hba);
-        if (yaExiste) return;
+        if (yaExiste)
+        {
+            Log($"AddToSelectedToros ignorado (duplicado) | HBA={Q(toro.Hba)}");
+            return;
+        }
 
         torosSeleccionados.Add(
             new Desepla3Data
@@ -1160,6 +1377,7 @@ else
                 Hasta = DateTime.Now
             }
         );
+        Log($"AddToSelectedToros OK | HBA={Q(toro.Hba)} | TipToro={Q(toro.TipToro)} | totalTorosSel={torosSeleccionados.Count}");
 
         try { await InvokeAsync(gridToro1.Reload); } catch { }
         try { await InvokeAsync(gridToro2.Reload); } catch { }
@@ -1169,9 +1387,11 @@ else
 
     private async Task RemoveToro(Desepla3Data data)
     {
+        var before = torosSeleccionados.Count;
         torosSeleccionados = torosSeleccionados
             .Where(t => t.LineKey != data.LineKey)
             .ToList();
+        Log($"RemoveToro | before={before} | after={torosSeleccionados.Count} | HBA={Q(data?.original?.Hardb)}");
 
         try { await InvokeAsync(gridToro1.Reload); } catch { }
         try { await InvokeAsync(gridToro2.Reload); } catch { }
@@ -1181,9 +1401,11 @@ else
 
     private async Task RemoveCertif(Desepla3Data data)
     {
+        var before = certificadosSeleccionados.Count;
         certificadosSeleccionados = certificadosSeleccionados
             .Where(c => c.LineKey != data.LineKey)
             .ToList();
+        Log($"RemoveCertif | before={before} | after={certificadosSeleccionados.Count} | HBA={Q(data?.original?.Hardb)}");
 
         try { await InvokeAsync(gridCertif.Reload); } catch { }
     }
@@ -1197,11 +1419,17 @@ else
     {
         var certif = args.Data;
         if (certif == null || string.IsNullOrWhiteSpace(certif.Hba))
+        {
+            Log("AddToSelectedCertif ignorado (certif null o HBA vacío)");
             return;
+        }
 
         // Evitar duplicados por HBA
         if (certificadosSeleccionados.Any(c => c.original?.Hardb == certif.Hba))
+        {
+            Log($"AddToSelectedCertif ignorado (duplicado) | HBA={Q(certif.Hba)}");
             return;
+        }
 
         certificadosSeleccionados.Add(
             new Desepla3Data
@@ -1219,12 +1447,14 @@ else
                 Hasta = DateTime.Now
             }
         );
+        Log($"AddToSelectedCertif OK | HBA={Q(certif.Hba)} | Nrocri={Q(certif.Nrocri)} | totalCertSel={certificadosSeleccionados.Count}");
 
         InvokeAsync(gridCertif.Reload);
     }
 
     protected async void CleanSelected()
     {
+        Log($"CleanSelected | torosAntes={torosSeleccionados.Count} | certsAntes={certificadosSeleccionados.Count}");
         torosSeleccionados = new List<Desepla3Data>();
         certificadosSeleccionados = new List<Desepla3Data>();
 
@@ -1233,29 +1463,68 @@ else
         try { if (gridCertif != null) await gridCertif.Reload(); } catch { }
 
         StateHasChanged();
+        Log("CleanSelected END");
     }
 
 
     protected async Task UpdateValores(SocioDTO socio)
     {
         socioSeleccionado = socio;
+        var socioScodRaw = socio?.Scod ?? string.Empty;
+        var socioScodTrim = T(socio?.Scod);
+        Log($"UpdateValores START | socio.Id={socio?.Id} | socio.ScodRaw={Q(socioScodRaw)} | socio.ScodTrim={Q(socioScodTrim)}");
 
         // si estoy editando, no quiero que me borre tipo/cantidades/fechas
         await ResetForSocioChange(preserveCabecera: _isEdit);
 
-        var filtro = $"Nrocri == \"{socio.Scod}\"";
+        var filtro = $"Nrocri == \"{EscapeForFilter(socioScodRaw)}\"";
+        Log($"UpdateValores -> Planteles filtro: {filtro}");
         var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         Planteles = rt.List;
+        Log($"Planteles cargados: {Planteles?.Count ?? 0}");
+        if ((Planteles?.Count ?? 0) == 0 && !string.IsNullOrWhiteSpace(socioScodTrim))
+        {
+            var filtroDiag = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{EscapeForFilter(socioScodTrim.ToLower())}\")";
+            var rtDiag = await _plantelServicio.LimitadosFiltradosNoInclude(0, 20, filtroDiag);
+            Log($"Diag Planteles (contains scod trim) -> {rtDiag?.List?.Count ?? 0} resultados | filtro={filtroDiag}");
+        }
 
-        filtro = $"Criador == \"{socio.Scod}\"";
+        filtro = $"Criador == \"{EscapeForFilter(socioScodRaw)}\"";
+        Log($"UpdateValores -> Toros filtro: {filtro}");
         var rta = await _torosServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         toros = rta.List;
+        Log($"Toros cargados: {toros?.Count ?? 0}");
+        if ((toros?.Count ?? 0) == 0 && !string.IsNullOrWhiteSpace(socioScodTrim))
+        {
+            var filtroDiag = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{EscapeForFilter(socioScodTrim.ToLower())}\")";
+            var rtDiag = await _torosServicio.LimitadosFiltradosNoInclude(0, 20, filtroDiag);
+            Log($"Diag Toros (contains scod trim) -> {rtDiag?.List?.Count ?? 0} resultados | filtro={filtroDiag}");
+        }
+        if ((toros?.Count ?? 0) > 0)
+        {
+            var criadores = toros.Select(t => t.Criador).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().Take(5);
+            Log($"Toros criadores (muestra): {string.Join(" | ", criadores.Select(Q))}");
+        }
 
-        filtro = $"Nrocri == \"{socio.Scod}\"";
+        filtro = $"Nrocri == \"{EscapeForFilter(socioScodRaw)}\"";
+        Log($"UpdateValores -> Certificados filtro: {filtro}");
         var rtaa = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
         certificados = rtaa.List;
+        Log($"Certificados cargados: {certificados?.Count ?? 0}");
+        if ((certificados?.Count ?? 0) == 0 && !string.IsNullOrWhiteSpace(socioScodTrim))
+        {
+            var filtroDiag = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{EscapeForFilter(socioScodTrim.ToLower())}\")";
+            var rtDiag = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 20, filtroDiag);
+            Log($"Diag Certificados (contains scod trim) -> {rtDiag?.List?.Count ?? 0} resultados | filtro={filtroDiag}");
+        }
+        if ((certificados?.Count ?? 0) > 0)
+        {
+            var nrocris = certificados.Select(c => c.Nrocri).Where(n => !string.IsNullOrWhiteSpace(n)).Distinct().Take(5);
+            Log($"Certificados Nrocri (muestra): {string.Join(" | ", nrocris.Select(Q))}");
+        }
 
         StateHasChanged();
+        Log($"UpdateValores END | Planteles={Planteles?.Count ?? 0} | Toros={toros?.Count ?? 0} | Certifs={certificados?.Count ?? 0}");
     }
 
 
@@ -1263,6 +1532,7 @@ else
 
     private async Task ResetForSocioChange(bool preserveCabecera = false)
     {
+        Log($"ResetForSocioChange START | preserveCabecera={preserveCabecera}");
         torosSeleccionados.Clear();
         certificadosSeleccionados.Clear();
         seleccionFinal.Clear();
@@ -1284,6 +1554,7 @@ else
         try { if (gridCertif != null) await gridCertif.Reload(); } catch { }
 
         StateHasChanged();
+        Log("ResetForSocioChange END");
     }
 
 
@@ -1321,6 +1592,7 @@ else
  
     async Task EliminarDeclaracion()
     {
+        Log($"EliminarDeclaracion START | Id={oDeclaracion?.Id} | Nrodec={Q(oDeclaracion?.Nrodec)} | Tipse={Q(oDeclaracion?.Tipse)}");
         var result = await Swal.FireAsync(new SweetAlertOptions
             {
                 Title = "¿Eliminar declaración?",
@@ -1346,6 +1618,7 @@ else
             var filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecLower}\"";
             var detallesResp = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
             var detalles = detallesResp?.List?.ToList() ?? new List<Desepla3DTO>();
+            Log($"EliminarDeclaracion | detalles encontrados={detalles.Count} | filtro={filtro}");
 
 
             // 2) Calcular cuántas dosis devolver por HBA (solo líneas de inseminación)
@@ -1357,6 +1630,7 @@ else
                     g => g.Key,
                     g => g.Sum(d => DosisNecesarias(d.Cantv, mult))
                 );
+            Log($"EliminarDeclaracion | HBAs a devolver={devolverPorHba.Count}");
 
             // 3) Asegurar certificados en memoria (si está vacío, recargar)
             if (certificados == null || certificados.Count == 0)
@@ -1409,6 +1683,7 @@ else
                 }
 
                 cert.NrDosi = nuevo;
+                Log($"EliminarDeclaracion | dosis restaurada | certId={cert.Id} | HBA={Q(hba)} | nuevoNrDosi={nuevo}");
             }
 
             foreach (var d in detalles)
@@ -1418,12 +1693,13 @@ else
             }
 
             await _desepla1Servicio.Eliminar(oDeclaracion.Id);
+            Log("EliminarDeclaracion END OK");
 
             Navigation.NavigateTo("/declaraciones");
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            Log($"EliminarDeclaracion ERROR: {ex}");
             await Swal.FireAsync("Error", "Ocurrió un error al eliminar la declaración.", SweetAlertIcon.Error);
         }
     }
@@ -1434,10 +1710,11 @@ else
     private void OnTipoChanged(object value)
     {
         var nuevo = value?.ToString() ?? "";
+        Log($"OnTipoChanged | anterior={Q(tipoTemp)} | nuevo={Q(nuevo)}");
 
         previousTipoTemp = tipoTemp;
 
-        tipoTemp = nuevo;
+        tipoTemp = NormalizeTipoLabel(nuevo);
 
         CleanSelected();
     }

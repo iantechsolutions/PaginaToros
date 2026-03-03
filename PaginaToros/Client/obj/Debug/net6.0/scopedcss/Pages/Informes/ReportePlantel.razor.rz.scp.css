@@ -1,10 +1,10 @@
-*[b-dnbenaiutx] {
+*[b-te855shaps] {
     margin: 0;
     padding: 0;
     text-indent: 0;
 }
 
-p[b-dnbenaiutx] {
+p[b-te855shaps] {
     color: black;
     font-family: Arial, sans-serif;
     font-style: normal;
@@ -14,7 +14,7 @@ p[b-dnbenaiutx] {
     margin: 5pt;
 }
 
-.s1[b-dnbenaiutx] {
+.s1[b-te855shaps] {
     color: black;
     font-family: Arial, sans-serif;
     font-style: normal;
@@ -23,7 +23,7 @@ p[b-dnbenaiutx] {
     font-size: 18pt;
 }
 
-.s2[b-dnbenaiutx] {
+.s2[b-te855shaps] {
     color: black;
     font-family: Arial, sans-serif;
     font-style: normal;
@@ -32,13 +32,13 @@ p[b-dnbenaiutx] {
     font-size: 8pt;
 }
 
-table[b-dnbenaiutx],
-tbody[b-dnbenaiutx] {
+table[b-te855shaps],
+tbody[b-te855shaps] {
     vertical-align: top;
     overflow: visible;
 }
 
-td[b-dnbenaiutx] {
+td[b-te855shaps] {
     width: 120pt;
     border-top-style: solid;
     border-top-width: 1pt;
@@ -50,7 +50,7 @@ td[b-dnbenaiutx] {
     border-right-width: 1pt;
 }
 
-.s2[b-dnbenaiutx] {
+.s2[b-te855shaps] {
     padding-top: 3pt;
     padding-left: 5pt;
     text-indent: 0pt;
@@ -59,7 +59,7 @@ td[b-dnbenaiutx] {
 
 @media-print {
 
-    .no-print[b-dnbenaiutx] {
+    .no-print[b-te855shaps] {
         display: none;
     }
     /*    .table {
