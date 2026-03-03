@@ -101,7 +101,7 @@
       "url": "images\/mantenimiento.png"
     },
     {
-      "hash": "sha256-Sll2tuZCTnuUJvsGisHT0S9MLwi3IzZiBuxf0T3u8RI=",
+      "hash": "sha256-LvxI6GIO5JIiOPP+WkrGC40TxB5yLzdKeRKY+KKUdQ0=",
       "url": "index.html"
     },
     {
@@ -1001,5 +1001,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "A5hMQVqp"
+  "version": "jVCLJiOl"
 };
