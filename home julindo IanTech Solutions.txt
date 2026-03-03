@@ -1,0 +1,52 @@
+/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros
+cd "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros"
+
+
+1️⃣ Ir a la carpeta correcta
+cd "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros"
+▶️ 2️⃣ Correr el proyecto en desarrollo (modo local)
+Opción recomendada (Server, porque es Blazor Hosted):
+dotnet run --project Server/PaginaToros.Server.csproj
+
+O simplemente:
+
+dotnet run --project Server
+
+Te va a mostrar algo como:
+
+Now listening on: https://localhost:5001
+Now listening on: http://localhost:5000
+🧹 3️⃣ Limpiar el proyecto
+dotnet clean
+🔄 4️⃣ Restaurar paquetes
+dotnet restore
+🏗 5️⃣ Build (compilar sin correr)
+dotnet build
+🚀 6️⃣ Publish (Release) a carpeta SPRPublish
+
+Si tu carpeta de deploy es:
+
+/home/julindo/IanTech Solutions Srl/SPRPublish
+
+Entonces:
+
+dotnet publish Server/PaginaToros.Server.csproj -c Release -o "/home/julindo/IanTech Solutions Srl/SPRPublish"
+
+Si querés limpiar antes el publish:
+
+rm -rf "/home/julindo/IanTech Solutions Srl/SPRPublish"/*
+dotnet publish Server/PaginaToros.Server.csproj -c Release -o "/home/julindo/IanTech Solutions Srl/SPRPublish"
+🖥 7️⃣ Reiniciar servicio en el servidor (cuando ya subiste el publish)
+
+Con systemd:
+
+sudo systemctl stop paginatoros
+sudo systemctl start paginatoros
+
+Ver estado:
+
+sudo systemctl status paginatoros
+
+Ver logs en vivo:
+
+journalctl -u paginatoros -f

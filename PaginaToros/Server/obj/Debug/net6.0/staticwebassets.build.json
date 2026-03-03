@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "OIbL1XrIhD7SD9w8GJQU6iooyz5BhFjabVnPMTqrMuk=",
+  "Hash": "tH6hOPAMcqNKmfLCE0hzePdGdDDsUojzTDrsI15GPUk=",
   "Source": "PaginaToros.Server",
   "BasePath": "_content/PaginaToros.Server",
   "Mode": "Default",
@@ -11,10 +11,10 @@
       "Version": 2,
       "Source": "PaginaToros.Client",
       "GetPublishAssetsTargets": "ComputeFilesToPublish;GetCurrentProjectPublishStaticWebAssetItems",
-      "AdditionalPublishProperties": "BuildProjectReferences=false;ResolveAssemblyReferencesFindRelatedSatellites=true;_PublishingBlazorWasmProject=true;Configuration=Debug;Platform=AnyCPU",
+      "AdditionalPublishProperties": "BuildProjectReferences=false;ResolveAssemblyReferencesFindRelatedSatellites=true;_PublishingBlazorWasmProject=true",
       "AdditionalPublishPropertiesToRemove": "NoBuild;RuntimeIdentifier;WebPublishProfileFile;TargetFramework",
       "GetBuildAssetsTargets": "GetCurrentProjectBuildStaticWebAssetItems",
-      "AdditionalBuildProperties": "Configuration=Debug;Platform=AnyCPU",
+      "AdditionalBuildProperties": "",
       "AdditionalBuildPropertiesToRemove": "WebPublishProfileFile;TargetFramework"
     }
   ],

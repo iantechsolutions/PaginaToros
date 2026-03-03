@@ -105,7 +105,7 @@
       "url": "manifest.json"
     },
     {
-      "hash": "sha256-mLYWEz1l30k\/y7Vtb+rYEQB9pnJsJi4azX7QNkeIuR8=",
+      "hash": "sha256-OmOociisZN8BfMBSUT8k45ETwRUueIGd7pSLPCGyfho=",
       "url": "PaginaToros.Client.styles.css"
     },
     {
@@ -293,7 +293,7 @@
       "url": "_framework\/Microsoft.Extensions.Logging.dll"
     },
     {
-      "hash": "sha256-8UQdd7eF3xywpI0NOi\/pftQSzW10NprUPgA\/LIp8WIk=",
+      "hash": "sha256-1N3DNTggtQVhpsTrY9CWyhPwkzSRQdfIHgehgHVpf4A=",
       "url": "_framework\/Microsoft.Extensions.Logging.Abstractions.dll"
     },
     {
@@ -327,6 +327,10 @@
     {
       "hash": "sha256-P66ftDrXwc6ayND8uYzIk0CPQy1GjNZAPHx9RMhi3V4=",
       "url": "_framework\/Microsoft.Net.Http.Headers.dll"
+    },
+    {
+      "hash": "sha256-yklb9shrfwktYkkoEBmFqUFTLRSdzYrP6hcPilO+iFA=",
+      "url": "_framework\/Microsoft.Win32.SystemEvents.dll"
     },
     {
       "hash": "sha256-IsZJ91\/OW+fHzNqIgEc7Y072ns8z9dGritiSyvR9Wgc=",
@@ -1065,19 +1069,19 @@
       "url": "_framework\/icudt_no_CJK.dat"
     },
     {
-      "hash": "sha256-f9PROuZKor3niC4dsbmEnhwnAGInyVB14HxDswPP13c=",
+      "hash": "sha256-gxogmniIJ3VBoXdxTuYy5H3QfjE1X9iCPPgA9hhKPAM=",
       "url": "_framework\/PaginaToros.Shared.dll"
     },
     {
-      "hash": "sha256-+c9V5XtU8OUqMn2uJgQ9OCiSSkcTViNnee5ok4okhbI=",
+      "hash": "sha256-TE+\/cKEiiMpfaWRG6nP0gG+sVxuHurMFS3pUVo0EQ5I=",
       "url": "_framework\/PaginaToros.Shared.pdb"
     },
     {
-      "hash": "sha256-aDG2gn9LlAlnqEkZPpQi5R9BFncUdxrBcB0wt5Ip48Y=",
+      "hash": "sha256-CXEvEXmYYsiylZJ3tVBH4WTDCIn0eLbMbirbBYj4sps=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-Y9V2fo3FL3XBN8913skVlScKYMb8axOp9kxEp1QdbIk=",
+      "hash": "sha256-mOCkdxgLUsEtrPPpkiC5CebOT3NbZAupI0RSGQko1A4=",
       "url": "_framework\/PaginaToros.Client.pdb"
     },
     {
@@ -1085,12 +1089,8 @@
       "url": "_framework\/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-+yR8GZijmErkmKYWqo\/R2zaHBt2l3gm\/XpEPavt5VlI=",
+      "hash": "sha256-LU5elxhs61SwBTOUrWE+M4rKAaoMIwr3Aki\/aCMUC48=",
       "url": "_framework\/blazor.boot.json"
-    },
-    {
-      "hash": "sha256-yklb9shrfwktYkkoEBmFqUFTLRSdzYrP6hcPilO+iFA=",
-      "url": "_framework\/Microsoft.Win32.SystemEvents.dll"
     },
     {
       "hash": "sha256-yLWt7cLBRjftKRr4loJUsjhkjXq01NMu4trIb43MEDw=",
@@ -1377,5 +1377,5 @@
       "url": "_content\/Blazored.Modal\/Blazored.Modal.bundle.scp.css"
     }
   ],
-  "version": "7\/5M1T8P"
+  "version": "ikDFRpC5"
 };
