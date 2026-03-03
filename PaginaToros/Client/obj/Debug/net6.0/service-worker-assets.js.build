@@ -105,7 +105,7 @@
       "url": "manifest.json"
     },
     {
-      "hash": "sha256-hJOtCP7isLw88tOQOp91sbywLcX3USTPSpAJ3dY\/67A=",
+      "hash": "sha256-DSwUhLcJuYIm7DVekRUYIyACAot185b6CfpNYRcSncc=",
       "url": "PaginaToros.Client.styles.css"
     },
     {
@@ -1377,5 +1377,5 @@
       "url": "_content\/Blazored.Modal\/Blazored.Modal.bundle.scp.css"
     }
   ],
-  "version": "PKESnoGv"
+  "version": "9Nkw6ljJ"
 };

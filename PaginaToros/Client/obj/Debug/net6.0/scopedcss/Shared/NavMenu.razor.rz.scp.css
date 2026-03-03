@@ -36,7 +36,7 @@
     --bs-dropdown-link-hover-color: #ffffff;
     --bs-dropdown-link-hover-bg: #047857;
     --bs-dropdown-link-active-color: #052e16;
-    --bs-dropdown-link-active-bg: #34d399;
+    --bs-dropdown-link-active-bg: #10b981;
 }
 
 .menu-dropdown[b-uy3i3vcno8]  .dropdown-item {
@@ -56,14 +56,14 @@
 
 .menu-dropdown[b-uy3i3vcno8]  .dropdown-item.active,
 .menu-dropdown[b-uy3i3vcno8]  .dropdown-item:active {
-    background-color: #34d399 !important;
+    background-color: #10b981 !important;
     color: #052e16 !important;
 }
 
 .menu-dropdown[b-uy3i3vcno8]  .dropdown-item.active:hover,
 .menu-dropdown[b-uy3i3vcno8]  .dropdown-item.active:focus,
 .menu-dropdown[b-uy3i3vcno8]  .dropdown-item.active:focus-visible {
-    background-color: #34d399 !important;
+    background-color: #10b981 !important;
     color: #052e16 !important;
 }
 
