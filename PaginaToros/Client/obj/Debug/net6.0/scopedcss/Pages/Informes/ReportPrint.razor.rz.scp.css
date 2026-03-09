@@ -1,0 +1,142 @@
+*[b-9jexi7waaz] {
+    margin: 0;
+    padding: 0;
+    text-indent: 0;
+}
+
+p[b-9jexi7waaz] {
+    color: black;
+    font-family: Arial, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: none;
+    font-size: 10pt;
+    margin: 0pt;
+}
+
+.s1[b-9jexi7waaz] {
+    color: black;
+    font-family: Arial, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: none;
+    font-size: 18pt;
+}
+
+.s2[b-9jexi7waaz] {
+    color: black;
+    font-family: Arial, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    text-decoration: none;
+    font-size: 7pt;
+}
+
+table[b-9jexi7waaz],
+tbody[b-9jexi7waaz] {
+    vertical-align: top;
+    overflow: visible;
+}
+
+td[b-9jexi7waaz] {
+    width: 120pt;
+    border-top-style: solid;
+    border-top-width: 1pt;
+    border-left-style: solid;
+    border-left-width: 1pt;
+    border-bottom-style: solid;
+    border-bottom-width: 1pt;
+    border-right-style: solid;
+    border-right-width: 1pt;
+}
+
+.s2[b-9jexi7waaz] {
+    padding-top: 3pt;
+    padding-left: 5pt;
+    text-indent: 0pt;
+    text-align: left;
+}
+
+/*    .table {
+        page-break-inside: auto; 
+    }
+
+    .todo{
+        page-break-inside: avoid !important;
+    }*/
+
+    /*.page {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        margin: 0px;
+        -webkit-print-color-adjust: exact;
+    }*/
+
+@media print {
+    .no-print[b-9jexi7waaz] {
+        display: none !important;
+    }
+
+    footer[b-9jexi7waaz] {
+        display: none !important;
+    }
+
+    header[b-9jexi7waaz] {
+        display: none !important;
+    }
+
+    html[b-9jexi7waaz], body[b-9jexi7waaz] {
+        height: 99%;
+    }
+
+    .cuerpo[b-9jexi7waaz] {
+        margin-top: 10px;
+        display: block !important;
+    }
+
+    table[b-9jexi7waaz] {
+        page-break-inside: auto
+    }
+
+    tr[b-9jexi7waaz] {
+        page-break-inside: avoid;
+        page-break-after: auto
+    }
+
+    td[b-9jexi7waaz] {
+        padding: 0;
+        margin: 0;
+    }
+
+    thead[b-9jexi7waaz] {
+        display: table-header-group
+    }
+
+    tfoot[b-9jexi7waaz] {
+        display: table-footer-group
+    }
+
+    .page[b-9jexi7waaz] {
+        margin-left: 0;
+        margin-right: 0;
+        -webkit-print-color-adjust: exact;
+    }
+    body[b-9jexi7waaz] {
+        /* this affects the margin on the content before sending to printer */
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+
+.cuerpo[b-9jexi7waaz] {
+    margin-top: 10px !important;
+    width: 90% !important;
+}
+
+.container[b-9jexi7waaz] {
+    width: 95% !important;
+    justify-content: center;
+    align-items: center;
+}

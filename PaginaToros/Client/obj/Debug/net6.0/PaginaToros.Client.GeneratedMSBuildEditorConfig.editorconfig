@@ -1,0 +1,282 @@
+is_global = true
+build_property.EnableSingleFileAnalyzer = 
+build_property.EnableSingleFileAnalyzer = 
+build_property.EnableTrimAnalyzer = true
+build_property.EnableTrimAnalyzer = true
+build_property.IncludeAllContentForSelfExtract = 
+build_property.IncludeAllContentForSelfExtract = 
+build_property.TargetFramework = net6.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property._SupportedPlatformList = browser
+build_property.RootNamespace = PaginaToros.Client
+build_property.RootNamespace = PaginaToros.Client
+build_property.ProjectDir = /home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/
+build_property.RazorLangVersion = 6.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = /home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client
+build_property._RazorSourceGeneratorDebug = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/AnimalesControl/AnimalesControl.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQW5pbWFsZXNDb250cm9sL0FuaW1hbGVzQ29udHJvbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Auth/ChangePassword.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9DaGFuZ2VQYXNzd29yZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Auth/DeleteUser.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9EZWxldGVVc2VyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Auth/DetailsUsuario.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9EZXRhaWxzVXN1YXJpby5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Auth/Logout.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9Mb2dvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Auth/Register.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9SZWdpc3Rlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Auth/UpdateUser.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9VcGRhdGVVc2VyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Auth/UserEditForm.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9Vc2VyRWRpdEZvcm0ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Auth/UserInfo.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9Vc2VySW5mby5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Auth/UsersList.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9Vc2Vyc0xpc3QucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/CentrosIa/AddCentro.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ2VudHJvc0lhL0FkZENlbnRyby5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/CentrosIa/Centros.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ2VudHJvc0lhL0NlbnRyb3MucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Certificados/AddCertificado.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ2VydGlmaWNhZG9zL0FkZENlcnRpZmljYWRvLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Certificados/Certificados.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ2VydGlmaWNhZG9zL0NlcnRpZmljYWRvcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/CrudInspecciones/AddEdadMesPromedioRe.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ3J1ZEluc3BlY2Npb25lcy9BZGRFZGFkTWVzUHJvbWVkaW9SZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/CrudInspecciones/AddHembraMachoRe.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ3J1ZEluc3BlY2Npb25lcy9BZGRIZW1icmFNYWNob1JlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/CrudInspecciones/AddMovimientoRe.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ3J1ZEluc3BlY2Npb25lcy9BZGRNb3ZpbWllbnRvUmUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/CrudInspecciones/AddRechazoRe.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ3J1ZEluc3BlY2Npb25lcy9BZGRSZWNoYXpvUmUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/DeclaracionesServicio/AddDeclaracion.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvRGVjbGFyYWNpb25lc1NlcnZpY2lvL0FkZERlY2xhcmFjaW9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/DeclaracionesServicio/AddDeclaracionAnual.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvRGVjbGFyYWNpb25lc1NlcnZpY2lvL0FkZERlY2xhcmFjaW9uQW51YWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/DeclaracionesServicio/Declaraciones.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvRGVjbGFyYWNpb25lc1NlcnZpY2lvL0RlY2xhcmFjaW9uZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Establecimientos/AddEstablecimiento.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvRXN0YWJsZWNpbWllbnRvcy9BZGRFc3RhYmxlY2ltaWVudG8ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Establecimientos/Establecimientos.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvRXN0YWJsZWNpbWllbnRvcy9Fc3RhYmxlY2ltaWVudG9zLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Establecimientos/InfoEstablecimiento.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvRXN0YWJsZWNpbWllbnRvcy9JbmZvRXN0YWJsZWNpbWllbnRvLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Informes/AnualGeneral.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5mb3JtZXMvQW51YWxHZW5lcmFsLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Informes/InformeIndex.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5mb3JtZXMvSW5mb3JtZUluZGV4LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Informes/MensualGeneral.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5mb3JtZXMvTWVuc3VhbEdlbmVyYWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Inspecciones/AddReporte.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5zcGVjY2lvbmVzL0FkZFJlcG9ydGUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Inspecciones/AddSolicitudInspeccion.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5zcGVjY2lvbmVzL0FkZFNvbGljaXR1ZEluc3BlY2Npb24ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Inspecciones/InfoSolicitud.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5zcGVjY2lvbmVzL0luZm9Tb2xpY2l0dWQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Inspecciones/Movimientos.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5zcGVjY2lvbmVzL01vdmltaWVudG9zLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Inspecciones/ReportesInspeccion.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5zcGVjY2lvbmVzL1JlcG9ydGVzSW5zcGVjY2lvbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Inspecciones/SolicitudesInspeccion.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5zcGVjY2lvbmVzL1NvbGljaXR1ZGVzSW5zcGVjY2lvbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Inspectores/AddInspector.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5zcGVjdG9yZXMvQWRkSW5zcGVjdG9yLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Inspectores/InfoInspector.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5zcGVjdG9yZXMvSW5mb0luc3BlY3Rvci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Inspectores/Inspectores.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5zcGVjdG9yZXMvSW5zcGVjdG9yZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Mantenimiento.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTWFudGVuaW1pZW50by5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/MultiValueFill.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvTXVsdGlWYWx1ZUZpbGwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Planteles/AddPlantele.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUGxhbnRlbGVzL0FkZFBsYW50ZWxlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Planteles/InfoPlantel.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUGxhbnRlbGVzL0luZm9QbGFudGVsLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Planteles/Planteles.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvUGxhbnRlbGVzL1BsYW50ZWxlcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/qwerty/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvcXdlcnR5L0luZGV4LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Socios/AddSocio.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU29jaW9zL0FkZFNvY2lvLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Socios/InfoSocio.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU29jaW9zL0luZm9Tb2Npby5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Socios/Socios.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvU29jaW9zL1NvY2lvcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Toros/AddToro.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVG9yb3MvQWRkVG9yby5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Toros/Toros.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVG9yb3MvVG9yb3MucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Transferencias/Animales/AddTransAn.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVHJhbnNmZXJlbmNpYXMvQW5pbWFsZXMvQWRkVHJhbnNBbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Transferencias/Animales/TransferenciasAn.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVHJhbnNmZXJlbmNpYXMvQW5pbWFsZXMvVHJhbnNmZXJlbmNpYXNBbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Transferencias/Futuro/AddTransferenciaFu.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVHJhbnNmZXJlbmNpYXMvRnV0dXJvL0FkZFRyYW5zZmVyZW5jaWFGdS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Transferencias/Futuro/TransferenciasFu.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVHJhbnNmZXJlbmNpYXMvRnV0dXJvL1RyYW5zZmVyZW5jaWFzRnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Transferencias/Toros/AddTransSb.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVHJhbnNmZXJlbmNpYXMvVG9yb3MvQWRkVHJhbnNTYi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Transferencias/Toros/TransferenciasSb.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvVHJhbnNmZXJlbmNpYXMvVG9yb3MvVHJhbnNmZXJlbmNpYXNTYi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Shared/InputPassword.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL0lucHV0UGFzc3dvcmQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Shared/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL01haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Shared/ModalInfo.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL01vZGFsSW5mby5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Shared/ModalWait.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL01vZGFsV2FpdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Shared/SurveyPrompt.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL1N1cnZleVByb21wdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Auth/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQXV0aC9Mb2dpbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-tgne2ftlmg
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Informes/ReportePlantel.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5mb3JtZXMvUmVwb3J0ZVBsYW50ZWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-te855shaps
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Informes/ReportPrint.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvSW5mb3JtZXMvUmVwb3J0UHJpbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-9jexi7waaz
+
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Shared/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkL05hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-uy3i3vcno8

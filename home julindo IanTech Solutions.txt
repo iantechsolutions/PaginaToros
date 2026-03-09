@@ -1,3 +1,27 @@
+RESUMIDO:
+find . -name "*.dll" -type f > archivos_dll.txt
+
+
+PUBLISH
+cd "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros"
+
+                                       dotnet publish Server/PaginaToros.Server.csproj \
+                                             -c Release \
+                                             -o "/home/julindo/IanTech Solutions Srl/SPRPublish" \
+                                             --no-restore
+                                             
+                                             
+
+PUSH DESDE PUBLISH
+cd "/home/julindo/IanTech Solutions Srl/SPRPublish"
+                                      git status
+                                      git add .
+                                      git commit -m "Publish PaginaToros Server"
+                                      git push
+
+
+
+
 /home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros
 cd "/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros"
 
