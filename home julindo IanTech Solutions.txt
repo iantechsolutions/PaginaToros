@@ -1,3 +1,8 @@
+
+c56ebb7f1e861759
+ssh root@45.162.169.9 -p 925
+
+
 RESUMIDO:
 find . -name "*.dll" -type f > archivos_dll.txt
 
