@@ -36,24 +36,84 @@
     private UserLogin userInfo = new UserLogin();
     private async Task Loger()
     {
+        var validationMessage = GetValidationMessage();
+        if (validationMessage is not null)
+        {
+            Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(validationMessage, "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
+            return;
+        }
+
         var options = new ModalOptions()
             {
                 Position = ModalPosition.Middle,
                 HideCloseButton=true,
             };
         var modal = Modal.Show<ModalWait>("", options);
-        var result = await http.PostAsJsonAsync<UserLogin>($"{http.BaseAddress}api/Account/Login", userInfo);
-        if (result.IsSuccessStatusCode)
+        try
         {
-            await loginService.Login(result.Content.ReadAsStringAsync().Result);
-            uriHelper.NavigateTo("");
+            var result = await http.PostAsJsonAsync($"{http.BaseAddress}api/Account/Login", userInfo);
+            if (result.IsSuccessStatusCode)
+            {
+                var token = await result.Content.ReadAsStringAsync();
+                await loginService.Login(token);
+                uriHelper.NavigateTo("");
+                return;
+            }
+
+            var serverMessage = await result.Content.ReadAsStringAsync();
+            modal.Close();
+            Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(GetFriendlyLoginError(serverMessage), "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
         }
-        else
+        catch
         {
             modal.Close();
-            Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(result.Content.ReadAsStringAsync().Result, "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
+            Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo("No se pudo iniciar sesión en este momento. Intente nuevamente en unos minutos.", "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
+        }
+    }
+
+    private static string GetFriendlyLoginError(string? serverMessage)
+    {
+        if (string.IsNullOrWhiteSpace(serverMessage))
+        {
+            return "No se pudo iniciar sesión. Verifique sus datos e intente nuevamente.";
         }
 
+        var normalizedMessage = serverMessage.Trim().Trim('"');
+
+        if (normalizedMessage.Contains("credenciales", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Las credenciales no son correctas. Revise el correo de detalles de inicio de sesión.";
+        }
+
+        if (normalizedMessage.Contains("suspendido", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Su usuario está suspendido. Comuníquese con un administrador.";
+        }
+
+        return "No se pudo iniciar sesión en este momento. Intente nuevamente en unos minutos.";
+    }
+
+    private string? GetValidationMessage()
+    {
+        var isUserNameEmpty = string.IsNullOrWhiteSpace(userInfo.UserName);
+        var isPasswordEmpty = string.IsNullOrWhiteSpace(userInfo.Password);
+
+        if (isUserNameEmpty && isPasswordEmpty)
+        {
+            return "Ingrese sus credenciales.";
+        }
+
+        if (isUserNameEmpty)
+        {
+            return "Ingrese su mail.";
+        }
+
+        if (isPasswordEmpty)
+        {
+            return "Ingrese su contraseña.";
+        }
+
+        return null;
     }
 
 }
