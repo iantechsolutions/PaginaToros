@@ -216,22 +216,10 @@ else
              LogDuplicatesIfAny(oRespuesta, "Get - Lista(0,15)");
              OrderPlantelesByFchUsu(oRespuesta);
               StateHasChanged();
-          }
+         }
          else
          {
-             var usuarioId = 0;
-             var authState = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
-            var user = authState.User;
-            foreach (var claim in user.Claims)
-            {
-                if (claim.Type == "SocioId")
-                {
-                    usuarioId = Int32.Parse(claim.Value);
-                    Console.WriteLine(usuarioId);
-                }
-
-            }
+            var usuarioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
             //CAMBIAR ID
             oRespuesta = await _plantelServicio.GetBySocioId(usuarioId);
             EnsureNoDuplicates(oRespuesta);

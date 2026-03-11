@@ -5,70 +5,19 @@
 @inject NavigationManager uriHelper
 
 <AuthorizeView Roles="USUARIOMAESTRO,ADMINISTRADOR" Context="auth">
-    <EditForm Model="@Usuario" OnValidSubmit="@Guardar">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-
-        <div class="row" style="overflow-y:auto; max-height:63.33%;">
-            <div class="col-md-6">
-                <div class="mb-2">
-                    <label class="form-label">Nombres</label>
-                    <InputText class="form-control" @bind-Value="Usuario.Names" />
-                </div>
-
-                <div class="mb-2">
-                    <label class="form-label">Apellidos</label>
-                    <InputText class="form-control" @bind-Value="Usuario.LastNames" />
-                </div>
-
-                <div class="mb-2">
-                    <label class="form-label">DNI</label>
-                    <InputText class="form-control" @bind-Value="Usuario.Dni" />
-                </div>
-
-                <div class="mb-2">
-                    <label class="form-label">Email</label>
-                    <InputText class="form-control" @bind-Value="Usuario.Email" />
-                    <ValidationMessage For="@(()=>Usuario.Email)" />
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="mb-2">
-                    <label class="form-label">Rol</label>
-                    <InputText class="form-control" @bind-Value="Usuario.Rol" />
-                </div>
-
-                <div class="mb-2">
-                    <label class="form-label">Teléfono</label>
-                    <InputText class="form-control" @bind-Value="Usuario.Phone" />
-                </div>
-
-                <div class="mb-2">
-                    <label class="form-label">Estatus</label>
-                    <InputText class="form-control" @bind-Value="Usuario.Status" />
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-3 d-flex gap-2">
-            <button type="submit"
-                    class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 transition">
-                Guardar
-            </button>
-            <button type="button"
-                    class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                    disabled="@disabled"
-                    @onclick="ChangeEmail">
+    <UserEditForm User="Usuario"
+                  EventCallback="Guardar"
+                  ShowBackButton="false"
+                  SubmitLabel="Guardar">
+        <ExtraActions>
+            <button type="button" class="btn btn-outline-secondary" disabled="@disabled" @onclick="ChangeEmail">
                 Cambiar mail
             </button>
-            <button type="button"
-                    class="font-bold px-4 py-3 rounded-2xl bg-gray-100 hover:bg-gray-300 transition"
-                    @onclick="ResetPass">
+            <button type="button" class="btn btn-outline-secondary" @onclick="ResetPass">
                 Reiniciar contraseña
             </button>
-        </div>
-    </EditForm>
+        </ExtraActions>
+    </UserEditForm>
 </AuthorizeView>
 
 @code {

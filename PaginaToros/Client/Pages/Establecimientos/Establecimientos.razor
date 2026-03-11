@@ -120,19 +120,7 @@
         }
         else
         {
-            var usuarioId = 0;
-            var authState = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
-            var user = authState.User;
-            foreach (var claim in user.Claims)
-            {
-                if (claim.Type == "SocioId")
-                {
-                    usuarioId = Int32.Parse(claim.Value);
-                    Console.WriteLine(usuarioId);
-                }
-
-            }
+            var usuarioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
             oRespuesta = await _estableServicio.GetBySocioId(usuarioId);
             cantidad = oRespuesta.List.Count;
         }

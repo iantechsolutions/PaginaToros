@@ -269,27 +269,7 @@ else
         {
             try
             {
-                var usuarioId = 0;
-                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-                var user = authState.User;
-
-
-               
-
-                foreach (var claim in user.Claims)
-                {
-                    Console.WriteLine($"{claim.Type}: {claim.Value}");
-                }
-
-                foreach (var claim in user.Claims)
-                {
-
-                    if (claim.Type == "SocioId" && int.TryParse(claim.Value, out int parsedId))
-                    {
-                        usuarioId = parsedId;
-                        break;
-                    }
-                }
+                var usuarioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
 
 
                 var todosLosSocios = await _socioServicio.LimitadosFiltradoTodos(

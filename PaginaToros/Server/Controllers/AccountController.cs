@@ -97,6 +97,26 @@ namespace PaginaToros.Server.Controllers
                 var upd = await _userManager.UpdateAsync(aspUser);
                 if (!upd.Succeeded) return BadRequest(upd.Errors);
 
+                // 4.a) Sincronizar rol en Identity cuando cambia desde el editor
+                var newRole = model.Rol?.ToUpperInvariant();
+                if (!string.IsNullOrWhiteSpace(newRole))
+                {
+                    var currentRoles = await _userManager.GetRolesAsync(aspUser);
+                    var sameRole = currentRoles.Any(r => string.Equals(r, newRole, StringComparison.OrdinalIgnoreCase));
+
+                    if (!sameRole)
+                    {
+                        if (currentRoles.Count > 0)
+                        {
+                            var removeRoles = await _userManager.RemoveFromRolesAsync(aspUser, currentRoles);
+                            if (!removeRoles.Succeeded) return BadRequest(removeRoles.Errors);
+                        }
+
+                        var addRole = await _userManager.AddToRoleAsync(aspUser, newRole);
+                        if (!addRole.Succeeded) return BadRequest(addRole.Errors);
+                    }
+                }
+
                 // 5) Actualizar tu tabla User
                 dbUser.Names = model.Names;
                 dbUser.LastNames = model.LastNames;
@@ -104,7 +124,8 @@ namespace PaginaToros.Server.Controllers
                 dbUser.Rol = model.Rol?.ToUpperInvariant();
                 dbUser.Status = model.Status?.ToUpperInvariant();
                 dbUser.Phone = model.Phone;
-                dbUser.Email = model.Email;            
+                dbUser.Email = model.Email;
+                dbUser.SocioId = model.SocioId;
                                                        
 
                 await db.SaveChangesAsync();

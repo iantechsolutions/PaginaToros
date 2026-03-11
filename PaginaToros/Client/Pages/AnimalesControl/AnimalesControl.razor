@@ -221,13 +221,13 @@
 
             if (user.IsInRole("Socio"))
             {
-                var socioId = user.Claims.FirstOrDefault(c => c.Type == "SocioId")?.Value;
-                if (int.TryParse(socioId, out var id) && id > 0)
+                var id = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http);
+                if (id.HasValue && id.Value > 0)
                 {
                     var all = await _socioServicio.LimitadosFiltrados(0, 0);
-                    var me = (all.List ?? new()).FirstOrDefault(s => s.Id == id);
+                    var me = (all.List ?? new()).FirstOrDefault(s => s.Id == id.Value);
                     scodSeleccionado = me?.Scod ?? "";
-                    Console.WriteLine($"[Init] Socio Id={id} -> SCOD={scodSeleccionado}");
+                    Console.WriteLine($"[Init] Socio Id={id.Value} -> SCOD={scodSeleccionado}");
                 }
             }
         }

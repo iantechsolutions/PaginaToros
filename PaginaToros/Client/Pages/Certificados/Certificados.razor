@@ -194,18 +194,7 @@ else
         }
         else
         {
-            var usuarioId = 0;
-            var authState = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
-            var user = authState.User;
-            foreach (var claim in user.Claims)
-            {
-                if (claim.Type == "SocioId")
-                {
-                    usuarioId = Int32.Parse(claim.Value);
-                }
-
-            }
+            var usuarioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
             oRespuesta = await _certifsemanServicio.GetBySocioId(usuarioId);
             cantotal = oRespuesta.List.Count();
         }

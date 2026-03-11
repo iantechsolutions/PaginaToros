@@ -241,14 +241,14 @@
       "netstandard.dll": "sha256-D91viTBgwuzeuIOx1KgBYnoY0hl2IpcBu\/zr22Fu0BU=",
       "System.Private.CoreLib.dll": "sha256-5FbWgChEgLPlYByi8VsHTisbCpgMNSbf95JK5dVOs50=",
       "PaginaToros.Shared.dll": "sha256-gxogmniIJ3VBoXdxTuYy5H3QfjE1X9iCPPgA9hhKPAM=",
-      "PaginaToros.Client.dll": "sha256-quOBlIS57Fmlkp0G6QdgcKffvNMADCKMX5lukaK3hO4="
+      "PaginaToros.Client.dll": "sha256-htSyqLxaTv3dr3caDyx7fEmfoyHpVoYHTtyF4p8w7s8="
     },
     "extensions": null,
     "lazyAssembly": null,
     "libraryInitializers": null,
     "pdb": {
       "PaginaToros.Shared.pdb": "sha256-TE+\/cKEiiMpfaWRG6nP0gG+sVxuHurMFS3pUVo0EQ5I=",
-      "PaginaToros.Client.pdb": "sha256-wb0MsoaY0MNTeu7U0cHBML5suCduo9E3m7SYkUMUYww="
+      "PaginaToros.Client.pdb": "sha256-mlURWcNo3tzjEbVzLUZfyMvxt1Yl28XfDmRIpk0voO4="
     },
     "runtime": {
       "dotnet.6.0.36.mo6ajz8a6e.js": "sha256-pu7MO47B6So4jcW6iY2UI11lBZYz2EQnJKiYNsOpNJg=",

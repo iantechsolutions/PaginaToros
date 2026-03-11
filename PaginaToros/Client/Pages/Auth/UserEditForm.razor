@@ -1,5 +1,4 @@
 ﻿@using PaginaToros.Client.Servicios.Contrato
-@using Blazored.Typeahead
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Linq.Expressions
 @inject HttpClient Http
@@ -25,6 +24,47 @@
 
     .is-invalid {
         border-color: #dc3545 !important;
+    }
+
+    .socio-results {
+        margin-top: 0.5rem;
+        max-height: 220px;
+        overflow-y: auto;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        background: #fff;
+    }
+
+    .socio-result {
+        width: 100%;
+        padding: 0.65rem 0.8rem;
+        border: 0;
+        border-bottom: 1px solid #eef1f4;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .socio-result:last-child {
+        border-bottom: 0;
+    }
+
+    .socio-result:hover {
+        background: #f5f7f9;
+    }
+
+    .user-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        align-items: stretch;
+    }
+
+    .user-actions .btn {
+        min-width: 12rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 </style>
 
@@ -86,7 +126,7 @@
                     </label>
                     <InputSelect class="@InputCss(()=>User.Rol)" @bind-Value="User.Rol" @onchange="(_)=>ValidateField(()=>User.Rol)">
                         <option value=""></option>
-                        <option value="Inspector">Inspector</option>
+                        <option value="INSPECTOR">INSPECTOR</option>
                         @if (oRespuestaRoles?.List == null)
                         {
                             <text>cargando...</text>
@@ -97,7 +137,7 @@
                             {
                                 if (r.Name != "USUARIOMAESTRO")
                                 {
-                                    <option value="@r.Name">@r.Name</option>
+                                    <option value="@r.Name?.ToUpperInvariant()">@r.Name?.ToUpperInvariant()</option>
                                 }
                             }
                         }
@@ -118,26 +158,58 @@
 
                 <div class="form-group mb-3">
                     <label>Socio</label>
-                    <BlazoredTypeahead TItem="SocioDTO" TValue="SocioDTO"
-                                       SearchMethod="BusquedaSocios"
-                                       placeholder="Buscar por nombre"
-                                       ValueChanged="updateSocio"
-                                       ValueExpression="@(() => socioSeleccionado)"
-                                       EnableDropDown="true">
-                        <SelectedTemplate Context="s">@s.Nombre</SelectedTemplate>
-                        <ResultTemplate Context="s">@s.Nombre</ResultTemplate>
-                    </BlazoredTypeahead>
-                    @* SocioId queda guardado en User.SocioId desde updateSocio *@
+                    @if (!editandoSocio && socioSeleccionado is not null)
+                    {
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <div class="form-control bg-light">
+                                @SocioLabel(socioSeleccionado)
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary" @onclick="HabilitarBusquedaSocio">
+                                Cambiar
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" @onclick="LimpiarSocio">
+                                Quitar
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <input class="form-control"
+                               value="@socioSearchText"
+                               @oninput="OnSocioSearchInput"
+                               placeholder="Buscar por nombre o codigo" />
+
+                        @if (SociosFiltrados.Any())
+                        {
+                            <div class="socio-results">
+                                @foreach (var socio in SociosFiltrados)
+                                {
+                                    <button type="button" class="socio-result" @onclick="() => SeleccionarSocio(socio)">
+                                        @SocioLabel(socio)
+                                    </button>
+                                }
+                            </div>
+                        }
+                    }
                 </div>
             </div>
 
-            <div class="col-12 d-flex gap-2 mt-3">
-                <a class="btn btn-info" href="Users">
-                    <span class="oi oi-arrow-left" aria-hidden="true"></span> Volver
-                </a>
+            <div class="col-12 mt-3">
+                <div class="user-actions">
+                @if (ShowBackButton)
+                {
+                    <a class="btn btn-info" href="Users">
+                        <span class="oi oi-arrow-left" aria-hidden="true"></span> Volver
+                    </a>
+                }
                 <button class="btn btn-primary" type="submit" disabled="@(!_canSubmit)">
-                    <span class="oi oi-check" aria-hidden="true"></span> Guardar
+                    <span class="oi oi-check" aria-hidden="true"></span> @SubmitLabel
                 </button>
+                @if (ExtraActions is not null)
+                {
+                    @ExtraActions
+                }
+                </div>
             </div>
         </div>
     </div>
@@ -146,16 +218,22 @@
 @code {
     [Parameter] public User User { get; set; } = new();
     [Parameter] public EventCallback EventCallback { get; set; }
+    [Parameter] public bool ShowBackButton { get; set; } = true;
+    [Parameter] public string SubmitLabel { get; set; } = "Guardar";
+    [Parameter] public RenderFragment? ExtraActions { get; set; }
 
     Respuesta<List<AspNetRole>>? oRespuestaRoles = new();
     List<SocioDTO> socios = new();
 
-    // Hacelo no-nullable para que machée con TValue="SocioDTO"
-    public SocioDTO socioSeleccionado { get; set; } = new SocioDTO();
+    public SocioDTO? socioSeleccionado { get; set; }
 
     private EditContext? _editContext;
     private ValidationMessageStore? _messages;
     private bool _emailExists;
+    private int _lastUserId;
+    private int? _lastSyncedSocioId;
+    private bool editandoSocio;
+    private string socioSearchText = string.Empty;
 
     // Sin forzar Validate(): sólo miramos si hay mensajes y si el mail existe
     private bool _canSubmit => _editContext is not null
@@ -178,11 +256,40 @@
             oRespuestaRoles = await Http.GetFromJsonAsync<Respuesta<List<AspNetRole>>>("/api/AspNetRole");
             var rta = await _socioServicio.LimitadosFiltrados(0, 0);
             socios = rta.List;
+            SyncSelectedSocio();
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
         }
+    }
+
+    protected override void OnParametersSet()
+    {
+        User.Rol = User.Rol?.ToUpperInvariant();
+        User.Status = User.Status?.ToUpperInvariant();
+
+        if (_lastUserId != User.Id || _lastSyncedSocioId != User.SocioId)
+        {
+            SyncSelectedSocio();
+            _lastUserId = User.Id;
+            _lastSyncedSocioId = User.SocioId;
+        }
+    }
+
+    private void SyncSelectedSocio()
+    {
+        if (User.SocioId.HasValue && User.SocioId.Value > 0)
+        {
+            socioSeleccionado = socios.FirstOrDefault(x => x.Id == User.SocioId.Value);
+            socioSearchText = string.Empty;
+            editandoSocio = socioSeleccionado is null;
+            return;
+        }
+
+        socioSeleccionado = null;
+        socioSearchText = string.Empty;
+        editandoSocio = true;
     }
 
     /* ---------------- VALIDACIÓN MANUAL ---------------- */
@@ -293,18 +400,68 @@
 
         await CheckEmailUniqueAsync(new());
 
+        if (editandoSocio)
+        {
+            User.SocioId = null;
+        }
+        else
+        {
+            User.SocioId = socioSeleccionado?.Id;
+        }
+
         if (_canSubmit)
             await EventCallback.InvokeAsync();
     }
 
-    /* ---------------- Typeahead Socio ---------------- */
+    private void HabilitarBusquedaSocio()
+    {
+        socioSearchText = string.Empty;
+        editandoSocio = true;
+    }
 
-    protected Task updateSocio(SocioDTO socio)
+    private void OnSocioSearchInput(ChangeEventArgs args)
+    {
+        socioSearchText = args.Value?.ToString() ?? string.Empty;
+    }
+
+    private void SeleccionarSocio(SocioDTO socio)
     {
         socioSeleccionado = socio;
         User.SocioId = socio.Id;
-        return Task.CompletedTask;
+        _lastSyncedSocioId = User.SocioId;
+        socioSearchText = string.Empty;
+        editandoSocio = false;
     }
+
+    private void LimpiarSocio()
+    {
+        socioSeleccionado = null;
+        socioSearchText = string.Empty;
+        User.SocioId = null;
+        _lastSyncedSocioId = null;
+        editandoSocio = true;
+    }
+
+    private string SocioLabel(SocioDTO socio)
+    {
+        var codigo = socio.CodigoVisible();
+        return string.IsNullOrWhiteSpace(codigo) ? (socio.Nombre ?? string.Empty) : $"{codigo} - {socio.Nombre}";
+    }
+
+    private List<SocioDTO> SociosFiltrados =>
+        string.IsNullOrWhiteSpace(socioSearchText)
+            ? socios
+                .OrderBy(x => x.Nombre)
+                .Take(10)
+                .ToList()
+            : socios
+                .Where(x =>
+                    (!string.IsNullOrWhiteSpace(x.Nombre) && x.Nombre.Contains(socioSearchText, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrWhiteSpace(x.Codpos2) && x.Codpos2.Contains(socioSearchText, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrWhiteSpace(x.Scod) && x.Scod.Contains(socioSearchText, StringComparison.OrdinalIgnoreCase)))
+                .OrderBy(x => x.Nombre)
+                .Take(10)
+                .ToList();
 
     private Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {

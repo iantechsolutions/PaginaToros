@@ -223,17 +223,7 @@ else
         }
         else
         {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-
-            foreach (var claim in user.Claims)
-            {
-                if (claim.Type == "SocioId")
-                {
-                    socioIdActual = int.Parse(claim.Value);
-                    break;
-                }
-            }
+            socioIdActual = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
 
             oRespuesta = await _torosServicio.GetBySocioId(socioIdActual);
 

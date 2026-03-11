@@ -282,17 +282,7 @@
         }
         else
         {
-            var authState = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
-            var user = authState.User;
-            foreach (var claim in user.Claims)
-            {
-                if (claim.Type == "SocioId")
-                {
-                    socioId = Int32.Parse(claim.Value);
-                }
-
-            }
+            socioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
             oRespuesta = await _solici1Servicio.GetBySocioId(socioId);
             cantidad = oRespuesta.List.Count;
         }
@@ -413,15 +403,7 @@
         {
             if (socioId <= 0)
             {
-                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-                var user = authState.User;
-                foreach (var claim in user.Claims)
-                {
-                    if (claim.Type == "SocioId")
-                    {
-                        socioId = Int32.Parse(claim.Value);
-                    }
-                }
+                socioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
             }
 
             oRespuesta = await _solici1Servicio.GetBySocioId(socioId);

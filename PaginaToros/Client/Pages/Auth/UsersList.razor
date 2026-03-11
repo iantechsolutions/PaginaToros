@@ -1,6 +1,8 @@
 ﻿@page "/Usuarios"
+@using PaginaToros.Client.Servicios.Contrato
 @inject HttpClient http
 @inject NavigationManager uriHelper
+@inject ISocioServicio _socioServicio
 @using Radzen
 @using Radzen.Blazor
 @using System.Text.Json
@@ -43,6 +45,7 @@
                             Count="@count"
                             FilterDelay="500"
                             LoadData="@LoadUsers"
+                            @ref="grid"
                             AllowFiltering="@allowFiltering"
                             FilterMode="FilterMode.Simple"
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -59,6 +62,11 @@
                     <RadzenDataGridColumn TItem="User" Property="LastNames" Title="Apellido/s" Width="15%" Filterable="true" />
                     <RadzenDataGridColumn TItem="User" Property="Dni" Title="DNI" Width="12%" Filterable="true" />
                     <RadzenDataGridColumn TItem="User" Property="Phone" Title="Número" Width="12%" Filterable="true" />
+                    <RadzenDataGridColumn TItem="User" Title="Socio asociado" Width="16%" Filterable="false" Sortable="false">
+                        <Template Context="data">
+                            @GetSocioDisplay(data)
+                        </Template>
+                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="User" Property="Rol" Title="Rol" Width="12%" Filterable="true" />
                     <RadzenDataGridColumn TItem="User" Property="Status" Title="Estado" Width="12%" Filterable="true" />
                     <RadzenDataGridColumn TItem="User" Property="Email" Title="Email" Width="20%" Filterable="true" />
@@ -86,9 +94,24 @@
     [CascadingParameter] public IModalService Modal { get; set; }
 
     private IList<User> Usuarios = new List<User>();
+    private List<SocioDTO> Socios = new();
     private int count = 0;
+    private RadzenDataGrid<User>? grid;
 
     private bool allowFiltering = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var rta = await _socioServicio.LimitadosFiltrados(0, 0);
+            Socios = rta.List ?? new List<SocioDTO>();
+        }
+        catch
+        {
+            Socios = new List<SocioDTO>();
+        }
+    }
 
     public void CambiarModoFiltro()
     {
@@ -188,12 +211,48 @@
         return null;
     }
 
-    private void ShowDetails(User usuario)
+    private async Task ShowDetails(User usuario)
     {
         var parameters = new ModalParameters();
         parameters.Add(nameof(DetailsUsuario.Usuario), usuario);
+        var options = new ModalOptions
+        {
+            Size = ModalSize.Large
+        };
 
-        Modal.Show<DetailsUsuario>("Detalles Del Usuario", parameters, new ModalOptions { });
+        var modalRef = Modal.Show<DetailsUsuario>("Detalles Del Usuario", parameters, options);
+        await modalRef.Result;
+
+        if (grid is not null)
+        {
+            await grid.Reload();
+        }
+
+        try
+        {
+            var rta = await _socioServicio.LimitadosFiltrados(0, 0);
+            Socios = rta.List ?? new List<SocioDTO>();
+        }
+        catch
+        {
+        }
+    }
+
+    private string GetSocioDisplay(User usuario)
+    {
+        if (!usuario.SocioId.HasValue || usuario.SocioId.Value <= 0)
+        {
+            return string.Empty;
+        }
+
+        var socio = Socios.FirstOrDefault(x => x.Id == usuario.SocioId.Value);
+        if (socio == null)
+        {
+            return string.Empty;
+        }
+
+        var codigo = socio.CodigoVisible();
+        return string.IsNullOrWhiteSpace(codigo) ? (socio.Nombre ?? string.Empty) : $"{codigo} - {socio.Nombre}";
     }
 
     private class ResponseForList
