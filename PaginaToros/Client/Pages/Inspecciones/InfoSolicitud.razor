@@ -64,7 +64,7 @@
         </div>
             <div class="col-3">
             <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Nro Socio</RadzenText>
-            <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Establecimiento.Socio.Scod</b></RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@oSolicitud.Establecimiento.Socio.CodigoVisible()</b></RadzenText>
         </div>
 
             <div class="col-3">
@@ -424,4 +424,3 @@ else
     private async Task Print()
         => await _js.InvokeVoidAsync("window.print");
 }
-

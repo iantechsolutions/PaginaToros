@@ -35,10 +35,8 @@
                     <Authorized Context="authContext"> 
                         <div class="col-sm">
                             <label>Código de Socio</label>
-                            <InputText class="form-control" @bind-Value="@oSocio.Scod"
-                                       placeholder="Codigo" disabled="true"></InputText>
-                            <ValidationMessage For="(()=>
- oSocio.Scod)" style="color:red;" />
+                            <input class="form-control" value="@oSocio.CodigoVisible()"
+                                   placeholder="Codigo" disabled="true" />
                         </div>
                         <div class="col-sm">
                             <label>Nombre Completo</label>

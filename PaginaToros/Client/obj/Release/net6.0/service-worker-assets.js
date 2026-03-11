@@ -1,7 +1,7 @@
 ﻿self.assetsManifest = {
   "assets": [
     {
-      "hash": "sha256-OmOociisZN8BfMBSUT8k45ETwRUueIGd7pSLPCGyfho=",
+      "hash": "sha256-\/19hu+Imby6P6Welbasj38S1gT+xBNb+U\/Pp3VQtI\/Y=",
       "url": "PaginaToros.Client.styles.css"
     },
     {
@@ -141,7 +141,7 @@
       "url": "_framework\/icudt.dat"
     },
     {
-      "hash": "sha256-AGHb3xziYK32bYxrC1fyuvmM8ZTFXPtK8s6km1nXcss=",
+      "hash": "sha256-FgQTrcgSaB20KKci5S2mOZwG0ou4DJTkR0kw5PjiCw0=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -377,7 +377,7 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-vx39kpOG11YSlXU1RGv9hKVyrEQufkGYbUoP4XBQ9Ds=",
+      "hash": "sha256-quOBlIS57Fmlkp0G6QdgcKffvNMADCKMX5lukaK3hO4=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
@@ -1001,5 +1001,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "ZiJhMVQl"
+  "version": "s1rlwhmJ"
 };
