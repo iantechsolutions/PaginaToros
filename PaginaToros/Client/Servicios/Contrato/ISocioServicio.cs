@@ -15,5 +15,6 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<Respuesta<List<SocioDTO>>> LimitadosFiltradoTodos(int skip, int take, string expression = null);
         Task<Respuesta<SocioDTO>> Reserve();
         Task<Respuesta<bool>> ExistsCodpos2(string codpos2, int? excludeId = null);
+        Task<Respuesta<SocioRegistrationResult>> GuardarYEnviarInscripcion(SocioRegistrationRequest request);
     }
 }

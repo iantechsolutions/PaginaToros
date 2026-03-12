@@ -118,5 +118,27 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var dto = await response.Content.ReadFromJsonAsync<Respuesta<bool>>();
             return dto!;
         }
+
+        public async Task<Respuesta<SocioRegistrationResult>> GuardarYEnviarInscripcion(SocioRegistrationRequest request)
+        {
+            var response = await _http.PostAsJsonAsync("api/Socio/GuardarYEnviarInscripcion", request);
+            var dto = await response.Content.ReadFromJsonAsync<Respuesta<SocioRegistrationResult>>();
+
+            if (dto != null)
+            {
+                return dto;
+            }
+
+            var text = await response.Content.ReadAsStringAsync();
+            return new Respuesta<SocioRegistrationResult>
+            {
+                Exito = 0,
+                Mensaje = string.IsNullOrWhiteSpace(text) ? "No se pudo interpretar la respuesta del servidor." : text,
+                List = new SocioRegistrationResult
+                {
+                    MensajeUsuario = "No se pudo interpretar la respuesta del servidor."
+                }
+            };
+        }
     }
 }

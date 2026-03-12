@@ -373,7 +373,8 @@ else
                 parameters.Add(nameof(AddSocio.cod), cod);
                 var options = new ModalOptions()
                     {
-                        Size = ModalSize.ExtraLarge
+                        Size = ModalSize.ExtraLarge,
+                        DisableBackgroundCancel = true
                     };
                 var formModal = Modal.Show<AddSocio>("Editar Socio", parameters, options);
                 var result = await formModal.Result;
@@ -399,7 +400,8 @@ else
             parameters.Add(nameof(AddSocio.Id), Id);
             var options = new ModalOptions()
                 {
-                    Size = ModalSize.ExtraLarge
+                    Size = ModalSize.ExtraLarge,
+                    DisableBackgroundCancel = true
                 };
             parameters.Add(nameof(AddSocio.cod), cod);
             var formModal = Modal.Show<AddSocio>("Agregar Socio", parameters,options);

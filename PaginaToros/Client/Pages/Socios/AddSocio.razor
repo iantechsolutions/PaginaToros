@@ -1,73 +1,91 @@
-﻿@using Blazored.Typeahead
-@using PaginaToros.Client.Servicios.Contrato;
-@using System.Text
-@using System.Security.Cryptography;
+@using Blazored.Typeahead
+@using System.Net.Http.Json
+@using PaginaToros.Client.Servicios.Contrato
+@using PaginaToros.Shared.Models.Response
 
 @inject HttpClient http
-@inject NavigationManager uriHelper
 @inject ISocioServicio _socioServicio
-@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <style>
-    .bm-title{
-        font-size:25px;
+    .bm-title {
+        font-size: 25px;
         font-weight: bold;
     }
 </style>
-<div class="card" >
+
+<div class="card">
     <div class="card-body">
+        @if (!string.IsNullOrWhiteSpace(formMessage))
+        {
+            <div class="@formMessageCss" role="alert">
+                @formMessage
+            </div>
+        }
+
+        @if (validationErrors.Count > 0)
+        {
+            <div class="alert alert-danger" role="alert">
+                <strong>Revisá estos datos:</strong>
+                <ul class="mb-0 mt-2">
+                    @foreach (var error in validationErrors)
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            </div>
+        }
+
         <EditForm Model="@oSocio" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
-            <div class="row" style="width=100%;">
-                 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
-                    <Authorized Context="authContext"> 
-               
-                <div class="col-sm">
-                    <label>Nombre Completo</label>
-                    <InputText class="form-control" @bind-Value="@oSocio.Nombre"
-                               placeholder="Nombre"></InputText>
-                    <ValidationMessage For="(()=>
- oSocio.Nombre)" style="color:red;" />
-                </div>
-                 </Authorized>
-                </AuthorizeView>
-                 <AuthorizeView Roles="Socio">
-                    <Authorized Context="authContext"> 
+
+            <div class="row">
+                <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+                    <Authorized Context="adminContext">
                         <div class="col-sm">
-                            <label>Código de Socio</label>
-                            <input class="form-control" value="@oSocio.CodigoVisible()"
-                                   placeholder="Codigo" disabled="true" />
-                        </div>
-                        <div class="col-sm">
-                            <label>Nombre Completo</label>
-                            <InputText class="form-control" @bind-Value="@oSocio.Nombre"
-                                       placeholder="Nombre" ></InputText>
-                            <ValidationMessage For="(()=>
- oSocio.Nombre)" style="color:red;" />
+                            <label>Nombre Completo *</label>
+                            <InputText class="form-control" @bind-Value="oSocio.Nombre" placeholder="Nombre" />
                         </div>
                     </Authorized>
                 </AuthorizeView>
+
+                <AuthorizeView Roles="Socio">
+                    <Authorized Context="socioContext">
+                        <div class="col-sm">
+                            <label>Código de Socio</label>
+                            <input class="form-control" value="@oSocio.CodigoVisible()" placeholder="Codigo" disabled />
+                        </div>
+                        <div class="col-sm">
+                            <label>Nombre Completo *</label>
+                            <InputText class="form-control" @bind-Value="oSocio.Nombre" placeholder="Nombre" />
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+
                 <div class="col-sm">
-                    <label class="col-sm">Domicilio</label>
-                    <InputText @bind-Value="@oSocio.Direcc1" class="form-control" placeholder="Domicilio"></InputText>
-                    <ValidationMessage For="(()=> oSocio.Direcc1)" style="color:red;" />
-                </div
+                    <label>Domicilio *</label>
+                    <InputText @bind-Value="oSocio.Direcc1" class="form-control" placeholder="Domicilio" />
+                </div>
+
                 <div class="col-sm">
-                    <label class="col-sm">Localidad</label>
-                    <InputText @bind-Value="@oSocio.Locali1" class="form-control" placeholder="Localidad"></InputText>
-                    <ValidationMessage For="(()=> oSocio.Locali1)" style="color:red;" />
+                    <label>Localidad *</label>
+                    <InputText @bind-Value="oSocio.Locali1" class="form-control" placeholder="Localidad" />
                 </div>
             </div>
+
             <br />
-            <div class="row" style="width=100%;">
+
+            <div class="row">
                 <div class="col-sm">
-                    <label>Codigo Postal</label>
-                    <InputText class="form-control" @bind-Value="@oSocio.Codpos1" placeholder="Cod. Postal"></InputText>
-                    <ValidationMessage For="(()=> oSocio.Codpos1)" style="color:red;" />
+                    <label>Código Postal *</label>
+                    <InputText class="form-control" @bind-Value="oSocio.Codpos1" placeholder="Cod. Postal" />
                 </div>
+
                 <div class="col-sm">
-                    <label class="col-sm">Provincia</label>
-                    <BlazoredTypeahead SearchMethod="@(text=> SearchMethod(text,provincias))" placeholder="Busca por nombre"  EnableDropDown="true" @bind-Value="tempProvincia">
+                    <label>Provincia *</label>
+                    <BlazoredTypeahead SearchMethod="@(text => SearchMethod(text, provincias))"
+                                       placeholder="Busca por nombre"
+                                       EnableDropDown="true"
+                                       @bind-Value="tempProvincia">
                         <SelectedTemplate Context="eleccion">
                             @eleccion
                         </SelectedTemplate>
@@ -75,534 +93,400 @@
                             @eleccion
                         </ResultTemplate>
                     </BlazoredTypeahead>
-                </div
+                </div>
+
                 <div class="col-sm">
-                    <label class="col-sm">Telefono</label>
-                    <InputText @bind-Value="@oSocio.Telefo1" class="form-control" placeholder="Telefono"></InputText>
-                    <ValidationMessage For="(()=> oSocio.Telefo1)" style="color:red;" />
+                    <label>Telefono *</label>
+                    <InputText @bind-Value="oSocio.Telefo1" class="form-control" placeholder="Telefono" />
                 </div>
             </div>
+
             <br />
-            <div class="row" style="width=100%;">
+
+            <div class="row">
                 <div class="col-sm">
                     <label>2do Telefono</label>
-                    <InputText class="form-control" @bind-Value="@oSocio.Telefo2" placeholder="2do telefono"></InputText>
-                    <ValidationMessage For="(()=> oSocio.Telefo2)" style="color:red;" />
+                    <InputText class="form-control" @bind-Value="oSocio.Telefo2" placeholder="2do telefono" />
                 </div>
-                <div class="col-sm">
-                    <label>Mail</label>
-                    <InputText class="form-control" @bind-Value="@oSocio.Mail" placeholder="Mail"></InputText>
-                    <ValidationMessage For="(()=> oSocio.Mail)" style="color:red;" />
-                </div>
-                <div class="col-sm">
-                    <label>Codigo de socio</label>
-                    <InputText class="form-control" @bind-Value="@oSocio.Codpos2" placeholder="Codigo de socio" @onblur="CheckCodpos2"></InputText>
-                    <ValidationMessage For="(()=> oSocio.Codpos2)" style="color:red;" />
-                </div>
-                <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
-                    <Authorized Context="authContext"> 
-                        <div class="col-sm">
-                            @if(Id != 0)
-                            {
-                                <label></label>
 
-                                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent
-                                    transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" 
-                                    @onclick="()=>ChangeEmail()">Enviar mail de inscripción</button>
+                <div class="col-sm">
+                    <label>Mail *</label>
+                    <InputText class="form-control" @bind-Value="oSocio.Mail" placeholder="Mail" />
+                </div>
+
+                <div class="col-sm">
+                    <label>Codigo de socio *</label>
+                    <InputText class="form-control" @bind-Value="oSocio.Codpos2" placeholder="Codigo de socio" @onblur="CheckCodpos2" />
+                </div>
+
+                <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+                    <Authorized Context="mailContext">
+                        <div class="col-sm d-flex align-items-end">
+                            @if (Id != 0)
+                            {
+                                <button type="button"
+                                        class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
+                                        @onclick="ChangeEmail"
+                                        disabled="@isBusy">
+                                    Enviar mail de inscripción
+                                </button>
                             }
                         </div>
                     </Authorized>
                 </AuthorizeView>
-
             </div>
+
             <br />
-            <div class="row" style="width=100%;">
+
+            <div class="row">
                 <div class="col-sm">
-                    <label>Fecha de Ingreso</label><br/>
-                    <RadzenDatePicker TValue="DateTime" @bind-Value="@FechaTemp" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                </div>
-               <div class="col-sm">
-                    <label>Plantel</label>
-                    <InputText class="form-control"
-                               @bind-Value="oSocio.Placod"
-                               placeholder="Plantel"
-                               maxlength="4" />
-                    <ValidationMessage For="() => oSocio.Placod" style="color:red;" />
+                    <label>Fecha de Ingreso *</label><br />
+                    <RadzenDatePicker TValue="DateTime"
+                                      @bind-Value="FechaTemp"
+                                      ShowTime="false"
+                                      ShowSeconds="false"
+                                      DateFormat="dd/MM/yyyy"
+                                      Class="w-75" />
                 </div>
 
                 <div class="col-sm">
-                    <label class="col-sm">Activo?</label><br/>
-                    <input type="checkbox" @bind="@activo">
+                    <label>Plantel *</label>
+                    <InputText class="form-control" @bind-Value="oSocio.Placod" placeholder="Plantel" maxlength="4" />
                 </div>
-                @* <div class="col-sm"/> *@
+
+                <div class="col-sm">
+                    <label>Activo?</label><br />
+                    <input type="checkbox" @bind="activo">
+                </div>
             </div>
+
             <br />
             <br />
-            <button type="submit" class="btn btn-primary mr-2" disabled=@(disabled)>Aceptar</button>
-            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
-            @* <button type="button" class="btn btn-secondary ml-2" @onclick="SyncCodpos2All">Sincronizar Codpos2 = Scod (Todos)</button> *@
+
+            <button type="submit" class="btn btn-primary mr-2" disabled="@isBusy">Aceptar</button>
+            <button type="button" @onclick="Cancel" class="btn btn-light" disabled="@isBusy">Cancelar</button>
         </EditForm>
     </div>
 </div>
+
 @code {
-    SocioDTO oSocio = new();
-    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
-    Random random = new Random();
-    bool disabled = false;
-    User Usuario { get; set; } = new User() { Status = "ACTIVO" };
-    [CascadingParameter] public IModalService Modal { get; set; }
-    private const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    private readonly List<string> provincias = new()
+    {
+        "Buenos Aires", "Capital Federal", "Catamarca", "Chaco", "Chubut", "Cordoba", "Corrientes", "Entre Rios", "Formosa",
+        "Jujuy", "La pampa", "La rioja", "Mendoza", "Misiones", "Neuquen", "Rio negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe",
+        "Santiago Del Estero", "Tierra del fuego", "Tucuman"
+    };
+
+    private readonly Dictionary<string, string> traductorProvincia = new()
+    {
+        { "Chaco", "01" }, { "Corrientes", "02" }, { "Entre Rios", "03" }, { "Santa Fe", "04" }, { "Cordoba", "05" },
+        { "La pampa", "06" }, { "San Luis", "07" }, { "Santa Cruz", "08" }, { "Tierra del fuego", "09" }, { "Chubut", "10" },
+        { "Neuquen", "11" }, { "Rio negro", "12" }, { "Buenos Aires", "13" }, { "Capital Federal", "14" }, { "Catamarca", "15" },
+        { "Formosa", "16" }, { "Jujuy", "17" }, { "La rioja", "18" }, { "Mendoza", "19" }, { "Misiones", "20" },
+        { "Salta", "21" }, { "San Juan", "22" }, { "Santiago Del Estero", "23" }, { "Tucuman", "24" }, { "", "" }
+    };
+
+    private readonly Dictionary<string, string> traductorProvinciaInverso = new()
+    {
+        { "01", "Chaco" }, { "02", "Corrientes" }, { "03", "Entre Rios" }, { "04", "Santa Fe" }, { "05", "Cordoba" },
+        { "06", "La pampa" }, { "07", "San Luis" }, { "08", "Santa Cruz" }, { "09", "Tierra del fuego" }, { "10", "Chubut" },
+        { "11", "Neuquen" }, { "12", "Rio negro" }, { "13", "Buenos Aires" }, { "14", "Capital Federal" }, { "15", "Catamarca" },
+        { "16", "Formosa" }, { "17", "Jujuy" }, { "18", "La rioja" }, { "19", "Mendoza" }, { "20", "Misiones" },
+        { "21", "Salta" }, { "22", "San Juan" }, { "23", "Santiago Del Estero" }, { "24", "Tucuman" }, { "", "" }
+    };
+
+    private SocioDTO oSocio = new();
+    private List<SocioDTO> socios = new();
+    private readonly List<string> validationErrors = new();
+    private bool activo = true;
+    private bool isBusy;
+    private string? formMessage;
+    private string formMessageCss = "alert alert-danger";
+
+    [CascadingParameter] private BlazoredModalInstance ModalInstance { get; set; } = default!;
+    [CascadingParameter] public IModalService Modal { get; set; } = default!;
 
     [Parameter] public int Id { get; set; }
-    [Parameter] public string cod { get; set; }
-    DateTime FechaTemp = DateTime.Now.Date;
-    public string tempProvincia = "";
-    List<SocioDTO> socios = new();
-    bool activo = true;
-    bool logout = false;
+    [Parameter] public string cod { get; set; } = string.Empty;
 
-    string email = "";
-
-    List<string> provincias = new List<string> { "Buenos Aires", "Capital Federal","Catamarca","Chaco","Chubut","Cordoba","Corrientes","Entre Rios","Formosa",
-    "Jujuy","La pampa","La rioja","Mendoza","Misiones","Neuquen","Rio negro","Salta","San Juan","San Luis","Santa Cruz","Santa Fe","Santiago Del Estero",
-    "Tierra del fuego","Tucuman" };
-    Dictionary<string, string> traductorProvincia = new Dictionary<string, string>
-    {
-        {"Chaco","01"},
-        {"Corrientes","02"},
-        {"Entre Rios","03"},
-        {"Santa Fe","04"},
-        {"Cordoba","05"},
-        {"La pampa","06"},
-        {"San Luis","07"},
-        {"Santa Cruz","08"},
-        {"Tierra del fuego","09"},
-        {"Chubut","10"},
-        {"Neuquen","11"},
-        {"Rio negro","12"},
-        {"Buenos Aires","13"},
-        {"Capital Federal","14"},
-        {"Catamarca","15"},
-        {"Formosa","16"},
-        {"Jujuy","17"},
-        {"La rioja","18"},
-        {"Mendoza","19"},
-        {"Misiones","20"},
-        {"Salta","21"},
-        {"San Juan","22"},
-        {"Santiago Del Estero","23"},
-        {"Tucuman","24"},
-        {"",""}
-    };
-    Dictionary<string, string> traductorProvinciaInverso = new Dictionary<string, string>
-    {
-        {"01", "Chaco"},
-        {"02", "Corrientes"},
-        {"03", "Entre Rios"},
-        {"04", "Santa Fe"},
-        {"05", "Cordoba"},
-        {"06", "La pampa"},
-        {"07", "San Luis"},
-        {"08", "Santa Cruz"},
-        {"09", "Tierra del fuego"},
-        {"10", "Chubut"},
-        {"11", "Neuquen"},
-        {"12", "Rio negro"},
-        {"13", "Buenos Aires"},
-        {"14", "Capital Federal"},
-        {"15", "Catamarca"},
-        {"16", "Formosa"},
-        {"17", "Jujuy"},
-        {"18", "La rioja"},
-        {"19", "Mendoza"},
-        {"20", "Misiones"},
-        {"21", "Salta"},
-        {"22", "San Juan"},
-        {"23", "Santiago Del Estero"},
-        {"24", "Tucuman"},
-        {"",""}
-    };
+    private DateTime FechaTemp = DateTime.Now.Date;
+    private string tempProvincia = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         var rta = await _socioServicio.LimitadosFiltrados(0, 0);
-        socios = rta.List ?? new List<SocioDTO>();
-
-        try
-        {
-            socios = socios.Where(x => x.Id != Id).ToList();
-        }
-        catch { }
+        socios = rta.List?.Where(x => x.Id != Id).ToList() ?? new List<SocioDTO>();
 
         if (Id != 0)
         {
-            try
+            var c = await _socioServicio.LimitadosFiltrados(0, 1, $"Id = {Id}");
+            oSocio = c.List?.FirstOrDefault() ?? new SocioDTO();
+            activo = oSocio.Criador == "S";
+            FechaTemp = oSocio.Fecing ?? DateTime.Now.Date;
+
+            if (!string.IsNullOrEmpty(oSocio.Codpro1))
             {
-                string filtro = $"Id = {Id}";
-                var c = await _socioServicio.LimitadosFiltrados(0, 1, filtro);
-                oSocio = c.List.FirstOrDefault() ?? new SocioDTO();
-
-                activo = oSocio.Criador == "S";
-
-                if (oSocio.Fecing.HasValue)
-                {
-                    FechaTemp = oSocio.Fecing.Value;
-                }
-                if (!string.IsNullOrEmpty(oSocio.Codpro1))
-                {
-                    tempProvincia = traductorProvinciaInverso.ContainsKey(oSocio.Codpro1) ? traductorProvinciaInverso[oSocio.Codpro1] : string.Empty;
-                }
+                tempProvincia = traductorProvinciaInverso.TryGetValue(oSocio.Codpro1, out var provincia) ? provincia : string.Empty;
             }
-            catch (Exception)
-            { }
-
-            email = oSocio.Mail ?? string.Empty;
         }
         else
         {
-            try
-            {
-                if (socios != null && socios.Count > 0)
-                {
-                    var max = socios.Select(s => { if (int.TryParse(s.Scod, out var v)) return v; return 0; }).DefaultIfEmpty(0).Max();
-                    oSocio.Scod = (max + 1).ToString("D4");
-                }
-                else
-                {
-                    oSocio.Scod = "0001";
-                }
-            }
-            catch
-            {
-                oSocio.Scod = "0001";
-            }
+            var max = socios.Select(s => int.TryParse(s.Scod, out var v) ? v : 0).DefaultIfEmpty(0).Max();
+            oSocio.Scod = (max + 1).ToString("D4");
         }
     }
 
-    async Task Guardar()
+    private async Task Guardar()
     {
-        disabled = true;
-
-        if (!await ValidarObligatorios())
+        if (isBusy)
         {
-            disabled = false;
             return;
         }
 
-        // Server-side validation: check Codpos2 uniqueness before submit
-        if (!string.IsNullOrWhiteSpace(oSocio.Codpos2))
+        ClearMessages();
+
+        if (!await ValidateFormAsync())
         {
-            try
-            {
-                var existsResp = await _socioServicio.ExistsCodpos2(oSocio.Codpos2, Id == 0 ? null : (int?)Id);
-                if (existsResp != null && existsResp.Exito == 1 && existsResp.List)
-                {
-                    await Swal.FireAsync(new SweetAlertOptions { Title = "Código repetido", Text = "El código ya existe en la base de datos.", Icon = "warning", ConfirmButtonText = "Aceptar" });
-                    disabled = false;
-                    return;
-                }
-            }
-            catch
-            {
-                // ignore and proceed; server will still validate
-            }
+            return;
         }
 
-        // Obtain a reserved unique Scod from server when creating
-        if (Id == 0)
-        {
-            try
-            {
-                var reserveResp = await _socioServicio.Reserve();
-                if (reserveResp != null && reserveResp.Exito == 1 && reserveResp.List != null)
-                {
-                    oSocio.Scod = reserveResp.List.Scod;
-                }
-            }
-            catch (Exception ex)
-            {
-                // fallback to local strategy if server reserve fails
-                var max = socios.Select(s => { if (int.TryParse(s.Scod, out var v)) return v; return 0; }).DefaultIfEmpty(0).Max();
-                oSocio.Scod = (max + 1).ToString("D4");
-            }
-        }
-
-        // As extra safety, if scod still collides, choose numeric suffix increment strategy (e.g. 0001, 0001-1, 0001-2)
-        var collisionList = socios.Where(x => x.Scod.StartsWith(oSocio.Scod) && x.Id != Id).Select(x => x.Scod).ToList();
-        if (collisionList.Any())
-        {
-            // find highest numeric suffix
-            int suffix = 1;
-            while (socios.Any(x => x.Scod == oSocio.Scod + "-" + suffix.ToString())) suffix++;
-            oSocio.Scod = oSocio.Scod + "-" + suffix.ToString();
-        }
-
-        oSocio.Codpro1 = traductorProvincia.ContainsKey(tempProvincia) ? traductorProvincia[tempProvincia] : string.Empty;
-        oSocio.Fecing = FechaTemp;
-        oSocio.Criador = activo ? "S" : "N";
-
-        if (Id == 0)
-        {
-            await _socioServicio.Crear(oSocio);
-        }
-        else
-        {
-            await _socioServicio.Editar(oSocio);
-        }
-
-        await ModalInstance.CloseAsync(ModalResult.Ok("Form was submitted successfully."));
-        disabled = false;
-    }
-
-    async Task cancel()
-    {
-        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
-    }
-
-    async Task CheckCodpos2(FocusEventArgs args)
-    {
-        if (string.IsNullOrWhiteSpace(oSocio.Codpos2)) return;
+        isBusy = true;
 
         try
         {
-            var resp = await _socioServicio.ExistsCodpos2(oSocio.Codpos2, Id == 0 ? null : (int?)Id);
-            if (resp != null && resp.Exito == 1 && resp.List)
+            var response = await SaveSocioAsync();
+            if (response.Exito != 1)
             {
-                await Swal.FireAsync(new SweetAlertOptions { Title = "Código repetido", Text = "El código ya existe en la base de datos.", Icon = "warning", ConfirmButtonText = "Aceptar" });
+                SetFormError(response.Mensaje ?? "No se pudo guardar el socio.");
+                return;
             }
+
+            await ModalInstance.CloseAsync(ModalResult.Ok("Socio guardado."));
         }
-        catch
+        finally
         {
-            // ignore
+            isBusy = false;
         }
-    }
-
-    private async Task<IEnumerable<string>> SearchMethod(string searchText, List<string> lista)
-    {
-        var result = lista.Where(x => x.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-        return await Task.FromResult(result);
-    }
-
-    public async Task alertaCodigo()
-    {
-        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
-        {
-            Title = "No se puede agregar este socio",
-            Text = "No se puede agregar debido a que ya existe un socio con este codigo, por favor ingresar uno nuevo",
-            Icon = SweetAlertIcon.Warning,
-            ShowCancelButton = true,
-            ConfirmButtonText = "Aceptar",
-            CancelButtonText = "Cancelar"
-        });
-
-        // no-op
-    }
-
-    public class SendResetMailRequest
-    {
-        public User Usuario { get; set; }
-        public string NuevaContrasena { get; set; }
-    }
-    public class ResetPasswordModel
-    {
-        public int UserId { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
     }
 
     private async Task ChangeEmail()
     {
-        email = (oSocio.Mail ?? string.Empty).Trim();
-        oSocio.Mail = email;
-
-        if (email == Usuario.Email)
+        if (isBusy)
         {
-            await Swal.FireAsync(new SweetAlertOptions {
-                Title = "Error",
-                Text = "Modifique el mail para poder realizar el cambio",
-                ConfirmButtonText = "Aceptar",
-            });
             return;
         }
 
-        var confirm = await Swal.FireAsync(new SweetAlertOptions {
+        ClearMessages();
+
+        if (!await ValidateFormAsync())
+        {
+            return;
+        }
+
+        var confirm = await Swal.FireAsync(new SweetAlertOptions
+        {
             Title = "Confirmación",
-            Text = "¿Está seguro de enviar el mail de inscripción?",
-            Icon = "warning",
+            Text = "Se van a guardar los datos del socio y enviar el mail de inscripción. ¿Desea continuar?",
+            Icon = SweetAlertIcon.Warning,
             ShowCancelButton = true,
             ConfirmButtonText = "Sí, enviar",
             CancelButtonText = "Cancelar"
         });
-        if (!confirm.IsConfirmed) return;
 
-        await Guardar();
+        if (!confirm.IsConfirmed)
+        {
+            return;
+        }
 
-        var pswd = GenerateRandomPassword(random.Next(10, 14));
-
-        Usuario.Email = email;
-        Usuario.Phone = oSocio.Telefo1;
-        Usuario.Names = oSocio.Nombre;
-        Usuario.LastNames = oSocio.Nombre;
-        Usuario.Dni = "0";
-        Usuario.Rol = "Socio";
-        Usuario.SocioId = oSocio.Id;
-
+        isBusy = true;
         var wait = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
 
         try
         {
-            var createResp = await http.PostAsJsonAsync($"api/Account/CreateUser?password={pswd}", Usuario);
+            PrepareSocioForSave();
 
-            if (createResp.IsSuccessStatusCode)
+            var response = await _socioServicio.GuardarYEnviarInscripcion(new SocioRegistrationRequest
             {
-                var mailInscripcion = await http.PostAsJsonAsync($"api/Account/SendMail2025?password={pswd}", Usuario);
-                wait.Close();
+                Socio = oSocio
+            });
 
-                if (mailInscripcion.IsSuccessStatusCode)
-                {
-                    await Swal.FireAsync(new SweetAlertOptions { Title = "Éxito", Text = "Usuario creado y mail de inscripción enviado.", Icon = "success", ConfirmButtonText = "Aceptar" });
-                }
-                else
-                {
-                    var msg = await mailInscripcion.Content.ReadAsStringAsync();
-                    await Swal.FireAsync(new SweetAlertOptions { Title = "Advertencia", Text = $"Usuario creado, pero falló el envío del correo de inscripción.\n{msg}", Icon = "warning", ConfirmButtonText = "Aceptar" });
-                }
+            if (response.Exito != 1)
+            {
+                ShowBackendErrors(response);
                 return;
             }
 
-            var askReset = await Swal.FireAsync(new SweetAlertOptions { Title = "Usuario registrado", Text = "¿Desea cambiar la contraseña y enviar un mail de restablecimiento?", Icon = "warning", ShowCancelButton = true, ConfirmButtonText = "Sí, enviar", CancelButtonText = "Cancelar" });
-            if (!askReset.IsConfirmed) { wait.Close(); return; }
-
-            var resetPayload = new ResetPasswordModel { UserId = Usuario.Id, Email = Usuario.Email, Password = pswd };
-
-            var resetResp = await http.PutAsJsonAsync("api/Account/ResetPassword", resetPayload);
-            if (!resetResp.IsSuccessStatusCode)
+            formMessageCss = "alert alert-success";
+            formMessage = response.List?.MensajeUsuario ?? "Se envió el mail de inscripción correctamente.";
+            await Swal.FireAsync(new SweetAlertOptions
             {
-                wait.Close();
-                var msg = await resetResp.Content.ReadAsStringAsync();
-                await Swal.FireAsync(new SweetAlertOptions { Title = "Error", Text = $"No se pudo actualizar la contraseña.\n{msg}", Icon = "error", ConfirmButtonText = "Aceptar" });
-                return;
-            }
+                Title = "Éxito",
+                Text = formMessage,
+                Icon = SweetAlertIcon.Success,
+                ConfirmButtonText = "Aceptar"
+            });
 
-            var mailReq = new SendResetMailRequest { Usuario = Usuario, NuevaContrasena = pswd };
-            var mailResetResp = await http.PostAsJsonAsync("api/Account/SendResetMail", mailReq);
-
-            wait.Close();
-
-            if (mailResetResp.IsSuccessStatusCode)
-            {
-                await Swal.FireAsync(new SweetAlertOptions { Title = "Éxito", Text = "La contraseña se actualizó y se envió el correo de restablecimiento.", Icon = "success", ConfirmButtonText = "Aceptar" });
-            }
-            else
-            {
-                var msg = await mailResetResp.Content.ReadAsStringAsync();
-                await Swal.FireAsync(new SweetAlertOptions { Title = "Advertencia", Text = $"La contraseña se actualizó, pero falló el envío del correo.\n{msg}", Icon = "warning", ConfirmButtonText = "Aceptar" });
-            }
+            await ModalInstance.CloseAsync(ModalResult.Ok("Mail de inscripción enviado."));
         }
-        catch (Exception ex)
+        finally
         {
             wait.Close();
-            await Swal.FireAsync(new SweetAlertOptions { Title = "Error inesperado", Text = ex.Message, Icon = "error", ConfirmButtonText = "Aceptar" });
+            isBusy = false;
         }
     }
 
-    private async Task SyncCodpos2All()
+    private async Task<Respuesta<SocioDTO>> SaveSocioAsync()
     {
-        var confirm = await Swal.FireAsync(new SweetAlertOptions {
-            Title = "Confirmación",
-            Text = "¿Desea asignar a todos los socios Codpos2 = Scod?",
-            Icon = "warning",
-            ShowCancelButton = true,
-            ConfirmButtonText = "Sí, asignar",
-            CancelButtonText = "Cancelar"
-        });
-        if (!confirm.IsConfirmed) return;
+        PrepareSocioForSave();
 
-        var wait = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
-        try
+        if (Id == 0)
         {
-            var resp = await http.PostAsync("api/Socio/SyncCodpos2", null);
-            wait.Close();
-            if (resp.IsSuccessStatusCode)
+            var createResponse = await _socioServicio.Crear(oSocio);
+            return createResponse ?? new Respuesta<SocioDTO> { Exito = 0, Mensaje = "No se pudo guardar el socio." };
+        }
+
+        var httpResponse = await http.PutAsJsonAsync("api/Socio/Editar", oSocio);
+        var dto = await httpResponse.Content.ReadFromJsonAsync<Respuesta<SocioDTO>>();
+        return dto ?? new Respuesta<SocioDTO> { Exito = 0, Mensaje = "No se pudo guardar el socio." };
+    }
+
+    private void PrepareSocioForSave()
+    {
+        oSocio.Nombre = oSocio.Nombre?.Trim();
+        oSocio.Direcc1 = oSocio.Direcc1?.Trim();
+        oSocio.Locali1 = oSocio.Locali1?.Trim();
+        oSocio.Codpos1 = oSocio.Codpos1?.Trim();
+        oSocio.Telefo1 = oSocio.Telefo1?.Trim();
+        oSocio.Telefo2 = oSocio.Telefo2?.Trim();
+        oSocio.Mail = oSocio.Mail?.Trim();
+        oSocio.Codpos2 = oSocio.Codpos2?.Trim();
+        oSocio.Placod = oSocio.Placod?.Trim();
+        oSocio.Codpro1 = traductorProvincia.TryGetValue(tempProvincia, out var provincia) ? provincia : string.Empty;
+        oSocio.Fecing = FechaTemp;
+        oSocio.Criador = activo ? "S" : "N";
+    }
+
+    private async Task<bool> ValidateFormAsync()
+    {
+        PrepareSocioForSave();
+        validationErrors.Clear();
+
+        AddIfMissing(oSocio.Nombre, "Completá el nombre completo.");
+        AddIfMissing(oSocio.Direcc1, "Completá el domicilio.");
+        AddIfMissing(oSocio.Locali1, "Completá la localidad.");
+        AddIfMissing(oSocio.Codpos1, "Completá el código postal.");
+        AddIfMissing(tempProvincia, "Seleccioná una provincia.");
+        AddIfMissing(oSocio.Telefo1, "Completá el teléfono.");
+        AddIfMissing(oSocio.Mail, "Completá el mail.");
+        AddIfMissing(oSocio.Codpos2, "Completá el código de socio.");
+        AddIfMissing(oSocio.Placod, "Completá el plantel.");
+
+        if (FechaTemp == default)
+        {
+            validationErrors.Add("Completá la fecha de ingreso.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(oSocio.Mail))
+        {
+            try
             {
-                await Swal.FireAsync(new SweetAlertOptions { Title = "Éxito", Text = "Se asignó Codpos2 = Scod para todos los socios.", Icon = "success", ConfirmButtonText = "Aceptar" });
+                var addr = new System.Net.Mail.MailAddress(oSocio.Mail);
+                if (!string.Equals(addr.Address, oSocio.Mail, StringComparison.OrdinalIgnoreCase))
+                {
+                    validationErrors.Add("El formato del mail no es válido.");
+                }
             }
-            else
+            catch
             {
-                var msg = await resp.Content.ReadAsStringAsync();
-                await Swal.FireAsync(new SweetAlertOptions { Title = "Error", Text = msg, Icon = "error", ConfirmButtonText = "Aceptar" });
+                validationErrors.Add("El formato del mail no es válido.");
             }
         }
-        catch (Exception ex)
+
+        if (!traductorProvincia.TryGetValue(tempProvincia, out var provincia) || string.IsNullOrWhiteSpace(provincia))
         {
-            wait.Close();
-            await Swal.FireAsync(new SweetAlertOptions { Title = "Error inesperado", Text = ex.Message, Icon = "error", ConfirmButtonText = "Aceptar" });
+            validationErrors.Add("Seleccioná una provincia válida.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(oSocio.Codpos2))
+        {
+            try
+            {
+                var existsResp = await _socioServicio.ExistsCodpos2(oSocio.Codpos2, Id == 0 ? null : Id);
+                if (existsResp.Exito == 1 && existsResp.List)
+                {
+                    validationErrors.Add($"El código de socio '{oSocio.Codpos2}' ya existe en la base de datos.");
+                }
+            }
+            catch
+            {
+                validationErrors.Add("No se pudo validar si el código de socio ya existe. Reintentá.");
+            }
+        }
+
+        return validationErrors.Count == 0;
+    }
+
+    private void ShowBackendErrors(Respuesta<SocioRegistrationResult> response)
+    {
+        validationErrors.Clear();
+
+        if (response.List?.Errores != null && response.List.Errores.Count > 0)
+        {
+            validationErrors.AddRange(response.List.Errores.Where(x => !string.IsNullOrWhiteSpace(x)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(response.List?.MensajeUsuario))
+        {
+            SetFormError(response.List.MensajeUsuario);
+            return;
+        }
+
+        SetFormError(response.Mensaje ?? "No se pudo enviar el mail de inscripción.");
+    }
+
+    private void AddIfMissing(string? value, string message)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            validationErrors.Add(message);
         }
     }
 
-    private async Task<bool> ValidarObligatorios()
+    private void ClearMessages()
     {
-        var faltantes = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(oSocio.Nombre))   faltantes.Add("Nombre");
-        if (string.IsNullOrWhiteSpace(oSocio.Mail))     faltantes.Add("Mail");
-        if (string.IsNullOrWhiteSpace(oSocio.Direcc1))  faltantes.Add("Domicilio");
-        if (string.IsNullOrWhiteSpace(tempProvincia))   faltantes.Add("Provincia");
-        if (string.IsNullOrWhiteSpace(oSocio.Placod))   faltantes.Add("Plantel");
-
-        if (faltantes.Count > 0)
-        {
-            var html = "<ul style='text-align:left;margin:0 auto;max-width:320px'>" + string.Join("", faltantes.Select(f => $"<li><b>{f}</b></li>")) + "</ul>";
-
-            await Swal.FireAsync(new SweetAlertOptions { Title = "Faltan datos obligatorios", Html = $"Por favor, completá: {html}", Icon = "error", ConfirmButtonText = "Aceptar" });
-            return false;
-        }
-
-        var mail = (oSocio.Mail ?? string.Empty).Trim();
-        oSocio.Mail = mail;
-
-        try
-        {
-            var addr = new System.Net.Mail.MailAddress(mail);
-            if (!string.Equals(addr.Address, mail, StringComparison.OrdinalIgnoreCase)) throw new FormatException();
-        }
-        catch
-        {
-            await Swal.FireAsync(new SweetAlertOptions { Title = "Mail inválido", Text = "Revisá el formato del correo electrónico.", Icon = "error", ConfirmButtonText = "Aceptar" });
-            return false;
-        }
-
-        if (!traductorProvincia.ContainsKey(tempProvincia) || string.IsNullOrWhiteSpace(traductorProvincia[tempProvincia]))
-        {
-            await Swal.FireAsync(new SweetAlertOptions { Title = "Provincia inválida", Text = "Seleccioná una provincia de la lista.", Icon = "error", ConfirmButtonText = "Aceptar" });
-            return false;
-        }
-
-        return true;
+        validationErrors.Clear();
+        formMessage = null;
+        formMessageCss = "alert alert-danger";
     }
 
-    public static string GenerateRandomPassword(int length)
+    private void SetFormError(string message)
     {
-        const string UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const string DIGITS = "0123456789";
-        string ALL = UPPER + DIGITS;
+        formMessageCss = "alert alert-danger";
+        formMessage = message;
+    }
 
-        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
-        int Next(int max)
+    private async Task CheckCodpos2(FocusEventArgs _)
+    {
+        if (string.IsNullOrWhiteSpace(oSocio.Codpos2))
         {
-            Span<byte> b = stackalloc byte[4];
-            rng.GetBytes(b);
-            return (int)(BitConverter.ToUInt32(b) % (uint)max);
+            return;
         }
 
-        var sb = new StringBuilder();
-        sb.Append(UPPER[Next(UPPER.Length)]);
-        sb.Append(DIGITS[Next(DIGITS.Length)]);
+        var resp = await _socioServicio.ExistsCodpos2(oSocio.Codpos2.Trim(), Id == 0 ? null : Id);
+        if (resp.Exito == 1 && resp.List)
+        {
+            SetFormError($"El código de socio '{oSocio.Codpos2}' ya existe en la base de datos.");
+        }
+    }
 
-        while (sb.Length < Math.Max(length, 10)) sb.Append(ALL[Next(ALL.Length)]);
+    private Task<IEnumerable<string>> SearchMethod(string searchText, List<string> lista)
+    {
+        IEnumerable<string> result = lista.Where(x => x.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(result);
+    }
 
-        var arr = sb.ToString().ToCharArray();
-        for (int i = 0; i < arr.Length; i++) { int j = Next(arr.Length); (arr[i], arr[j]) = (arr[j], arr[i]); }
-        return new string(arr);
+    private async Task Cancel()
+    {
+        await ModalInstance.CancelAsync();
     }
 }
