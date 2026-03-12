@@ -12,6 +12,11 @@
                         <div class="card-body p-4">
                             <h3 class="mb-3">Consultas</h3>
 
+                            <dl class="row">
+                                <dt class="col-sm-4">Version frontend</dt>
+                                <dd class="col-sm-8">@FrontendVersion</dd>
+                            </dl>
+
                             @if (!string.IsNullOrWhiteSpace(errorMessage))
                             {
                                 <div class="alert alert-danger">@errorMessage</div>
@@ -23,9 +28,6 @@
                             else
                             {
                                 <dl class="row mb-0">
-                                    <dt class="col-sm-4">Version frontend</dt>
-                                    <dd class="col-sm-8">@info.FrontendVersion</dd>
-
                                     <dt class="col-sm-4">Entorno</dt>
                                     <dd class="col-sm-8">@info.Environment</dd>
 
@@ -54,6 +56,7 @@
 </AuthorizeView>
 
 @code {
+    private const string FrontendVersion = "1.0.0";
     private ConsultaInfo? info;
     private string? errorMessage;
 
@@ -69,11 +72,11 @@
         }
         catch (HttpRequestException ex)
         {
-            errorMessage = $"Error consultando el servidor: {ex.Message}";
+            errorMessage = $"No se pudo obtener la metadata del servidor. Version actual: {FrontendVersion}. Detalle: {ex.Message}";
         }
         catch (Exception ex)
         {
-            errorMessage = $"Error inesperado: {ex.Message}";
+            errorMessage = $"No se pudo obtener la metadata del servidor. Version actual: {FrontendVersion}. Detalle: {ex.Message}";
         }
     }
 

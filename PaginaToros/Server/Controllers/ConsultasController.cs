@@ -21,27 +21,51 @@ namespace PaginaToros.Server.Controllers
         [HttpGet("info")]
         public ActionResult GetInfo()
         {
-            var entryAssembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
-            var assemblyLocation = entryAssembly.Location;
-            var assemblyLastWriteTimeUtc = string.IsNullOrWhiteSpace(assemblyLocation)
-                ? (DateTime?)null
-                : System.IO.File.GetLastWriteTimeUtc(assemblyLocation);
-
-            var process = Process.GetCurrentProcess();
-            var processStartTimeUtc = process.StartTime.Kind == DateTimeKind.Utc
-                ? process.StartTime
-                : process.StartTime.ToUniversalTime();
-
             return Ok(new
             {
                 frontendVersion = FrontendVersion,
                 environment = environment.EnvironmentName,
                 machineName = Environment.MachineName,
                 serverUtcNow = DateTime.UtcNow,
-                processStartTimeUtc,
-                assemblyLastWriteTimeUtc,
+                processStartTimeUtc = GetProcessStartTimeUtc(),
+                assemblyLastWriteTimeUtc = GetAssemblyLastWriteTimeUtc(),
                 appBaseDirectory = AppContext.BaseDirectory
             });
+        }
+
+        private static DateTime? GetAssemblyLastWriteTimeUtc()
+        {
+            try
+            {
+                var entryAssembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+                var assemblyLocation = entryAssembly.Location;
+
+                if (string.IsNullOrWhiteSpace(assemblyLocation) || !System.IO.File.Exists(assemblyLocation))
+                {
+                    return null;
+                }
+
+                return System.IO.File.GetLastWriteTimeUtc(assemblyLocation);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static DateTime? GetProcessStartTimeUtc()
+        {
+            try
+            {
+                var process = Process.GetCurrentProcess();
+                return process.StartTime.Kind == DateTimeKind.Utc
+                    ? process.StartTime
+                    : process.StartTime.ToUniversalTime();
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
