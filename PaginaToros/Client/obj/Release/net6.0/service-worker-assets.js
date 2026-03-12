@@ -101,7 +101,7 @@
       "url": "images\/mantenimiento.png"
     },
     {
-      "hash": "sha256-LvxI6GIO5JIiOPP+WkrGC40TxB5yLzdKeRKY+KKUdQ0=",
+      "hash": "sha256-SB6pSLOOrAH42u4AWe8kgo2EFLjQkgIKUKyZaxJKHPs=",
       "url": "index.html"
     },
     {
@@ -141,7 +141,7 @@
       "url": "_framework\/icudt.dat"
     },
     {
-      "hash": "sha256-L\/cfre06GAD9xabBUJeULQSsgJ4ER\/6g5a50RwBzuaU=",
+      "hash": "sha256-VEEp\/lOmllR\/4gNVZTXfKsUefhHslEJDq\/4YbrQX9Us=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -377,11 +377,11 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-0eLJj7jxe9rC3TqHwbl4qYWLl8RXTkWHD3UKWb+oiXQ=",
+      "hash": "sha256-O1wc47YOQCfCXiKV1XDPYc\/rPu69F5bpSMejmHp\/fDg=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-gxogmniIJ3VBoXdxTuYy5H3QfjE1X9iCPPgA9hhKPAM=",
+      "hash": "sha256-3JOv97pOVr2QxJfDrGp7b3lvjfTq1ze5TL0nXHl9UCQ=",
       "url": "_framework\/PaginaToros.Shared.dll"
     },
     {
@@ -1001,5 +1001,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "yXbiyKqe"
+  "version": "jv0bzFAa"
 };
