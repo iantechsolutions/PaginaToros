@@ -1,0 +1,95 @@
+@page "/consultas"
+@attribute [Authorize(Roles = "ADMINISTRADOR")]
+
+<PageTitle>Consultas</PageTitle>
+
+<AuthorizeView Roles="ADMINISTRADOR">
+    <Authorized>
+        <div class="container py-4">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-8">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <h3 class="mb-3">Consultas</h3>
+
+                            @if (!string.IsNullOrWhiteSpace(errorMessage))
+                            {
+                                <div class="alert alert-danger">@errorMessage</div>
+                            }
+                            else if (info is null)
+                            {
+                                <div class="alert alert-secondary mb-0">Cargando informacion del servidor...</div>
+                            }
+                            else
+                            {
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Version frontend</dt>
+                                    <dd class="col-sm-8">@info.FrontendVersion</dd>
+
+                                    <dt class="col-sm-4">Entorno</dt>
+                                    <dd class="col-sm-8">@info.Environment</dd>
+
+                                    <dt class="col-sm-4">Servidor</dt>
+                                    <dd class="col-sm-8">@info.MachineName</dd>
+
+                                    <dt class="col-sm-4">Hora actual UTC</dt>
+                                    <dd class="col-sm-8">@FormatDate(info.ServerUtcNow)</dd>
+
+                                    <dt class="col-sm-4">Inicio del proceso</dt>
+                                    <dd class="col-sm-8">@FormatDate(info.ProcessStartTimeUtc)</dd>
+
+                                    <dt class="col-sm-4">Ultima modificacion detectada</dt>
+                                    <dd class="col-sm-8">@FormatDate(info.AssemblyLastWriteTimeUtc)</dd>
+
+                                    <dt class="col-sm-4">Directorio base</dt>
+                                    <dd class="col-sm-8 text-break">@info.AppBaseDirectory</dd>
+                                </dl>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private ConsultaInfo? info;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            info = await Http.GetFromJsonAsync<ConsultaInfo>("api/consultas/info");
+            if (info is null)
+            {
+                errorMessage = "No se pudo obtener la informacion del servidor.";
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = $"Error consultando el servidor: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error inesperado: {ex.Message}";
+        }
+    }
+
+    private static string FormatDate(DateTime? value)
+    {
+        return value.HasValue ? value.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") : "No disponible";
+    }
+
+    private sealed class ConsultaInfo
+    {
+        public string FrontendVersion { get; set; } = string.Empty;
+        public string Environment { get; set; } = string.Empty;
+        public string MachineName { get; set; } = string.Empty;
+        public DateTime ServerUtcNow { get; set; }
+        public DateTime ProcessStartTimeUtc { get; set; }
+        public DateTime? AssemblyLastWriteTimeUtc { get; set; }
+        public string AppBaseDirectory { get; set; } = string.Empty;
+    }
+}
