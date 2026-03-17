@@ -17,19 +17,33 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             _dbContext = dbContext;
         }
+
+        private IQueryable<Solici1> QuerySolicitudesValidas(bool includeRelations = true)
+        {
+            IQueryable<Solici1> query = _dbContext.Solici1s
+                .Where(s => !string.IsNullOrWhiteSpace(s.Codest))
+                .Where(s => _dbContext.Estables.Any(e => e.Ecod == s.Codest));
+
+            if (includeRelations)
+            {
+                query = query
+                    .Include(t => t.Establecimiento).ThenInclude(e => e.Socio)
+                    .Include(t => t.Establecimiento).ThenInclude(e => e.Provincia);
+            }
+
+            return query;
+        }
+
         public async Task<List<Solici1>> Lista(int skip, int take)
         {
 
             try
             {
-
-                // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Solici1s.Include(t => t.Establecimiento).ThenInclude(e => e.Socio)
-                                                .Include(t => t.Establecimiento).ThenInclude(e => e.Provincia)
-                                                 .OrderByDescending(t => t.Id)
-                                                 .Skip(skip)
-                                                 .Take(take)
-                                                 .ToListAsync();
+                return await QuerySolicitudesValidas(includeRelations: true)
+                    .OrderByDescending(t => t.Id)
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
             }
             catch
             {
@@ -53,22 +67,21 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Solici1> a;
-                if (filtro is not null) { 
-                    a = await _dbContext.Solici1s.Include(t=>t.Establecimiento).ThenInclude(e=>e.Socio).Include(t => t.Establecimiento).ThenInclude(e => e.Provincia).Where(filtro).Skip(skip).ToListAsync();
-                }
-                else
+                IQueryable<Solici1> query = QuerySolicitudesValidas(includeRelations: true);
+
+                if (filtro is not null)
                 {
-                    a = await _dbContext.Solici1s.Include(t => t.Establecimiento).ThenInclude(e => e.Socio).Include(t => t.Establecimiento).ThenInclude(e => e.Provincia).Skip(skip).ToListAsync();
+                    query = query.Where(filtro);
                 }
-                if (take == 0)
+
+                query = query.OrderByDescending(t => t.Id).Skip(skip);
+
+                if (take != 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    query = query.Take(take);
                 }
-                else
-                {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
-                }
+
+                return await query.ToListAsync();
             }
             catch
             {
@@ -165,7 +178,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                return _dbContext.Solici1s.Count();
+                return await QuerySolicitudesValidas(includeRelations: false).CountAsync();
             }
             catch
             {

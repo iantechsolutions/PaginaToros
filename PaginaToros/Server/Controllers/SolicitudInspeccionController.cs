@@ -445,6 +445,7 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
+                Console.WriteLine($"[Solici1/SendExcel] Inicio socioId={socioId}, file={file?.FileName ?? "(null)"}, size={file?.Length}");
                 var tempFilePath = Path.Combine(Path.GetTempPath(), $"Excel_Solicitud_{DateTime.Now.ToString("dd_MM_yyyy")}.xls");
                 using (var fileStream = new FileStream(tempFilePath, FileMode.Create))
                 {
@@ -453,6 +454,7 @@ namespace PaginaToros.Server.Controllers
                 string filtro = $"Id = {socioId}";
                 var rta = await _socioRepositorio.LimitadosFiltrados(0, 1, filtro);
                 Socio socio = rta.FirstOrDefault();
+                Console.WriteLine($"[Solici1/SendExcel] Socio resuelto: id={socio?.Id}, scod={socio?.Scod ?? "(null)"}, nombre={socio?.Nombre ?? "(null)"}");
                 using (MailMessage mail = new MailMessage())
                 {
                     MemoryStream memoryStream = new MemoryStream();
@@ -472,45 +474,11 @@ namespace PaginaToros.Server.Controllers
                     }
                 }
 
-                // Crear la solicitud mínima sin leer el Excel: socioId y fecha de hoy
-                try
-                {
-                    using var db = new hereford_prContext();
-
-                    var ultimaSolicitud = await db.Solici1s
-                        .Where(s => !string.IsNullOrEmpty(s.Nrosol))
-                        .OrderByDescending(s => s.Nrosol)
-                        .FirstOrDefaultAsync();
-
-                    string nuevoNumeroSolicitud = "000001";
-                    if (ultimaSolicitud != null && int.TryParse(ultimaSolicitud.Nrosol, out int nro))
-                    {
-                        nuevoNumeroSolicitud = (nro + 1).ToString("D6");
-                    }
-
-                    var solicitud = new Solici1
-                    {
-                        Nrosol = nuevoNumeroSolicitud,
-                        Fecsol = DateTime.Now,
-                        FchUsu = DateTime.Now,
-                        CodUsu = socioId,
-                        Anio = DateTime.Now.Year.ToString()
-                        // Dejar otros campos nulos o por defecto
-                    };
-
-                    db.Solici1s.Add(solicitud);
-                    await db.SaveChangesAsync();
-
-                    Console.WriteLine($"Se creó Solici1 ID={solicitud.Id} Nrosol={solicitud.Nrosol}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error creando solicitud mínima: {ex.Message}");
-                }
+                Console.WriteLine("[Solici1/SendExcel] Mail enviado. No se crea ninguna solicitud automática en base.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine($"[Solici1/SendExcel] Error general: {ex.Message}");
             }
 
             return Ok(); 

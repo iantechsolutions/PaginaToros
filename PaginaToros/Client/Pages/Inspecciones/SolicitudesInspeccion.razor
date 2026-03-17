@@ -278,6 +278,7 @@
             var c = await _solici1Servicio.CantidadTotal();
             cantidad = c.List;
             oRespuesta = await _solici1Servicio.Lista(0, 15);
+            LogSolicitudesSinSocio("Get admin", oRespuesta.List);
             StateHasChanged();
         }
         else
@@ -285,6 +286,7 @@
             socioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
             oRespuesta = await _solici1Servicio.GetBySocioId(socioId);
             cantidad = oRespuesta.List.Count;
+            LogSolicitudesSinSocio("Get socio", oRespuesta.List);
         }
 
     }
@@ -414,15 +416,39 @@
             if (!string.IsNullOrEmpty(args.Filter))
             {
                 oRespuesta = await _solici1Servicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+                LogSolicitudesSinSocio($"LoadData filtrado ({args.Filter})", oRespuesta.List);
                 // oRespuesta.List = oRespuesta.List.Where(args.Filter)
             }
             else
             {
                 oRespuesta = await _solici1Servicio.Lista(args.Skip.Value, args.Top.Value);
+                LogSolicitudesSinSocio($"LoadData page skip={args.Skip} top={args.Top}", oRespuesta.List);
             }
         }
 
         isLoading = false;
+    }
+
+    void LogSolicitudesSinSocio(string origen, List<Solici1DTO>? solicitudes)
+    {
+        if (solicitudes == null || solicitudes.Count == 0)
+        {
+            Console.WriteLine($"[SolicitudesInspeccion] {origen}: sin resultados.");
+            return;
+        }
+
+        var faltantes = solicitudes
+            .Where(x => x.Establecimiento == null || x.Establecimiento.Socio == null)
+            .ToList();
+
+        Console.WriteLine($"[SolicitudesInspeccion] {origen}: total={solicitudes.Count}, sinSocio={faltantes.Count}");
+
+        foreach (var item in faltantes.Take(20))
+        {
+            Console.WriteLine(
+                $"[SolicitudesInspeccion] Falta socio -> Id={item.Id}, Nrosol={item.Nrosol}, Fecsol={item.Fecsol:yyyy-MM-dd}, Codest={item.Codest ?? "(null)"}, " +
+                $"EstablecimientoNull={(item.Establecimiento == null)}, Codsoc={item.Establecimiento?.Codsoc ?? "(null)"}, NombreEstablecimiento={item.Establecimiento?.Nombre ?? "(null)"}");
+        }
     }
 
     async Task gotoinfo(int id)

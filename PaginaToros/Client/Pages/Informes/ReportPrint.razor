@@ -6,41 +6,19 @@
 @inject ICertifsemanServicio _certifsemanServicio
 @inject IJSRuntime js
 @using Blazored.Typeahead;
-
-<style>
-    @@mediá print{
-        @@page{
-            margin:0
-        }
-    }
-    body {
-        margin-left: 0;
-        margin-right: 0;
-    }
-
-    .body {
-        margin-left: 0;
-        margin-right: 0;
-    }
-</style>
-
-
-
+<div class="report-page">
 <br/>
-@if (opcion == 1)
-{
-    <center ><RadzenText TextStyle="TextStyle.H5">Toros del Criador</RadzenText></center>
-}
-@if (opcion == 0)
-{
-    <center><RadzenText TextStyle="TextStyle.H5">Certificados del Criador</RadzenText></center>
-}
-<div class="no-print">
+<div class="no-print report-toolbar">
     <br/>
 <div class="row">
     <div class="col-sm-3"/> 
     <div class="col-sm-6">
-            <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Seleccione el socio" EnableDropDown="true" @bind-Value="socioSeleccionado" Disabled="seleccion">
+            <BlazoredTypeahead SearchMethod="BusquedaSocios"
+                               placeholder="Seleccione el socio"
+                               EnableDropDown="true"
+                               Value="socioSeleccionado"
+                               ValueChanged="@(EventCallback.Factory.Create<SocioDTO>(this, OnSocioChanged))"
+                               ValueExpression="(() => socioSeleccionado)">
         <SelectedTemplate Context="eleccion">
             @eleccion.Nombre
         </SelectedTemplate>
@@ -59,165 +37,140 @@
 
 </div>
 @if(socioSeleccionado!=null && terminado && opcion == 1){
-    <div class="cuerpo">
-        <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
-            <table style="border-collapse:collapse;position:relative; font-size: 8px!important;width:700px" cellspacing="0">
-                <tr style="white-space: nowrap;">
-                <td width="10%">
-                    <p class="s2">HBA</p>
-                </td>
-                <td width="10%">
-                    <p class="s2">Tatuaje</p>
-                </td>
-                <td width="10%">
-                    <p class="s2">Var</p>
-                </td>
-                <td width="10%">
-                    <p class="s2">Nacido</p>
-                </td>
-                <td width="15%">
-                    <p class="s2">Nombre Toro</p>
-                </td>
-                <td width="10%">
-                    <p class="s2">Es Padre Desde</p>
-                </td>
-                <td width="10%">
-                    <p class="s2">Estado</p>
-                </td>
-                <td width="10%">
-                    <p class="s2">-Actual?-</p>
-                </td>
-                <td width="15%">
-                    <p class="s2">Tipo de Toro</p>
-                </td>
-            </tr>
+    <div class="report-shell">
+        <section class="report-sheet">
+            <div class="report-header">
+                <div class="report-brand">
+                    <span class="report-brand-kicker">Asociacion Argentina Criadores Hereford</span>
+                    <span class="report-brand-title">Toros del Criador</span>
+                </div>
+            </div>
+
+            <div class="report-meta-card">
+                <div class="report-meta-pair">
+                    <span class="report-meta-label">Socio</span>
+                    <span class="report-meta-value">@socioSeleccionado.Nombre</span>
+                </div>
+                <div class="report-meta-divider"></div>
+                <div class="report-meta-pair report-meta-pair-date">
+                    <span class="report-meta-label">Fecha de impresion</span>
+                    <span class="report-meta-value">@DateTime.Now.ToString("dd/MM/yyyy")</span>
+                </div>
+            </div>
+
+            <div class="report-table-wrap">
+            <table class="report-table" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th class="col-sm">HBA</th>
+                        <th class="col-sm">Tatuaje</th>
+                        <th class="col-xs">Var</th>
+                        <th class="col-sm">Nacido</th>
+                        <th class="col-xl">Nombre Toro</th>
+                        <th class="col-md">Es Padre Desde</th>
+                        <th class="col-sm">Estado</th>
+                        <th class="col-sm">Actual</th>
+                        <th class="col-lg">Tipo de Toro</th>
+                    </tr>
+                </thead>
+                <tbody>
             @foreach(var toro in toros.Where(x=>x.CodEstado=="1"))
             {
                 <tr>
-                    <td>
-                        <p class="s2">@toro.Hba</p>
-                    </td>
-                    <td>
-                        <p class="s2">@toro.Tatpart</p>
-                    </td>
-                    <td>
-                        <p class="s2">@toro.Variedad</p>
-                    </td>
+                    <td>@toro.Hba</td>
+                    <td>@toro.Tatpart</td>
+                    <td>@toro.Variedad</td>
                     <td>
                         @if(toro.Nacido.HasValue){
-                            <p class="s2">@toro.Nacido.Value.ToString("dd/MM/yyyy")</p>
+                            @toro.Nacido.Value.ToString("dd/MM/yyyy")
                         }
                         else{
-                            <p class="s2"></p>
+                            <span></span>
                         }
                     </td>
-                    <td>
-                        <p class="s2">@toro.NomDad</p>
-                    </td>
-                    <td>
-                        <p class="s2"></p>
-                    </td>
-                    <td>
-                        <p class="s2">@traductor[toro.CodEstado]</p>
-                    </td>
-                    <td>
-                        <p class="s2"></p>
-                    </td>
-                    <td>
-                        <p class="s2" style="font-size:6pt">@traductor[toro.TipToro]</p>
-                    </td>
+                    <td>@toro.NomDad</td>
+                    <td></td>
+                    <td>@traductor[toro.CodEstado]</td>
+                    <td></td>
+                    <td>@traductor[toro.TipToro]</td>
                 </tr>
 
             }
+                </tbody>
             </table>  
+            </div>
+        </section>
     </div>
 }
 else if (opcion == 0 && socioSeleccionado != null && terminado)
 {
-    <div class="cuerpo">
-    <RadzenText TextStyle="TextStyle.Body2">Nombre del socio: @socioSeleccionado.Nombre</RadzenText>
-    <RadzenText TextStyle="TextStyle.Body2">Fecha de impresion: @DateTime.Now.ToString("dd/MM/yyyy")</RadzenText>
-        <table style="border-collapse:collapse;position:relative; font-size: 8px!important;width:700px" cellspacing="0">
-            <tr style="white-space:nowrap">
-                    <td>
-                        <p class="s2">Tipo cert.</p>
-                    </td>
-                    <td>
-                        <p class="s2">Fecha de venta</p>
-                    </td>
-                    <td>
-                        <p class="s2">Socio</p>
-                    </td>
-                    <td>
-                        <p class="s2">Tatuaje</p>
-                    </td>
-                    <td>
-                        <p class="s2">HBA</p>
-                    </td>
-                    <td>
-                        <p class="s2">Nombre</p>
-                    </td>
-                    <td>
-                        <p class="s2">Apodo</p>
-                    </td>
-                    <td>
-                        <p class="s2">Cant Dosis</p>
-                    </td>
-                    <td>
-                        <p class="s2">Cant Dosis Reman</p>
-                    </td>
-                    <td>
-                        <p class="s2">Variedad</p>
-                    </td>
+    <div class="report-shell">
+        <section class="report-sheet">
+            <div class="report-header">
+                <div class="report-brand">
+                    <span class="report-brand-kicker">Asociacion Argentina Criadores Hereford</span>
+                    <span class="report-brand-title">Certificados del Criador</span>
+                </div>
+            </div>
+
+            <div class="report-meta-card">
+                <div class="report-meta-pair">
+                    <span class="report-meta-label">Socio</span>
+                    <span class="report-meta-value">@socioSeleccionado.Nombre</span>
+                </div>
+                <div class="report-meta-divider"></div>
+                <div class="report-meta-pair report-meta-pair-date">
+                    <span class="report-meta-label">Fecha de impresion</span>
+                    <span class="report-meta-value">@DateTime.Now.ToString("dd/MM/yyyy")</span>
+                </div>
+            </div>
+
+            <div class="report-table-wrap">
+        <table class="report-table" cellspacing="0">
+            <thead>
+                <tr>
+                    <th class="col-cert-type">Tipo cert.</th>
+                    <th class="col-cert-date">Fecha de venta</th>
+                    <th class="col-cert-socio">Socio</th>
+                    <th class="col-cert-short">Tatuaje</th>
+                    <th class="col-cert-short">HBA</th>
+                    <th class="col-cert-name">Nombre</th>
+                    <th class="col-cert-nick">Apodo</th>
+                    <th class="col-cert-dose">Cant. dosis</th>
+                    <th class="col-cert-dose">Cant. reman</th>
+                    <th class="col-cert-var">Variedad</th>
                 </tr>
+            </thead>
+            <tbody>
                 @foreach (var cer in certificados.Where(x=>x.NrDosi>0))
                 {
-                <tr style="font-size: 5px!important;">
-                        <td>
-                        <p class ="s2">@cer.TipoCert.ToUpper()</p>
-                        </td>
+                <tr>
+                        <td>@cer.TipoCert.ToUpper()</td>
                         <td>
                             @if (cer.Fecvta.HasValue)
                             {
-                                <p class="s2">@cer.Fecvta.Value.ToString("dd/MM/yyyy")</p>
+                                @cer.Fecvta.Value.ToString("dd/MM/yyyy")
                             }
                             else
                             {
-                                <p></p>
+                                <span></span>
                             }
                         </td>
-                        <td>
-                        <p class="s2">@cer.Socio.Nombre</p>
-                        </td>
-@*                         <td>
-                        <p class="s2">@cer.Apodacion</p>
-                        </td> *@
-                        <td>
-                        <p class="s2">@cer.Tatpart</p>
-                        </td>
-                        <td>
-                        <p class="s2">@cer.Hba</p>
-                        </td>
-                        <td>
-                        <p class="s2">@cer.NomDad</p>
-                        </td>
-                        <td>
-                        <p class="s2">@cer.Apodacion</p>
-                        </td>
-                        <td>
-                        <p class="s2">@cer.NrDosiOr</p>
-                        </td>
-                        <td>
-                        <p class="s2">@cer.NrDosi</p>
-                        </td>
-                        <td>
-                        <p class="s2">@cer.Variedad</p>
-                        </td>
+                        <td>@cer.Socio.Nombre</td>
+                        <td>@cer.Tatpart</td>
+                        <td>@cer.Hba</td>
+                        <td>@cer.NomDad</td>
+                        <td>@cer.Apodacion</td>
+                        <td>@cer.NrDosiOr</td>
+                        <td>@cer.NrDosi</td>
+                        <td>@cer.Variedad</td>
                     </tr>
 
                 }
+            </tbody>
         </table>
+            </div>
+        </section>
     </div>
 
 }
@@ -231,6 +184,7 @@ else if (seleccion && !terminado)
         </div>
     </center>
 }
+</div>
 
 @code {
     [Parameter] public int opcion { get; set; }
@@ -256,14 +210,38 @@ else if (seleccion && !terminado)
         var rta = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
     }
+
+    private string TituloReporte => opcion == 1 ? "Toros del Criador" : "Certificados del Criador";
+
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
+
+    private Task OnSocioChanged(SocioDTO? socio)
+    {
+        socioSeleccionado = socio;
+        LimpiarReporte();
+        return Task.CompletedTask;
+    }
+
+    private void LimpiarReporte()
+    {
+        terminado = false;
+        seleccion = false;
+        toros = new();
+        certificados = new();
+    }
+
     private async Task Generate()
     {
         try{
-            var coso = socioSeleccionado;
+            if (socioSeleccionado == null)
+            {
+                LimpiarReporte();
+                return;
+            }
+
             seleccion = true;
             if (opcion == 1)
             {

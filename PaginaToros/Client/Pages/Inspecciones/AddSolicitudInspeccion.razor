@@ -198,6 +198,7 @@
             socios = rta.List;
             var respuesta = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
             establecimientos = respuesta.List;
+            Console.WriteLine($"[AddSolicitudInspeccion] Init Id={Id}, esSocio={esSocio}, socios={socios?.Count ?? 0}, establecimientos={establecimientos?.Count ?? 0}");
             if (Id != 0)
             {
                 try
@@ -219,6 +220,10 @@
                     }
                     establecimientoSeleccionado = establecimientos.Where(x => x.Ecod == oSolici1.Codest).FirstOrDefault();
                     socioSeleccionado = socios.Where(x => x.Scod == establecimientoSeleccionado.Codsoc).FirstOrDefault();
+                    Console.WriteLine(
+                        $"[AddSolicitudInspeccion] Editando solicitud Id={oSolici1.Id}, Nrosol={oSolici1.Nrosol}, Codest={oSolici1.Codest ?? "(null)"}, " +
+                        $"EstablecimientoEncontrado={(establecimientoSeleccionado != null)}, CodsocEstable={establecimientoSeleccionado?.Codsoc ?? "(null)"}, " +
+                        $"SocioEncontrado={(socioSeleccionado != null)}, SocioScod={socioSeleccionado?.Scod ?? "(null)"}");
                     if (oSolici1.Reinsp=="S")
                     {
                         activoReInspeccion = true;
@@ -262,6 +267,11 @@
 
         try
     {
+        Console.WriteLine(
+            $"[AddSolicitudInspeccion] Guardar inicio Id={Id}, socioId={socioSeleccionado?.Id}, socioScod={socioSeleccionado?.Scod ?? "(null)"}, " +
+            $"establecimientoEcod={establecimientoSeleccionado?.Ecod ?? "(null)"}, establecimientoCodsoc={establecimientoSeleccionado?.Codsoc ?? "(null)"}, " +
+            $"Fecsol={oSolici1.Fecsol:yyyy-MM-dd}, Fecins={FechaTemp:yyyy-MM-dd}, filas={listadoSolicitudes?.Count ?? 0}");
+
         if (socioSeleccionado == null)
         {
             await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
@@ -309,11 +319,13 @@
                 soliPush.Reinsp = "N";
             }
             soliPush.Codest = establecimientoSeleccionado.Ecod;
+            Console.WriteLine($"[AddSolicitudInspeccion] Guardar payload Codest={soliPush.Codest ?? "(null)"}, CodUsu={soliPush.CodUsu}, Nrosol={soliPush.Nrosol ?? "(null)"}");
 
             if (Id == 0)
             {
                 var rta = await _solici1Servicio.Crear(soliPush);
                 oSolici1 = rta.List;
+                Console.WriteLine($"[AddSolicitudInspeccion] Crear respuesta Id={oSolici1?.Id}, Nrosol={oSolici1?.Nrosol ?? "(null)"}, Codest={oSolici1?.Codest ?? "(null)"}");
             
 
             
@@ -335,6 +347,7 @@
             {
                 soliPush.Id = oSolici1.Id;
                 var coso = await _solici1Servicio.Editar(soliPush);
+                Console.WriteLine($"[AddSolicitudInspeccion] Editar respuesta ok={coso}, Id={soliPush.Id}, Codest={soliPush.Codest ?? "(null)"}");
 
 
 
@@ -473,6 +486,7 @@
         {
             establecimientoSeleccionado = new EstableDTO();
             oSolici1.Codest = null;
+            Console.WriteLine($"[AddSolicitudInspeccion] Establecimiento inválido seleccionado. Ecod={e?.Ecod ?? "(null)"}, Codsoc={e?.Codsoc ?? "(null)"}, Codpro={e?.Codpro ?? "(null)"}, Codzon={e?.Codzon ?? "(null)"}");
 
             await Swal.FireAsync("Atención",
                 "No se pueden seleccionar establecimientos sin provincia ni codigo de zona.",
@@ -483,6 +497,7 @@
 
         establecimientoSeleccionado = e;
         oSolici1.Codest = e.Ecod;
+        Console.WriteLine($"[AddSolicitudInspeccion] Establecimiento seleccionado. Ecod={e.Ecod ?? "(null)"}, Nombre={e.Nombre ?? "(null)"}, Codsoc={e.Codsoc ?? "(null)"}, Codpro={e.Codpro ?? "(null)"}, Codzon={e.Codzon ?? "(null)"}");
 
     }
 

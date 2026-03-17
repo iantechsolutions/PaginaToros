@@ -81,6 +81,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ2VydGlmaWNhZG9zL0NlcnRpZmljYWRvcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/Consultas.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ29uc3VsdGFzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Client/Pages/CrudInspecciones/AddEdadMesPromedioRe.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXMvQ3J1ZEluc3BlY2Npb25lcy9BZGRFZGFkTWVzUHJvbWVkaW9SZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 

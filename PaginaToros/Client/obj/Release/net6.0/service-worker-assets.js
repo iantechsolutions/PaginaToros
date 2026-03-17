@@ -101,7 +101,7 @@
       "url": "images\/mantenimiento.png"
     },
     {
-      "hash": "sha256-SB6pSLOOrAH42u4AWe8kgo2EFLjQkgIKUKyZaxJKHPs=",
+      "hash": "sha256-zL8G13pnnnkKTlDk9PPilVHkIV7s02eYCtxlJB+3icI=",
       "url": "index.html"
     },
     {
@@ -141,7 +141,7 @@
       "url": "_framework\/icudt.dat"
     },
     {
-      "hash": "sha256-EGQnemNmb4gCY0FH3wPpIWTeSYn9hL4KkR\/Bd7o51bw=",
+      "hash": "sha256-W35Z+VyT6se7JYkaW0Oq5F2+xW+yypWRt1mrfnkpItQ=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -377,7 +377,7 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-MVQuERKTd6yjKOZG2gIi7NfZBNrHDIKeWh6+C\/P0IsA=",
+      "hash": "sha256-ok9slO6br\/8QA5YcN3iB6U+AVRVOsgJ93Mcoprh\/IJ4=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
@@ -1001,5 +1001,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "SdYWRl6B"
+  "version": "nHhF\/dlx"
 };
