@@ -7,6 +7,7 @@ using PaginaToros.Server.Utilidades;
 using System.Text;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Server.Repositorio.Implementacion;
+using Microsoft.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 var MyCors = "_MyCors";
@@ -21,7 +22,7 @@ builder.Services.AddCors(options =>
         }
         );
 });
-/*AUTORIZACIÓN*/
+/*AUTORIZACIÃ“N*/
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = true;
@@ -88,6 +89,28 @@ builder.Services.AddScoped<ITorosRepositorio, TorosRepositorio>();
 builder.Services.AddScoped<ITransanRepositorio, TransanRepositorio>();
 builder.Services.AddScoped<ITranssbRepositorio, TranssbRepositorio>();
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        var path = context.Request.Path.Value ?? string.Empty;
+
+        if (path == "/" ||
+            path.EndsWith("/index.html", StringComparison.OrdinalIgnoreCase) ||
+            path.EndsWith("PaginaToros.Client.styles.css", StringComparison.OrdinalIgnoreCase) ||
+            path.EndsWith("css/app.css", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Response.Headers[HeaderNames.CacheControl] = "no-cache, no-store, must-revalidate";
+            context.Response.Headers[HeaderNames.Pragma] = "no-cache";
+            context.Response.Headers[HeaderNames.Expires] = "0";
+        }
+
+        return Task.CompletedTask;
+    });
+
+    await next();
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
