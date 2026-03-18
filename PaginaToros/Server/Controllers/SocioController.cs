@@ -182,6 +182,34 @@ namespace PaginaToros.Server.Controllers
             Respuesta<SocioDTO> _Respuesta = new Respuesta<SocioDTO>();
             try
             {
+                request.Codpos2 = request.Codpos2?.Trim();
+                request.Placod = request.Placod?.Trim();
+                request.Mail = request.Mail?.Trim();
+                request.Nombre = request.Nombre?.Trim();
+                request.Direcc1 = request.Direcc1?.Trim();
+                request.Locali1 = request.Locali1?.Trim();
+                request.Telefo1 = request.Telefo1?.Trim();
+
+                if (!string.IsNullOrWhiteSpace(request.Codpos2) && request.Codpos2.Length > 4)
+                {
+                    _Respuesta = new Respuesta<SocioDTO>()
+                    {
+                        Exito = 0,
+                        Mensaje = "El código de socio no puede tener más de 4 caracteres."
+                    };
+                    return StatusCode(StatusCodes.Status400BadRequest, _Respuesta);
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.Placod) && request.Placod.Length > 4)
+                {
+                    _Respuesta = new Respuesta<SocioDTO>()
+                    {
+                        Exito = 0,
+                        Mensaje = "El plantel no puede tener más de 4 caracteres."
+                    };
+                    return StatusCode(StatusCodes.Status400BadRequest, _Respuesta);
+                }
+
                 // Validate Codpos2 uniqueness if provided
                 if (!string.IsNullOrWhiteSpace(request.Codpos2))
                 {

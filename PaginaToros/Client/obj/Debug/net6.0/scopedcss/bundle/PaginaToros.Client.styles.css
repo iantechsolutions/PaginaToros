@@ -548,8 +548,68 @@ td[b-te855shaps] {
     height: auto;
 }
 
-.nav-link[b-uy3i3vcno8] {
+.main-navbar[b-uy3i3vcno8]  .nav-link {
     font-weight: 700;
+}
+
+.nav-label-compact[b-uy3i3vcno8] {
+    display: none;
+}
+
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+    .main-navbar .navbar-nav[b-uy3i3vcno8] {
+        align-items: stretch;
+    }
+
+    .main-navbar .nav-item[b-uy3i3vcno8] {
+        display: flex;
+        align-items: center;
+    }
+
+    .main-navbar[b-uy3i3vcno8]  .nav-link {
+        white-space: normal;
+        line-height: 1.1;
+        text-align: center;
+        padding: 0.5rem 0.45rem;
+        font-size: 0.93rem;
+    }
+
+    .nav-label-full[b-uy3i3vcno8] {
+        display: none;
+    }
+
+    .nav-label-compact[b-uy3i3vcno8] {
+        display: inline;
+    }
+
+    .main-navbar .menu-dropdown > .nav-link[b-uy3i3vcno8] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 3.1rem;
+    }
+
+    .main-navbar .menu-dropdown > .nav-link[b-uy3i3vcno8]::after {
+        margin-left: 0.3rem;
+    }
+}
+
+@media (min-width: 1400px) {
+    .nav-label-full[b-uy3i3vcno8] {
+        display: inline;
+    }
+
+    .nav-label-compact[b-uy3i3vcno8] {
+        display: none;
+    }
+
+    .main-navbar[b-uy3i3vcno8]  .nav-link {
+        white-space: nowrap;
+        line-height: 1.5;
+        text-align: left;
+        padding: 0.5rem 0.65rem;
+        font-size: 1rem;
+    }
 }
 
 .menu-dropdown[b-uy3i3vcno8] {
@@ -596,14 +656,31 @@ td[b-te855shaps] {
     color: #052e16 !important;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1200px) {
+    .menu-dropdown[b-uy3i3vcno8] {
+        padding-bottom: 0.25rem;
+    }
+
+    .menu-dropdown > .dropdown-menu[b-uy3i3vcno8] {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: auto;
+        margin-top: 0;
+    }
+
+    .menu-dropdown > .dropdown-menu.dropdown-menu-end[b-uy3i3vcno8] {
+        left: auto;
+        right: 0;
+    }
+
     .menu-dropdown:hover > .dropdown-menu[b-uy3i3vcno8],
     .menu-dropdown:focus-within > .dropdown-menu[b-uy3i3vcno8] {
         display: block;
     }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 1199.98px) {
     .main-navbar .navbar-collapse[b-uy3i3vcno8] {
         padding-top: 0.75rem;
     }

@@ -16,6 +16,33 @@
         font-size: 25px;
         font-weight: bold;
     }
+
+    .plantel-typeahead {
+        width: 100%;
+        max-width: 26.7rem;
+    }
+
+    .plantel-typeahead .blazored-typeahead__controls,
+    .plantel-typeahead .blazored-typeahead__input-mask-wrapper {
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .plantel-typeahead .blazored-typeahead__input-mask,
+    .plantel-typeahead .blazored-typeahead__input {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .plantel-typeahead .blazored-typeahead__input-icon {
+        flex: 0 0 40px;
+        width: 40px;
+        margin-left: auto;
+        justify-content: center;
+    }
 </style>
 @if(Planteles.Count>0){
 <div class="card">
@@ -84,7 +111,7 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Plantel Origen</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaPlantelesVendedor" style="max-width:26.7%" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelOrigen">
+                    <BlazoredTypeahead class="plantel-typeahead" SearchMethod="BusquedaPlantelesVendedor" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelOrigen">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Placod
                         </SelectedTemplate>
@@ -95,7 +122,7 @@
                 </div>
                 <div class="col-sm">
                     <label>Plantel Destino</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaPlantelesComprador" style="max-width:26.7%" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelDestino">
+                    <BlazoredTypeahead class="plantel-typeahead" SearchMethod="BusquedaPlantelesComprador" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelDestino">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Placod
                         </SelectedTemplate>
@@ -130,11 +157,6 @@
                     <RadzenDropDown @bind-Value=@temp3 Data=@estadoHembras Style="width: 100%; max-width: 400px;" />
                     <ValidationMessage For="(()=> temp3)" style="color:red;" />
                 </div>
-                <div class="col-sm">
-                    <label class="col-sm">Animales a Incorporar?</label>
-                    <RadzenDropDown @bind-Value=@temp4 Data=@incorporar Style="width: 100%; max-width: 400px;" />
-                    <ValidationMessage For="(()=> temp4)" style="color:red;" />
-                </div>
             </div>
             <br />
             <div class="row" style="width=100%;">
@@ -145,14 +167,6 @@
                     <p>*Una vez seleccionado el socio se llenara este campo</p>
                 </div>
             </div>
-            <br />
-                <div class="row mt-2" style="width=100%;">
-                    <div class="col-sm d-flex align-items-center gap-2">
-                        <InputCheckbox @bind-Value="enviarMail" />
-                        <label class="m-0">Enviar mail al socio</label>
-                    </div>
-                </div>
-
             <br />
 
             <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
@@ -182,14 +196,11 @@ else
     List<string> tiposHacienda = new List<string> { "PHPR (Puro Registrado)", "HPR (Puro Registrado)", "PHVIP (VIP)", "HVIP (VIP)" };
     List<string> sexoAnimales = new List<string> { "Hembras", "Machos" };
     List<string> estadoHembras = new List<string> { "Con Cria (CC)", "Con Cria y Preñada (CCP)", "Sin Servicio (SS)", "Preñada (PR)" };
-    List<string> incorporar = new List<string> { "NO", "SI" };
     string temp1 = "";
     string temp2 = "";
     string temp3 = "";
-    string temp4 = "";
     PlantelDTO plantelOrigen = new();
     PlantelDTO plantelDestino = new();
-    bool enviarMail = true;
 
 
     private ClaimsPrincipal? user;
@@ -207,9 +218,7 @@ else
         {"Con Cria (CC)","CC"},
         {"Con Cria y Preñada (CCP)","CCP"},
         {"Sin Servicio (SS)","SS"},
-        {"Preñada (PR)","PR"},
-        {"NO","0"},
-        {"SI","1"}
+        {"Preñada (PR)","PR"}
     };
     Dictionary<string, string> traductorCarga = new Dictionary<string, string>{
         {"PHPR","PHPR (Puro Registrado)"},
@@ -221,9 +230,7 @@ else
         {"CC","Con Cria (CC)"},
         {"CCP","Con Cria y Preñada (CCP)"},
         {"SS","Sin Servicio (SS)"},
-        {"PR","Preñada (PR)"},
-        {"0","NO"},
-        {"1","SI"}
+        {"PR","Preñada (PR)"}
     };
 
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
@@ -278,7 +285,6 @@ else
                 temp1 = traductorCarga[oTransan.Tiphac];
                 temp2 = traductorCarga[oTransan.Tipani];
                 temp3 = traductorCarga[oTransan.Hemsta];
-                temp4 = traductorCarga[oTransan.Incorp.ToString()];
             }
             catch (Exception ex)
             {
@@ -287,7 +293,6 @@ else
     }
     async Task Guardar()
     {
-        // --- Validaciones duras (todo obligatorio) ---
         var errores = new List<string>();
 
         if (oTransan.Fecvta == null) errores.Add("La fecha de venta es obligatoria.");
@@ -295,7 +300,6 @@ else
         var hayVendedor = socioVendedor != null && socioVendedor.Id != 0 && !string.IsNullOrWhiteSpace(socioVendedor.Scod);
         if (!hayVendedor) errores.Add("Debés seleccionar un Socio Vendedor.");
 
-        // >>> Comprador ahora es OPCIONAL
         var hayComprador = socioComprador != null && socioComprador.Id != 0 && !string.IsNullOrWhiteSpace(socioComprador.Scod);
 
         var hayPlantelOrigen = plantelOrigen != null && !string.IsNullOrWhiteSpace(plantelOrigen.Placod);
@@ -303,16 +307,19 @@ else
 
         var hayPlantelDestino = plantelDestino != null && !string.IsNullOrWhiteSpace(plantelDestino.Placod);
         if (!hayPlantelDestino) errores.Add("Debés seleccionar el Plantel Destino.");
+        if (hayPlantelOrigen && hayPlantelDestino && plantelOrigen.Placod == plantelDestino.Placod)
+            errores.Add("El plantel de origen y el plantel de destino no pueden ser el mismo.");
 
         if (string.IsNullOrWhiteSpace(temp1)) errores.Add("Debés seleccionar el Tipo de Hacienda.");
         if (string.IsNullOrWhiteSpace(temp2)) errores.Add("Debés seleccionar el Sexo de los Animales.");
         if (string.IsNullOrWhiteSpace(temp3)) errores.Add("Debés seleccionar el Estado de las Hembras.");
-        if (string.IsNullOrWhiteSpace(temp4)) errores.Add("Debés indicar si los animales se incorporan.");
 
         int cantHem = oTransan.CantHem ?? 0;
         int cantMach = oTransan.CantMach ?? 0;
         int cantChem = oTransan.CantChem ?? 0;
         int cantCmach = oTransan.CantCmach ?? 0;
+        int totalHembras = cantHem + cantChem;
+        int totalMachos = cantMach + cantCmach;
 
         if (cantHem < 0 || cantMach < 0 || cantChem < 0 || cantCmach < 0)
             errores.Add("Las cantidades no pueden ser negativas.");
@@ -320,38 +327,36 @@ else
         if ((cantHem + cantMach + cantChem + cantCmach) == 0)
             errores.Add("Debés ingresar al menos 1 animal en total.");
 
-        // Si va a enviar mail, necesitamos al menos un destinatario válido
-        if (enviarMail)
+        if (totalHembras > 0)
         {
-            var hayMailVendedor = !string.IsNullOrWhiteSpace(socioVendedor?.Mail);
-            var hayMailComprador = hayComprador && (!string.IsNullOrWhiteSpace(direccionCompra) || !string.IsNullOrWhiteSpace(socioComprador?.Mail));
-
-            if (!hayMailVendedor && !hayMailComprador)
-                errores.Add("Para enviar el mail, necesitamos al menos un correo válido (vendedor o comprador).");
+            if (string.IsNullOrWhiteSpace(temp3)) errores.Add("Debés seleccionar el Estado de las Hembras.");
+            if (string.IsNullOrWhiteSpace(oTransan.Tipohem)) errores.Add("Debés seleccionar el Tipo de Hembras.");
         }
+
+        if (hayComprador && string.IsNullOrWhiteSpace(direccionCompra) && string.IsNullOrWhiteSpace(socioComprador?.Mail))
+            errores.Add("El socio comprador no tiene un mail cargado. Completá el campo 'Mail del comprador' para poder enviar la notificación.");
 
         if (errores.Count > 0)
         {
             await Swal.FireAsync(new SweetAlertOptions
                 {
-                    Title = "Faltan datos",
+                    Title = "No se puede guardar la transferencia",
                     Html = $"<ul style='text-align:left;margin-left:12px'>{string.Join("", errores.Select(e => $"<li>{e}</li>"))}</ul>",
                     Icon = SweetAlertIcon.Warning
                 });
             return;
         }
 
-        // --- Mapear selects a códigos internos ---
         oTransan.Tiphac = traductor[temp1];            // PHPR/HPR/PHVIP/HVIP
         oTransan.Tipani = traductor[temp2];            // H/M
-        oTransan.Hemsta = traductor[temp3];            // CC/CCP/SS/PR
-        oTransan.Incorp = Convert.ToSByte(traductor[temp4]); // 0/1
+        oTransan.Hemsta = totalHembras > 0 ? traductor[temp3] : null;
+        oTransan.Tipohem = totalHembras > 0 ? oTransan.Tipohem : null;
+        oTransan.Incorp = 1;
 
-        // Client-side validation: if animales a incorporar == SI, ensure seller has enough stock for hembras
-        bool incorpor = traductor.ContainsKey(temp4) && traductor[temp4] == "1";
-        if (incorpor)
+        // El stock de plantel sólo existe para categorías de hembras.
+        // Si no hay hembras adultas, no hay movimiento de stock a validar acá.
+        if (cantHem > 0)
         {
-            // Determine field
             var tiphacCode = traductor.ContainsKey(temp1) ? traductor[temp1] : null;
             var hemstaCode = traductor.ContainsKey(temp3) ? traductor[temp3] : null;
             var field = GetHembraFieldClient(tiphacCode, hemstaCode);
@@ -366,13 +371,11 @@ else
 
                 double currentValue = GetPlantelFieldValueClient(plantelOrigen, field);
                 int prevCant = 0;
-                // If editing, previous transfer might have already subtracted from seller; allow adding it back for validation
                 if (Id != 0)
                 {
                     prevCant = oTransan.CantHem ?? 0;
                 }
 
-                // If editing and origin unchanged, seller can use current + prev
                 double allowed = currentValue + ((Id != 0 && oTransan.Plant == plantelOrigen.Placod) ? prevCant : 0);
 
                 if (cantHem > allowed)
@@ -393,33 +396,42 @@ else
             }
         }
 
-        // --- Socios
         oTransan.Vnom = socioVendedor.Nombre;
         oTransan.Sven = socioVendedor.Scod?.ToString();
 
         oTransan.Cnom = hayComprador ? socioComprador.Nombre : null;
         oTransan.Scom = hayComprador ? socioComprador.Scod?.ToString() : null;
 
-        // --- Planteles
         oTransan.Plant = plantelOrigen.Placod;
         oTransan.NvoPla = plantelDestino.Placod;
 
-        // --- Guardar (crear/editar) ---
+        var request = new TransanSaveRequestDTO
+        {
+            Transan = oTransan,
+            VendedorId = socioVendedor.Id,
+            CompradorId = hayComprador ? socioComprador.Id : null,
+            MailComprador = hayComprador ? direccionCompra : null
+        };
+
         if (Id == 0)
         {
-            await _transanServicio.Crear(oTransan);
-
-            if (enviarMail)
-                await EnviarMailNuevaTransferencia();
+            var response = await _transanServicio.Crear(request);
+            if (response == null || response.Exito != 1)
+            {
+                await MostrarErrorGuardado(response?.Mensaje);
+                return;
+            }
 
             await ModalInstance.CloseAsync(ModalResult.Ok("Creado"));
         }
         else
         {
-            await _transanServicio.Editar(oTransan);
-
-            if (enviarMail)
-                await EnviarMailEdicionTransferencia();
+            var response = await _transanServicio.Editar(request);
+            if (response == null || response.Exito != 1)
+            {
+                await MostrarErrorGuardado(response?.Mensaje);
+                return;
+            }
 
             await ModalInstance.CloseAsync(ModalResult.Ok("Editado"));
         }
@@ -453,63 +465,6 @@ else
         };
     }
 
-    private async Task EnviarMailNuevaTransferencia()
-    {
-        int total = (oTransan.CantHem ?? 0) + (oTransan.CantMach ?? 0) + (oTransan.CantChem ?? 0) + (oTransan.CantCmach ?? 0);
-        bool hayComprador = !string.IsNullOrWhiteSpace(oTransan.Scom);
-
-        var mail = $"Aviso de nueva transferencia animal\n" +
-                   $"Socio Vendedor: {socioVendedor.Nombre} - Plantel: {oTransan.Plant}\n" +
-                   $"Socio Comprador: {(hayComprador ? socioComprador.Nombre : "(No informado)")}" +
-                   $"{(hayComprador ? $" - Plantel: {oTransan.NvoPla}" : $" - Plantel: {oTransan.NvoPla}")}\n" +
-                   $"Cantidad total de animales: {total}\n" +
-                   $"Estado de las hembras: {oTransan.Hemsta}\n" +
-                   $"Tipo de hembra: {oTransan.Tipohem}\n" +
-                   $"Fecha de venta: {oTransan.Fecvta?.ToString("dd/MM/yyyy")}\n" +
-                   $"Animales incorporados: {(oTransan.Incorp == 1 ? "SI" : "NO")}\"";
-
-        var request = new
-        {
-            Vendedor = socioVendedor.Id,
-            Comprador = hayComprador ? socioComprador.Id : 0,  // 0 si no hay
-            Mail = mail,
-            Direccion = hayComprador ? direccionCompra : null  // solo si tenemos mail directo del comprador
-        };
-
-        var response = await http.PostAsJsonAsync("api/Transan/SendMail", request);
-        response.EnsureSuccessStatusCode();
-    }
-    private async Task EnviarMailEdicionTransferencia()
-    {
-        int total = (oTransan.CantHem ?? 0) + (oTransan.CantMach ?? 0) + (oTransan.CantChem ?? 0) + (oTransan.CantCmach ?? 0);
-        bool hayComprador = !string.IsNullOrWhiteSpace(oTransan.Scom);
-
-        var mail = $"Aviso de edición de transferencia animal\n" +
-                   $"Socio Vendedor: {socioVendedor.Nombre}\n" +
-                   $"Socio Comprador: {(hayComprador ? socioComprador.Nombre : "(No informado)")}\n" +
-                   $"Cantidad total de animales: {total}\n" +
-                   $"Estado de las hembras: {oTransan.Hemsta}\n" +
-                   $"Tipo de hembra: {oTransan.Tipohem}\n" +
-                   $"Fecha de venta: {oTransan.Fecvta?.ToString("dd/MM/yyyy")}\n" +
-                   $"Animales incorporados: {(oTransan.Incorp == 1 ? "SI" : "NO")}";
-
-        var request = new
-        {
-            Tipo = socioVendedor.Id,
-            Clase = hayComprador ? socioComprador.Id : 0,
-            Mail = mail,
-            Nombre = socioVendedor.Nombre,
-            MailCompra = hayComprador ? direccionCompra : null,
-            MailVendedor = socioVendedor.Mail
-        };
-
-        var response = await http.PostAsJsonAsync("api/Transan/SendMailChange", request);
-        response.EnsureSuccessStatusCode();
-    }
-
-
-
-
     public class ChangeNotificationModel
     {
         public string Names { get; set; }
@@ -527,6 +482,18 @@ else
     {
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
 
+    }
+
+    private async Task MostrarErrorGuardado(string? mensaje)
+    {
+        await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "La transferencia no pudo completarse",
+                Html = string.IsNullOrWhiteSpace(mensaje)
+                    ? "Ocurrió un error al guardar la transferencia. No se aplicó ningún cambio."
+                    : mensaje,
+                Icon = SweetAlertIcon.Error
+            });
     }
 
     protected async Task updateComprador(SocioDTO socio)

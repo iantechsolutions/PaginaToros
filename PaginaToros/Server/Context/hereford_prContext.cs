@@ -1867,9 +1867,11 @@ namespace PaginaToros.Server.Context
 
             modelBuilder.Entity<Socio>(entity =>
             {
-                entity.HasKey(e => new { e.Id, e.Scod })
-                    .HasName("PRIMARY")
-                    .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+                entity.HasKey(e => e.Id)
+                    .HasName("PRIMARY");
+
+                entity.HasAlternateKey(e => e.Scod)
+                    .HasName("AK_SOCIOS_SCOD");
 
                 entity.ToTable("SOCIOS");
 

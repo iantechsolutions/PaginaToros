@@ -267,7 +267,7 @@ namespace PaginaToros.Server.Controllers
 
         private void TryAddRecipient(MailMessage mail, string email)
         {
-            if (IsValidEmail(email))
+            if (IsValidEmail(email) && !mail.To.Any(x => string.Equals(x.Address, email, StringComparison.OrdinalIgnoreCase)))
                 mail.To.Add(email);
         }
 
@@ -375,114 +375,98 @@ namespace PaginaToros.Server.Controllers
 
         [HttpPost]
         [Route("Guardar")]
-        public async Task<IActionResult> Guardar([FromBody] TransanDTO request)
+        public async Task<IActionResult> Guardar([FromBody] TransanSaveRequestDTO request)
         {
-            Respuesta<TransanDTO> _Respuesta = new Respuesta<TransanDTO>();
+            var respuesta = new Respuesta<TransanDTO>();
             try
             {
-                Transan _Transan = _mapper.Map<Transan>(request);
+                if (request?.Transan == null)
+                {
+                    respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = "No se recibió la transferencia a guardar." };
+                    return BadRequest(respuesta);
+                }
 
-                // Use execution strategy to support MySQL retry policy with transactions
+                NormalizeTransfer(request.Transan);
+
+                var errores = await ValidateTransferRequestAsync(request, false);
+                if (errores.Count > 0)
+                {
+                    respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = string.Join("<br/>", errores) };
+                    return BadRequest(respuesta);
+                }
+
+                var transan = _mapper.Map<Transan>(request.Transan);
                 var strategy = db.Database.CreateExecutionStrategy();
+
                 await strategy.ExecuteAsync(async () =>
                 {
                     using var transaction = await db.Database.BeginTransactionAsync();
 
-                    // --- Stock adjustments for hembras ---
-                    var cantHem = request.CantHem ?? 0;
-                    if (cantHem > 0)
-                    {
-                        var sellerPlant = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == request.Plant);
-                        if (sellerPlant == null)
-                        {
-                            throw new Exception("Plantel de origen no encontrado");
-                        }
-
-                        var field = GetHembraField(request.Tiphac, request.Hemsta);
-                        if (string.IsNullOrEmpty(field))
-                        {
-                            throw new Exception("Estado de hembra inválido");
-                        }
-
-                        double sellerValue = GetPlantelFieldValue(sellerPlant, field);
-                        if (sellerValue < cantHem)
-                        {
-                            throw new Exception("No hay suficiente stock en el plantel del vendedor");
-                        }
-
-                        SetPlantelFieldValue(sellerPlant, field, sellerValue - cantHem);
-                        sellerPlant.FchUsu = DateTime.Now;
-                        db.Planteles.Update(sellerPlant);
-
-                        if (!string.IsNullOrWhiteSpace(request.NvoPla))
-                        {
-                            var buyerPlant = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == request.NvoPla);
-                            if (buyerPlant != null)
-                            {
-                                double buyerValue = GetPlantelFieldValue(buyerPlant, field);
-                                SetPlantelFieldValue(buyerPlant, field, buyerValue + cantHem);
-                                buyerPlant.FchUsu = DateTime.Now;
-                                db.Planteles.Update(buyerPlant);
-                            }
-                        }
-
-                        await db.SaveChangesAsync();
-                    }
-
-                    // Save transfer using same DbContext
-                    db.Transans.Add(_Transan);
+                    await ApplyTransferChangesAsync(request.Transan);
+                    db.Transans.Add(transan);
                     await db.SaveChangesAsync();
+                    await SendTransferNotificationAsync(request, false);
 
                     await transaction.CommitAsync();
                 });
 
-                // Log history to file (non-DB) for audit
                 try
                 {
-                    LogTransferHistory(_Transan, "Created");
+                    LogTransferHistory(transan, "Created");
                 }
                 catch (Exception lex)
                 {
                     Console.WriteLine($"Failed to write history log: {lex.Message}");
                 }
 
-                if (_Transan.Id != 0)
-                    _Respuesta = new Respuesta<TransanDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TransanDTO>(_Transan) };
-                else
-                    _Respuesta = new Respuesta<TransanDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
-
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                respuesta = new Respuesta<TransanDTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<TransanDTO>(transan) };
+                return Ok(respuesta);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<TransanDTO>() { Exito = 0, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, respuesta);
             }
         }
 
         [HttpPut]
         [Route("Editar")]
-        public async Task<IActionResult> Editar([FromBody] TransanDTO request)
+        public async Task<IActionResult> Editar([FromBody] TransanSaveRequestDTO request)
         {
-            Respuesta<TransanDTO> _Respuesta = new Respuesta<TransanDTO>();
+            var respuesta = new Respuesta<TransanDTO>();
             try
             {
-                // Load existing transfer from same DbContext
-                var existing = await db.Transans.FirstOrDefaultAsync(u => u.Id == request.Id);
-                if (existing == null)
+                if (request?.Transan == null)
                 {
-                    _Respuesta = new Respuesta<TransanDTO>() { Exito = 0, Mensaje = "No se encontró el identificador" };
-                    return StatusCode(StatusCodes.Status404NotFound, _Respuesta);
+                    respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = "No se recibió la transferencia a editar." };
+                    return BadRequest(respuesta);
                 }
 
-                // If transfer already processed (FchUsu not null), disallow changing seller or origin plant
-                if (existing.FchUsu != null)
+                NormalizeTransfer(request.Transan);
+
+                var existing = await db.Transans.FirstOrDefaultAsync(u => u.Id == request.Transan.Id);
+                if (existing == null)
                 {
-                    if (!string.Equals(existing.Sven, request.Sven) || !string.Equals(existing.Plant, request.Plant))
+                    respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = "No se encontró la transferencia indicada." };
+                    return NotFound(respuesta);
+                }
+
+                if (existing.FchUsu != null &&
+                    (!string.Equals(existing.Sven, request.Transan.Sven) || !string.Equals(existing.Plant, request.Transan.Plant)))
+                {
+                    respuesta = new Respuesta<TransanDTO>
                     {
-                        _Respuesta = new Respuesta<TransanDTO>() { Exito = 0, Mensaje = "No se puede cambiar vendedor o plantel de origen de una transferencia ya procesada." };
-                        return StatusCode(StatusCodes.Status400BadRequest, _Respuesta);
-                    }
+                        Exito = 0,
+                        Mensaje = "No se puede cambiar el socio vendedor ni el plantel de origen de una transferencia ya procesada."
+                    };
+                    return BadRequest(respuesta);
+                }
+
+                var errores = await ValidateTransferRequestAsync(request, true);
+                if (errores.Count > 0)
+                {
+                    respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = string.Join("<br/>", errores) };
+                    return BadRequest(respuesta);
                 }
 
                 var strategy = db.Database.CreateExecutionStrategy();
@@ -490,130 +474,420 @@ namespace PaginaToros.Server.Controllers
                 {
                     using var transaction = await db.Database.BeginTransactionAsync();
 
-                    // Revert previous hembras movement
-                    var prevCantHem = existing.CantHem ?? 0;
-                    if (prevCantHem > 0)
-                    {
-                        var prevSeller = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == existing.Plant);
-                        if (prevSeller != null)
-                        {
-                            var prevField = GetHembraField(existing.Tiphac, existing.Hemsta);
-                            if (!string.IsNullOrEmpty(prevField))
-                            {
-                                double val = GetPlantelFieldValue(prevSeller, prevField);
-                                SetPlantelFieldValue(prevSeller, prevField, val + prevCantHem);
-                                prevSeller.FchUsu = DateTime.Now;
-                                db.Planteles.Update(prevSeller);
-                            }
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(existing.NvoPla))
-                        {
-                            var prevBuyer = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == existing.NvoPla);
-                            if (prevBuyer != null)
-                            {
-                                var prevField = GetHembraField(existing.Tiphac, existing.Hemsta);
-                                if (!string.IsNullOrEmpty(prevField))
-                                {
-                                    double val = GetPlantelFieldValue(prevBuyer, prevField);
-                                    SetPlantelFieldValue(prevBuyer, prevField, val - prevCantHem);
-                                    prevBuyer.FchUsu = DateTime.Now;
-                                    db.Planteles.Update(prevBuyer);
-                                }
-                            }
-                        }
-
-                        await db.SaveChangesAsync();
-                    }
-
-                    // Apply new adjustments
-                    var cantHem = request.CantHem ?? 0;
-                    if (cantHem > 0)
-                    {
-                        var sellerPlant = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == request.Plant);
-                        if (sellerPlant == null)
-                        {
-                            throw new Exception("Plantel de origen no encontrado");
-                        }
-
-                        string field = GetHembraField(request.Tiphac, request.Hemsta);
-                        if (string.IsNullOrEmpty(field))
-                        {
-                            throw new Exception("Estado de hembra inválido");
-                        }
-
-                        double sellerValue = GetPlantelFieldValue(sellerPlant, field);
-                        if (sellerValue < cantHem)
-                        {
-                            throw new Exception("No hay suficiente stock en el plantel del vendedor");
-                        }
-
-                        SetPlantelFieldValue(sellerPlant, field, sellerValue - cantHem);
-                        sellerPlant.FchUsu = DateTime.Now;
-                        db.Planteles.Update(sellerPlant);
-
-                        if (!string.IsNullOrWhiteSpace(request.NvoPla))
-                        {
-                            var buyerPlant = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == request.NvoPla);
-                            if (buyerPlant != null)
-                            {
-                                double buyerValue = GetPlantelFieldValue(buyerPlant, field);
-                                SetPlantelFieldValue(buyerPlant, field, buyerValue + cantHem);
-                                buyerPlant.FchUsu = DateTime.Now;
-                                db.Planteles.Update(buyerPlant);
-                            }
-                        }
-
-                        await db.SaveChangesAsync();
-                    }
-
-                    // Update transfer record using same DbContext
-                    existing.NroCert = request.NroCert;
-                    existing.Fecvta = request.Fecvta;
-                    existing.Sven = request.Sven;
-                    existing.CategSv = request.CategSv;
-                    existing.Vnom = request.Vnom;
-                    existing.Scom = request.Scom;
-                    existing.CategSc = request.CategSc;
-                    existing.Cnom = request.Cnom;
-                    existing.Plant = request.Plant;
-                    existing.NvoPla = request.NvoPla;
-                    existing.CantHem = request.CantHem;
-                    existing.CantMach = request.CantMach;
-                    existing.Tiphac = request.Tiphac;
-                    existing.Hemsta = request.Hemsta;
-                    existing.Tipani = request.Tipani;
-                    existing.Incorp = request.Incorp;
-                    existing.Tipohem = request.Tipohem;
-                    existing.CantChem = request.CantChem;
-                    existing.CantCmach = request.CantCmach;
-                    existing.FchUsu = request.FchUsu;
-                    existing.CodUsu = request.CodUsu;
-
+                    await RevertTransferChangesAsync(existing);
+                    await ApplyTransferChangesAsync(request.Transan);
+                    ApplyTransferEntityChanges(existing, request.Transan);
                     db.Transans.Update(existing);
                     await db.SaveChangesAsync();
+                    await SendTransferNotificationAsync(request, true);
 
                     await transaction.CommitAsync();
-
-                    // Log history
-                    try
-                    {
-                        LogTransferHistory(existing, "Edited");
-                    }
-                    catch (Exception lex)
-                    {
-                        Console.WriteLine($"Failed to write history log: {lex.Message}");
-                    }
                 });
 
-                _Respuesta = new Respuesta<TransanDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TransanDTO>(request) };
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                try
+                {
+                    LogTransferHistory(existing, "Edited");
+                }
+                catch (Exception lex)
+                {
+                    Console.WriteLine($"Failed to write history log: {lex.Message}");
+                }
+
+                respuesta = new Respuesta<TransanDTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<TransanDTO>(existing) };
+                return Ok(respuesta);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<TransanDTO>() { Exito = 0, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, respuesta);
             }
+        }
+
+        private void NormalizeTransfer(TransanDTO transan)
+        {
+            transan.NroCert = transan.NroCert?.Trim();
+            transan.Plant = transan.Plant?.Trim();
+            transan.NvoPla = transan.NvoPla?.Trim();
+            transan.Sven = transan.Sven?.Trim();
+            transan.Scom = transan.Scom?.Trim();
+            transan.Vnom = transan.Vnom?.Trim();
+            transan.Cnom = transan.Cnom?.Trim();
+            transan.Tiphac = transan.Tiphac?.Trim();
+            transan.Hemsta = transan.Hemsta?.Trim();
+            transan.Tipani = transan.Tipani?.Trim();
+            transan.Tipohem = transan.Tipohem?.Trim();
+            transan.Incorp = 1;
+        }
+
+        private async Task<List<string>> ValidateTransferRequestAsync(TransanSaveRequestDTO request, bool isEdit)
+        {
+            var errores = new List<string>();
+            var transan = request.Transan;
+
+            if (transan == null)
+            {
+                errores.Add("No se recibió la transferencia.");
+                return errores;
+            }
+
+            if (isEdit && transan.Id <= 0)
+                errores.Add("La transferencia a editar no tiene un identificador válido.");
+
+            if (transan.Fecvta == null)
+                errores.Add("La fecha de venta es obligatoria.");
+
+            if (request.VendedorId <= 0)
+                errores.Add("Debés seleccionar un socio vendedor válido.");
+
+            if (string.IsNullOrWhiteSpace(transan.Sven) || string.IsNullOrWhiteSpace(transan.Vnom))
+                errores.Add("Faltan los datos del socio vendedor.");
+
+            if (string.IsNullOrWhiteSpace(transan.Plant))
+                errores.Add("Debés seleccionar un plantel de origen.");
+
+            if (string.IsNullOrWhiteSpace(transan.NvoPla))
+                errores.Add("Debés seleccionar un plantel de destino.");
+
+            if (!string.IsNullOrWhiteSpace(transan.Plant) &&
+                !string.IsNullOrWhiteSpace(transan.NvoPla) &&
+                string.Equals(transan.Plant, transan.NvoPla, StringComparison.OrdinalIgnoreCase))
+            {
+                errores.Add("El plantel de origen y el plantel de destino no pueden ser el mismo.");
+            }
+
+            if (string.IsNullOrWhiteSpace(transan.Tiphac))
+                errores.Add("Debés seleccionar un tipo de hacienda.");
+
+            if (string.IsNullOrWhiteSpace(transan.Tipani))
+                errores.Add("Debés seleccionar el sexo de los animales.");
+
+            if (string.IsNullOrWhiteSpace(transan.Hemsta))
+                errores.Add("Debés seleccionar el estado de las hembras.");
+
+            if (string.IsNullOrWhiteSpace(transan.Tipohem))
+                errores.Add("Debés seleccionar el tipo de hembras.");
+
+            var cantidades = new[]
+            {
+                transan.CantHem ?? 0,
+                transan.CantMach ?? 0,
+                transan.CantChem ?? 0,
+                transan.CantCmach ?? 0
+            };
+            var totalHembras = (transan.CantHem ?? 0) + (transan.CantChem ?? 0);
+            var totalMachos = (transan.CantMach ?? 0) + (transan.CantCmach ?? 0);
+
+            if (cantidades.Any(x => x < 0))
+                errores.Add("Las cantidades no pueden ser negativas.");
+
+            if (cantidades.Sum() == 0)
+                errores.Add("Debés ingresar al menos un animal para transferir.");
+
+            if (totalHembras > 0)
+            {
+                if (string.IsNullOrWhiteSpace(transan.Hemsta))
+                    errores.Add("Debés informar el estado de las hembras cuando la transferencia incluye hembras.");
+
+                if (string.IsNullOrWhiteSpace(transan.Tipohem))
+                    errores.Add("Debés informar el tipo de hembras cuando la transferencia incluye hembras.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.MailComprador) && !IsValidEmail(request.MailComprador))
+                errores.Add("El mail del comprador no tiene un formato válido.");
+
+            if (!string.IsNullOrWhiteSpace(transan.Plant))
+            {
+                var plantelOrigen = await db.Planteles.AsNoTracking().FirstOrDefaultAsync(p => p.Placod == transan.Plant);
+                if (plantelOrigen == null)
+                    errores.Add("El plantel de origen seleccionado no existe.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(transan.NvoPla))
+            {
+                var plantelDestino = await db.Planteles.AsNoTracking().FirstOrDefaultAsync(p => p.Placod == transan.NvoPla);
+                if (plantelDestino == null)
+                    errores.Add("El plantel de destino seleccionado no existe.");
+            }
+
+            if (request.VendedorId > 0)
+            {
+                var vendedor = await db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.VendedorId);
+                if (vendedor == null)
+                    errores.Add("El socio vendedor seleccionado no existe.");
+            }
+
+            if (request.CompradorId.HasValue && request.CompradorId.Value > 0)
+            {
+                var comprador = await db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.CompradorId.Value);
+                if (comprador == null)
+                    errores.Add("El socio comprador seleccionado no existe.");
+            }
+
+            return errores;
+        }
+
+        private async Task ApplyTransferChangesAsync(TransanDTO request)
+        {
+            var cantHem = request.CantHem ?? 0;
+            if (cantHem <= 0)
+                return;
+
+            var sellerPlant = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == request.Plant);
+            if (sellerPlant == null)
+                throw new Exception("No se encontró el plantel de origen seleccionado.");
+
+            var field = GetHembraField(request.Tiphac, request.Hemsta);
+            if (string.IsNullOrWhiteSpace(field))
+                throw new Exception("No se pudo determinar la categoría de hembras a transferir.");
+
+            var sellerValue = GetPlantelFieldValue(sellerPlant, field);
+            if (sellerValue < cantHem)
+            {
+                throw new Exception($"El plantel de origen no tiene stock suficiente para transferir {cantHem} hembras. Disponible: {sellerValue}.");
+            }
+
+            SetPlantelFieldValue(sellerPlant, field, sellerValue - cantHem);
+            sellerPlant.FchUsu = DateTime.Now;
+            db.Planteles.Update(sellerPlant);
+
+            var buyerPlant = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == request.NvoPla);
+            if (buyerPlant == null)
+                throw new Exception("No se encontró el plantel de destino seleccionado.");
+
+            var buyerValue = GetPlantelFieldValue(buyerPlant, field);
+            SetPlantelFieldValue(buyerPlant, field, buyerValue + cantHem);
+            buyerPlant.FchUsu = DateTime.Now;
+            db.Planteles.Update(buyerPlant);
+
+            await db.SaveChangesAsync();
+        }
+
+        private async Task RevertTransferChangesAsync(Transan existing)
+        {
+            var prevCantHem = existing.CantHem ?? 0;
+            if (prevCantHem <= 0)
+                return;
+
+            var field = GetHembraField(existing.Tiphac, existing.Hemsta);
+            if (string.IsNullOrWhiteSpace(field))
+                throw new Exception("No se pudo revertir la transferencia anterior porque su categoría de hembras es inválida.");
+
+            var prevSeller = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == existing.Plant);
+            if (prevSeller != null)
+            {
+                var sellerValue = GetPlantelFieldValue(prevSeller, field);
+                SetPlantelFieldValue(prevSeller, field, sellerValue + prevCantHem);
+                prevSeller.FchUsu = DateTime.Now;
+                db.Planteles.Update(prevSeller);
+            }
+
+            if (!string.IsNullOrWhiteSpace(existing.NvoPla))
+            {
+                var prevBuyer = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == existing.NvoPla);
+                if (prevBuyer != null)
+                {
+                    var buyerValue = GetPlantelFieldValue(prevBuyer, field);
+                    SetPlantelFieldValue(prevBuyer, field, Math.Max(0, buyerValue - prevCantHem));
+                    prevBuyer.FchUsu = DateTime.Now;
+                    db.Planteles.Update(prevBuyer);
+                }
+            }
+
+            await db.SaveChangesAsync();
+        }
+
+        private void ApplyTransferEntityChanges(Transan existing, TransanDTO request)
+        {
+            existing.NroCert = request.NroCert;
+            existing.Fecvta = request.Fecvta;
+            existing.Sven = request.Sven;
+            existing.CategSv = request.CategSv;
+            existing.Vnom = request.Vnom;
+            existing.Scom = request.Scom;
+            existing.CategSc = request.CategSc;
+            existing.Cnom = request.Cnom;
+            existing.Plant = request.Plant;
+            existing.NvoPla = request.NvoPla;
+            existing.CantHem = request.CantHem;
+            existing.CantMach = request.CantMach;
+            existing.Tiphac = request.Tiphac;
+            existing.Hemsta = request.Hemsta;
+            existing.Tipani = request.Tipani;
+            existing.Incorp = 1;
+            existing.Tipohem = request.Tipohem;
+            existing.CantChem = request.CantChem;
+            existing.CantCmach = request.CantCmach;
+            existing.FchUsu = request.FchUsu;
+            existing.CodUsu = request.CodUsu;
+        }
+
+        private async Task SendTransferNotificationAsync(TransanSaveRequestDTO request, bool isEdit)
+        {
+            var transan = request.Transan;
+            var asunto = isEdit
+                ? $"El socio {transan.Vnom ?? "N/D"} ha modificado una transferencia"
+                : "Nueva transferencia animal";
+
+            using var mail = new MailMessage();
+
+            const string correoSistema = "planteles@hereford.org.ar";
+            const string smtpHost = "mail.hereford.org.ar";
+            const int smtpPort = 587;
+            const string smtpUsername = "planteles@hereford.org.ar";
+            const string smtpPassword = "Hereford.2033";
+
+            mail.From = new MailAddress(correoSistema);
+            mail.Subject = asunto;
+            mail.Body = BuildTransferEmailHtml(transan, isEdit);
+            mail.IsBodyHtml = true;
+
+            TryAddRecipient(mail, correoSistema);
+
+            var mailVendedor = await ResolveEmailAsync(request.VendedorId);
+            if (!string.IsNullOrWhiteSpace(mailVendedor))
+                TryAddRecipient(mail, mailVendedor);
+
+            var mailComprador = !string.IsNullOrWhiteSpace(request.MailComprador)
+                ? request.MailComprador
+                : await ResolveEmailAsync(request.CompradorId);
+
+            if (!string.IsNullOrWhiteSpace(mailComprador))
+                TryAddRecipient(mail, mailComprador);
+
+            if (mail.To.Count == 0)
+                throw new Exception("No se encontró ningún destinatario válido para enviar el mail de la transferencia.");
+
+            using var smtp = new SmtpClient(smtpHost, smtpPort)
+            {
+                UseDefaultCredentials = false,
+                Credentials = new System.Net.NetworkCredential(smtpUsername, smtpPassword),
+                EnableSsl = true
+            };
+
+            await smtp.SendMailAsync(mail);
+        }
+
+        private async Task<string?> ResolveEmailAsync(int? socioId)
+        {
+            if (!socioId.HasValue || socioId.Value <= 0)
+                return null;
+
+            var usuario = await db.User.AsNoTracking().FirstOrDefaultAsync(x => x.SocioId == socioId.Value);
+            if (usuario != null && IsValidEmail(usuario.Email))
+                return usuario.Email;
+
+            var socio = await db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == socioId.Value);
+            if (socio != null && IsValidEmail(socio.Mail))
+                return socio.Mail;
+
+            return null;
+        }
+
+        private string BuildTransferEmailHtml(TransanDTO transan, bool isEdit)
+        {
+            var total = (transan.CantHem ?? 0) + (transan.CantMach ?? 0) + (transan.CantChem ?? 0) + (transan.CantCmach ?? 0);
+            var titulo = isEdit ? "Transferencia animal modificada" : "Nueva transferencia animal";
+            var subtitulo = isEdit
+                ? "Se registraron cambios en la siguiente transferencia."
+                : "Se registró la siguiente transferencia en el sistema.";
+
+            return $@"
+<!DOCTYPE html>
+<html lang=""es"">
+<head>
+  <meta charset=""utf-8"" />
+  <title>{titulo}</title>
+</head>
+<body style=""margin:0;padding:24px;background-color:#f3f5f7;font-family:Segoe UI, Arial, sans-serif;color:#1f2937;"">
+  <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"" width=""100%"" style=""max-width:760px;margin:0 auto;background:#ffffff;border:1px solid #dfe3e8;border-radius:12px;overflow:hidden;"">
+    <tr>
+      <td style=""background:#1f5f3b;color:#ffffff;padding:22px 28px;"">
+        <div style=""font-size:24px;font-weight:700;"">Asociacion Criadores Hereford</div>
+        <div style=""font-size:18px;margin-top:6px;"">{titulo}</div>
+      </td>
+    </tr>
+    <tr>
+      <td style=""padding:24px 28px 10px 28px;font-size:15px;line-height:1.5;"">
+        <p style=""margin:0 0 14px 0;"">{subtitulo}</p>
+        <p style=""margin:0;color:#4b5563;"">Este correo puede conservarse como constancia de la operación informada.</p>
+      </td>
+    </tr>
+    <tr>
+      <td style=""padding:10px 28px 6px 28px;"">
+        <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"" width=""100%"" style=""border-collapse:collapse;"">
+          {BuildEmailRow("Nro. Certificado", string.IsNullOrWhiteSpace(transan.NroCert) ? "-" : transan.NroCert)}
+          {BuildEmailRow("Fecha de venta", transan.Fecvta?.ToString("dd/MM/yyyy") ?? "-")}
+          {BuildEmailRow("Socio vendedor", transan.Vnom)}
+          {BuildEmailRow("Plantel origen", transan.Plant)}
+          {BuildEmailRow("Socio comprador", string.IsNullOrWhiteSpace(transan.Cnom) ? "(No informado)" : transan.Cnom)}
+          {BuildEmailRow("Plantel destino", transan.NvoPla)}
+          {BuildEmailRow("Tipo de hacienda", FormatTiphac(transan.Tiphac))}
+          {BuildEmailRow("Sexo de los animales", FormatTipani(transan.Tipani))}
+          {BuildEmailRow("Estado de las hembras", FormatHemsta(transan.Hemsta))}
+          {BuildEmailRow("Tipo de hembras", string.IsNullOrWhiteSpace(transan.Tipohem) ? "-" : transan.Tipohem)}
+          {BuildEmailRow("Hembras", (transan.CantHem ?? 0).ToString())}
+          {BuildEmailRow("Machos", (transan.CantMach ?? 0).ToString())}
+          {BuildEmailRow("Crias hembras", (transan.CantChem ?? 0).ToString())}
+          {BuildEmailRow("Crias machos", (transan.CantCmach ?? 0).ToString())}
+          {BuildEmailRow("Cantidad total", total.ToString())}
+          {BuildEmailRow("Animales incorporados", "SI")}
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style=""padding:20px 28px 28px 28px;color:#6b7280;font-size:13px;border-top:1px solid #e5e7eb;"">
+        Mensaje automatico generado por el sistema de transferencias de Hereford.
+      </td>
+    </tr>
+  </table>
+</body>
+</html>";
+        }
+
+        private string BuildEmailRow(string label, string? value)
+        {
+            var safeLabel = System.Net.WebUtility.HtmlEncode(label);
+            var safeValue = System.Net.WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(value) ? "-" : value);
+
+            return $@"
+<tr>
+  <td style=""padding:10px 12px;border-bottom:1px solid #eef2f7;background:#f9fafb;font-weight:600;width:38%;"">{safeLabel}</td>
+  <td style=""padding:10px 12px;border-bottom:1px solid #eef2f7;"">{safeValue}</td>
+</tr>";
+        }
+
+        private string FormatTiphac(string? value)
+        {
+            return value?.Trim().ToUpperInvariant() switch
+            {
+                "PHPR" => "PHPR (Puro Registrado)",
+                "HPR" => "HPR (Puro Registrado)",
+                "PHVIP" => "PHVIP (VIP)",
+                "HVIP" => "HVIP (VIP)",
+                _ => string.IsNullOrWhiteSpace(value) ? "-" : value
+            };
+        }
+
+        private string FormatTipani(string? value)
+        {
+            return value?.Trim().ToUpperInvariant() switch
+            {
+                "H" => "Hembras",
+                "M" => "Machos",
+                _ => string.IsNullOrWhiteSpace(value) ? "-" : value
+            };
+        }
+
+        private string FormatHemsta(string? value)
+        {
+            return value?.Trim().ToUpperInvariant() switch
+            {
+                "CC" => "Con Cria (CC)",
+                "CCP" => "Con Cria y Prenada (CCP)",
+                "SS" => "Sin Servicio (SS)",
+                "PR" => "Prenada (PR)",
+                _ => string.IsNullOrWhiteSpace(value) ? "-" : value
+            };
         }
 
         // Write transfer history to a local JSON-lines log file (non-DB)

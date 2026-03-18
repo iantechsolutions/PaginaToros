@@ -44,19 +44,18 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return response!.Exito == 1;
         }
 
-        public async Task<Respuesta<TransanDTO>> Crear(TransanDTO entidad)
+        public async Task<Respuesta<TransanDTO>> Crear(TransanSaveRequestDTO entidad)
         {
             var result = await _http.PostAsJsonAsync("api/Transan/Guardar", entidad);
             var response = await result.Content.ReadFromJsonAsync<Respuesta<TransanDTO>>();
             return response!;
         }
 
-        public async Task<bool> Editar(TransanDTO entidad)
+        public async Task<Respuesta<TransanDTO>> Editar(TransanSaveRequestDTO entidad)
         {
             var result = await _http.PutAsJsonAsync("api/Transan/Editar", entidad);
             var response = await result.Content.ReadFromJsonAsync<Respuesta<TransanDTO>>();
-
-            return response!.Exito == 1;
+            return response!;
         }
 
         public async Task<Respuesta<TransanDTO>> Filtrar(string descripcion)

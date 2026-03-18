@@ -267,7 +267,6 @@ C:/Users/Maxim/source/repos/PaginaToros/PaginaToros/Server/bin/Debug/net6.0/Syst
 /home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Server/bin/Debug/net6.0/BlazorDebugProxy/Microsoft.CodeAnalysis.dll
 /home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Server/bin/Debug/net6.0/BlazorDebugProxy/Newtonsoft.Json.dll
 /home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Server/bin/Debug/net6.0/PaginaToros.Server.staticwebassets.runtime.json
-/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Server/bin/Debug/net6.0/PaginaToros.Server
 /home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Server/bin/Debug/net6.0/PaginaToros.Server.deps.json
 /home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Server/bin/Debug/net6.0/PaginaToros.Server.runtimeconfig.json
 /home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Server/bin/Debug/net6.0/PaginaToros.Server.dll
@@ -381,3 +380,4 @@ C:/Users/Maxim/source/repos/PaginaToros/PaginaToros/Server/bin/Debug/net6.0/Syst
 /home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Server/obj/Debug/net6.0/PaginaToros.Server.pdb
 /home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Server/obj/Debug/net6.0/PaginaToros.Server.genruntimeconfig.cache
 /home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Server/obj/Debug/net6.0/ref/PaginaToros.Server.dll
+/home/julindo/IanTech Solutions Srl/PaginaToros/PaginaToros/Server/bin/Debug/net6.0/PaginaToros.Server

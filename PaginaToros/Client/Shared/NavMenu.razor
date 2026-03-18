@@ -3,7 +3,7 @@
 
 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
     <Authorized>
-        <nav class="navbar navbar-expand-md main-navbar mb-4">
+        <nav class="navbar navbar-expand-xl main-navbar mb-4">
             <div class="container-fluid">
                 <a href="" class="navbar-brand pe-3">
                     <img src="images/LOGO PRINCIPAL.png" class="nav-logo" alt="Logo" />
@@ -15,7 +15,7 @@
                 </button>
 
                 <div class="collapse navbar-collapse @NavBarCssClass" id="navbarCollapseAdmin">
-                    <ul class="navbar-nav me-auto mb-2 mb-md-0 w-100">
+                    <ul class="navbar-nav me-auto mb-2 mb-xl-0 w-100">
                         <li class="nav-item">
                             <NavLink class="nav-link text-black" href="" Match="NavLinkMatch.All"
                                      @onclick="CollapseNavMenu">Inicio</NavLink>
@@ -68,7 +68,7 @@
 
                                 <li class="nav-item dropdown menu-dropdown">
                                     <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                       data-bs-toggle="dropdown" aria-expanded="false">Toros Padres</a>
+                                       data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Toros Padres</span><span class="nav-label-compact">Toros<br />Padres</span></a>
                                     <ul class="dropdown-menu">
                                         <li>
                                             <NavLink class="dropdown-item" href="toros" @onclick="CollapseNavMenu">Listado
@@ -79,7 +79,7 @@
 
                                 <li class="nav-item dropdown menu-dropdown">
                                     <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                       data-bs-toggle="dropdown" aria-expanded="false">Centros de IA</a>
+                                       data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Centros de IA</span><span class="nav-label-compact">Centros<br />de IA</span></a>
                                     <ul class="dropdown-menu">
                                         <li>
                                             <NavLink class="dropdown-item" href="centros" @onclick="CollapseNavMenu">Listado
@@ -90,7 +90,7 @@
 
                                 <li class="nav-item dropdown menu-dropdown">
                                     <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                       data-bs-toggle="dropdown" aria-expanded="false">Certificados de semen</a>
+                                       data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Certificados de semen</span><span class="nav-label-compact">Certif.<br />de semen</span></a>
                                     <ul class="dropdown-menu">
                                         <li>
                                             <NavLink class="dropdown-item" href="certificados" @onclick="CollapseNavMenu">
@@ -101,7 +101,7 @@
 
                                     <li class="nav-item dropdown menu-dropdown">
                                         <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                           data-bs-toggle="dropdown" aria-expanded="false">Transferencias</a>
+                                           data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Transferencias</span><span class="nav-label-compact">Trans.</span></a>
                                         <ul class="dropdown-menu">
                                             <li>
                                                 <NavLink class="dropdown-item" href="transan" @onclick="CollapseNavMenu">Animales
@@ -120,7 +120,7 @@
 
                                         <li class="nav-item dropdown menu-dropdown">
                                             <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                               data-bs-toggle="dropdown" aria-expanded="false">Declaraciones de servicio</a>
+                                               data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Declaraciones de servicio</span><span class="nav-label-compact">Declarac.<br />de<br />servicio</span></a>
                                             <ul class="dropdown-menu">
                                                 <li>
                                                     <NavLink class="dropdown-item" href="declaraciones" @onclick="CollapseNavMenu">
@@ -131,7 +131,7 @@
 
                                             <li class="nav-item">
                                                 <NavLink class="nav-link text-black" href="animalescontrol" Match="NavLinkMatch.All"
-                                                         @onclick="CollapseNavMenu">Animales Para Control</NavLink>
+                                                         @onclick="CollapseNavMenu"><span class="nav-label-full">Animales Para Control</span><span class="nav-label-compact">Animales<br />p/control</span></NavLink>
                                             </li>
 
                                             <li class="nav-item dropdown menu-dropdown">
@@ -154,7 +154,7 @@
                                                              @onclick="CollapseNavMenu">Consultas</NavLink>
                                                 </li>
 
-                                                    <li class="nav-item dropdown menu-dropdown ms-md-auto">
+                                                    <li class="nav-item dropdown menu-dropdown ms-xl-auto">
                                                         <a class="nav-link dropdown-toggle text-black d-flex align-items-center gap-2" href="#"
                                                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                             <FeatherUser Color="Black"></FeatherUser>
@@ -188,7 +188,7 @@
 
                                             <AuthorizeView Roles="Socio">
                                                 <Authorized>
-                                                    <nav class="navbar navbar-expand-md main-navbar mb-4">
+                                                    <nav class="navbar navbar-expand-xl main-navbar mb-4">
                                                         <div class="container-fluid">
                                                             <a href="" class="navbar-brand pe-3">
                                                                 <img src="images/LOGO PRINCIPAL.png" class="nav-logo" alt="Logo" />
@@ -200,7 +200,7 @@
                                                             </button>
 
                                                             <div class="collapse navbar-collapse @NavBarCssClass" id="navbarCollapseSocio">
-                                                                <ul class="navbar-nav me-auto mb-2 mb-md-0 w-100">
+                                                                <ul class="navbar-nav me-auto mb-2 mb-xl-0 w-100">
                                                                     <li class="nav-item">
                                                                         <NavLink class="nav-link text-black" href="" Match="NavLinkMatch.All"
                                                                                  @onclick="CollapseNavMenu">Inicio</NavLink>
@@ -249,7 +249,7 @@
 
                                                                         <li class="nav-item dropdown menu-dropdown">
                                                                             <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                                                               data-bs-toggle="dropdown" aria-expanded="false">Toros Padres</a>
+                                                                               data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Toros Padres</span><span class="nav-label-compact">Toros<br />Padres</span></a>
                                                                             <ul class="dropdown-menu">
                                                                                 <li>
                                                                                     <NavLink class="dropdown-item" href="toros" @onclick="CollapseNavMenu">Listado
@@ -260,7 +260,7 @@
 
                                                                         <li class="nav-item dropdown menu-dropdown">
                                                                             <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                                                               data-bs-toggle="dropdown" aria-expanded="false">Certificados de semen</a>
+                                                                               data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Certificados de semen</span><span class="nav-label-compact">Certif.<br />de semen</span></a>
                                                                             <ul class="dropdown-menu">
                                                                                 <li>
                                                                                     <NavLink class="dropdown-item" href="certificados" @onclick="CollapseNavMenu">
@@ -271,7 +271,7 @@
 
                                                                             <li class="nav-item dropdown menu-dropdown">
                                                                                 <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                                                                   data-bs-toggle="dropdown" aria-expanded="false">Transferencias</a>
+                                                                                   data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Transferencias</span><span class="nav-label-compact">Trans.</span></a>
                                                                                 <ul class="dropdown-menu">
                                                                                     <li>
                                                                                         <NavLink class="dropdown-item" href="transan" @onclick="CollapseNavMenu">Animales
@@ -290,7 +290,7 @@
 
                                                                                 <li class="nav-item dropdown menu-dropdown">
                                                                                     <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                                                                       data-bs-toggle="dropdown" aria-expanded="false">Declaraciones de servicio</a>
+                                                                                       data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Declaraciones de servicio</span><span class="nav-label-compact">Declarac.<br />de<br />servicio</span></a>
                                                                                     <ul class="dropdown-menu">
                                                                                         <li>
                                                                                             <NavLink class="dropdown-item" href="declaraciones" @onclick="CollapseNavMenu">
@@ -301,10 +301,10 @@
 
                                                                                     <li class="nav-item">
                                                                                         <NavLink class="nav-link text-black" href="animalescontrol" Match="NavLinkMatch.All"
-                                                                                                 @onclick="CollapseNavMenu">Animales Para Control</NavLink>
+                                                                                                 @onclick="CollapseNavMenu"><span class="nav-label-full">Animales Para Control</span><span class="nav-label-compact">Animales<br />p/control</span></NavLink>
                                                                                     </li>
 
-                                                                                    <li class="nav-item dropdown menu-dropdown ms-md-auto">
+                                                                                                    <li class="nav-item dropdown menu-dropdown ms-xl-auto">
                                                                                         <a class="nav-link dropdown-toggle text-black d-flex align-items-center gap-2" href="#"
                                                                                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                                                             <FeatherUser Color="Black"></FeatherUser>

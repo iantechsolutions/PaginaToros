@@ -10,8 +10,8 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<Respuesta<List<TransanDTO>>> LimitadosFiltrados(int skip, int take, string filtro = null);
         Task<Respuesta<List<TransanDTO>>> GetBySocioCod(string socioCod);
         Task<bool> Eliminar(int id);
-        Task<Respuesta<TransanDTO>> Crear(TransanDTO entidad);
-        Task<bool> Editar(TransanDTO entidad);
+        Task<Respuesta<TransanDTO>> Crear(TransanSaveRequestDTO entidad);
+        Task<Respuesta<TransanDTO>> Editar(TransanSaveRequestDTO entidad);
         Task<Respuesta<TransanDTO>> Filtrar(string descripcion);
     }
 }

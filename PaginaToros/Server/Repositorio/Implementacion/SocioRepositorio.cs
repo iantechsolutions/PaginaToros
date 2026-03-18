@@ -65,26 +65,26 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Socio> a;
-                if(filtro is not null) { 
-                    a = await _dbContext.Socios
-                        .Where(x => x.Criador == "S")
-                        .Include(x=>x.Provincia).Where(filtro).Skip(skip).ToListAsync();
-                }
-                else
+                IQueryable<Socio> query = _dbContext.Socios
+                    .Where(x => x.Criador == "S")
+                    .Include(x => x.Provincia)
+                    .OrderByDescending(t => t.Id);
+
+                if (filtro is not null)
                 {
-                    a = await _dbContext.Socios
-                        .Where(x => x.Criador == "S")
-                        .Include(x => x.Provincia).Skip(skip).ToListAsync();
+                    query = query.Where(filtro);
                 }
+
+                List<Socio> a = await query
+                    .Skip(skip)
+                    .ToListAsync();
+
                 if (take == 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    return a;
                 }
-                else
-                {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
-                }
+
+                return a.Take(take).ToList();
             }
             catch
             {

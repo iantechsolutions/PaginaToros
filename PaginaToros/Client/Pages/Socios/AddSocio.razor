@@ -116,7 +116,7 @@
 
                 <div class="col-sm">
                     <label>Codigo de socio *</label>
-                    <InputText class="form-control" @bind-Value="oSocio.Codpos2" placeholder="Codigo de socio" @onblur="CheckCodpos2" />
+                    <InputText class="form-control" @bind-Value="oSocio.Codpos2" placeholder="Codigo de socio" maxlength="4" @onblur="CheckCodpos2" />
                 </div>
 
                 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
@@ -409,6 +409,11 @@
 
         if (!string.IsNullOrWhiteSpace(oSocio.Codpos2))
         {
+            if (oSocio.Codpos2.Length > 4)
+            {
+                validationErrors.Add("El código de socio no puede tener más de 4 caracteres.");
+            }
+
             try
             {
                 var existsResp = await _socioServicio.ExistsCodpos2(oSocio.Codpos2, Id == 0 ? null : Id);
