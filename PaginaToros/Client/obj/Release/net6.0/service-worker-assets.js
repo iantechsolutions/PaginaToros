@@ -1,7 +1,7 @@
 ﻿self.assetsManifest = {
   "assets": [
     {
-      "hash": "sha256-jBc\/csfLs1iBROEc3Zdf46jbp44vN1x21y5HZdtBB9M=",
+      "hash": "sha256-Rxz5l1jIO4dDqv29R71syXqYLMsXz5z2cRn56yO11gk=",
       "url": "PaginaToros.Client.styles.css"
     },
     {
@@ -141,7 +141,7 @@
       "url": "_framework\/icudt.dat"
     },
     {
-      "hash": "sha256-2\/DxcH+a8WcxhiyE23mNBM5GbUtH8ypULeYivwKfO60=",
+      "hash": "sha256-LuYcvKJteRPMGtJ8u0Py0anBS09ZfZw49RMMCl8TA6s=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -225,7 +225,7 @@
       "url": "_framework\/Microsoft.AspNetCore.Components.Forms.dll"
     },
     {
-      "hash": "sha256-neoB5HR7rPkqWSIv1bUIV9pVD863iXquBlP5bW\/oQgo=",
+      "hash": "sha256-6mmKPFfqPORCmEqtIfjzyevP+dAU3E4ps12VMfy22AY=",
       "url": "_framework\/Microsoft.AspNetCore.Components.Web.dll"
     },
     {
@@ -377,11 +377,11 @@
       "url": "_framework\/Newtonsoft.Json.dll"
     },
     {
-      "hash": "sha256-z3kryU\/eRDXPgwI4Qy\/cDsKYC+zqZ9\/4yzW\/epGsx50=",
+      "hash": "sha256-2rk\/c++fxNP9NEAleOvZ\/I5EUZpTKF981CsKcaT7Kns=",
       "url": "_framework\/PaginaToros.Client.dll"
     },
     {
-      "hash": "sha256-3JOv97pOVr2QxJfDrGp7b3lvjfTq1ze5TL0nXHl9UCQ=",
+      "hash": "sha256-fR+5Jq7AYodRtdNgiZB\/Nf2BhuMn6Nm9nE0Rkve0IFc=",
       "url": "_framework\/PaginaToros.Shared.dll"
     },
     {
@@ -1001,5 +1001,5 @@
       "url": "_content\/Radzen.Blazor\/Radzen.Blazor.js"
     }
   ],
-  "version": "nXKGHxNM"
+  "version": "W\/90xrLu"
 };
