@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Content Remove="wwwroot\images\background.jpg" />
+    <None Remove="appsettings.Local.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -61,6 +62,13 @@
 
   <ItemGroup>
     <None Include="wwwroot\images\background.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings.Local.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
 

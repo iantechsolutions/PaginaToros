@@ -11,7 +11,10 @@ using Microsoft.Net.Http.Headers;
 using PaginaToros.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+}
 var MyCors = "_MyCors";
 IConfiguration Configuration = builder.Configuration;
 
