@@ -32,6 +32,14 @@ namespace PaginaToros.Client.Auth
 
             if (string.IsNullOrEmpty(token))
             {
+                httpClient.DefaultRequestHeaders.Authorization = null;
+                return anonimo;
+            }
+
+            if (TokenIsExpired(token))
+            {
+                httpClient.DefaultRequestHeaders.Authorization = null;
+                await js.RemoveItem(TOKENKEY);
                 return anonimo;
             }
 
@@ -57,6 +65,33 @@ namespace PaginaToros.Client.Auth
         {
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
+        }
+
+        private static bool TokenIsExpired(string token)
+        {
+            try
+            {
+                var payload = token.Split('.')[1];
+                var jsonBytes = ParseBase64WithoutPadding(payload);
+                var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
+
+                if (keyValuePairs == null || !keyValuePairs.TryGetValue("exp", out var expValue) || expValue == null)
+                {
+                    return false;
+                }
+
+                if (!long.TryParse(expValue.ToString(), out var expSeconds))
+                {
+                    return false;
+                }
+
+                var expiration = DateTimeOffset.FromUnixTimeSeconds(expSeconds);
+                return expiration <= DateTimeOffset.UtcNow;
+            }
+            catch
+            {
+                return true;
+            }
         }
 
         private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
@@ -92,7 +127,7 @@ namespace PaginaToros.Client.Auth
             return claims;
         }
 
-        private byte[] ParseBase64WithoutPadding(string base64)
+        private static byte[] ParseBase64WithoutPadding(string base64)
         {
             switch (base64.Length % 4)
             {

@@ -269,16 +269,10 @@ else
         {
             try
             {
-                var usuarioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
-
-
                 var todosLosSocios = await _socioServicio.LimitadosFiltradoTodos(
                     skip: 0,
                     take: 15,
-                    expression: $"Id == {usuarioId}");
-
-//
-
+                    expression: null);
 
                 if (todosLosSocios == null || todosLosSocios.Exito != 1)
                 {

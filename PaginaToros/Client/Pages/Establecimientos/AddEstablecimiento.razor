@@ -548,74 +548,67 @@ else
         if (!ValidateModel())
             return;
 
-        if(estables.Where(x=>x.Ecod==oEstablecimiento.Ecod).Count()>0)
+        oEstablecimiento.Codsoc = socioSeleccionado?.Scod;
+        oEstablecimiento.Fecing = (socioSeleccionado?.Fecing ?? DateTime.Now).ToString("yyyy/MM/dd");
+        oEstablecimiento.Fechacreacion = FechaTemp.ToString("yyyy");
+        oEstablecimiento.Codzon = (string.IsNullOrWhiteSpace(oEstablecimiento.Codzon) && !string.IsNullOrWhiteSpace(codZonaTemp) && codZonaTemp.Length>=2) ? codZonaTemp.Substring(0,2) : oEstablecimiento.Codzon;
+        oEstablecimiento.Codpro = string.IsNullOrWhiteSpace(oEstablecimiento.Codpro) && traductorProvincia.ContainsKey(provinciaTemp) ? traductorProvincia[provinciaTemp] : oEstablecimiento.Codpro;
+        @if (activo)
         {
-            await alertaCodigo();
-            return;
+            oEstablecimiento.Activo = "S";
         }
         else{
-            oEstablecimiento.Codsoc = socioSeleccionado?.Scod;
-            oEstablecimiento.Fecing = (socioSeleccionado?.Fecing ?? DateTime.Now).ToString("yyyy/MM/dd");
-            oEstablecimiento.Fechacreacion = FechaTemp.ToString("yyyy");
-            oEstablecimiento.Codzon = (string.IsNullOrWhiteSpace(oEstablecimiento.Codzon) && !string.IsNullOrWhiteSpace(codZonaTemp) && codZonaTemp.Length>=2) ? codZonaTemp.Substring(0,2) : oEstablecimiento.Codzon;
-            oEstablecimiento.Codpro = string.IsNullOrWhiteSpace(oEstablecimiento.Codpro) && traductorProvincia.ContainsKey(provinciaTemp) ? traductorProvincia[provinciaTemp] : oEstablecimiento.Codpro;
-            @if (activo)
-            {
-                oEstablecimiento.Activo = "S";
-            }
-            else{
-                oEstablecimiento.Activo = "N";
-            }
-            if (Id == 0)
-            {
-                await _estableServicio.Crear(oEstablecimiento);
-                await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
-            }
-            else
-            {
-                try{
-                    var differences = new List<string>();
-                    if (oEstablecimiento.Nombre != oEstablecimientoPrevio.Nombre) differences.Add("Nombre");
-                    if (oEstablecimiento.Encargado != oEstablecimientoPrevio.Encargado) differences.Add("Encargado");
-                    if (oEstablecimiento.Direcc != oEstablecimientoPrevio.Direcc) differences.Add("Direcc");
-                    if (oEstablecimiento.Tel != oEstablecimientoPrevio.Tel) differences.Add("Tel");
-                    if (oEstablecimiento.Locali != oEstablecimientoPrevio.Locali) differences.Add("Locali");
-                    if (oEstablecimiento.Codpos != oEstablecimientoPrevio.Codpos) differences.Add("Codpos");
-                    if (oEstablecimiento.Codzon != oEstablecimientoPrevio.Codzon) differences.Add("Codzon");
-                    if (oEstablecimiento.Codpro != oEstablecimientoPrevio.Codpro) differences.Add("Codpro");
-                    if (oEstablecimiento.Plano != oEstablecimientoPrevio.Plano) differences.Add("Plano");
-                    if (oEstablecimiento.Activo != oEstablecimientoPrevio.Activo) differences.Add("Activo");
-                    var socioVendedor = socios.Where(x => x.Scod == oEstablecimientoPrevio.Codsoc).FirstOrDefault();
-                    var socioComprador = socios.Where(x => x.Scod == oEstablecimiento.Codsoc).FirstOrDefault();
-                    var mail = $"Aviso de edición a un establecimiento\n" +
-           $"Establecimiento: {oEstablecimiento.Nombre}\n" +
-           $"Socio: {socioVendedor?.Nombre} {socioVendedor.Mail}\n" +
-           $"Tipo: Edición\n" +
-           $"Dirección: {oEstablecimiento.Direcc}\n";
-                    foreach (var diff in differences)
-                    {
-                        mail += $"{diff}: {oEstablecimientoPrevio.GetType().GetProperty(diff).GetValue(oEstablecimientoPrevio)} -> {oEstablecimiento.GetType().GetProperty(diff).GetValue(oEstablecimiento)}\n";
-                    }
-
-
-
-                    var request = new
-                    {
-                        Tipo = socioVendedor.Id,
-                        Clase = socioComprador.Id,
-                        Mail = mail,
-                        Nombre = socioVendedor.Nombre
-                    };
-                    HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
-
-                }
-                catch
+            oEstablecimiento.Activo = "N";
+        }
+        if (Id == 0)
+        {
+            await _estableServicio.Crear(oEstablecimiento);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+        }
+        else
+        {
+            try{
+                var differences = new List<string>();
+                if (oEstablecimiento.Nombre != oEstablecimientoPrevio.Nombre) differences.Add("Nombre");
+                if (oEstablecimiento.Encargado != oEstablecimientoPrevio.Encargado) differences.Add("Encargado");
+                if (oEstablecimiento.Direcc != oEstablecimientoPrevio.Direcc) differences.Add("Direcc");
+                if (oEstablecimiento.Tel != oEstablecimientoPrevio.Tel) differences.Add("Tel");
+                if (oEstablecimiento.Locali != oEstablecimientoPrevio.Locali) differences.Add("Locali");
+                if (oEstablecimiento.Codpos != oEstablecimientoPrevio.Codpos) differences.Add("Codpos");
+                if (oEstablecimiento.Codzon != oEstablecimientoPrevio.Codzon) differences.Add("Codzon");
+                if (oEstablecimiento.Codpro != oEstablecimientoPrevio.Codpro) differences.Add("Codpro");
+                if (oEstablecimiento.Plano != oEstablecimientoPrevio.Plano) differences.Add("Plano");
+                if (oEstablecimiento.Activo != oEstablecimientoPrevio.Activo) differences.Add("Activo");
+                var socioVendedor = socios.Where(x => x.Scod == oEstablecimientoPrevio.Codsoc).FirstOrDefault();
+                var socioComprador = socios.Where(x => x.Scod == oEstablecimiento.Codsoc).FirstOrDefault();
+                var mail = $"Aviso de edición a un establecimiento\n" +
+       $"Establecimiento: {oEstablecimiento.Nombre}\n" +
+       $"Socio: {socioVendedor?.Nombre} {socioVendedor.Mail}\n" +
+       $"Tipo: Edición\n" +
+       $"Dirección: {oEstablecimiento.Direcc}\n";
+                foreach (var diff in differences)
                 {
-                    Console.WriteLine("Mail no enviado");
+                    mail += $"{diff}: {oEstablecimientoPrevio.GetType().GetProperty(diff).GetValue(oEstablecimientoPrevio)} -> {oEstablecimiento.GetType().GetProperty(diff).GetValue(oEstablecimiento)}\n";
                 }
-                await _estableServicio.Editar(oEstablecimiento);
-                await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+
+
+
+                var request = new
+                {
+                    Tipo = socioVendedor.Id,
+                    Clase = socioComprador.Id,
+                    Mail = mail,
+                    Nombre = socioVendedor.Nombre
+                };
+                HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMailChange", request);
+
             }
+            catch
+            {
+                Console.WriteLine("Mail no enviado");
+            }
+            await _estableServicio.Editar(oEstablecimiento);
+            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
         }
     }
 
@@ -644,28 +637,6 @@ else
         return await Task.FromResult(result); 
     }
 
-
-    public async Task alertaCodigo()
-    {
-        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
-            {
-                Title = "No se puede agregar este establecimiento",
-                Text = "No se puede agregar debido a que ya existe un establecimiento con este codigo, por favor ingresar uno nuevo",
-                Icon = SweetAlertIcon.Warning,
-                ShowCancelButton = true,
-                ConfirmButtonText = "Aceptar",
-                CancelButtonText = "Cancelar"
-            });
-
-        if (!string.IsNullOrEmpty(result.Value))
-        {
-
-        }
-        else if (result.Dismiss == DismissReason.Cancel)
-        {
-
-        }
-    }
 
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)

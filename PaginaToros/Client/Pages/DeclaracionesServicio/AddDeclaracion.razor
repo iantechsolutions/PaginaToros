@@ -29,14 +29,171 @@
         color: yourDesiredColor;
     }
 
+    .declaracion-loading-card {
+        border: 1px solid #e8ecef;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+        padding: 1.5rem;
+    }
+
+    .declaracion-skeleton {
+        position: relative;
+        overflow: hidden;
+        background: #eef2f6;
+        border-radius: 12px;
+    }
+
+    .declaracion-skeleton::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent);
+        animation: declaracion-shimmer 1.3s infinite;
+    }
+
+    .declaracion-skeleton-line {
+        height: 14px;
+        margin-bottom: .75rem;
+    }
+
+    .declaracion-skeleton-input {
+        height: 42px;
+        margin-bottom: 1rem;
+    }
+
+    .declaracion-skeleton-card {
+        height: 88px;
+        margin-bottom: 1rem;
+    }
+
+    .declaracion-skeleton-grid {
+        height: 240px;
+    }
+
+    .declaracion-loading-text {
+        color: #5b6470;
+        font-size: .95rem;
+        margin-bottom: 1rem;
+    }
+
+    .declaracion-grid {
+        border: 1px solid #e6ebf0;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .declaracion-grid .rz-datatable-data tr {
+        transition: background-color 0.15s ease, box-shadow 0.15s ease;
+        cursor: pointer;
+    }
+
+    .declaracion-grid .rz-datatable-data tr.declaracion-row-selected {
+        background: #e8f5ff;
+        box-shadow: inset 0 0 0 1px #7cc4ff;
+    }
+
+    .declaracion-grid .rz-datatable-data tr.declaracion-row-selected:hover {
+        background: #dff1ff;
+    }
+
+    .declaracion-grid .rz-datatable-data tr.declaracion-row-disabled {
+        background: #f2f4f7;
+        color: #8a94a3;
+        cursor: not-allowed;
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    .declaracion-grid .rz-datatable-data tr:hover {
+        background: #f6f9fc;
+    }
+
+    .declaracion-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.1rem 0.45rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        background: #e8f5ff;
+        color: #0b4f8a;
+        border: 1px solid #b6e1ff;
+    }
+
+    .declaracion-section {
+        border: 1px solid #e6ebf0;
+        border-radius: 14px;
+        background: #fff;
+        padding: 1rem 1.25rem 1.25rem 1.25rem;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+        margin-bottom: 1rem;
+    }
+
+    .declaracion-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .declaracion-section-title {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #1f2937;
+    }
+
+    .declaracion-selector {
+        max-width: 360px;
+        margin-left: auto;
+    }
+
+    @@keyframes declaracion-shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
     }
 </style>
 <button class="bm-title" @onclick="ComeBack"><FeatherArrowLeft Color="Black"></FeatherArrowLeft></button>
-@if (socios.Count > 0)
+@if (isInitialLoading)
+{
+    <div class="declaracion-loading-card mt-3">
+        <div class="declaracion-loading-text">@loadingMessage</div>
+        <div class="row">
+            <div class="col-sm">
+                <div class="declaracion-skeleton declaracion-skeleton-line" style="width: 35%;"></div>
+                <div class="declaracion-skeleton declaracion-skeleton-input"></div>
+            </div>
+            <div class="col-sm">
+                <div class="declaracion-skeleton declaracion-skeleton-line" style="width: 35%; margin-left:auto;"></div>
+                <div class="declaracion-skeleton declaracion-skeleton-input"></div>
+            </div>
+            <div class="col-sm">
+                <div class="declaracion-skeleton declaracion-skeleton-line" style="width: 35%;"></div>
+                <div class="declaracion-skeleton declaracion-skeleton-input"></div>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-sm">
+                <div class="declaracion-skeleton declaracion-skeleton-card"></div>
+            </div>
+            <div class="col-sm">
+                <div class="declaracion-skeleton declaracion-skeleton-card"></div>
+            </div>
+        </div>
+        <div class="declaracion-skeleton declaracion-skeleton-grid mt-2"></div>
+    </div>
+}
+else if (socios.Count > 0)
 {
     <div class="card">
         <div class="card-body">
-            <EditForm Model="@oDeclaracion" OnSubmit="HandleSubmit">
+            <EditForm Model="@oDeclaracion" OnSubmit="HandleSubmit" autocomplete="off">
                 <DataAnnotationsValidator />
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
@@ -79,12 +236,41 @@
                     </div> 
                 </div>
                 <br />
-                @if (socioSeleccionado != null)
+                @if (isLoadingDependencias)
+                {
+                    <div class="declaracion-loading-card">
+                        <div class="declaracion-loading-text">@loadingMessage</div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <div class="declaracion-skeleton declaracion-skeleton-line" style="width: 30%;"></div>
+                                <div class="declaracion-skeleton declaracion-skeleton-input"></div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="declaracion-skeleton declaracion-skeleton-line" style="width: 30%;"></div>
+                                <div class="declaracion-skeleton declaracion-skeleton-input"></div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="declaracion-skeleton declaracion-skeleton-line" style="width: 30%;"></div>
+                                <div class="declaracion-skeleton declaracion-skeleton-input"></div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-sm">
+                                <div class="declaracion-skeleton declaracion-skeleton-card"></div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="declaracion-skeleton declaracion-skeleton-card"></div>
+                            </div>
+                        </div>
+                        <div class="declaracion-skeleton declaracion-skeleton-grid mt-2"></div>
+                    </div>
+                }
+                else if (socioSeleccionado != null)
                 {
                     <div class="row" style="width=100%;">
                         <div class="col-sm">
                             <label>Numero de Folio</label>
-                            <InputNumber class="form-control" @bind-Value="@oDeclaracion.NrFolio" placeholder="Folio"></InputNumber>
+                            <InputNumber class="form-control" @bind-Value="@oDeclaracion.NrFolio" placeholder="Folio" step="1" min="0" inputmode="numeric" pattern="[0-9]*" autocomplete="off" name="folio" autocapitalize="off" spellcheck="false"></InputNumber>
                             <ValidationMessage For="(()=> oDeclaracion.NrFolio)" style="color:red;" />
                         </div>
                         <div class="col-sm">
@@ -176,7 +362,7 @@
                     </div>
 
                     <br />
-                    if (IsNaturalTipo(tipoTemp))
+                    @if (IsNaturalTipo(tipoTemp))
                     {
                         <label style="text-align:center">Periodo de servicio</label>
                         <div class="row">
@@ -192,319 +378,262 @@
                             </div>
                         </div>
                         <br />
-                        <div class="row">
-                            <div style="flex: 0 0 40%; max-width: 40%;">
-                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros (Activos)</RadzenText>
-                                <br />
-
-
-
-                                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod).Where(x=>x.CodEstado=="1")" TItem="TorosuniDTO" SelectionMode="DataGridSelectionMode.Single"
-                                                RowClick="@((args) => AddToSelectedToros(args))" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-                                    <Columns>
-                                        @* <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="Estado" Width="3.6%">
-                                            <Template Context="data">
-                                                @switch (data.CodEstado)
-                                                {
-                                                    case "1":
-                                                        <a style="color:darkgreen">Activo</a>
-                                                        break;
-                                                    case "2":
-                                                        <a style="color:red">Inexistente</a>
-                                                        break;
-                                                    case "3":
-                                                        <a style="color:red">Inactivo</a>
-                                                        break;
-                                                    case "4":
-                                                        <a style="color:black">Muerto</a>
-                                                        break;
-                                                    case "5":
-                                                        <a style="color:red">Vendido</a>
-                                                        break;
-                                                    default:
-                                                        // Handle the default case if needed
-                                                        break;
-                                                }
-                                            </Template>
-                                        </RadzenDataGridColumn> *@
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo de toro" Width="5%">
-                                            <Template Context="data">
-                                                @if (!string.IsNullOrWhiteSpace(data.TipToro) && traductorToros.ContainsKey(data.TipToro))
-                                                {
-                                                    @traductorToros[data.TipToro]
-                                                }
-                                                else
-                                                {
-                                                    <span>-</span>
-                                                }
-                                            </Template>
-                                        </RadzenDataGridColumn>
-
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="7.34%" />
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4.6%" />
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hasta" Title="Fecha Nac." Width="4.6%">
-                                            <Template Context="data">
-                                                @if (data.Nacido.HasValue)
-                                                {
-                                                    <a>@data.Nacido.Value.ToString("dd/MM/yyyy")</a>
-                                                }
-                                                else
-                                                {
-
-                                                }
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                    </Columns>
-                                </RadzenDataGrid>
+                        <div class="declaracion-section">
+                            <div class="declaracion-section-header">
+                                <div class="declaracion-section-title">Toros seleccionados</div>
+                                <div class="declaracion-selector">
+                                    <label>Agregar toro</label>
+                                    <BlazoredTypeahead SearchMethod="BusquedaToros"
+                                                       placeholder="Buscar toro por nombre, HBA o tatuaje"
+                                                       EnableDropDown="true"
+                                                       TItem="TorosuniDTO"
+                                                       TValue="TorosuniDTO"
+                                                       Value="toroSeleccionado"
+                                                       ValueChanged="OnToroSeleccionado"
+                                                       ValueExpression="@(() => toroSeleccionado)">
+                                        <SelectedTemplate Context="eleccion">
+                                            @($"{eleccion?.NomDad} - {eleccion?.Hba}")
+                                        </SelectedTemplate>
+                                        <ResultTemplate Context="eleccion">
+                                            @($"{eleccion?.NomDad} | HBA {eleccion?.Hba} | Tat {eleccion?.Tatpart}")
+                                        </ResultTemplate>
+                                    </BlazoredTypeahead>
+                                </div>
                             </div>
-                            <div style="flex: 0 0 60%; max-width: 60%;">
-                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
-                                <br />
-                                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@torosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
-                                                LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridToro1">
-                                    <Columns>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="4.6%">
-                                            <Template Context="data">
-                                                @data.original.Hardb
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tipo" Width="4.6%">
-                                            <Template Context="data">
-                                                @if (!string.IsNullOrWhiteSpace(data.TipToro) && traductorToros.ContainsKey(data.TipToro))
-                                                {
-                                                    @traductorToros[data.TipToro]
-                                                }
-                                                else
-                                                {
-                                                    <span>-</span>
-                                                }
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                       @*  <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cantv" Width="4.6%">
-                                            <Template Context="data">
-                                                @data.original.Cantv
-                                            </Template>
-                                        </RadzenDataGridColumn> *@
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tatuaje" Width="4.6%">
-                                            <Template Context="data">
-                                                @data.original.Tatpart
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                       
-                                        
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="3%">
-                                            <Template Context="data">
-
-                                                <button class="btn" type="button" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
-
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                    </Columns>
-                                </RadzenDataGrid>
-                            </div>
+                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@torosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
+                                            EmptyText="Sin registros"
+                                            LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridToro1">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Nombre" Width="9%">
+                                    <Template Context="data">
+                                        @{
+                                            var toro = toros.FirstOrDefault(x => x.Hba == data.original.Hardb);
+                                        }
+                                        @(toro?.NomDad ?? "-")
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="4.6%">
+                                    <Template Context="data">
+                                        @data.original.Hardb
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tatuaje" Width="4.6%">
+                                    <Template Context="data">
+                                        @data.original.Tatpart
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tipo" Width="4.6%">
+                                    <Template Context="data">
+                                        @if (!string.IsNullOrWhiteSpace(data.TipToro) && traductorToros.ContainsKey(data.TipToro))
+                                        {
+                                            @traductorToros[data.TipToro]
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="3%">
+                                    <Template Context="data">
+                                        <button class="btn" type="button" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
                         </div>
                     }
-                    if (IsTipoConToros(tipoTemp))
+                    @if (IsTipoConToros(tipoTemp))
                     {
 
-                        <div class="row">
-                            <div style="flex: 0 0 40%; max-width: 40%;">
-                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado de Toros</RadzenText>
-                                <br />
-                                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@toros.Where(x=>x.Criador==socioSeleccionado.Scod).Where(x=>x.CodEstado=="1")" TItem="TorosuniDTO" ColumnWidth="3.33%" SelectionMode="DataGridSelectionMode.Single"
-                                                RowClick="@((args) => AddToSelectedToros(args))" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-                                    <Columns>
-@*                                         <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="Estado" Width="3.6%">
-                                            <Template Context="data">
-                                                @switch (data.CodEstado)
-                                                {
-                                                    case "1":
-                                                        <a style="color:darkgreen">Activo</a>
-                                                        break;
-                                                    case "2":
-                                                        <a style="color:red">Inexistente</a>
-                                                        break;
-                                                    case "3":
-                                                        <a style="color:red">Inactivo</a>
-                                                        break;
-                                                    case "4":
-                                                        <a style="color:black">Muerto</a>
-                                                        break;
-                                                    case "5":
-                                                        <a style="color:red">Vendido</a>
-                                                        break;
-                                                    default:
-                                                        // Handle the default case if needed
-                                                        break;
-                                                }
-                                            </Template>
-                                        </RadzenDataGridColumn> *@
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo de toro" Width="5%">
-                                            <Template Context="data">
-                                                @traductorToros[data.TipToro]
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="7.34%" />
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4.6%" />
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hasta" Title="Fecha Nac." Width="4.6%">
-                                            <Template Context="data">
-                                                @if (data.Nacido.HasValue)
-                                                {
-                                                    <a>@data.Nacido.Value.ToString("dd/MM/yyyy")</a>
-                                                }
-                                                else
-                                                {
-
-                                                }
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                    </Columns>
-                                </RadzenDataGrid>
+                        <div class="declaracion-section">
+                            <div class="declaracion-section-header">
+                                <div class="declaracion-section-title">Toros seleccionados</div>
+                                <div class="declaracion-selector">
+                                    <label>Agregar toro</label>
+                                    <BlazoredTypeahead SearchMethod="BusquedaToros"
+                                                       placeholder="Buscar toro por nombre, HBA o tatuaje"
+                                                       EnableDropDown="true"
+                                                       TItem="TorosuniDTO"
+                                                       TValue="TorosuniDTO"
+                                                       Value="toroSeleccionado"
+                                                       ValueChanged="OnToroSeleccionado"
+                                                       ValueExpression="@(() => toroSeleccionado)">
+                                        <SelectedTemplate Context="eleccion">
+                                            @($"{eleccion?.NomDad} - {eleccion?.Hba}")
+                                        </SelectedTemplate>
+                                        <ResultTemplate Context="eleccion">
+                                            @($"{eleccion?.NomDad} | HBA {eleccion?.Hba} | Tat {eleccion?.Tatpart}")
+                                        </ResultTemplate>
+                                    </BlazoredTypeahead>
+                                </div>
                             </div>
-                            <div style="flex: 0 0 60%; max-width: 60%;">
-                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
-                                <br />
-                                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@torosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
-                                                LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridToro2">
-                                    <Columns>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="3%">
-                                            <Template Context="data">
-                                                @data.original.Hardb
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo de toro" Width="5%">
-                                            <Template Context="data">
-                                                @traductorToros[data.TipToro]
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="7%">
-                                            <Template Context="data">
-                                                <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Desde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="7%">
-                                            <Template Context="data">
-                                                <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cant Vientres" Width="5%">
-                                            <Template Context="data">
-                                                <RadzenNumeric @bind-Value="data.original.Cantv" Min="0" class="w-100"></RadzenNumeric>
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="4%">
-                                            <Template Context="data">
-                                                <button class="btn" type="button" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
-
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                    </Columns>
-                                </RadzenDataGrid>
-                            </div>
+                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@torosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
+                                            EmptyText="Sin registros"
+                                            LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridToro2">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Nombre" Width="9%">
+                                    <Template Context="data">
+                                        @{
+                                            var toro = toros.FirstOrDefault(x => x.Hba == data.original.Hardb);
+                                        }
+                                        @(toro?.NomDad ?? "-")
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="3%">
+                                    <Template Context="data">
+                                        @data.original.Hardb
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tatuaje" Width="4.6%">
+                                    <Template Context="data">
+                                        @data.original.Tatpart
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo de toro" Width="5%">
+                                    <Template Context="data">
+                                        @traductorToros[data.TipToro]
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="7%">
+                                    <Template Context="data">
+                                        <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Desde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="7%">
+                                    <Template Context="data">
+                                        <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cant Vientres" Width="5%">
+                                    <Template Context="data">
+                                        <RadzenNumeric @bind-Value="data.original.Cantv" Min="0" class="w-100"></RadzenNumeric>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="4%">
+                                    <Template Context="data">
+                                        <button class="btn" type="button" title="Eliminar" @onclick="() => RemoveToro(data)"><FeatherTrash2 Size="16" Color="red" /></button>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
                         </div>
                     }
-                    if (IsTipoInseminacion(tipoTemp))
+                    @if (IsTipoInseminacion(tipoTemp))
                     {
-                        <div class="row">
-                            <div style="flex: 0 0 40%; max-width: 40%;">
-                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Listado dosis de semen</RadzenText>
-                                <br />
-                                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificados.Where(x=>x.Nrocri==socioSeleccionado.Scod).Where(x=>x.NrDosi>0)" SelectionMode="DataGridSelectionMode.Single" RowClick="@((args) => AddToSelectedCertif(args))"
-                                                TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-                                    <Columns>
-                                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
-                                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="7.34%" />
-                                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="7%" />
-                                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosi" Title="Dosis Reman Totales" Width="7.34%" />
-                                    </Columns>
-                                </RadzenDataGrid>
+                        <div class="declaracion-section">
+                            <div class="declaracion-section-header">
+                                <div class="declaracion-section-title">Dosis seleccionadas</div>
+                                <div class="declaracion-selector">
+                                    <label>Agregar dosis</label>
+                                    <BlazoredTypeahead SearchMethod="BusquedaCertificados"
+                                                       placeholder="Buscar dosis por nombre, HBA o tatuaje"
+                                                       EnableDropDown="true"
+                                                       TItem="CertifsemanDTO"
+                                                       TValue="CertifsemanDTO"
+                                                       Value="certifSeleccionado"
+                                                       ValueChanged="OnCertifSeleccionado"
+                                                       ValueExpression="@(() => certifSeleccionado)">
+                                        <SelectedTemplate Context="eleccion">
+                                            @($"{eleccion?.NomDad} - {eleccion?.Hba}")
+                                        </SelectedTemplate>
+                                        <ResultTemplate Context="eleccion">
+                                            @($"{eleccion?.NomDad} | HBA {eleccion?.Hba} | Tat {eleccion?.Tatpart} | Dosis {eleccion?.NrDosi}")
+                                        </ResultTemplate>
+                                    </BlazoredTypeahead>
+                                </div>
                             </div>
-                            <div style="flex: 0 0 60%; max-width: 60%;">
-                                <RadzenText TextStyle="TextStyle.H5" Style="text-align:center">Seleccionados</RadzenText>
-                                <br />
-                                <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificadosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
-                                                LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridCertif">
-                                    <Columns>
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="7.34%">
-                                            <Template Context="data">
-                                                @data.original.Hardb
-                                            </Template>
-                                        </RadzenDataGridColumn>
+                            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@certificadosSeleccionados" TItem="Desepla3Data" ColumnWidth="3.33%"
+                                            EmptyText="Sin registros"
+                                            LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" @ref="gridCertif">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Nombre" Width="9%">
+                                    <Template Context="data">
+                                        @{
+                                            var cert = certificados.FirstOrDefault(x => x.Hba == data.original.Hardb);
+                                        }
+                                        @(cert?.NomDad ?? "-")
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="7.34%">
+                                    <Template Context="data">
+                                        @data.original.Hardb
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tatuaje" Width="7%">
+                                    <Template Context="data">
+                                        @data.original.Tatpart
+                                    </Template>
+                                </RadzenDataGridColumn>
 
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Dosis Reman" Width="5%">
-                                            <Template Context="data">
-                                                @{
-                                                    var cert = certificados.FirstOrDefault(x => x.Hba == data.original.Hardb);
-                                                }
-                                                @((cert?.NrDosi ?? 0))
-                                            </Template>
-                                        </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Title="Dosis Reman" Width="5%">
+                                    <Template Context="data">
+                                        @GetDosisRemanDisplay(data?.original?.Hardb)
+                                    </Template>
+                                </RadzenDataGridColumn>
 
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Vientres" Width="6%">
-                                            <Template Context="data">
-                                                <RadzenNumeric @bind-Value="data.original.Cantv" class="w-100"></RadzenNumeric>
-                                            </Template>
-                                        </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Vientres" Width="6%">
+                                    <Template Context="data">
+                                        <RadzenNumeric @bind-Value="data.original.Cantv" class="w-100"></RadzenNumeric>
+                                    </Template>
+                                </RadzenDataGridColumn>
 
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Dosis Necesaria" Width="5%">
-                                            <Template Context="data">
-                                                @if (data.original.Cantv != null)
-                                                {
-                                                    @switch (tipoTemp)
-                                                    {
-                                                        case "Inseminacion c/celo":
-                                                            <a>@Math.Round((decimal)(data.original.Cantv * 1.5))</a>
-                                                            break;
-                                                        case "Inseminacion c/celo y rep":
-                                                        case "IATF c/rep":
-                                                            <a>@data.original.Cantv</a>
-                                                            break;
-                                                        case "Inseminacion c/p y rep":
-                                                            <a>@Math.Round((decimal)(data.original.Cantv * 0.8))</a>
-                                                            break;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    <a>0</a>
-                                                }
-                                            </Template>
-                                        </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Dosis Necesaria" Width="5%">
+                                    <Template Context="data">
+                                        @if (data.original.Cantv != null)
+                                        {
+                                            @switch (tipoTemp)
+                                            {
+                                                case "Inseminacion c/celo":
+                                                    <a>@Math.Round((decimal)(data.original.Cantv * 1.5))</a>
+                                                    break;
+                                                case "Inseminacion c/celo y rep":
+                                                case "IATF c/rep":
+                                                    <a>@data.original.Cantv</a>
+                                                    break;
+                                                case "Inseminacion c/p y rep":
+                                                    <a>@Math.Round((decimal)(data.original.Cantv * 0.8))</a>
+                                                    break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <a>0</a>
+                                        }
+                                    </Template>
+                                </RadzenDataGridColumn>
 
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Desde" Width="9%">
-                                            <Template Context="data">
-                                                <div style="min-width:100px">
-                                                    <RadzenDatePicker TValue="DateTime"
-                                                                      @bind-Value="data.Desde"
-                                                                      DateFormat="dd/MM/yyyy"
-                                                                      Class="w-100" />
-                                                </div>
-                                            </Template>
-                                        </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Title="Desde" Width="9%">
+                                    <Template Context="data">
+                                        <div style="min-width:100px">
+                                            <RadzenDatePicker TValue="DateTime"
+                                                              @bind-Value="data.Desde"
+                                                              DateFormat="dd/MM/yyyy"
+                                                              Class="w-100" />
+                                        </div>
+                                    </Template>
+                                </RadzenDataGridColumn>
 
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Hasta" Width="9%">
-                                            <Template Context="data">
-                                                <div style="min-width:100px">
-                                                    <RadzenDatePicker TValue="DateTime"
-                                                                      @bind-Value="data.Hasta"
-                                                                      DateFormat="dd/MM/yyyy"
-                                                                      Class="w-100" />
-                                                </div>
-                                            </Template>
-                                        </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Title="Hasta" Width="9%">
+                                    <Template Context="data">
+                                        <div style="min-width:100px">
+                                            <RadzenDatePicker TValue="DateTime"
+                                                              @bind-Value="data.Hasta"
+                                                              DateFormat="dd/MM/yyyy"
+                                                              Class="w-100" />
+                                        </div>
+                                    </Template>
+                                </RadzenDataGridColumn>
 
-                                        <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="4%">
-                                            <Template Context="data">
-                                                <button class="btn" type="button" title="Eliminar" @onclick="() => RemoveCertif(data)">
-                                                    <FeatherTrash2 Size="16" Color="red" />
-                                                </button>
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                    </Columns>
-                                </RadzenDataGrid>
-                            </div>
+                                <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="4%">
+                                    <Template Context="data">
+                                        <button class="btn" type="button" title="Eliminar" @onclick="() => RemoveCertif(data)">
+                                            <FeatherTrash2 Size="16" Color="red" />
+                                        </button>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
                         </div>
                         <br />
                     }
@@ -555,10 +684,15 @@ else
 
     bool esSocio = false;
     bool _isEdit => Id != 0;
+    bool isInitialLoading = true;
+    bool isLoadingDependencias = false;
+    string loadingMessage = "Preparando declaracion...";
 
     public string nrodec = "";
     SocioDTO? socioSeleccionado = null;
     PlantelDTO? Plantelseleccionado = null;
+    TorosuniDTO? toroSeleccionado = null;
+    CertifsemanDTO? certifSeleccionado = null;
     List<string> tipos = new List<string> { "Natural", "Natural a Corral", "Inseminacion c/celo", "Inseminacion c/celo y rep", "Inseminacion c/p y rep", "IATF c/rep" };
     DateTime FechaTemp = DateTime.Now;
     List<TorosuniDTO> toros = new();
@@ -574,6 +708,7 @@ else
         {"Natural","NA"},
         {"Natural a Corral","NC"},
         {"Santa Fe","IATFR"},
+        {"IATF c/rep","IATFR"},
         {"Inseminacion c/p y rep","IAPR"},
         {"Inseminacion c/celo y rep","IACR"},
         {"Inseminacion c/celo","IA"},
@@ -605,6 +740,21 @@ else
     private static string Q(string? value) => value is null ? "<null>" : $"'{value}' (len={value.Length})";
     private static string T(string? value) => (value ?? string.Empty).Trim();
     private static string EscapeForFilter(string? value) => (value ?? string.Empty).Replace("\"", "\\\"");
+    private void LogDetalleSnapshot(string title, IEnumerable<Desepla3DTO>? detalles)
+    {
+        var list = detalles?.ToList() ?? new List<Desepla3DTO>();
+        var resumen = string.Join(" | ", list.Take(12).Select(d =>
+            $"Id={d.Id},Tipo={Q(d.Tipo)},HBA={Q(d.Hardb)},Tat={Q(d.Tatpart)},Cantv={d.Cantv},Desde={Q(d.Desde)},Hasta={Q(d.Hasta)}"));
+        Log($"{title} | total={list.Count} | {resumen}");
+    }
+
+    private void LogSelectedSnapshot(string title, IEnumerable<Desepla3Data>? items)
+    {
+        var list = items?.ToList() ?? new List<Desepla3Data>();
+        var resumen = string.Join(" | ", list.Take(12).Select(d =>
+            $"Line={d.LineKey},Tipo={Q(d.original?.Tipo)},HBA={Q(d.original?.Hardb)},Tat={Q(d.original?.Tatpart)},Cantv={d.original?.Cantv},Desde={d.Desde:yyyy-MM-dd},Hasta={d.Hasta:yyyy-MM-dd}"));
+        Log($"{title} | total={list.Count} | {resumen}");
+    }
 
 
     Desepla3DTO CloneDesepla(Desepla3DTO s) => new Desepla3DTO
@@ -626,167 +776,180 @@ else
     protected override async Task OnInitializedAsync()
     {
         Log($"OnInitializedAsync START | Id={Id}");
-        torosSeleccionados.Clear();
-        certificadosSeleccionados.Clear();
-        seleccionFinal.Clear();
-        deseplasViejos.Clear();
+        loadingMessage = Id != 0 ? "Cargando declaracion y datos asociados..." : "Preparando declaracion...";
 
-
-        var r = await _socioServicio.LimitadosFiltrados(0, 0);
-        socios = r.List;
-        Log($"Socios cargados: {socios?.Count ?? 0}");
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        user = authState.User;
-        esSocio = await UserHasRole("Socio");
-        Log($"Usuario autenticado | esSocio={esSocio} | claims={user?.Claims?.Count() ?? 0}");
-
-        if (esSocio)
+        try
         {
-            var socioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, http);
-            Log($"SocioId actual desde backend={Q(socioId?.ToString())}");
-            if (socioId.HasValue)
-            {
-                string filtro = $"Id == {socioId.Value}";
-                Log($"Buscando socio por claim con filtro: {filtro}");
+            torosSeleccionados.Clear();
+            certificadosSeleccionados.Clear();
+            seleccionFinal.Clear();
+            deseplasViejos.Clear();
 
-                var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
-                socioSeleccionado = socio.List.FirstOrDefault();
-                Log($"Resultado socio por claim | count={socio.List?.Count ?? 0} | seleccionado.Id={socioSeleccionado?.Id} | seleccionado.Scod={Q(socioSeleccionado?.Scod)}");
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            user = authState.User;
+            esSocio = await UserHasRole("Socio");
+            Log($"Usuario autenticado | esSocio={esSocio} | claims={user?.Claims?.Count() ?? 0}");
+
+            if (esSocio)
+            {
+                var socioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, http);
+                Log($"SocioId actual desde backend={Q(socioId?.ToString())}");
+                if (socioId.HasValue)
+                {
+                    string filtro = $"Id == {socioId.Value}";
+                    Log($"Buscando socio por claim con filtro: {filtro}");
+
+                    var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
+                    socioSeleccionado = socio.List.FirstOrDefault();
+                    socios = socioSeleccionado != null ? new List<SocioDTO> { socioSeleccionado } : new List<SocioDTO>();
+                    Log($"Resultado socio por claim | count={socio.List?.Count ?? 0} | seleccionado.Id={socioSeleccionado?.Id} | seleccionado.Scod={Q(socioSeleccionado?.Scod)}");
+
+                    if (socioSeleccionado == null)
+                    {
+                        Log("No se encontró socio para el usuario actual (claim SocioId).");
+                    }
+                }
+                else
+                {
+                    Log("No se pudo obtener SocioId actualizado.");
+                }
+            }
+            else
+            {
+                var res = await _socioServicio.LimitadosFiltrados(0, 0);
+                socios = res.List;
+                Log($"Modo admin/maestro | socios disponibles: {socios?.Count ?? 0}");
+            }
+
+            Log($"Socios disponibles en pantalla: {socios?.Count ?? 0}");
+
+            if (Id != 0)
+            {
+                Log($"Entrando en edición | buscando cabecera Id={Id}");
+                var rtaD = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
+                oDeclaracion = rtaD.List.FirstOrDefault() ?? new();
+                Log($"Cabecera cargada | Nrodec={Q(oDeclaracion.Nrodec)} | Nrocri={Q(oDeclaracion.Nrocri)} | Nroplan={Q(oDeclaracion.Nroplan)} | Tipse={Q(oDeclaracion.Tipse)}");
+
+                nrodec = oDeclaracion.Nrodec;
+                socioSeleccionado = socios.FirstOrDefault(x => x.Scod == oDeclaracion.Nrocri);
+                Log($"Match socio por Scod exacto | encontrado={(socioSeleccionado != null)}");
+                if (socioSeleccionado is null)
+                {
+                    var nrocriTrim = T(oDeclaracion.Nrocri);
+                    var socioTrim = socios.FirstOrDefault(x => T(x.Scod).Equals(nrocriTrim, StringComparison.OrdinalIgnoreCase));
+                    Log($"Match socio por Scod trim/case-insensitive | encontrado={(socioTrim != null)} | scodBuscado={Q(oDeclaracion.Nrocri)}");
+                    socioSeleccionado = socioTrim;
+                }
+
+                Task<Respuesta<List<Desepla3DTO>>>? detallesTask = null;
+                if (!string.IsNullOrWhiteSpace(oDeclaracion.Nrodec))
+                {
+                    Log($"Buscando detalles Desepla3 por Nrodec={Q(oDeclaracion.Nrodec)}");
+                    detallesTask = _desepla3Servicio.GetByNrodec(oDeclaracion.Nrodec ?? string.Empty);
+                }
 
                 if (socioSeleccionado != null)
                 {
-                    await UpdateValores(socioSeleccionado);
+                    await LoadSocioDataAsync(socioSeleccionado, preserveCabecera: true, refreshUi: false);
                 }
                 else
                 {
-                    Log("No se encontró socio para el usuario actual (claim SocioId).");
+                    Log("No se pudieron cargar listas dependientes (socioSeleccionado == null).");
                 }
-            }
-            else
-            {
-                Log("No se pudo obtener SocioId actualizado.");
-            }
-        }
-        else
-        {
-            var res = await _socioServicio.LimitadosFiltrados(0, 0);
-            socios = res.List;
-            Log($"Modo admin/maestro | socios disponibles: {socios?.Count ?? 0}");
-        }
 
-
-        if (Id != 0)
-        {
-            // 1) Cabecera
-            Log($"Entrando en edición | buscando cabecera Id={Id}");
-            var rtaD = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
-            oDeclaracion = rtaD.List.FirstOrDefault() ?? new();
-            Log($"Cabecera cargada | Nrodec={Q(oDeclaracion.Nrodec)} | Nrocri={Q(oDeclaracion.Nrocri)} | Nroplan={Q(oDeclaracion.Nroplan)} | Tipse={Q(oDeclaracion.Tipse)}");
-
-            nrodec = oDeclaracion.Nrodec;
-            socioSeleccionado = socios.FirstOrDefault(x => x.Scod == oDeclaracion.Nrocri);
-            Log($"Match socio por Scod exacto | encontrado={(socioSeleccionado != null)}");
-            if (socioSeleccionado is null)
-            {
-                var nrocriTrim = T(oDeclaracion.Nrocri);
-                var socioTrim = socios.FirstOrDefault(x => T(x.Scod).Equals(nrocriTrim, StringComparison.OrdinalIgnoreCase));
-                Log($"Match socio por Scod trim/case-insensitive | encontrado={(socioTrim != null)} | scodBuscado={Q(oDeclaracion.Nrocri)}");
-            }
-
-            // 2) Listas dependientes del socio (NO pisar cabecera)
-            if (socioSeleccionado != null)
-                await UpdateValores(socioSeleccionado);
-            else
-                Log("No se pudieron cargar listas dependientes (socioSeleccionado == null).");
-
-            // 3) Reponer selecciones de UI tomadas de la cabecera
-            Plantelseleccionado = Planteles.FirstOrDefault(p => p.Placod == oDeclaracion.Nroplan);
-            Log($"Plantel seleccionado por Placod exacto | encontrado={(Plantelseleccionado != null)} | totalPlanteles={Planteles?.Count ?? 0}");
-            if (Plantelseleccionado is null)
-            {
-                var nroplanTrim = T(oDeclaracion.Nroplan);
-                var plantelTrim = Planteles.FirstOrDefault(p => T(p.Placod).Equals(nroplanTrim, StringComparison.OrdinalIgnoreCase));
-                Log($"Plantel por trim/case-insensitive | encontrado={(plantelTrim != null)} | nroplan={Q(oDeclaracion.Nroplan)}");
-                Plantelseleccionado = plantelTrim;
-            }
-            if (Plantelseleccionado is null && !string.IsNullOrWhiteSpace(oDeclaracion.Nroplan))
-            {
-                // Fallback: algunos registros viejos pueden tener Nroplan fuera del set filtrado por socio.
-                var nroplanLower = EscapeForFilter(T(oDeclaracion.Nroplan).ToLower());
-                var filtroPlan = $"(Placod == null ? \"\" : Placod).ToLower() == \"{nroplanLower}\"";
-                var planResp = await _plantelServicio.LimitadosFiltradosNoInclude(0, 1, filtroPlan);
-                Plantelseleccionado = planResp?.List?.FirstOrDefault();
-                Log($"Plantel fallback por API | encontrado={(Plantelseleccionado != null)} | filtro={filtroPlan}");
-                if (Plantelseleccionado != null && !Planteles.Any(p => p.Id == Plantelseleccionado.Id))
+                Plantelseleccionado = Planteles.FirstOrDefault(p => p.Placod == oDeclaracion.Nroplan);
+                Log($"Plantel seleccionado por Placod exacto | encontrado={(Plantelseleccionado != null)} | totalPlanteles={Planteles?.Count ?? 0}");
+                if (Plantelseleccionado is null)
                 {
-                    Planteles.Add(Plantelseleccionado);
-                    Log($"Plantel fallback agregado a lista local | plantelesTotal={Planteles.Count}");
+                    var nroplanTrim = T(oDeclaracion.Nroplan);
+                    var plantelTrim = Planteles.FirstOrDefault(p => T(p.Placod).Equals(nroplanTrim, StringComparison.OrdinalIgnoreCase));
+                    Log($"Plantel por trim/case-insensitive | encontrado={(plantelTrim != null)} | nroplan={Q(oDeclaracion.Nroplan)}");
+                    Plantelseleccionado = plantelTrim;
                 }
-            }
-            tipoTemp = ToLabel(oDeclaracion.Tipse);
-            previousTipoTemp = tipoTemp; // por la lógica de multiplicadores
-            Log($"Tipo reconstruido | tipseDB={Q(oDeclaracion.Tipse)} -> tipoUI={Q(tipoTemp)}");
-
-            // 4) Detalles (toros/certifs) y reconstrucción de seleccionados
-            // Normalizar Nrodec en el filtro para evitar problemas de mayúsculas/minúsculas o nulos
-            var nrodecFilter = (oDeclaracion.Nrodec ?? "").Replace("\"", "\\\"").ToLower();
-            Log($"Buscando detalles Desepla3 con filtro Nrodec lower={Q(nrodecFilter)}");
-            var rt = await _desepla3Servicio.LimitadosFiltrados(0, 0, $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecFilter}\"");
-            deseplasViejos = rt.List?.ToList() ?? new();
-            Log($"Detalles cargados: {deseplasViejos.Count}");
-
-            torosSeleccionados.Clear();
-            certificadosSeleccionados.Clear();
-
-            foreach (var desepla in deseplasViejos)
-            {
-                var data = new Desepla3Data
+                if (Plantelseleccionado is null && !string.IsNullOrWhiteSpace(oDeclaracion.Nroplan))
+                {
+                    var nroplanLower = EscapeForFilter(T(oDeclaracion.Nroplan).ToLower());
+                    var filtroPlan = $"(Placod == null ? \"\" : Placod).ToLower() == \"{nroplanLower}\"";
+                    var planResp = await _plantelServicio.LimitadosFiltradosNoInclude(0, 1, filtroPlan);
+                    Plantelseleccionado = planResp?.List?.FirstOrDefault();
+                    Log($"Plantel fallback por API | encontrado={(Plantelseleccionado != null)} | filtro={filtroPlan}");
+                    if (Plantelseleccionado != null && !Planteles.Any(p => p.Id == Plantelseleccionado.Id))
                     {
-                        LineKey = Guid.NewGuid(),
-                        original = CloneDesepla(desepla),
-                        Id = desepla.Id
-                    };
+                        Planteles.Add(Plantelseleccionado);
+                        Log($"Plantel fallback agregado a lista local | plantelesTotal={Planteles.Count}");
+                    }
+                }
+                tipoTemp = ToLabel(oDeclaracion.Tipse);
+                previousTipoTemp = tipoTemp;
+                Log($"Tipo reconstruido | tipseDB={Q(oDeclaracion.Tipse)} -> tipoUI={Q(tipoTemp)}");
 
-                if (DateTime.TryParseExact(desepla.Desde, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var d1))
-                    data.Desde = d1;
-                if (DateTime.TryParseExact(desepla.Hasta, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var d2))
-                    data.Hasta = d2;
-
-                if (string.Equals(desepla.Tipo, "insem", StringComparison.OrdinalIgnoreCase))
+                if (detallesTask != null)
                 {
-                    certificadosSeleccionados.Add(data);
+                    var rt = await detallesTask;
+                    deseplasViejos = rt.List ?? new();
                 }
                 else
                 {
-                    // <- importante: recuperar el TipToro para mostrarlo
-                    data.TipToro = GetTipToroByHba(desepla.Hardb);
-                    torosSeleccionados.Add(data);
+                    deseplasViejos = new List<Desepla3DTO>();
+                }
+                Log($"Detalles cargados: {deseplasViejos.Count}");
+                LogDetalleSnapshot("Detalles crudos desde API", deseplasViejos);
+
+                torosSeleccionados.Clear();
+                certificadosSeleccionados.Clear();
+
+                foreach (var desepla in deseplasViejos)
+                {
+                    var data = new Desepla3Data
+                        {
+                            LineKey = Guid.NewGuid(),
+                            original = CloneDesepla(desepla),
+                            Id = desepla.Id
+                        };
+
+                    if (DateTime.TryParseExact(desepla.Desde, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var d1))
+                        data.Desde = d1;
+                    if (DateTime.TryParseExact(desepla.Hasta, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var d2))
+                        data.Hasta = d2;
+
+                    if (string.Equals(desepla.Tipo, "insem", StringComparison.OrdinalIgnoreCase))
+                    {
+                        certificadosSeleccionados.Add(data);
+                    }
+                    else
+                    {
+                        data.TipToro = GetTipToroByHba(desepla.Hardb);
+                        torosSeleccionados.Add(data);
+                    }
+                }
+                Log($"Reconstrucción listas seleccionadas | toros={torosSeleccionados.Count} | certifs={certificadosSeleccionados.Count}");
+                LogSelectedSnapshot("Reconstruccion toros seleccionados", torosSeleccionados);
+                LogSelectedSnapshot("Reconstruccion certificados seleccionados", certificadosSeleccionados);
+                Log("Edición inicializada.");
+            }
+            else
+            {
+                oDeclaracion.Fecdecl = DateTime.Now;
+                nrodec = "0";
+                oDeclaracion.Nrodec = nrodec;
+                oDeclaracion.Desde = DateTime.Now;
+                oDeclaracion.Hasta = DateTime.Now;
+                oDeclaracion.Tipse = "NA";
+                Log($"Alta nueva | nrodecTemporal={Q(nrodec)} | el servidor asignara el nrodec definitivo al guardar");
+
+                if (socioSeleccionado != null)
+                {
+                    await LoadSocioDataAsync(socioSeleccionado, preserveCabecera: false, refreshUi: false);
                 }
             }
-            Log($"Reconstrucción listas seleccionadas | toros={torosSeleccionados.Count} | certifs={certificadosSeleccionados.Count}");
-
-            try { if (gridToro1 != null) await gridToro1.Reload(); } catch { }
-            try { if (gridToro2 != null) await gridToro2.Reload(); } catch { }
-            try { if (gridCertif != null) await gridCertif.Reload(); } catch { }
-            StateHasChanged();
-            Log("Edición inicializada.");
         }
-        else
+        finally
         {
-            var resp = await _desepla1Servicio.LimitadosFiltradosNoInclude(0, 0);
-            var nroDecAnterior = resp.List.OrderByDescending(x => x.Id).First().Nrodec;
-            nrodec = (Int32.Parse(nroDecAnterior) + 1).ToString();
-            oDeclaracion.Fecdecl = DateTime.Now;
-            oDeclaracion.Nrodec = nrodec;
-            oDeclaracion.Desde = DateTime.Now;
-            oDeclaracion.Hasta = DateTime.Now;
-            oDeclaracion.Tipse = "NA";
-            Log($"Alta nueva | nroDecAnterior={Q(nroDecAnterior)} | nrodecNuevo={Q(nrodec)}");
-
-
-
+            isLoadingDependencias = false;
+            isInitialLoading = false;
+            await InvokeAsync(StateHasChanged);
+            Log("OnInitializedAsync END");
         }
-        Log("OnInitializedAsync END");
     }
 
     private string? GetTipToroByHba(string? hba)
@@ -842,11 +1005,53 @@ else
             );
     }
 
+    Dictionary<string, int> BuildUsoPorCertFromSelected(IEnumerable<Desepla3Data> items, double multiplicador)
+    {
+        return items
+            .Where(x => x.original != null && x.original.Tipo == "insem" && !string.IsNullOrWhiteSpace(x.original.Hardb))
+            .GroupBy(x => x.original.Hardb)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Sum(d => DosisNecesarias(d.original.Cantv, multiplicador))
+            );
+    }
+
+    private int GetDosisRemanDisplay(string? hba)
+    {
+        if (string.IsNullOrWhiteSpace(hba)) return 0;
+
+        var cert = certificados.FirstOrDefault(x => x.Hba == hba);
+        var baseStock = cert?.NrDosi ?? 0;
+
+        // Si estamos editando, devolvemos al stock lo usado originalmente por la declaración
+        if (_isEdit && deseplasViejos.Count > 0)
+        {
+            var multPrev = GetMultiplicador(string.IsNullOrWhiteSpace(previousTipoTemp) ? tipoTemp : previousTipoTemp);
+            var usoInicial = BuildUsoPorCert(deseplasViejos, multPrev);
+            if (usoInicial.TryGetValue(hba, out var u))
+            {
+                baseStock += u;
+            }
+        }
+
+        // Restamos lo que se está usando ahora en pantalla
+        var multActual = GetMultiplicador(tipoTemp);
+        var usoActual = BuildUsoPorCertFromSelected(certificadosSeleccionados, multActual);
+        if (usoActual.TryGetValue(hba, out var a))
+        {
+            baseStock -= a;
+        }
+
+        return baseStock < 0 ? 0 : baseStock;
+    }
+
     private string CampoLegible(string key) => key switch
     {
         "socio" => "Socio",
         "plantel" => "Plantel",
+        "plantelCodigo" => "Código de plantel",
         "tipo" => "Tipo de servicio",
+        "tipoCodigo" => "Tipo de servicio",
         "NrFolio" => "Nº de folio",
         "Fchrecepcion" => "Fecha de declaración",
         "cantv" => "Vientres PR",
@@ -917,6 +1122,23 @@ else
         return $"<ul style='text-align:left;margin-left:1rem'>{string.Join("", items)}</ul>";
     }
 
+    private string BuildSaveHintsHtml()
+    {
+        var hints = new List<string>();
+
+        if (Plantelseleccionado != null && !string.IsNullOrWhiteSpace(Plantelseleccionado.Placod) && Plantelseleccionado.Placod.Length > 6)
+            hints.Add($"El código de plantel \"{System.Net.WebUtility.HtmlEncode(Plantelseleccionado.Placod)}\" supera 6 caracteres.");
+
+        var tipseCode = string.IsNullOrWhiteSpace(tipoTemp) ? string.Empty : ToCode(tipoTemp);
+        if (!string.IsNullOrWhiteSpace(tipseCode) && tipseCode.Length > 5)
+            hints.Add($"El tipo de servicio seleccionado se envía como \"{System.Net.WebUtility.HtmlEncode(tipseCode)}\" y supera 5 caracteres.");
+
+        if (hints.Count == 0) return string.Empty;
+
+        var li = string.Join("", hints.Select(h => $"<li>{h}</li>"));
+        return $"<div style='margin-top:.5rem'><b>Posibles causas:</b><ul style='text-align:left;margin-left:1rem'>{li}</ul></div>";
+    }
+
     private async Task HandleSubmit(EditContext _)
     {
         Log($"HandleSubmit | socio={Q(socioSeleccionado?.Scod)} | plantel={Q(Plantelseleccionado?.Placod)} | tipo={Q(tipoTemp)} | torosSel={torosSeleccionados.Count} | certifsSel={certificadosSeleccionados.Count}");
@@ -953,9 +1175,17 @@ else
 
         if (Plantelseleccionado is null)
             errors["plantel"] = "Debe seleccionar un plantel.";
+        else if (!string.IsNullOrWhiteSpace(Plantelseleccionado.Placod) && Plantelseleccionado.Placod.Length > 6)
+            errors["plantelCodigo"] = "El código de plantel supera 6 caracteres y no puede guardarse.";
 
         if (string.IsNullOrWhiteSpace(tipoTemp))
             errors["tipo"] = "Seleccione el tipo de servicio.";
+        else
+        {
+            var tipseCode = ToCode(tipoTemp);
+            if (!string.IsNullOrWhiteSpace(tipseCode) && tipseCode.Length > 5)
+                errors["tipoCodigo"] = "Tipo de servicio inválido para guardar. Intente re-seleccionarlo.";
+        }
 
         if (oDeclaracion.NrFolio is null || (oDeclaracion.NrFolio ?? 0) <= 0)
             errors["NrFolio"] = "Ingrese un número de folio válido.";
@@ -1005,10 +1235,10 @@ else
         if (esAlgunaInsemin)
         {
             bool faltan = certificadosSeleccionados.Count == 0;
-            // bool cantErr = certificadosSeleccionados.Any(c => (c.original.Cantv ?? 0) <= 0);
+            bool cantErr = certificadosSeleccionados.Any(c => (c.original.Cantv ?? 0) <= 0);
             bool fechasErr = certificadosSeleccionados.Any(c => c.Desde == default || c.Hasta == default || c.Desde > c.Hasta);
 
-            if (faltan  || fechasErr)
+            if (faltan || cantErr || fechasErr)
                 errors["certifs"] = "Agregue certificados, con vientres mayores a 0 y fechas válidas por fila.";
         }
 
@@ -1018,6 +1248,8 @@ else
     {
         Log($"Guardar START | Id={Id} | nrodec={Q(oDeclaracion?.Nrodec)}");
         seleccionFinal.Clear();
+        LogSelectedSnapshot("Guardar -> torosSeleccionados antes de persistir", torosSeleccionados);
+        LogSelectedSnapshot("Guardar -> certificadosSeleccionados antes de persistir", certificadosSeleccionados);
 
         oDeclaracion.Nrocri = socioSeleccionado.Scod;
         oDeclaracion.Nroplan = Plantelseleccionado.Placod;
@@ -1072,6 +1304,7 @@ else
 
         }
         Log($"seleccionFinal armada | total={seleccionFinal.Count} | toros={torosSeleccionados.Count} | certifs={certificadosSeleccionados.Count}");
+        LogDetalleSnapshot("Guardar -> seleccionFinal", seleccionFinal);
 
 
         // --- USO INICIAL (lo que tenía la declaración al cargar)
@@ -1169,9 +1402,12 @@ else
             catch (Exception ex)
             {
                 Log($"Excepción creando cabecera: {ex.Message}");
-                await Swal.FireAsync("Error al crear declaración",
-                    $"Falló la creación de la cabecera.\nDetalle: {ex.Message}",
-                    SweetAlertIcon.Error);
+                await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Error al crear declaración",
+                        Html = $"No se pudo crear la cabecera.<br/><b>Detalle:</b> {System.Net.WebUtility.HtmlEncode(ex.Message)}<br/>{BuildSaveHintsHtml()}",
+                        Icon = SweetAlertIcon.Error
+                    });
                 return;
             }
 
@@ -1179,9 +1415,12 @@ else
             {
                 var detalle = createdResp?.Mensaje;
                 Log($"Error creando cabecera | respuestaNull={createdResp is null} | exito={createdResp?.Exito} | mensaje={Q(detalle)}");
-                await Swal.FireAsync("Error al crear declaración",
-                    $"No se pudo crear la cabecera de la declaración.\nDetalle: {(!string.IsNullOrWhiteSpace(detalle) ? detalle : "Sin detalle devuelto por el servidor.")}",
-                    SweetAlertIcon.Error);
+                await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Error al crear declaración",
+                        Html = $"No se pudo crear la cabecera.<br/><b>Detalle:</b> {System.Net.WebUtility.HtmlEncode(!string.IsNullOrWhiteSpace(detalle) ? detalle : "Sin detalle devuelto por el servidor.")}<br/>{BuildSaveHintsHtml()}",
+                        Icon = SweetAlertIcon.Error
+                    });
                 return;
             }
 
@@ -1193,6 +1432,7 @@ else
             foreach (var dese in seleccionFinal)
             {
                 dese.Nrodec = oDeclaracion.Nrodec;
+                Log($"Crear detalle | Nrodec={Q(dese.Nrodec)} | Tipo={Q(dese.Tipo)} | HBA={Q(dese.Hardb)} | Tat={Q(dese.Tatpart)} | Cantv={dese.Cantv} | Desde={Q(dese.Desde)} | Hasta={Q(dese.Hasta)}");
                 try
                 {
                     var detResp = await _desepla3Servicio.Crear(dese);
@@ -1227,6 +1467,7 @@ else
             var filtro = $"(Nrodec == null ? \"\" : Nrodec).ToLower() == \"{nrodecLower}\"";
             var existentes = await _desepla3Servicio.LimitadosFiltrados(0, 0, filtro);
             Log($"Detalles existentes a reemplazar: {existentes?.List?.Count ?? 0}");
+            LogDetalleSnapshot("Editar -> detalles existentes antes de borrar", existentes?.List);
 
             if (existentes?.List != null)
             {
@@ -1258,6 +1499,7 @@ else
             foreach (var dese in seleccionFinal)
             {
                 dese.Nrodec = oDeclaracion.Nrodec;
+                Log($"Recrear detalle | Nrodec={Q(dese.Nrodec)} | Tipo={Q(dese.Tipo)} | HBA={Q(dese.Hardb)} | Tat={Q(dese.Tatpart)} | Cantv={dese.Cantv} | Desde={Q(dese.Desde)} | Hasta={Q(dese.Hasta)}");
                 try
                 {
                     var detResp = await _desepla3Servicio.Crear(dese);
@@ -1339,25 +1581,92 @@ else
     {
         var socioScod = socioSeleccionado?.Scod;
         var result = Planteles
-            .Where(x => x.Nrocri == socioScod && x.Placod.ToLower().Contains(searchText.ToLower()))
+            .Where(x => T(x.Nrocri).Equals(T(socioScod), StringComparison.OrdinalIgnoreCase)
+                && (x.Placod ?? string.Empty).ToLower().Contains((searchText ?? string.Empty).ToLower()))
             .ToList();
         Log($"BusquedaPlanteles | search={Q(searchText)} | socioScod={Q(socioScod)} | resultados={result.Count}");
         return await Task.FromResult(result);
     }
 
-    protected async Task AddToSelectedToros(DataGridRowMouseEventArgs<TorosuniDTO> args)
+    private async Task<IEnumerable<TorosuniDTO>> BusquedaToros(string searchText)
     {
-        var toro = args.Data;
+        var term = (searchText ?? string.Empty).Trim().ToLower();
+        var socioScod = T(socioSeleccionado?.Scod);
+
+        var baseQuery = toros
+            .Where(x => T(x.Criador).Equals(socioScod, StringComparison.OrdinalIgnoreCase))
+            .Where(x => x.CodEstado == "1")
+            .Where(x => !IsToroSelected(x));
+
+        if (!string.IsNullOrWhiteSpace(term))
+        {
+            baseQuery = baseQuery.Where(x =>
+                (x.NomDad ?? string.Empty).ToLower().Contains(term)
+                || (x.Hba ?? string.Empty).ToLower().Contains(term)
+                || (x.Tatpart ?? string.Empty).ToLower().Contains(term));
+        }
+
+        return await Task.FromResult(baseQuery.Take(30).ToList());
+    }
+
+    private async Task<IEnumerable<CertifsemanDTO>> BusquedaCertificados(string searchText)
+    {
+        var term = (searchText ?? string.Empty).Trim().ToLower();
+        var socioScod = T(socioSeleccionado?.Scod);
+
+        var baseQuery = certificados
+            .Where(x => T(x.Nrocri).Equals(socioScod, StringComparison.OrdinalIgnoreCase))
+            .Where(x => (x.NrDosi ?? 0) > 0)
+            .Where(x => !IsCertifSelected(x));
+
+        if (!string.IsNullOrWhiteSpace(term))
+        {
+            baseQuery = baseQuery.Where(x =>
+                (x.NomDad ?? string.Empty).ToLower().Contains(term)
+                || (x.Hba ?? string.Empty).ToLower().Contains(term)
+                || (x.Tatpart ?? string.Empty).ToLower().Contains(term));
+        }
+
+        return await Task.FromResult(baseQuery.Take(30).ToList());
+    }
+
+    private async Task OnToroSeleccionado(TorosuniDTO? toro)
+    {
+        if (toro == null) return;
+        await ToggleToro(toro);
+        toroSeleccionado = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnCertifSeleccionado(CertifsemanDTO? certif)
+    {
+        if (certif == null) return;
+        await ToggleCertif(certif);
+        certifSeleccionado = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected async Task AddToSelectedToros(DataGridRowMouseEventArgs<TorosuniDTO> args)
+        => await ToggleToro(args?.Data);
+
+    private bool IsToroSelected(TorosuniDTO? toro)
+        => toro != null && torosSeleccionados.Any(t => t.original?.Hardb == toro.Hba);
+
+    private bool IsCertifSelected(CertifsemanDTO? certif)
+        => certif != null && certificadosSeleccionados.Any(c => c.original?.Hardb == certif.Hba);
+
+    private async Task ToggleToro(TorosuniDTO? toro)
+    {
         if (toro == null || string.IsNullOrWhiteSpace(toro.Hba))
         {
-            Log("AddToSelectedToros ignorado (toro null o HBA vacío)");
+            Log("ToggleToro ignorado (toro null o HBA vacío)");
             return;
         }
 
-        bool yaExiste = torosSeleccionados.Any(t => t.original?.Hardb == toro.Hba);
-        if (yaExiste)
+        var existente = torosSeleccionados.FirstOrDefault(t => t.original?.Hardb == toro.Hba);
+        if (existente != null)
         {
-            Log($"AddToSelectedToros ignorado (duplicado) | HBA={Q(toro.Hba)}");
+            Log($"ToggleToro ignorado (ya seleccionado) | HBA={Q(toro.Hba)}");
             return;
         }
 
@@ -1377,10 +1686,11 @@ else
                 Hasta = DateTime.Now
             }
         );
-        Log($"AddToSelectedToros OK | HBA={Q(toro.Hba)} | TipToro={Q(toro.TipToro)} | totalTorosSel={torosSeleccionados.Count}");
+        Log($"ToggleToro ADD | HBA={Q(toro.Hba)} | TipToro={Q(toro.TipToro)} | totalTorosSel={torosSeleccionados.Count}");
 
-        try { await InvokeAsync(gridToro1.Reload); } catch { }
-        try { await InvokeAsync(gridToro2.Reload); } catch { }
+        try { if (gridToro1 != null) await gridToro1.Reload(); } catch { }
+        try { if (gridToro2 != null) await gridToro2.Reload(); } catch { }
+        await InvokeAsync(StateHasChanged);
     }
 
 
@@ -1393,8 +1703,9 @@ else
             .ToList();
         Log($"RemoveToro | before={before} | after={torosSeleccionados.Count} | HBA={Q(data?.original?.Hardb)}");
 
-        try { await InvokeAsync(gridToro1.Reload); } catch { }
-        try { await InvokeAsync(gridToro2.Reload); } catch { }
+        try { if (gridToro1 != null) await gridToro1.Reload(); } catch { }
+        try { if (gridToro2 != null) await gridToro2.Reload(); } catch { }
+        await InvokeAsync(StateHasChanged);
     }
 
 
@@ -1407,7 +1718,8 @@ else
             .ToList();
         Log($"RemoveCertif | before={before} | after={certificadosSeleccionados.Count} | HBA={Q(data?.original?.Hardb)}");
 
-        try { await InvokeAsync(gridCertif.Reload); } catch { }
+        try { if (gridCertif != null) await gridCertif.Reload(); } catch { }
+        await InvokeAsync(StateHasChanged);
     }
 
 
@@ -1415,19 +1727,21 @@ else
 
 
 
-    protected void AddToSelectedCertif(DataGridRowMouseEventArgs<CertifsemanDTO> args)
+    protected async Task AddToSelectedCertif(DataGridRowMouseEventArgs<CertifsemanDTO> args)
+        => await ToggleCertif(args?.Data);
+
+    private async Task ToggleCertif(CertifsemanDTO? certif)
     {
-        var certif = args.Data;
         if (certif == null || string.IsNullOrWhiteSpace(certif.Hba))
         {
-            Log("AddToSelectedCertif ignorado (certif null o HBA vacío)");
+            Log("ToggleCertif ignorado (certif null o HBA vacío)");
             return;
         }
 
-        // Evitar duplicados por HBA
-        if (certificadosSeleccionados.Any(c => c.original?.Hardb == certif.Hba))
+        var existente = certificadosSeleccionados.FirstOrDefault(c => c.original?.Hardb == certif.Hba);
+        if (existente != null)
         {
-            Log($"AddToSelectedCertif ignorado (duplicado) | HBA={Q(certif.Hba)}");
+            Log($"ToggleCertif ignorado (ya seleccionado) | HBA={Q(certif.Hba)}");
             return;
         }
 
@@ -1447,12 +1761,13 @@ else
                 Hasta = DateTime.Now
             }
         );
-        Log($"AddToSelectedCertif OK | HBA={Q(certif.Hba)} | Nrocri={Q(certif.Nrocri)} | totalCertSel={certificadosSeleccionados.Count}");
+        Log($"ToggleCertif ADD | HBA={Q(certif.Hba)} | Nrocri={Q(certif.Nrocri)} | totalCertSel={certificadosSeleccionados.Count}");
 
-        InvokeAsync(gridCertif.Reload);
+        try { if (gridCertif != null) await gridCertif.Reload(); } catch { }
+        await InvokeAsync(StateHasChanged);
     }
 
-    protected async void CleanSelected()
+    protected async Task CleanSelected()
     {
         Log($"CleanSelected | torosAntes={torosSeleccionados.Count} | certsAntes={certificadosSeleccionados.Count}");
         torosSeleccionados = new List<Desepla3Data>();
@@ -1468,37 +1783,62 @@ else
 
 
     protected async Task UpdateValores(SocioDTO socio)
+        => await LoadSocioDataAsync(socio, preserveCabecera: _isEdit, refreshUi: true);
+
+    private async Task LoadSocioDataAsync(SocioDTO socio, bool preserveCabecera, bool refreshUi)
     {
         socioSeleccionado = socio;
+        isLoadingDependencias = true;
+        loadingMessage = "Cargando planteles, toros y certificados...";
+        if (refreshUi)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+
         var socioScodRaw = socio?.Scod ?? string.Empty;
         var socioScodTrim = T(socio?.Scod);
         Log($"UpdateValores START | socio.Id={socio?.Id} | socio.ScodRaw={Q(socioScodRaw)} | socio.ScodTrim={Q(socioScodTrim)}");
 
-        // si estoy editando, no quiero que me borre tipo/cantidades/fechas
-        await ResetForSocioChange(preserveCabecera: _isEdit);
+        await ResetForSocioChange(preserveCabecera: preserveCabecera, refreshUi: false, reloadGrids: false);
 
         var filtro = $"Nrocri == \"{EscapeForFilter(socioScodRaw)}\"";
         Log($"UpdateValores -> Planteles filtro: {filtro}");
-        var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
-        Planteles = rt.List;
+        var plantelesTask = _plantelServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
+
+        filtro = $"Criador == \"{EscapeForFilter(socioScodRaw)}\"";
+        Log($"UpdateValores -> Toros filtro: {filtro}");
+        var torosTask = _torosServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
+
+        filtro = $"Nrocri == \"{EscapeForFilter(socioScodRaw)}\"";
+        Log($"UpdateValores -> Certificados filtro: {filtro}");
+        var certificadosTask = _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
+
+        await Task.WhenAll(plantelesTask, torosTask, certificadosTask);
+
+        var rt = await plantelesTask;
+        Planteles = rt.List ?? new List<PlantelDTO>();
         Log($"Planteles cargados: {Planteles?.Count ?? 0}");
         if ((Planteles?.Count ?? 0) == 0 && !string.IsNullOrWhiteSpace(socioScodTrim))
         {
             var filtroDiag = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{EscapeForFilter(socioScodTrim.ToLower())}\")";
             var rtDiag = await _plantelServicio.LimitadosFiltradosNoInclude(0, 20, filtroDiag);
-            Log($"Diag Planteles (contains scod trim) -> {rtDiag?.List?.Count ?? 0} resultados | filtro={filtroDiag}");
+            Planteles = (rtDiag?.List ?? new List<PlantelDTO>())
+                .Where(x => T(x.Nrocri).Equals(socioScodTrim, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            Log($"Diag Planteles (contains scod trim) -> {rtDiag?.List?.Count ?? 0} resultados crudos | filtradosExactos={Planteles.Count} | filtro={filtroDiag}");
         }
 
-        filtro = $"Criador == \"{EscapeForFilter(socioScodRaw)}\"";
-        Log($"UpdateValores -> Toros filtro: {filtro}");
-        var rta = await _torosServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
-        toros = rta.List;
+        var rta = await torosTask;
+        toros = rta.List ?? new List<TorosuniDTO>();
         Log($"Toros cargados: {toros?.Count ?? 0}");
         if ((toros?.Count ?? 0) == 0 && !string.IsNullOrWhiteSpace(socioScodTrim))
         {
             var filtroDiag = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{EscapeForFilter(socioScodTrim.ToLower())}\")";
             var rtDiag = await _torosServicio.LimitadosFiltradosNoInclude(0, 20, filtroDiag);
-            Log($"Diag Toros (contains scod trim) -> {rtDiag?.List?.Count ?? 0} resultados | filtro={filtroDiag}");
+            toros = (rtDiag?.List ?? new List<TorosuniDTO>())
+                .Where(x => T(x.Criador).Equals(socioScodTrim, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            Log($"Diag Toros (contains scod trim) -> {rtDiag?.List?.Count ?? 0} resultados crudos | filtradosExactos={toros.Count} | filtro={filtroDiag}");
         }
         if ((toros?.Count ?? 0) > 0)
         {
@@ -1506,16 +1846,17 @@ else
             Log($"Toros criadores (muestra): {string.Join(" | ", criadores.Select(Q))}");
         }
 
-        filtro = $"Nrocri == \"{EscapeForFilter(socioScodRaw)}\"";
-        Log($"UpdateValores -> Certificados filtro: {filtro}");
-        var rtaa = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
-        certificados = rtaa.List;
+        var rtaa = await certificadosTask;
+        certificados = rtaa.List ?? new List<CertifsemanDTO>();
         Log($"Certificados cargados: {certificados?.Count ?? 0}");
         if ((certificados?.Count ?? 0) == 0 && !string.IsNullOrWhiteSpace(socioScodTrim))
         {
             var filtroDiag = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{EscapeForFilter(socioScodTrim.ToLower())}\")";
             var rtDiag = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 20, filtroDiag);
-            Log($"Diag Certificados (contains scod trim) -> {rtDiag?.List?.Count ?? 0} resultados | filtro={filtroDiag}");
+            certificados = (rtDiag?.List ?? new List<CertifsemanDTO>())
+                .Where(x => T(x.Nrocri).Equals(socioScodTrim, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            Log($"Diag Certificados (contains scod trim) -> {rtDiag?.List?.Count ?? 0} resultados crudos | filtradosExactos={certificados.Count} | filtro={filtroDiag}");
         }
         if ((certificados?.Count ?? 0) > 0)
         {
@@ -1523,14 +1864,18 @@ else
             Log($"Certificados Nrocri (muestra): {string.Join(" | ", nrocris.Select(Q))}");
         }
 
-        StateHasChanged();
+        isLoadingDependencias = false;
+        if (refreshUi)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
         Log($"UpdateValores END | Planteles={Planteles?.Count ?? 0} | Toros={toros?.Count ?? 0} | Certifs={certificados?.Count ?? 0}");
     }
 
 
 
 
-    private async Task ResetForSocioChange(bool preserveCabecera = false)
+    private async Task ResetForSocioChange(bool preserveCabecera = false, bool refreshUi = true, bool reloadGrids = true)
     {
         Log($"ResetForSocioChange START | preserveCabecera={preserveCabecera}");
         torosSeleccionados.Clear();
@@ -1549,11 +1894,17 @@ else
             oDeclaracion.Hasta = DateTime.Now;
         }
 
-        try { if (gridToro1 != null) await gridToro1.Reload(); } catch { }
-        try { if (gridToro2 != null) await gridToro2.Reload(); } catch { }
-        try { if (gridCertif != null) await gridCertif.Reload(); } catch { }
+        if (reloadGrids)
+        {
+            try { if (gridToro1 != null) await gridToro1.Reload(); } catch { }
+            try { if (gridToro2 != null) await gridToro2.Reload(); } catch { }
+            try { if (gridCertif != null) await gridCertif.Reload(); } catch { }
+        }
 
-        StateHasChanged();
+        if (refreshUi)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
         Log("ResetForSocioChange END");
     }
 
@@ -1707,16 +2058,45 @@ else
 
 
 
-    private void OnTipoChanged(object value)
+    private async Task OnTipoChanged(object value)
     {
         var nuevo = value?.ToString() ?? "";
         Log($"OnTipoChanged | anterior={Q(tipoTemp)} | nuevo={Q(nuevo)}");
 
+        var tipoAnterior = tipoTemp;
         previousTipoTemp = tipoTemp;
+        var nuevoNormalizado = NormalizeTipoLabel(nuevo);
 
-        tipoTemp = NormalizeTipoLabel(nuevo);
+        if (_isEdit && !string.Equals(nuevoNormalizado, tipoAnterior, StringComparison.Ordinal))
+        {
+            var haySeleccion = torosSeleccionados.Count > 0 || certificadosSeleccionados.Count > 0;
+            var hayDetallesPrevios = deseplasViejos.Count > 0;
 
-        CleanSelected();
+            if (haySeleccion || hayDetallesPrevios)
+            {
+                var result = await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Cambiar tipo de servicio",
+                        Html = "Al cambiar el tipo se quitará todo lo seleccionado en pantalla.<br/>" +
+                               "Nada se guarda en la base hasta que presiones Guardar. Las dosis se devolverán recién cuando guardes la declaración.",
+                        Icon = SweetAlertIcon.Warning,
+                        ShowCancelButton = true,
+                        ConfirmButtonText = "Sí, cambiar",
+                        CancelButtonText = "Cancelar"
+                    });
+
+                if (!result.IsConfirmed)
+                {
+                    tipoTemp = tipoAnterior;
+                    await InvokeAsync(StateHasChanged);
+                    Log("OnTipoChanged cancelado por usuario.");
+                    return;
+                }
+            }
+        }
+
+        tipoTemp = nuevoNormalizado;
+        await CleanSelected();
     }
 
 }

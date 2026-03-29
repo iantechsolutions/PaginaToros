@@ -184,9 +184,7 @@ else
         }
         else
         {
-            //CAMBIAR ID
-            var usuarioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
-            oRespuesta = await _resin1Servicio.GetBySocioId(usuarioId);
+            oRespuesta = await _resin1Servicio.LimitadosFiltrados(0, 0, string.Empty);
             cantotal = oRespuesta.List.Count();
         }
     }

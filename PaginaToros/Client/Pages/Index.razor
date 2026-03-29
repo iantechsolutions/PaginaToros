@@ -1,298 +1,571 @@
-﻿@page "/"
+@page "/"
 @using System.Globalization
 
-<RadzenRow>
-    <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
-        <RadzenCard Style="position: relative;">
-            <RadzenText TextStyle="TextStyle.H6">Inspecciones abiertas</RadzenText>
-            <RadzenText TextStyle="TextStyle.H2" Class="rz-color-success" Style="position: absolute; right: 1.5rem; top: 1rem;">@Finished?.Count()</RadzenText>
-            <RadzenChart Style="width: 100%; height: 120px; margin-bottom: -30px;">
-                <RadzenColumnSeries Data=@Finished ValueProperty="Count" CategoryProperty="Week" Title="Issues" Fill="var(--rz-success)" />
-                <RadzenValueAxis Visible="false" />
-                <RadzenCategoryAxis Visible="false" />
-                <RadzenColumnOptions Margin="10" />
-                <RadzenLegend Visible="false" />
-            </RadzenChart>
-        </RadzenCard>
-    </RadzenColumn>
-    <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
-        <RadzenCard Style="position: relative;">
-            <RadzenText TextStyle="TextStyle.H6">Inspecciones cerradas</RadzenText>
-            <RadzenText TextStyle="TextStyle.H2" Class="rz-color-danger" Style="position: absolute; right: 1.5rem; top: 1rem;">@NotFinished?.Count()</RadzenText>
-            <RadzenChart Style="width: 100%; height: 120px; margin-bottom: -30px;">
-                <RadzenColumnSeries Data=@NotFinished ValueProperty="Count" CategoryProperty="Week" Title="Issues" Fill="var(--rz-danger)" />
-                <RadzenValueAxis Visible="false" />
-                <RadzenCategoryAxis Visible="false" />
-                <RadzenColumnOptions Margin="10" />
-                <RadzenLegend Visible="false" />
-            </RadzenChart>
-        </RadzenCard>
-    </RadzenColumn>
-    <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
-        <RadzenCard Style="position: relative;">
-            <RadzenText TextStyle="TextStyle.H6">Todas las inspecciones</RadzenText>
-            <RadzenText TextStyle="TextStyle.H2" Style="position: absolute; right: 1.5rem; top: 1rem;">@Inspecciones?.Count()</RadzenText>
-            <RadzenChart Style="width: 100%; height: 120px; margin-bottom: -30px;">
-                <RadzenLineSeries Data=@Inspecciones ValueProperty="Count" CategoryProperty="Week" Title="Open Issues" Smooth="true" Stroke="var(--rz-success)" />
-                <RadzenLineSeries Data=@Inspecciones ValueProperty="Count" CategoryProperty="Week" Title="Closed Issues" Smooth="true" Stroke="var(--rz-danger)" />
-                <RadzenValueAxis Visible="false" />
-                <RadzenCategoryAxis Visible="false" />
-                <RadzenLegend Visible="false" />
-            </RadzenChart>
-        </RadzenCard>
-    </RadzenColumn>
-    <RadzenColumn Size="12" SizeMD="6" SizeLG="3">
-        <RadzenCard>
-            <RadzenText TextStyle="TextStyle.H6">Progreso</RadzenText>
-            <RadzenArcGauge Style="width: 100%; height: 120px; margin-top: -30px;">
-                <RadzenArcGaugeScale Max="1" Y="0.8" Radius="2">
-                    <RadzenArcGaugeScaleValue Value=0.66 FormatString="{0:P0}" />
-                </RadzenArcGaugeScale>
-            </RadzenArcGauge>
-        </RadzenCard>
-    </RadzenColumn>
-</RadzenRow>
+<PageTitle>Inicio</PageTitle>
 
-<RadzenRow>
-    <RadzenColumn Size="4" SizeMD="4" SizeLG="4">
-        <RadzenCard Variant="Variant.Filled" Class="rz-my-2 rz-mx-0">
-            <RadzenText>Inspecciones</RadzenText>
-            <RadzenDataList AllowVirtualization=false
-                            WrapItems=true AllowPaging=false
-                            Data="@(Inspecciones.GetRange(0,3))" TItem="inspecciones" PageSize="3" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
-                <Template Context="product">
-                    <RadzenColumn Size="6" class="rz-p-0 rz-p-md-0">
-                        <RadzenCard Style="@(product.finished?"background-color: rgba(45, 255, 125, 0.5);":"background-color: rgba(255, 55, 46, 0.5);")">
-                            <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Socio</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H6" class="rz-display-flex rz-mt-0 rz-my-0">@(product.Socio)</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-0 rz-my-0">Establecimiento</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H6" class="rz-display-flex rz-mt-0 rz-my-0">@(product.Establecimiento)</RadzenText>
-                            </RadzenCard>
-                        </RadzenColumn>
-                    </Template>
-                </RadzenDataList>
-                <br />
+<style>
+    .admin-home {
+        display: grid;
+        gap: 0.85rem;
+    }
 
-                <RadzenButton Variant="Variant.Text" Text="ver más" ButtonStyle="ButtonStyle.Secondary" Style="color:black;" />
-            </RadzenCard>
-        </RadzenColumn>
+    .admin-home__hero {
+        padding: 1rem;
+        border-radius: 24px;
+        background:
+            radial-gradient(circle at top left, rgba(99, 168, 116, 0.18), transparent 34%),
+            linear-gradient(135deg, #f8fbf6 0%, #ffffff 45%, #f7f1e7 100%);
+        border: 1px solid rgba(64, 91, 69, 0.12);
+        box-shadow: 0 18px 45px rgba(54, 72, 58, 0.08);
+    }
 
-        <RadzenColumn Size="8">
-            <RadzenCard Variant="Variant.Filled" Class="rz-my-2 rz-mx-0">
-                <RadzenChart>
-                    <RadzenLineSeries Smooth="@true" Data="@revenue2019" CategoryProperty="Date" Title="2019" LineType="LineType.Dashed" ValueProperty="Revenue">
-                        <RadzenMarkers MarkerType="MarkerType.Square" />
-                        <RadzenSeriesDataLabels Visible="@false" />
-                    </RadzenLineSeries>
-                    <RadzenLineSeries Smooth="@true" Data="@revenue2020" CategoryProperty="Date" Title="2020" ValueProperty="Revenue">
-                        <RadzenMarkers MarkerType="MarkerType.Circle" />
-                        <RadzenSeriesDataLabels Visible="@false" />
-                    </RadzenLineSeries>
-                    <RadzenCategoryAxis Padding="20" Formatter="@FormatAsMonth" />
-                    <RadzenValueAxis Formatter="@FormatAsUSD">
-                        <RadzenGridLines Visible="true" />
-                        <RadzenAxisTitle Text="Precio en USD" />
-                    </RadzenValueAxis>
-                </RadzenChart>
+    .admin-home__shell {
+        margin-top: 0.8rem;
+        padding: 0.85rem;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(64, 91, 69, 0.08);
+    }
 
-            </RadzenCard>
-        </RadzenColumn>
-    </RadzenRow>
-    @code {
-    List<inspecciones> Inspecciones = new() { new inspecciones() { Socio = "IANTech Solutions", Establecimiento = "Caballito", finished = false, Count = 10, Week = 4 }, new inspecciones() { Socio = "IANTech Solutions", Establecimiento = "Palermo", finished = false, Count = 5, Week = 6 }, new inspecciones() { Socio = "IANTech Solutions", Establecimiento = "Palermo", finished = true, Count = 3, Week = 7 }, new inspecciones() { Socio = "IANTech Solutions", Establecimiento = "Palermo", finished = false, Count = 10, Week = 4 }, new inspecciones() { Socio = "IANTech Solutions", Establecimiento = "Palermo", finished = false, Count = 5, Week = 6 }, new inspecciones() { Socio = "IANTech Solutions", Establecimiento = "Palermo", finished = true, Count = 3, Week = 7 } };
-    List<inspecciones> Finished = new();
-    List<inspecciones> NotFinished = new();
+    .admin-home__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.2rem;
+        padding: 0.35rem 0.7rem;
+        border-radius: 999px;
+        background: rgba(52, 105, 63, 0.08);
+        color: #2f5e38;
+        font-size: 0.74rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .admin-home__meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+    }
+
+    .admin-home__pill {
+        padding: 0.55rem 0.8rem;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(64, 91, 69, 0.12);
+        color: #314433;
+        font-size: 0.82rem;
+        box-shadow: 0 8px 22px rgba(54, 72, 58, 0.05);
+    }
+
+    .admin-home__pill strong {
+        display: block;
+        color: #172417;
+        font-size: 0.94rem;
+    }
+
+    .admin-home__grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.8rem;
+    }
+
+    .admin-home__card {
+        padding: 0.95rem;
+        border-radius: 18px;
+        background: #fff;
+        border: 1px solid rgba(64, 91, 69, 0.1);
+        box-shadow: 0 16px 38px rgba(54, 72, 58, 0.08);
+    }
+
+    .admin-home__card--accent {
+        background: linear-gradient(180deg, #fffdf9 0%, #ffffff 100%);
+    }
+
+    .admin-home__card-title {
+        margin: 0;
+        color: #4e6151;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .admin-home__card-value {
+        margin: 0.4rem 0 0;
+        color: #152016;
+        font-size: clamp(1.5rem, 4vw, 2.1rem);
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .admin-home__card-note {
+        margin: 0.4rem 0 0;
+        color: #5c6b5f;
+        font-size: 0.82rem;
+        line-height: 1.4;
+    }
+
+    .admin-home__progress {
+        margin-top: 0.7rem;
+    }
+
+    .admin-home__content {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.95fr);
+        gap: 0.8rem;
+        margin-top: 0.8rem;
+    }
+
+    .admin-home__section-title {
+        margin: 0;
+        color: #1c281d;
+        font-size: 0.96rem;
+        font-weight: 800;
+    }
+
+    .admin-home__section-subtitle {
+        margin: 0.2rem 0 0.7rem;
+        color: #647366;
+        font-size: 0.81rem;
+        line-height: 1.45;
+    }
+
+    .admin-home__chart {
+        height: 245px;
+    }
+
+    .admin-home__recent-list {
+        display: grid;
+        gap: 0.6rem;
+    }
+
+    .admin-home__recent-item {
+        display: grid;
+        gap: 0.45rem;
+        padding: 0.8rem;
+        border-radius: 14px;
+        background: #f9fbf8;
+        border: 1px solid rgba(64, 91, 69, 0.08);
+    }
+
+    .admin-home__recent-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .admin-home__recent-title {
+        margin: 0;
+        color: #172417;
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .admin-home__recent-meta {
+        margin: 0;
+        color: #5f6d61;
+        font-size: 0.8rem;
+        line-height: 1.45;
+    }
+
+    .admin-home__badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 106px;
+        padding: 0.3rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .admin-home__badge--ok {
+        background: rgba(79, 174, 102, 0.14);
+        color: #2f7241;
+    }
+
+    .admin-home__badge--pending {
+        background: rgba(228, 142, 39, 0.16);
+        color: #9a5c00;
+    }
+
+    .admin-home__cta {
+        margin-top: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.65rem 0.9rem;
+        border: none;
+        border-radius: 14px;
+        background: #1f2c20;
+        color: #fff;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .admin-home__cta:hover {
+        transform: translateY(-1px);
+        opacity: 0.95;
+    }
+
+    .admin-home__cta--danger {
+        background: #7b2f2f;
+    }
+
+    .admin-home__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-top: 0.8rem;
+    }
+
+    .admin-home__empty {
+        padding: 0.85rem;
+        border-radius: 14px;
+        background: #f9fbf8;
+        color: #5f6d61;
+        font-size: 0.82rem;
+        border: 1px dashed rgba(64, 91, 69, 0.18);
+    }
+
+    .admin-home__state {
+        padding: 2rem;
+        border-radius: 24px;
+        background: #fff;
+        border: 1px solid rgba(64, 91, 69, 0.1);
+        box-shadow: 0 16px 38px rgba(54, 72, 58, 0.08);
+    }
+
+    .admin-home__state h2 {
+        margin: 0 0 0.75rem;
+        color: #192319;
+        font-size: 1.45rem;
+        font-weight: 800;
+    }
+
+    .admin-home__state p {
+        margin: 0;
+        color: #5f6d61;
+        line-height: 1.6;
+    }
+
+    @@media (max-width: 1200px) {
+        .admin-home__grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .admin-home__content {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .admin-home__hero,
+        .admin-home__shell,
+        .admin-home__card,
+        .admin-home__state {
+            padding: 1.2rem;
+        }
+
+        .admin-home__grid {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-home__recent-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+@if (isLoading)
+{
+    <div class="admin-home__state">
+        <h2>Cargando resumen del sistema</h2>
+        <p>Estamos preparando la informacion mas relevante para la pantalla de inicio.</p>
+        <div class="mt-3">
+            <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" ProgressBarStyle="ProgressBarStyle.Success" />
+        </div>
+    </div>
+}
+else if (isSocio)
+{
+    <div class="admin-home__state">
+        <h2>Redirigiendo</h2>
+        <p>Esta pantalla esta reservada para administracion. Te llevamos al modulo de establecimientos.</p>
+    </div>
+}
+else if (!isAdmin)
+{
+    <div class="admin-home__state">
+        <h2>Sin acceso al panel</h2>
+        <p>Este inicio muestra indicadores operativos para perfiles de administracion.</p>
+    </div>
+}
+else if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="admin-home__state">
+        <h2>No pudimos cargar la home</h2>
+        <p>@errorMessage</p>
+        <button class="admin-home__cta" @onclick="LoadDashboardAsync">Reintentar</button>
+    </div>
+}
+else if (dashboard is not null)
+{
+    <div class="admin-home">
+        <section class="admin-home__hero">
+            <div class="admin-home__eyebrow">Resumen administrativo</div>
+
+            <div class="admin-home__meta">
+                <div class="admin-home__pill">
+                    <strong>@dashboard.SociosRegistrados</strong>
+                    socios registrados
+                </div>
+                <div class="admin-home__pill">
+                    <strong>@dashboard.EstablecimientosRegistrados</strong>
+                    establecimientos registrados
+                </div>
+                <div class="admin-home__pill">
+                    <strong>@dashboard.TotalSolicitudes</strong>
+                    solicitudes historicas
+                </div>
+                <div class="admin-home__pill">
+                    <strong>@dashboard.GeneratedAt.ToString("dd/MM/yyyy HH:mm")</strong>
+                    ultima actualizacion
+                </div>
+            </div>
+
+            <div class="admin-home__shell">
+                <section class="admin-home__grid">
+                    <article class="admin-home__card admin-home__card--accent">
+                        <p class="admin-home__card-title">Pendientes de autorizacion</p>
+                        <p class="admin-home__card-value">@dashboard.SolicitudesPendientes</p>
+                        <p class="admin-home__card-note">Solicitudes que todavia no tienen fecha de autorizacion cargada.</p>
+                    </article>
+
+                    <article class="admin-home__card">
+                        <p class="admin-home__card-title">Solicitudes autorizadas</p>
+                        <p class="admin-home__card-value">@dashboard.SolicitudesAutorizadas</p>
+                        <p class="admin-home__card-note">Representan el volumen ya procesado administrativamente.</p>
+                    </article>
+
+                    <article class="admin-home__card">
+                        <p class="admin-home__card-title">Inspecciones realizadas</p>
+                        <p class="admin-home__card-value">@dashboard.InspeccionesRealizadas</p>
+                        <p class="admin-home__card-note">Total historico de resultados registrados en el sistema.</p>
+                    </article>
+
+                    <article class="admin-home__card">
+                        <p class="admin-home__card-title">Tasa de autorizacion</p>
+                        <p class="admin-home__card-value">@dashboard.TasaAutorizacion.ToString("0.#", CultureInfo.InvariantCulture)%</p>
+                        <p class="admin-home__card-note">Porcentaje de solicitudes con autorizacion sobre el total cargado.</p>
+                        <div class="admin-home__progress">
+                            <RadzenProgressBar Value="@dashboard.TasaAutorizacion" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Success" />
+                        </div>
+                    </article>
+                </section>
+
+                <section class="admin-home__content">
+                    <article class="admin-home__card">
+                        <h2 class="admin-home__section-title">Actividad de los ultimos 6 meses</h2>
+                        <p class="admin-home__section-subtitle">Comparamos altas de solicitudes con inspecciones realizadas.</p>
+
+                        <RadzenChart Class="admin-home__chart">
+                            <RadzenLineSeries Data="@dashboard.ActividadMensual" CategoryProperty="Label" ValueProperty="Solicitudes" Title="Solicitudes" Smooth="true" Stroke="#366a42" LineType="LineType.Solid">
+                                <RadzenMarkers MarkerType="MarkerType.Circle" />
+                            </RadzenLineSeries>
+                            <RadzenLineSeries Data="@dashboard.ActividadMensual" CategoryProperty="Label" ValueProperty="Inspecciones" Title="Inspecciones" Smooth="true" Stroke="#c9812b" LineType="LineType.Dashed">
+                                <RadzenMarkers MarkerType="MarkerType.Square" />
+                            </RadzenLineSeries>
+                            <RadzenCategoryAxis />
+                            <RadzenValueAxis Min="0">
+                                <RadzenGridLines Visible="true" />
+                            </RadzenValueAxis>
+                            <RadzenLegend Position="LegendPosition.Right" />
+                        </RadzenChart>
+                    </article>
+
+                    <article class="admin-home__card">
+                        <h2 class="admin-home__section-title">Solicitudes recientes</h2>
+
+                        @if (dashboard.SolicitudesRecientes.Count == 0)
+                        {
+                            <div class="admin-home__empty">Todavia no hay solicitudes para mostrar.</div>
+                        }
+                        else
+                        {
+                            <div class="admin-home__recent-list">
+                                @foreach (var solicitud in dashboard.SolicitudesRecientes)
+                                {
+                                    <div class="admin-home__recent-item">
+                                        <div class="admin-home__recent-row">
+                                            <p class="admin-home__recent-title">@GetSolicitudLabel(solicitud)</p>
+                                            <span class="@GetStatusClass(solicitud)">@GetStatusText(solicitud)</span>
+                                        </div>
+
+                                        <p class="admin-home__recent-meta">
+                                            <strong>Socio:</strong> @GetSocioLabel(solicitud)
+                                        </p>
+                                        <p class="admin-home__recent-meta">
+                                            <strong>Establecimiento:</strong> @GetEstablecimientoLabel(solicitud)
+                                        </p>
+                                        <p class="admin-home__recent-meta">
+                                            <strong>Solicitada:</strong> @FormatDate(solicitud.FechaSolicitud)
+                                            @if (solicitud.EstaAutorizada)
+                                            {
+                                                <span> | <strong>Autorizada:</strong> @FormatDate(solicitud.FechaAutorizacion)</span>
+                                            }
+                                        </p>
+                                    </div>
+                                }
+                            </div>
+
+                        }
+
+                        <div class="admin-home__actions">
+                            <button class="admin-home__cta" @onclick="@(() => nav.NavigateTo("/solicitudesinspeccion"))">Ver todas las solicitudes</button>
+
+                            @if (dashboard.SolicitudesSinSocio > 0)
+                            {
+                                <button class="admin-home__cta admin-home__cta--danger" @onclick="DeleteOrphanSolicitudesAsync">
+                                    Eliminar solicitudes sin socio (@dashboard.SolicitudesSinSocio)
+                                </button>
+                            }
+                        </div>
+                    </article>
+                </section>
+            </div>
+        </section>
+    </div>
+}
+
+@code {
+    private AdminDashboardDTO? dashboard;
+    private bool isLoading = true;
+    private bool isSocio;
+    private bool isAdmin;
+    private string? errorMessage;
+
     protected override async Task OnInitializedAsync()
     {
-        var esSocio = await UserHasRole("Socio");
-        if (esSocio)
+        isSocio = await UserHasAnyRoleAsync("Socio", "SOCIO");
+        if (isSocio)
         {
-            nav.NavigateTo($"/establecimientos");
+            nav.NavigateTo("/establecimientos");
+            isLoading = false;
+            return;
         }
-        Finished = Inspecciones.Where(x => x.finished).ToList();
-        NotFinished = Inspecciones.Where(x => !x.finished).ToList();
 
+        isAdmin = await UserHasAnyRoleAsync("ADMINISTRADOR", "USUARIOMAESTRO");
+        if (!isAdmin)
+        {
+            isLoading = false;
+            return;
+        }
+
+        await LoadDashboardAsync();
     }
-    private async Task<bool> UserHasRole(string role)
+
+    private async Task LoadDashboardAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var response = await Http.GetFromJsonAsync<Respuesta<AdminDashboardDTO>>("api/Dashboard/admin-home");
+
+            if (response == null || response.Exito == 0 || response.List == null)
+            {
+                errorMessage = response?.Mensaje ?? "No se pudo obtener el resumen administrativo.";
+                dashboard = null;
+            }
+            else
+            {
+                dashboard = response.List;
+            }
+        }
+        catch (Exception ex)
+        {
+            dashboard = null;
+            errorMessage = $"No se pudo obtener el resumen administrativo. Detalle: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task DeleteOrphanSolicitudesAsync()
+    {
+        if (dashboard is null || dashboard.SolicitudesSinSocio == 0)
+        {
+            return;
+        }
+
+        var result = await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Eliminar solicitudes sin socio",
+            Text = $"Se eliminaran {dashboard.SolicitudesSinSocio} solicitudes huerfanas y sus detalles asociados.",
+            Icon = SweetAlertIcon.Warning,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Eliminar",
+            CancelButtonText = "Cancelar"
+        });
+
+        if (string.IsNullOrEmpty(result.Value))
+        {
+            return;
+        }
+
+        try
+        {
+            var response = await Http.DeleteAsync("api/Dashboard/orphan-solicitudes");
+            var body = await response.Content.ReadFromJsonAsync<Respuesta<int>>();
+
+            if (!response.IsSuccessStatusCode || body is null || body.Exito == 0)
+            {
+                await Swal.FireAsync("Error", body?.Mensaje ?? "No se pudieron eliminar las solicitudes sin socio.", SweetAlertIcon.Error);
+                return;
+            }
+
+            await Swal.FireAsync("Listo", $"Se eliminaron {body.List} solicitudes sin socio.", SweetAlertIcon.Success);
+            await LoadDashboardAsync();
+        }
+        catch (Exception ex)
+        {
+            await Swal.FireAsync("Error", $"No se pudieron eliminar las solicitudes sin socio. Detalle: {ex.Message}", SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task<bool> UserHasAnyRoleAsync(params string[] roles)
     {
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        return authenticationState.User.IsInRole(role);
-    }
-    DataItem[] revenue = new DataItem[] {
-    new DataItem
-    {
-    Quarter = "Q1",
-    Revenue = 30000
-    },
-    new DataItem
-    {
-    Quarter = "Q2",
-    Revenue = 40000
-    },
-    new DataItem
-    {
-    Quarter = "Q3",
-    Revenue = 50000
-    },
-    new DataItem
-    {
-    Quarter = "Q4",
-    Revenue = 80000
-    },
-    };
-
-    string FormatAsUSD(object value)
-    {
-        return ((double)value).ToString("C0", CultureInfo.CreateSpecificCulture("en-US"));
+        return roles.Any(authenticationState.User.IsInRole);
     }
 
-    string FormatAsMonth(object value)
-    {
-        if (value != null)
-        {
-            return Convert.ToDateTime(value).ToString("MMM");
-        }
+    private static string GetStatusText(DashboardRecentSolicitudDTO solicitud)
+        => solicitud.EstaAutorizada ? "Autorizada" : "Pendiente";
 
-        return string.Empty;
-    }
+    private static string GetStatusClass(DashboardRecentSolicitudDTO solicitud)
+        => solicitud.EstaAutorizada ? "admin-home__badge admin-home__badge--ok" : "admin-home__badge admin-home__badge--pending";
 
-    DataItem[] revenue2019 = new DataItem[] {
-        new DataItem
-        {
-            Date = ("2019-01-01"),
-            Revenue = 234000
-        },
-        new DataItem
-        {
-            Date = ("2019-02-01"),
-            Revenue = 269000
-        },
-        new DataItem
-        {
-            Date = ("2019-03-01"),
-            Revenue = 233000
-        },
-        new DataItem
-        {
-            Date = ("2019-04-01"),
-            Revenue = 244000
-        },
-        new DataItem
-        {
-            Date = ("2019-05-01"),
-            Revenue = 214000
-        },
-        new DataItem
-        {
-            Date = ("2019-06-01"),
-            Revenue = 253000
-        },
-        new DataItem
-        {
-            Date = ("2019-07-01"),
-            Revenue = 274000
-        },
-        new DataItem
-        {
-            Date = ("2019-08-01"),
-            Revenue = 284000
-        },
-        new DataItem
-        {
-            Date = ("2019-09-01"),
-            Revenue = 273000
-        },
-        new DataItem
-        {
-            Date = ("2019-10-01"),
-            Revenue = 282000
-        },
-        new DataItem
-        {
-            Date = ("2019-11-01"),
-            Revenue = 289000
-        },
-        new DataItem
-        {
-            Date = ("2019-12-01"),
-            Revenue = 294000
-        }
-    };
+    private static string GetSolicitudLabel(DashboardRecentSolicitudDTO solicitud)
+        => string.IsNullOrWhiteSpace(solicitud.NroSolicitud) ? $"Solicitud #{solicitud.Id}" : $"Solicitud {solicitud.NroSolicitud}";
 
-    DataItem[] revenue2020 = new DataItem[] {
-        new DataItem
-        {
-            Date = ("2019-01-01"),
-            Revenue = 334000
-        },
-        new DataItem
-        {
-            Date = ("2019-02-01"),
-            Revenue = 369000
-        },
-        new DataItem
-        {
-            Date = ("2019-03-01"),
-            Revenue = 333000
-        },
-        new DataItem
-        {
-            Date = ("2019-04-01"),
-            Revenue = 344000
-        },
-        new DataItem
-        {
-            Date = ("2019-05-01"),
-            Revenue = 314000
-        },
-        new DataItem
-        {
-            Date = ("2019-06-01"),
-            Revenue = 353000
-        },
-        new DataItem
-        {
-            Date = ("2019-07-01"),
-            Revenue = 374000
-        },
-        new DataItem
-        {
-            Date = ("2019-08-01"),
-            Revenue = 384000
-        },
-        new DataItem
-        {
-            Date = ("2019-09-01"),
-            Revenue = 373000
-        },
-        new DataItem
-        {
-            Date = ("2019-10-01"),
-            Revenue = 382000
-        },
-        new DataItem
-        {
-            Date = ("2019-11-01"),
-            Revenue = 389000
-        },
-        new DataItem
-        {
-            Date = ("2019-12-01"),
-            Revenue = 394000
-        }
-    };
-    class DataItem
-    {
-        public string? Quarter { get; set; }
-        public string? Date { get; set; }
-        public double? Revenue { get; set; }
-    }
-    public class inspecciones
-    {
-        public string Socio { get; set; }
-        public string Establecimiento { get; set; }
-        public bool finished { get; set; }
-        public int Count { get; set; }
-        public int Week { get; set; }
-    }
+    private static string GetSocioLabel(DashboardRecentSolicitudDTO solicitud)
+        => string.IsNullOrWhiteSpace(solicitud.SocioNombre) ? "Sin socio asociado" : solicitud.SocioNombre;
+
+    private static string GetEstablecimientoLabel(DashboardRecentSolicitudDTO solicitud)
+        => string.IsNullOrWhiteSpace(solicitud.EstablecimientoNombre) ? "Sin establecimiento asociado" : solicitud.EstablecimientoNombre;
+
+    private static string FormatDate(DateTime? value)
+        => value.HasValue ? value.Value.ToString("dd/MM/yyyy") : "Sin fecha";
 }

@@ -40,7 +40,7 @@ namespace PaginaToros.Client.Servicios.Implementacion
         {
             string filter = $"Socio.Id == {socioId}";
             var encoded = Uri.EscapeDataString(filter);
-            var result = await _http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>($"api/plantel/LimitadosFiltradosNoInclude?skip=0&take=0&expression={encoded}");
+            var result = await _http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>($"api/plantel/LimitadosFiltrados?skip=0&take=0&expression={encoded}");
             return result;
         }
 

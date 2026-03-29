@@ -15,6 +15,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
 using System.Text;
+using PaginaToros.Server.Services;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -27,19 +28,22 @@ namespace PaginaToros.Server.Controllers
         private readonly hereford_prContext _db;
         private readonly ApplicationDbContext _identityDb;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IUserSocioContextService _userSocioContextService;
 
         public SocioController(
             ISocioRepositorio SocioRepositorio,
             IMapper mapper,
             hereford_prContext db,
             ApplicationDbContext identityDb,
-            UserManager<IdentityUser> userManager)
+            UserManager<IdentityUser> userManager,
+            IUserSocioContextService userSocioContextService)
         {
             _mapper = mapper;
             _SocioRepositorio = SocioRepositorio;
             _db = db;
             _identityDb = identityDb;
             _userManager = userManager;
+            _userSocioContextService = userSocioContextService;
         }
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
@@ -50,7 +54,15 @@ namespace PaginaToros.Server.Controllers
             try
             {
                 List<SocioDTO> listaPedido = new List<SocioDTO>();
-                var a = await _SocioRepositorio.Lista(skip, take);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && !accessContext.ActiveSocioId.HasValue)
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<SocioDTO>>());
+                }
+
+                var a = RequiresActiveSocioScope(accessContext)
+                    ? await _SocioRepositorio.LimitadosFiltradosTodos(skip, take, BuildActiveSocioIdFilter(accessContext.ActiveSocioId!.Value))
+                    : await _SocioRepositorio.Lista(skip, take);
 
 
                 listaPedido = _mapper.Map<List<SocioDTO>>(a);
@@ -77,6 +89,22 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    if (!accessContext.ActiveSocioId.HasValue)
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                    }
+
+                    var scopedCount = await _db.Socios
+                        .AsNoTracking()
+                        .CountAsync(x => x.Id == accessContext.ActiveSocioId.Value);
+
+                    _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = scopedCount };
+                    return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+                }
+
                 var a = await _SocioRepositorio.CantidadTotal();
 
                 _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
@@ -100,6 +128,23 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    if (!accessContext.ActiveSocioId.HasValue)
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<SocioDTO>>());
+                    }
+
+                    var scopedExpression = AppendFilter(expression, BuildActiveSocioIdFilter(accessContext.ActiveSocioId.Value));
+                    var scoped = await _SocioRepositorio.LimitadosFiltradosTodos(skip, take, scopedExpression);
+                    var scopedOrdered = scoped.OrderByDescending(s => s.Criador == "S").ToList();
+                    var scopedMapped = _mapper.Map<List<SocioDTO>>(scopedOrdered);
+
+                    _ResponseDTO = new Respuesta<List<SocioDTO>>() { Exito = 1, Mensaje = "Exito", List = scopedMapped };
+                    return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+                }
+
                 var a = await _SocioRepositorio.LimitadosFiltrados(skip, take, expression);
 
                 var listaOrdenada = a.OrderByDescending(s => s.Criador == "S").ToList();
@@ -128,6 +173,17 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    if (!accessContext.ActiveSocioId.HasValue)
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<SocioDTO>>());
+                    }
+
+                    expression = AppendFilter(expression, BuildActiveSocioIdFilter(accessContext.ActiveSocioId.Value));
+                }
+
                 var a = await _SocioRepositorio.LimitadosFiltradosTodos(skip, take, expression);
 
                 //var listaOrdenada = a.OrderByDescending(s => s.Criador == "S").ToList();
@@ -154,6 +210,12 @@ namespace PaginaToros.Server.Controllers
             Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                }
+
                 Socio _SocioEliminar = await _SocioRepositorio.Obtener(u => u.Id == id);
                 if (_SocioEliminar != null)
                 {
@@ -182,6 +244,12 @@ namespace PaginaToros.Server.Controllers
             Respuesta<SocioDTO> _Respuesta = new Respuesta<SocioDTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<SocioDTO>());
+                }
+
                 request.Codpos2 = request.Codpos2?.Trim();
                 request.Placod = request.Placod?.Trim();
                 request.Mail = request.Mail?.Trim();
@@ -210,16 +278,7 @@ namespace PaginaToros.Server.Controllers
                     return StatusCode(StatusCodes.Status400BadRequest, _Respuesta);
                 }
 
-                // Validate Codpos2 uniqueness if provided
-                if (!string.IsNullOrWhiteSpace(request.Codpos2))
-                {
-                    var dup = _db.Socios.FirstOrDefault(s => s.Codpos2 == request.Codpos2);
-                    if (dup != null)
-                    {
-                        _Respuesta = new Respuesta<SocioDTO>() { Exito = 0, Mensaje = "Codpos2 duplicado", List = _mapper.Map<SocioDTO>(dup) };
-                        return StatusCode(StatusCodes.Status409Conflict, _Respuesta);
-                    }
-                }
+                // Codpos2 duplicates are allowed
 
                 // Generate next Scod server-side (numeric sequence using numeric Scod values)
                 var allScods = _db.Socios.Select(s => s.Scod).ToList();
@@ -267,6 +326,13 @@ namespace PaginaToros.Server.Controllers
             var resp = new Respuesta<SocioDTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) &&
+                    (!accessContext.ActiveSocioId.HasValue || request.Id != accessContext.ActiveSocioId.Value))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<SocioDTO>());
+                }
+
                 var socioReq = _mapper.Map<Socio>(request);
                 var socioDb = await _SocioRepositorio.Obtener(u => u.Id == socioReq.Id);
 
@@ -324,6 +390,15 @@ namespace PaginaToros.Server.Controllers
                 List = new SocioRegistrationResult()
             };
 
+            var accessContext = await _userSocioContextService.ResolveAsync(User);
+            if (RequiresActiveSocioScope(accessContext))
+            {
+                response.Mensaje = "No tenes permisos para enviar inscripciones.";
+                response.List.CodigoError = "FORBIDDEN";
+                response.List.MensajeUsuario = "No tenes permisos para enviar mails de inscripción desde otra razón social.";
+                return StatusCode(StatusCodes.Status403Forbidden, response);
+            }
+
             if (request?.Socio == null)
             {
                 response.Mensaje = "Solicitud inválida.";
@@ -370,66 +445,80 @@ namespace PaginaToros.Server.Controllers
             }
 
             var normalizedEmail = socioDto.Mail!.Trim().ToUpperInvariant();
-            var conflictingUserByEmail = await _identityDb.User
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToUpper() == normalizedEmail && u.SocioId != socioDto.Id);
+            var existingDomainUser = await FindDomainUserBySocioIdAsync(socioDto.Id);
+            var emailDomainUser = await _identityDb.User.FirstOrDefaultAsync(
+                u => u.Email != null && u.Email.ToUpper() == normalizedEmail);
 
-            if (conflictingUserByEmail != null)
+            if (emailDomainUser != null && !IsSocioRole(emailDomainUser.Rol))
             {
-                var associatedSocio = conflictingUserByEmail.SocioId.HasValue
-                    ? await _db.Socios.AsNoTracking().FirstOrDefaultAsync(s => s.Id == conflictingUserByEmail.SocioId.Value)
-                    : null;
-
                 response.Mensaje = "El mail ya pertenece a otro usuario.";
-                response.List.CodigoError = "EMAIL_IN_USE_BY_OTHER_SOCIO";
-                response.List.MensajeUsuario = BuildEmailConflictMessage(conflictingUserByEmail, associatedSocio);
-                response.List.MailAsociado = conflictingUserByEmail.Email;
-                response.List.SocioAsociadoId = associatedSocio?.Id ?? conflictingUserByEmail.SocioId;
-                response.List.SocioAsociadoCodigo = associatedSocio?.Codpos2 ?? associatedSocio?.Scod;
-                response.List.SocioAsociadoNombre = associatedSocio != null ? BuildSocioDisplayName(associatedSocio) : conflictingUserByEmail.Email;
+                response.List.CodigoError = "EMAIL_IN_USE_BY_OTHER_ROLE";
+                response.List.MensajeUsuario = $"El mail '{socioDto.Mail}' ya está asociado a un usuario con rol {emailDomainUser.Rol}.";
+                response.List.MailAsociado = emailDomainUser.Email;
                 response.List.Errores.Add(response.List.MensajeUsuario);
                 return Conflict(response);
             }
 
-            var existingDomainUser = await _identityDb.User.FirstOrDefaultAsync(u => u.SocioId == socioDto.Id);
-            var existingIdentityUser = existingDomainUser == null
-                ? null
-                : await FindIdentityUserAsync(existingDomainUser.Email);
+            if (existingDomainUser != null && emailDomainUser != null && existingDomainUser.Id != emailDomainUser.Id)
+            {
+                var associatedSocio = await FindAssociatedSocioAsync(existingDomainUser, socioDto.Id);
 
-            if (existingDomainUser != null && existingIdentityUser == null)
+                response.Mensaje = "El socio ya está asociado a otro usuario.";
+                response.List.CodigoError = "SOCIO_ALREADY_LINKED_TO_OTHER_USER";
+                response.List.MensajeUsuario = $"El socio {BuildSocioDisplayName(socioDb)} ya está asociado a otro usuario. No se puede vincular con el mail '{socioDto.Mail}'.";
+                response.List.MailAsociado = existingDomainUser.Email;
+                response.List.SocioAsociadoId = associatedSocio?.Id ?? socioDb.Id;
+                response.List.SocioAsociadoCodigo = associatedSocio?.Codpos2 ?? associatedSocio?.Scod ?? socioDb.Codpos2 ?? socioDb.Scod;
+                response.List.SocioAsociadoNombre = associatedSocio != null ? BuildSocioDisplayName(associatedSocio) : BuildSocioDisplayName(socioDb);
+                response.List.Errores.Add(response.List.MensajeUsuario);
+                return Conflict(response);
+            }
+
+            var targetDomainUser = existingDomainUser ?? emailDomainUser;
+            var targetIdentityUser = targetDomainUser == null
+                ? null
+                : await FindIdentityUserForDomainUserAsync(targetDomainUser);
+
+            if (targetDomainUser == null)
+            {
+                var duplicateIdentity = await _userManager.FindByEmailAsync(socioDto.Mail!);
+                if (duplicateIdentity != null)
+                {
+                    response.Mensaje = "El mail ya pertenece a otro usuario.";
+                    response.List.CodigoError = "EMAIL_IN_USE_BY_OTHER_USER";
+                    response.List.MensajeUsuario = $"El mail '{socioDto.Mail}' ya está registrado. Eliminá o corregí ese usuario antes de continuar.";
+                    response.List.Errores.Add(response.List.MensajeUsuario);
+                    return Conflict(response);
+                }
+            }
+            else if (targetIdentityUser == null)
             {
                 response.Mensaje = "Usuario de acceso inconsistente.";
                 response.List.CodigoError = "IDENTITY_USER_NOT_FOUND";
-                response.List.MensajeUsuario = "El socio tiene un usuario asociado, pero no se encontró el acceso de Identity. Revisá el usuario antes de reenviar la inscripción.";
+                response.List.MensajeUsuario = "El usuario asociado existe en la base, pero no se encontró el acceso de Identity. Revisá el usuario antes de reenviar la inscripción.";
                 return BadRequest(response);
             }
 
             var previousSocioState = CaptureSocioState(socioDb);
-            User? previousDomainUserState = existingDomainUser == null ? null : CloneDomainUser(existingDomainUser);
-            IdentityUser? previousIdentityState = existingIdentityUser == null ? null : CloneIdentityUser(existingIdentityUser);
+            User? previousDomainUserState = targetDomainUser == null ? null : CloneDomainUser(targetDomainUser);
+            IdentityUser? previousIdentityState = targetIdentityUser == null ? null : CloneIdentityUser(targetIdentityUser);
+            var previousUserSocioIds = targetDomainUser == null
+                ? null
+                : await GetUserSocioIdsAsync(targetDomainUser);
 
             IdentityUser? createdIdentityUser = null;
             User? createdDomainUser = null;
             var password = GenerateServerPassword(12);
             var userWasReset = false;
+            var userWasLinked = false;
 
             try
             {
                 ApplySocioChanges(socioDb, socioDto);
                 await _db.SaveChangesAsync();
 
-                if (existingDomainUser == null)
+                if (targetDomainUser == null)
                 {
-                    var duplicateIdentity = await _userManager.FindByEmailAsync(socioDto.Mail!);
-                    if (duplicateIdentity != null)
-                    {
-                        response.Mensaje = "El mail ya pertenece a otro usuario.";
-                        response.List.CodigoError = "EMAIL_IN_USE_BY_OTHER_USER";
-                        response.List.MensajeUsuario = $"El mail '{socioDto.Mail}' ya está registrado. Eliminá o corregí ese usuario antes de continuar.";
-                        response.List.Errores.Add(response.List.MensajeUsuario);
-                        throw new FriendlySocioRegistrationException(response);
-                    }
-
                     var identityUser = new IdentityUser
                     {
                         UserName = socioDto.Mail,
@@ -453,6 +542,7 @@ namespace PaginaToros.Server.Controllers
                     }
 
                     createdIdentityUser = identityUser;
+                    targetIdentityUser = identityUser;
 
                     var roleResult = await _userManager.AddToRoleAsync(identityUser, "SOCIO");
                     if (!roleResult.Succeeded)
@@ -473,30 +563,51 @@ namespace PaginaToros.Server.Controllers
                         Rol = "SOCIO",
                         Status = "ACTIVO",
                         Created = DateTime.UtcNow,
+                        IdentityUserId = identityUser.Id,
                         SocioId = socioDto.Id
                     };
 
                     await _identityDb.User.AddAsync(createdDomainUser);
                     await _identityDb.SaveChangesAsync();
+                    targetDomainUser = createdDomainUser;
                 }
                 else
                 {
-                    existingDomainUser.Names = socioDto.Nombre!;
-                    existingDomainUser.LastNames = socioDto.Nombre!;
-                    existingDomainUser.Phone = socioDto.Telefo1!;
-                    existingDomainUser.Email = socioDto.Mail!;
-                    existingDomainUser.Status = string.IsNullOrWhiteSpace(existingDomainUser.Status) ? "ACTIVO" : existingDomainUser.Status.ToUpperInvariant();
-                    existingDomainUser.Rol = "SOCIO";
-                    existingDomainUser.SocioId = socioDto.Id;
+                    userWasLinked = existingDomainUser == null && emailDomainUser != null;
 
-                    existingIdentityUser!.Email = socioDto.Mail!;
-                    existingIdentityUser.UserName = socioDto.Mail!;
-                    existingIdentityUser.NormalizedEmail = socioDto.Mail!.ToUpperInvariant();
-                    existingIdentityUser.NormalizedUserName = socioDto.Mail.ToUpperInvariant();
-                    existingIdentityUser.EmailConfirmed = true;
-                    existingIdentityUser.PhoneNumber = socioDto.Telefo1;
+                    ApplyDomainUserChanges(targetDomainUser, socioDto);
+                    targetDomainUser.Status = string.IsNullOrWhiteSpace(targetDomainUser.Status)
+                        ? "ACTIVO"
+                        : targetDomainUser.Status.ToUpperInvariant();
+                    targetDomainUser.Rol = "SOCIO";
+                    targetDomainUser.IdentityUserId = targetIdentityUser!.Id;
 
-                    var passwordValidation = await ValidatePasswordAsync(existingIdentityUser, password);
+                    if (!targetDomainUser.SocioId.HasValue || !previousUserSocioIds!.Contains(targetDomainUser.SocioId.Value))
+                    {
+                        targetDomainUser.SocioId = socioDto.Id;
+                    }
+
+                    targetIdentityUser.Email = socioDto.Mail!;
+                    targetIdentityUser.UserName = socioDto.Mail!;
+                    targetIdentityUser.NormalizedEmail = socioDto.Mail!.ToUpperInvariant();
+                    targetIdentityUser.NormalizedUserName = socioDto.Mail.ToUpperInvariant();
+                    targetIdentityUser.EmailConfirmed = true;
+                    targetIdentityUser.PhoneNumber = socioDto.Telefo1;
+
+                    if (!await _userManager.IsInRoleAsync(targetIdentityUser, "SOCIO"))
+                    {
+                        var roleResult = await _userManager.AddToRoleAsync(targetIdentityUser, "SOCIO");
+                        if (!roleResult.Succeeded)
+                        {
+                            response.Mensaje = "No se pudo asignar el rol del usuario.";
+                            response.List.CodigoError = "ASSIGN_ROLE_FAILED";
+                            response.List.MensajeUsuario = MapIdentityErrors(roleResult.Errors);
+                            response.List.Errores.Add(response.List.MensajeUsuario);
+                            throw new FriendlySocioRegistrationException(response);
+                        }
+                    }
+
+                    var passwordValidation = await ValidatePasswordAsync(targetIdentityUser, password);
                     if (!passwordValidation.Succeeded)
                     {
                         response.Mensaje = "No se pudo generar una contraseña válida.";
@@ -506,15 +617,17 @@ namespace PaginaToros.Server.Controllers
                         throw new FriendlySocioRegistrationException(response);
                     }
 
-                    existingIdentityUser.PasswordHash = _userManager.PasswordHasher.HashPassword(existingIdentityUser, password);
-                    existingIdentityUser.SecurityStamp = Guid.NewGuid().ToString("D");
-                    existingIdentityUser.ConcurrencyStamp = Guid.NewGuid().ToString("D");
+                    targetIdentityUser.PasswordHash = _userManager.PasswordHasher.HashPassword(targetIdentityUser, password);
+                    targetIdentityUser.SecurityStamp = Guid.NewGuid().ToString("D");
+                    targetIdentityUser.ConcurrencyStamp = Guid.NewGuid().ToString("D");
 
-                    await _identityDb.SaveChangesAsync();
                     userWasReset = true;
                 }
 
-                var mailUser = existingDomainUser ?? createdDomainUser!;
+                await EnsureSocioLinkedAsync(targetDomainUser!, socioDto.Id);
+                await _identityDb.SaveChangesAsync();
+
+                var mailUser = targetDomainUser!;
                 var mailSent = await TrySendRegistrationMailAsync(mailUser, password);
                 if (!mailSent.Success)
                 {
@@ -532,7 +645,9 @@ namespace PaginaToros.Server.Controllers
                 response.List.CodigoError = null;
                 response.List.MensajeUsuario = createdDomainUser != null
                     ? "Se guardó el socio, se creó el usuario y se envió el mail de inscripción."
-                    : "Se actualizaron los datos del socio, se restableció la contraseña y se reenvió el mail de inscripción.";
+                    : userWasLinked
+                        ? "Se guardó el socio, se vinculó al usuario existente y se envió el mail de inscripción."
+                        : "Se actualizaron los datos del socio, se restableció la contraseña y se reenvió el mail de inscripción.";
                 response.List.Socio = _mapper.Map<SocioDTO>(socioDb);
                 return Ok(response);
             }
@@ -541,9 +656,10 @@ namespace PaginaToros.Server.Controllers
                 await RollbackSocioRegistrationAsync(
                     socioDb,
                     previousSocioState,
-                    existingDomainUser,
+                    targetDomainUser,
                     previousDomainUserState,
-                    existingIdentityUser,
+                    previousUserSocioIds,
+                    targetIdentityUser,
                     previousIdentityState,
                     createdDomainUser,
                     createdIdentityUser);
@@ -555,9 +671,10 @@ namespace PaginaToros.Server.Controllers
                 await RollbackSocioRegistrationAsync(
                     socioDb,
                     previousSocioState,
-                    existingDomainUser,
+                    targetDomainUser,
                     previousDomainUserState,
-                    existingIdentityUser,
+                    previousUserSocioIds,
+                    targetIdentityUser,
                     previousIdentityState,
                     createdDomainUser,
                     createdIdentityUser);
@@ -579,6 +696,12 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                }
+
                 var all = _db.Socios.ToList();
                 foreach (var s in all)
                 {
@@ -601,6 +724,12 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<SocioDTO>());
+                }
+
                 // Compute next numeric Scod (consider only fully numeric Scod values)
                 var allScods = _db.Socios.Select(s => s.Scod).ToList();
                 int max = 0;
@@ -638,15 +767,8 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(codpos2))
-                    return Ok(new Respuesta<bool> { Exito = 1, Mensaje = "OK", List = false });
-
-                var query = _db.Socios.AsQueryable();
-                if (excludeId.HasValue)
-                    query = query.Where(s => s.Id != excludeId.Value);
-
-                var exists = query.Any(s => s.Codpos2 == codpos2);
-                return Ok(new Respuesta<bool> { Exito = 1, Mensaje = "OK", List = exists });
+                // Codpos2 duplicates are allowed, so always report "not exists"
+                return Ok(new Respuesta<bool> { Exito = 1, Mensaje = "OK", List = false });
             }
             catch (Exception ex)
             {
@@ -721,6 +843,181 @@ namespace PaginaToros.Server.Controllers
             var codigo = string.IsNullOrWhiteSpace(socio.Codpos2) ? socio.Scod : socio.Codpos2;
             var nombre = string.IsNullOrWhiteSpace(socio.Nombre) ? "Socio sin nombre" : socio.Nombre.Trim();
             return $"El mail '{mail}' ya está asociado al socio {nombre} (código {codigo}). Eliminá o corregí ese usuario antes de continuar.";
+        }
+
+        private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
+            => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        private static string BuildActiveSocioIdFilter(int socioId)
+            => $"Id == {socioId}";
+
+        private static string AppendFilter(string? expression, string requiredFilter)
+        {
+            if (string.IsNullOrWhiteSpace(expression))
+            {
+                return requiredFilter;
+            }
+
+            return $"({expression}) && ({requiredFilter})";
+        }
+
+        private static Respuesta<T> BuildForbiddenResponse<T>()
+            => new Respuesta<T>
+            {
+                Exito = 0,
+                Mensaje = "No tenes permisos para operar sobre otra razon social."
+            };
+
+        private static bool IsSocioRole(string? role)
+            => string.Equals(role, "SOCIO", StringComparison.OrdinalIgnoreCase)
+               || string.Equals(role, "Socio", StringComparison.OrdinalIgnoreCase);
+
+        private async Task<User?> FindDomainUserBySocioIdAsync(int socioId)
+        {
+            var userId = await _identityDb.UserSocios
+                .AsNoTracking()
+                .Where(x => x.SocioId == socioId)
+                .OrderBy(x => x.Id)
+                .Select(x => x.UserId)
+                .FirstOrDefaultAsync();
+
+            if (userId > 0)
+            {
+                return await _identityDb.User.FirstOrDefaultAsync(x => x.Id == userId);
+            }
+
+            return await _identityDb.User.FirstOrDefaultAsync(x => x.SocioId == socioId);
+        }
+
+        private async Task<IdentityUser?> FindIdentityUserForDomainUserAsync(User domainUser)
+        {
+            if (!string.IsNullOrWhiteSpace(domainUser.IdentityUserId))
+            {
+                var byId = await _userManager.FindByIdAsync(domainUser.IdentityUserId);
+                if (byId != null)
+                {
+                    return byId;
+                }
+            }
+
+            return await FindIdentityUserAsync(domainUser.Email);
+        }
+
+        private async Task<List<int>> GetUserSocioIdsAsync(User user)
+        {
+            var ids = await _identityDb.UserSocios
+                .AsNoTracking()
+                .Where(x => x.UserId == user.Id)
+                .Select(x => x.SocioId)
+                .ToListAsync();
+
+            if (ids.Count == 0 && user.SocioId.HasValue && user.SocioId.Value > 0)
+            {
+                ids.Add(user.SocioId.Value);
+            }
+
+            return ids
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+        }
+
+        private async Task EnsureSocioLinkedAsync(User user, int socioId)
+        {
+            if (socioId <= 0)
+            {
+                return;
+            }
+
+            var existing = await _identityDb.UserSocios
+                .FirstOrDefaultAsync(x => x.UserId == user.Id && x.SocioId == socioId);
+
+            if (existing == null)
+            {
+                await _identityDb.UserSocios.AddAsync(new UserSocio
+                {
+                    UserId = user.Id,
+                    SocioId = socioId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            var linkedSocioIds = await GetUserSocioIdsAsync(user);
+            if (!user.SocioId.HasValue || user.SocioId.Value <= 0 || !linkedSocioIds.Contains(user.SocioId.Value))
+            {
+                user.SocioId = socioId;
+            }
+        }
+
+        private async Task RestoreUserSociosAsync(User user, IReadOnlyCollection<int>? previousSocioIds)
+        {
+            var existing = await _identityDb.UserSocios
+                .Where(x => x.UserId == user.Id)
+                .ToListAsync();
+
+            if (previousSocioIds == null)
+            {
+                if (existing.Count > 0)
+                {
+                    _identityDb.UserSocios.RemoveRange(existing);
+                }
+                return;
+            }
+
+            var previous = previousSocioIds
+                .Where(x => x > 0)
+                .Distinct()
+                .ToHashSet();
+
+            var toRemove = existing.Where(x => !previous.Contains(x.SocioId)).ToList();
+            if (toRemove.Count > 0)
+            {
+                _identityDb.UserSocios.RemoveRange(toRemove);
+            }
+
+            var currentIds = existing.Select(x => x.SocioId).ToHashSet();
+            foreach (var socioId in previous.Where(x => !currentIds.Contains(x)))
+            {
+                await _identityDb.UserSocios.AddAsync(new UserSocio
+                {
+                    UserId = user.Id,
+                    SocioId = socioId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+        }
+
+        private async Task<Socio?> FindAssociatedSocioAsync(User user, int? preferredSocioId = null)
+        {
+            var socioIds = await GetUserSocioIdsAsync(user);
+            if (preferredSocioId.HasValue && socioIds.Contains(preferredSocioId.Value))
+            {
+                return await _db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == preferredSocioId.Value);
+            }
+
+            var socioId = socioIds.FirstOrDefault();
+            if (socioId <= 0)
+            {
+                return null;
+            }
+
+            return await _db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == socioId);
+        }
+
+        private static void ApplyDomainUserChanges(User user, SocioDTO socioDto)
+        {
+            if (string.IsNullOrWhiteSpace(user.Names))
+            {
+                user.Names = socioDto.Nombre ?? string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(user.LastNames))
+            {
+                user.LastNames = socioDto.Nombre ?? string.Empty;
+            }
+
+            user.Phone = socioDto.Telefo1 ?? user.Phone;
+            user.Email = socioDto.Mail ?? user.Email;
         }
 
         private async Task<(bool Success, string? ErrorMessage)> TrySendRegistrationMailAsync(User model, string password)
@@ -841,6 +1138,7 @@ namespace PaginaToros.Server.Controllers
             SocioRollbackState previousSocioState,
             User? existingDomainUser,
             User? previousDomainUserState,
+            IReadOnlyCollection<int>? previousUserSocioIds,
             IdentityUser? existingIdentityUser,
             IdentityUser? previousIdentityState,
             User? createdDomainUser,
@@ -850,12 +1148,22 @@ namespace PaginaToros.Server.Controllers
             {
                 if (createdDomainUser != null)
                 {
+                    var createdRelations = await _identityDb.UserSocios
+                        .Where(x => x.UserId == createdDomainUser.Id)
+                        .ToListAsync();
+
+                    if (createdRelations.Count > 0)
+                    {
+                        _identityDb.UserSocios.RemoveRange(createdRelations);
+                    }
+
                     _identityDb.User.Remove(createdDomainUser);
                 }
 
                 if (existingDomainUser != null && previousDomainUserState != null)
                 {
                     RestoreDomainUser(existingDomainUser, previousDomainUserState);
+                    await RestoreUserSociosAsync(existingDomainUser, previousUserSocioIds);
                 }
 
                 if (createdIdentityUser != null)
@@ -944,6 +1252,7 @@ namespace PaginaToros.Server.Controllers
                 Rol = source.Rol,
                 Status = source.Status,
                 Created = source.Created,
+                IdentityUserId = source.IdentityUserId,
                 SocioId = source.SocioId
             };
         }
@@ -958,6 +1267,7 @@ namespace PaginaToros.Server.Controllers
             target.Rol = source.Rol;
             target.Status = source.Status;
             target.Created = source.Created;
+            target.IdentityUserId = source.IdentityUserId;
             target.SocioId = source.SocioId;
         }
 

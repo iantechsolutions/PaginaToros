@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PaginaToros.Shared.Models.Response;
-using PaginaToros.Shared.Models;
-using PaginaToros.Server.Context;
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
+using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
-using PaginaToros.Server.Repositorio.Implementacion;
+using PaginaToros.Server.Services;
+using PaginaToros.Shared.Models;
+using PaginaToros.Shared.Models.Response;
+using System.Linq.Dynamic.Core;
 using System.Net.Mail;
 using System.Net.Mime;
 
@@ -16,43 +17,69 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class Solici1AuxController : ControllerBase
     {
-
-
         private readonly IMapper _mapper;
         private readonly ISolici1AuxRepositorio _solicitudRepositorio;
         private readonly ISocioRepositorio _socioRepositorio;
-        public Solici1AuxController(ISolici1AuxRepositorio solicitudRepositorio, ISocioRepositorio socioRepositorio, IMapper mapper)
+        private readonly IUserSocioContextService _userSocioContextService;
+        private readonly hereford_prContext _db;
+
+        public Solici1AuxController(
+            ISolici1AuxRepositorio solicitudRepositorio,
+            ISocioRepositorio socioRepositorio,
+            IMapper mapper,
+            hereford_prContext db,
+            IUserSocioContextService userSocioContextService)
         {
             _mapper = mapper;
             _solicitudRepositorio = solicitudRepositorio;
             _socioRepositorio = socioRepositorio;
+            _db = db;
+            _userSocioContextService = userSocioContextService;
         }
 
         [HttpGet]
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
         {
-
-            Respuesta<List<Solici1AuxDTO>> _ResponseDTO = new Respuesta<List<Solici1AuxDTO>>();
+            var response = new Respuesta<List<Solici1AuxDTO>>();
 
             try
             {
-                List<Solici1AuxDTO> listaPedido = new List<Solici1AuxDTO>();
-                var a = await _solicitudRepositorio.Lista(skip, take);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Solici1AuxDTO>>());
+                }
 
+                var query = ApplyActiveSocioScope(QuerySolicitudesAux(includeRelations: true), accessContext)
+                    .OrderByDescending(x => x.Id)
+                    .Skip(skip);
 
-                listaPedido = _mapper.Map<List<Solici1AuxDTO>>(a);
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
 
-                _ResponseDTO = new Respuesta<List<Solici1AuxDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+                var items = await query.ToListAsync();
 
-                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+                response = new Respuesta<List<Solici1AuxDTO>>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = _mapper.Map<List<Solici1AuxDTO>>(items)
+                };
 
-
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<Solici1AuxDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                response = new Respuesta<List<Solici1AuxDTO>>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = null
+                };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
 
@@ -60,73 +87,121 @@ namespace PaginaToros.Server.Controllers
         [Route("Cantidad")]
         public async Task<IActionResult> CantidadTotal()
         {
-
-            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+            var response = new Respuesta<int>();
 
             try
             {
-                var a = await _solicitudRepositorio.CantidadTotal();
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                }
 
-                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+                var count = await ApplyActiveSocioScope(QuerySolicitudesAux(includeRelations: false), accessContext).CountAsync();
+                response = new Respuesta<int> { Exito = 1, Mensaje = "Exito", List = count };
 
-                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
-
-
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                response = new Respuesta<int> { Exito = 0, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
+
         [HttpGet]
         [Route("LimitadosFiltrados")]
         public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string? expression = null)
         {
-
-            Respuesta<List<Solici1AuxDTO>> _ResponseDTO = new Respuesta<List<Solici1AuxDTO>>();
+            var response = new Respuesta<List<Solici1AuxDTO>>();
 
             try
             {
-                var a = await _solicitudRepositorio.LimitadosFiltrados(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Solici1AuxDTO>>());
+                }
 
-                var listaFiltrada = _mapper.Map<List<Solici1AuxDTO>>(a);
+                var query = ApplyActiveSocioScope(QuerySolicitudesAux(includeRelations: true), accessContext);
+                if (!string.IsNullOrWhiteSpace(expression))
+                {
+                    query = query.Where(expression);
+                }
 
-                _ResponseDTO = new Respuesta<List<Solici1AuxDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+                query = query.OrderByDescending(x => x.Id).Skip(skip);
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
 
-                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+                var items = await query.ToListAsync();
+                response = new Respuesta<List<Solici1AuxDTO>>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = _mapper.Map<List<Solici1AuxDTO>>(items)
+                };
 
-
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<Solici1AuxDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                response = new Respuesta<List<Solici1AuxDTO>>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = null
+                };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
+
         [HttpGet]
         [Route("LimitadosFiltradosNoInclude")]
         public async Task<IActionResult> LimitadosFiltradosNoInclude(int skip, int take, string? expression = null)
         {
-
-            Respuesta<List<Solici1AuxDTO>> _ResponseDTO = new Respuesta<List<Solici1AuxDTO>>();
+            var response = new Respuesta<List<Solici1AuxDTO>>();
 
             try
             {
-                var a = await _solicitudRepositorio.LimitadosFiltradosNoInclude(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Solici1AuxDTO>>());
+                }
 
-                var listaFiltrada = _mapper.Map<List<Solici1AuxDTO>>(a);
+                var query = ApplyActiveSocioScope(QuerySolicitudesAux(includeRelations: false), accessContext);
+                if (!string.IsNullOrWhiteSpace(expression))
+                {
+                    query = query.Where(expression);
+                }
 
-                _ResponseDTO = new Respuesta<List<Solici1AuxDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+                query = query.OrderByDescending(x => x.Id).Skip(skip);
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
 
-                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+                var items = await query.ToListAsync();
+                response = new Respuesta<List<Solici1AuxDTO>>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = _mapper.Map<List<Solici1AuxDTO>>(items)
+                };
 
-
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<Solici1AuxDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                response = new Respuesta<List<Solici1AuxDTO>>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = null
+                };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
 
@@ -134,27 +209,36 @@ namespace PaginaToros.Server.Controllers
         [Route("Eliminar/{id:int}")]
         public async Task<IActionResult> Eliminar(int id)
         {
-            Respuesta<string> _Respuesta = new Respuesta<string>();
+            var response = new Respuesta<string>();
             try
             {
-                Solici1Aux _SolicitudEliminar = await _solicitudRepositorio.Obtener(u => u.Id == id);
-                if (_SolicitudEliminar != null)
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
                 {
-
-                    bool respuesta = await _solicitudRepositorio.Eliminar(_SolicitudEliminar);
-
-                    if (respuesta)
-                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
-                    else
-                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
                 }
 
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                var entity = await _solicitudRepositorio.Obtener(u => u.Id == id);
+                if (entity != null)
+                {
+                    if (!await CanAccessSolicitudAuxAsync(entity, accessContext))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                    }
+
+                    var ok = await _solicitudRepositorio.Eliminar(entity);
+
+                    response = ok
+                        ? new Respuesta<string> { Exito = 1, Mensaje = "ok", List = string.Empty }
+                        : new Respuesta<string> { Exito = 0, Mensaje = "No se pudo eliminar el identificador", List = string.Empty };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                response = new Respuesta<string> { Exito = 0, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
 
@@ -162,23 +246,33 @@ namespace PaginaToros.Server.Controllers
         [Route("Guardar")]
         public async Task<IActionResult> Guardar([FromBody] Solici1AuxDTO request)
         {
-            Respuesta<Solici1AuxDTO> _Respuesta = new Respuesta<Solici1AuxDTO>();
+            var response = new Respuesta<Solici1AuxDTO>();
             try
             {
-                Solici1Aux _Solicitud = _mapper.Map<Solici1Aux>(request);
-                Solici1Aux _SolicitudCreado = await _solicitudRepositorio.Crear(_Solicitud);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Solici1AuxDTO>());
+                }
 
-                if (_SolicitudCreado.Id != 0)
-                    _Respuesta = new Respuesta<Solici1AuxDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Solici1AuxDTO>(_SolicitudCreado) };
-                else
-                    _Respuesta = new Respuesta<Solici1AuxDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+                if (!await IsAllowedSolicitudParentAsync(request.IdSoli, accessContext))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Solici1AuxDTO>());
+                }
 
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                var entity = _mapper.Map<Solici1Aux>(request);
+                var created = await _solicitudRepositorio.Crear(entity);
+
+                response = created.Id != 0
+                    ? new Respuesta<Solici1AuxDTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<Solici1AuxDTO>(created) }
+                    : new Respuesta<Solici1AuxDTO> { Exito = 0, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<Solici1AuxDTO>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                response = new Respuesta<Solici1AuxDTO> { Exito = 0, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
 
@@ -186,190 +280,230 @@ namespace PaginaToros.Server.Controllers
         [Route("Editar")]
         public async Task<IActionResult> Editar([FromBody] Solici1AuxDTO request)
         {
-            Respuesta<Solici1AuxDTO> _Respuesta = new Respuesta<Solici1AuxDTO>();
+            var response = new Respuesta<Solici1AuxDTO>();
             try
             {
-                Solici1Aux _Solicitud = _mapper.Map<Solici1Aux>(request);
-                Solici1Aux _SolicitudParaEditar = await _solicitudRepositorio.Obtener(u => u.Id == _Solicitud.Id);
-                Console.WriteLine(_Solicitud.Id);
-                if (_SolicitudParaEditar != null)
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
                 {
-                    _SolicitudParaEditar.Cantor = _Solicitud.Cantor;
-                    _SolicitudParaEditar.Cantvq = _Solicitud.Cantvq;
-                    _SolicitudParaEditar.Canvac = _Solicitud.Canvac;
-                    _SolicitudParaEditar.Canvaq = _Solicitud.Canvaq;
-                    _SolicitudParaEditar.Anio = _Solicitud.Anio;
-                    _SolicitudParaEditar.IdSoli = _Solicitud.IdSoli;
-                    Console.WriteLine(_SolicitudParaEditar.Anio);
-                    bool respuesta = await _solicitudRepositorio.Editar(_SolicitudParaEditar);
-                    Console.WriteLine(respuesta);
-                    if (respuesta)
-                        _Respuesta = new Respuesta<Solici1AuxDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Solici1AuxDTO>(_SolicitudParaEditar) };
-                    else
-                        _Respuesta = new Respuesta<Solici1AuxDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Solici1AuxDTO>());
+                }
+
+                var entity = _mapper.Map<Solici1Aux>(request);
+                var entityToEdit = await _solicitudRepositorio.Obtener(u => u.Id == entity.Id);
+
+                if (entityToEdit != null)
+                {
+                    if (!await CanAccessSolicitudAuxAsync(entityToEdit, accessContext) ||
+                        !await IsAllowedSolicitudParentAsync(entity.IdSoli, accessContext))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Solici1AuxDTO>());
+                    }
+
+                    entityToEdit.Cantor = entity.Cantor;
+                    entityToEdit.Cantvq = entity.Cantvq;
+                    entityToEdit.Canvac = entity.Canvac;
+                    entityToEdit.Canvaq = entity.Canvaq;
+                    entityToEdit.Anio = entity.Anio;
+                    entityToEdit.IdSoli = entity.IdSoli;
+
+                    var ok = await _solicitudRepositorio.Editar(entityToEdit);
+
+                    response = ok
+                        ? new Respuesta<Solici1AuxDTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<Solici1AuxDTO>(entityToEdit) }
+                        : new Respuesta<Solici1AuxDTO> { Exito = 0, Mensaje = "No se pudo editar el identificador" };
                 }
                 else
                 {
-                    _Respuesta = new Respuesta<Solici1AuxDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                    response = new Respuesta<Solici1AuxDTO> { Exito = 0, Mensaje = "No se encontró el identificador" };
                 }
 
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<Solici1AuxDTO>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                response = new Respuesta<Solici1AuxDTO> { Exito = 0, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
 
-
-
-
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            Respuesta<Solici1Aux> oRespuesta = new Respuesta<Solici1Aux>();
+            var response = new Respuesta<Solici1Aux>();
 
             try
             {
-                using (hereford_prContext db = new())
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
                 {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Solici1Aux>());
+                }
 
-                    var lst = db.Solici1Auxs
-                        .Where(x => x.Id == id)
-                        .First();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
+                var item = await ApplyActiveSocioScope(QuerySolicitudesAux(includeRelations: true), accessContext)
+                    .FirstOrDefaultAsync(x => x.Id == id);
+
+                if (item == null)
+                {
+                    response = new Respuesta<Solici1Aux> { Exito = 0, Mensaje = "No se encontró el detalle de solicitud." };
+                }
+                else
+                {
+                    response = new Respuesta<Solici1Aux> { Exito = 1, List = item };
                 }
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                response = new Respuesta<Solici1Aux> { Exito = 0, Mensaje = ex.Message };
             }
-            return Ok(oRespuesta);
+
+            return Ok(response);
         }
 
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            Respuesta<List<Solici1Aux>> oRespuesta = new Respuesta<List<Solici1Aux>>();
+            var response = new Respuesta<List<Solici1Aux>>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
                 {
-                    var lst = db.Solici1Auxs.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Solici1Aux>>());
                 }
+
+                var items = await ApplyActiveSocioScope(QuerySolicitudesAux(includeRelations: false), accessContext).ToListAsync();
+                response.Exito = 1;
+                response.List = items;
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                response.Exito = 0;
+                response.Mensaje = ex.Message;
             }
-            return Ok(oRespuesta);
+
+            return Ok(response);
         }
 
         [HttpPost]
-        public IActionResult Add(Solici1Aux _Solicitud)
+        public IActionResult Add(Solici1Aux solicitud)
         {
-            Respuesta<List<Solici1Aux>> oRespuesta = new Respuesta<List<Solici1Aux>>();
-            try
+            return Ok(new Respuesta<List<Solici1Aux>>
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-
-                    Solici1Aux _SolicitudParaEditar = new Solici1Aux();
-
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                oRespuesta.Mensaje = ex.Message;
-            }
-            return Ok(oRespuesta);
+                Exito = 0,
+                Mensaje = "Endpoint no utilizado."
+            });
         }
 
         [HttpPut]
-        public IActionResult Edit(Solici1Aux _Solicitud)
+        public async Task<IActionResult> Edit(Solici1Aux solicitud)
         {
-            Respuesta<List<Solici1Aux>> oRespuesta = new Respuesta<List<Solici1Aux>>();
+            var response = new Respuesta<List<Solici1Aux>>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
                 {
-                    Solici1Aux _SolicitudParaEditar = db.Solici1Auxs.Find(_Solicitud.Id);
-                    _SolicitudParaEditar.Cantor = _Solicitud.Cantor;
-                    _SolicitudParaEditar.Cantvq = _Solicitud.Cantvq;
-                    _SolicitudParaEditar.Canvac = _Solicitud.Canvac;
-                    _SolicitudParaEditar.Canvaq = _Solicitud.Canvaq;
-                    _SolicitudParaEditar.Anio = _Solicitud.Anio;
-                    _SolicitudParaEditar.IdSoli = _Solicitud.IdSoli;
-                    db.Entry(_SolicitudParaEditar).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Solici1Aux>>());
                 }
+
+                var entityToEdit = await _db.Solici1Auxs.FindAsync(solicitud.Id);
+                if (entityToEdit == null ||
+                    !await CanAccessSolicitudAuxAsync(entityToEdit, accessContext) ||
+                    !await IsAllowedSolicitudParentAsync(solicitud.IdSoli, accessContext))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Solici1Aux>>());
+                }
+
+                entityToEdit.Cantor = solicitud.Cantor;
+                entityToEdit.Cantvq = solicitud.Cantvq;
+                entityToEdit.Canvac = solicitud.Canvac;
+                entityToEdit.Canvaq = solicitud.Canvaq;
+                entityToEdit.Anio = solicitud.Anio;
+                entityToEdit.IdSoli = solicitud.IdSoli;
+                _db.Entry(entityToEdit).State = EntityState.Modified;
+                _db.SaveChanges();
+                response.Exito = 1;
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                response.Exito = 0;
+                response.Mensaje = ex.Message;
             }
-            return Ok(oRespuesta);
+
+            return Ok(response);
         }
+
         [HttpDelete("{id}")]
-        public IActionResult Delete(int Id)
+        public async Task<IActionResult> Delete(int id)
         {
-            Respuesta<List<Solici1Aux>> oRespuesta = new Respuesta<List<Solici1Aux>>();
-            //IQueryable<Toro> TorosPorId;
+            var response = new Respuesta<List<Solici1Aux>>();
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
                 {
-                    Solici1Aux _SolicitudParaEditar = db.Solici1Auxs.Find(Id);
-                    db.Remove(_SolicitudParaEditar);
-                    //var dbToros = db.Toros.Where(x => x.IdEst == Id);
-                    //foreach (Toro oElement in dbToros)
-                    //{
-                    //    db.Remove(oElement);
-                    //}
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Solici1Aux>>());
                 }
+
+                var entityToDelete = await _db.Solici1Auxs.FindAsync(id);
+                if (entityToDelete == null || !await CanAccessSolicitudAuxAsync(entityToDelete, accessContext))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Solici1Aux>>());
+                }
+
+                _db.Remove(entityToDelete);
+                _db.SaveChanges();
+                response.Exito = 1;
             }
             catch (Exception ex)
             {
-                oRespuesta.Mensaje = ex.Message;
+                response.Exito = 0;
+                response.Mensaje = ex.Message;
             }
-            return Ok(oRespuesta);
-        }
 
+            return Ok(response);
+        }
 
         [HttpPost("SendExcel/{socioId}")]
         public async Task<IActionResult> SendExcel(int socioId, [FromForm] IFormFile file)
         {
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    if (!accessContext.ActiveSocioId.HasValue || accessContext.ActiveSocioId.Value != socioId)
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                    }
+                }
+
                 if (socioId <= 0)
+                {
                     return BadRequest("Falta socioId.");
+                }
 
                 if (file == null || file.Length == 0)
+                {
                     return BadRequest("No se recibió el archivo o está vacío.");
+                }
 
-                // Intentá buscar por Id; si tu repositorio filtra por otro campo (p. ej. Scod),
-                // cambiá a: string filtro = $"Scod = {socioId}";
                 string filtro = $"Id = {socioId}";
-                var rta = await _socioRepositorio.LimitadosFiltrados(0, 1, filtro);
-                var socio = rta.FirstOrDefault();
+                var socios = await _socioRepositorio.LimitadosFiltrados(0, 1, filtro);
+                var socio = socios.FirstOrDefault();
                 if (socio == null)
+                {
                     return BadRequest($"No se encontró el socio para el filtro: {filtro}");
+                }
 
-                // Guardar a un temp con la extensión real del archivo
                 var safeExt = Path.GetExtension(file.FileName);
-                if (string.IsNullOrWhiteSpace(safeExt)) safeExt = ".xls";
-                var tempFilePath = Path.Combine(Path.GetTempPath(), $"Excel_Solicitud_{DateTime.Now:yyyyMMdd_HHmmss}{safeExt}");
+                if (string.IsNullOrWhiteSpace(safeExt))
+                {
+                    safeExt = ".xls";
+                }
 
+                var tempFilePath = Path.Combine(Path.GetTempPath(), $"Excel_Solicitud_{DateTime.Now:yyyyMMdd_HHmmss}{safeExt}");
                 using (var fs = new FileStream(tempFilePath, FileMode.Create))
                 {
                     await file.CopyToAsync(fs);
@@ -381,11 +515,9 @@ namespace PaginaToros.Server.Controllers
                     mail.From = new MailAddress(from);
                     mail.To.Add("puroregistradohereford@gmail.com");
                     mail.To.Add("planteles@hereford.org.ar");
-
                     mail.Subject = $"Solicitud de Inspección de: {socio.Nombre}";
                     mail.Body = $"Nueva solicitud de inspección\nSocio: {socio.Nombre}";
                     mail.IsBodyHtml = false;
-
                     mail.Attachments.Add(new Attachment(tempFilePath, MediaTypeNames.Application.Octet));
 
                     using (var smtp = new SmtpClient("mail.hereford.org.ar", 587))
@@ -405,7 +537,69 @@ namespace PaginaToros.Server.Controllers
                 return BadRequest($"Error al enviar el correo: {ex.Message}");
             }
         }
+
+        private IQueryable<Solici1Aux> QuerySolicitudesAux(bool includeRelations)
+        {
+            IQueryable<Solici1Aux> query = _db.Solici1Auxs
+                .Where(x => _db.Solici1s.Any(s => s.Id == x.IdSoli && !string.IsNullOrWhiteSpace(s.Codest)))
+                .Where(x => _db.Solici1s.Any(s => s.Id == x.IdSoli && _db.Estables.Any(e => e.Ecod == s.Codest)));
+
+            if (includeRelations)
+            {
+                query = query
+                    .Include(x => x.Solicitud)
+                    .ThenInclude(s => s.Establecimiento)
+                    .ThenInclude(e => e.Socio);
+            }
+
+            return query;
+        }
+
+        private IQueryable<Solici1Aux> ApplyActiveSocioScope(IQueryable<Solici1Aux> query, UserSocioAccessContext accessContext)
+        {
+            if (!RequiresActiveSocioScope(accessContext))
+            {
+                return query;
+            }
+
+            return query.Where(x =>
+                _db.Solici1s.Any(s => s.Id == x.IdSoli && _db.Estables.Any(e => e.Ecod == s.Codest && e.Codsoc == accessContext.ActiveSocioCode)));
+        }
+
+        private async Task<bool> CanAccessSolicitudAuxAsync(Solici1Aux solicitudAux, UserSocioAccessContext accessContext)
+        {
+            if (!RequiresActiveSocioScope(accessContext))
+            {
+                return true;
+            }
+
+            return await IsAllowedSolicitudParentAsync(solicitudAux.IdSoli, accessContext);
+        }
+
+        private async Task<bool> IsAllowedSolicitudParentAsync(int solicitudId, UserSocioAccessContext accessContext)
+        {
+            if (solicitudId <= 0)
+            {
+                return false;
+            }
+
+            if (!RequiresActiveSocioScope(accessContext))
+            {
+                return await _db.Solici1s.AsNoTracking().AnyAsync(x => x.Id == solicitudId);
+            }
+
+            return await _db.Solici1s.AsNoTracking().AnyAsync(
+                s => s.Id == solicitudId && _db.Estables.Any(e => e.Ecod == s.Codest && e.Codsoc == accessContext.ActiveSocioCode));
+        }
+
+        private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
+            => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        private static Respuesta<T> BuildForbiddenResponse<T>()
+            => new Respuesta<T>
+            {
+                Exito = 0,
+                Mensaje = "No tenes permisos para operar sobre otra razon social."
+            };
     }
 }
-
-//

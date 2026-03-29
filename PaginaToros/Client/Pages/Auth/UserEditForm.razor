@@ -13,10 +13,12 @@
     .req-red {
         color: #dc3545;
     }
+
     /* rojo */
     .req-green {
         color: #198754;
     }
+
     /* verde */
     .is-valid {
         border-color: #198754 !important;
@@ -53,6 +55,31 @@
         background: #f5f7f9;
     }
 
+    .selected-socios {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .selected-socio-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.65rem;
+        border-radius: 999px;
+        background: #eef4ff;
+        color: #1f3d7a;
+        border: 1px solid #cddcfe;
+    }
+
+    .selected-socio-chip button {
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font-weight: 700;
+    }
+
     .user-actions {
         display: flex;
         gap: 0.75rem;
@@ -77,9 +104,10 @@
             <div class="col-md-6">
                 <div class="form-group mb-3">
                     <label>
-                        Nombre <span class="@AsteriskClass(()=>User.Names)">*</span>
+                        Nombre <span class="@AsteriskClass(() => User.Names)">*</span>
                     </label>
-                    <InputText class="@InputCss(()=>User.Names)" @bind-Value="User.Names" @onblur="(_)=>ValidateField(()=>User.Names)" />
+                    <InputText class="@InputCss(() => User.Names)" @bind-Value="User.Names"
+                               @onblur="(_)=>ValidateField(()=>User.Names)" />
                     <div class="text-danger small">@FirstError(() => User.Names)</div>
                 </div>
 
@@ -90,25 +118,28 @@
 
                 <div class="form-group mb-3">
                     <label>
-                        DNI <span class="@AsteriskClass(()=>User.Dni)">*</span>
+                        DNI <span class="@AsteriskClass(() => User.Dni)">*</span>
                     </label>
-                    <InputText class="@InputCss(()=>User.Dni)" @bind-Value="User.Dni" @onblur="(_)=>ValidateField(()=>User.Dni)" />
+                    <InputText class="@InputCss(() => User.Dni)" @bind-Value="User.Dni"
+                               @onblur="(_)=>ValidateField(()=>User.Dni)" />
                     <div class="text-danger small">@FirstError(() => User.Dni)</div>
                 </div>
 
                 <div class="form-group mb-3">
                     <label>
-                        Teléfono <span class="@AsteriskClass(()=>User.Phone)">*</span>
+                        Teléfono <span class="@AsteriskClass(() => User.Phone)">*</span>
                     </label>
-                    <InputText class="@InputCss(()=>User.Phone)" @bind-Value="User.Phone" @onblur="(_)=>ValidateField(()=>User.Phone)" />
+                    <InputText class="@InputCss(() => User.Phone)" @bind-Value="User.Phone"
+                               @onblur="(_)=>ValidateField(()=>User.Phone)" />
                     <div class="text-danger small">@FirstError(() => User.Phone)</div>
                 </div>
 
                 <div class="form-group mb-3">
                     <label>
-                        Email <span class="@AsteriskClass(()=>User.Email)">*</span>
+                        Email <span class="@AsteriskClass(() => User.Email)">*</span>
                     </label>
-                    <InputText class="@InputCss(()=>User.Email)" @bind-Value="User.Email" @onblur="CheckEmailUniqueAsync" />
+                    <InputText class="@InputCss(() => User.Email)" @bind-Value="User.Email"
+                               @onblur="CheckEmailUniqueAsync" />
                     <div class="text-danger small">@FirstError(() => User.Email)</div>
                     @if (_emailExists)
                     {
@@ -122,9 +153,10 @@
             <div class="col-md-6">
                 <div class="form-group mb-3">
                     <label>
-                        Rol <span class="@AsteriskClass(()=>User.Rol)">*</span>
+                        Rol <span class="@AsteriskClass(() => User.Rol)">*</span>
                     </label>
-                    <InputSelect class="@InputCss(()=>User.Rol)" @bind-Value="User.Rol" @onchange="(_)=>ValidateField(()=>User.Rol)">
+                    <InputSelect class="@InputCss(() => User.Rol)" @bind-Value="User.Rol"
+                                 @onchange="(_)=>ValidateField(()=>User.Rol)">
                         <option value=""></option>
                         <option value="INSPECTOR">INSPECTOR</option>
                         @if (oRespuestaRoles?.List == null)
@@ -147,9 +179,10 @@
 
                 <div class="form-group mb-3">
                     <label>
-                        Estado <span class="@AsteriskClass(()=>User.Status)">*</span>
+                        Estado <span class="@AsteriskClass(() => User.Status)">*</span>
                     </label>
-                    <InputSelect class="@InputCss(()=>User.Status)" @bind-Value="User.Status" @onchange="(_)=>ValidateField(()=>User.Status)">
+                    <InputSelect class="@InputCss(() => User.Status)" @bind-Value="User.Status"
+                                 @onchange="(_)=>ValidateField(()=>User.Status)">
                         <option value="ACTIVO">ACTIVO</option>
                         <option value="SUSPENDIDO">SUSPENDIDO</option>
                     </InputSelect>
@@ -157,58 +190,65 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label>Socio</label>
-                    @if (!editandoSocio && socioSeleccionado is not null)
+                    <label>Razones sociales</label>
+                    @if (EsRolSocio)
                     {
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <div class="form-control bg-light">
-                                @SocioLabel(socioSeleccionado)
+                        @if (sociosSeleccionados.Any())
+                        {
+                            <div class="selected-socios">
+                                @foreach (var socio in sociosSeleccionados)
+                                {
+                                    <div class="selected-socio-chip">
+                                        <span>@SocioLabel(socio)</span>
+                                        <button type="button" title="Quitar" @onclick="() => QuitarSocio(socio.Id)">x</button>
+                                    </div>
+                                }
                             </div>
-                            <button type="button" class="btn btn-outline-secondary" @onclick="HabilitarBusquedaSocio">
-                                Cambiar
-                            </button>
-                            <button type="button" class="btn btn-outline-danger" @onclick="LimpiarSocio">
-                                Quitar
-                            </button>
-                        </div>
-                    }
-                    else
-                    {
-                        <input class="form-control"
-                               value="@socioSearchText"
-                               @oninput="OnSocioSearchInput"
-                               placeholder="Buscar por nombre o codigo" />
+                        }
+
+                        <input
+                        class="form-control @(_editContext!.FieldCssClass(FieldIdentifier.Create(() => User.SocioIds)))"
+                        value="@socioSearchText" @oninput="OnSocioSearchInput"
+                        placeholder="Buscar por nombre o codigo para agregar" />
 
                         @if (SociosFiltrados.Any())
                         {
                             <div class="socio-results">
                                 @foreach (var socio in SociosFiltrados)
                                 {
-                                    <button type="button" class="socio-result" @onclick="() => SeleccionarSocio(socio)">
+                                    <button type="button" class="socio-result" @onclick="() => AgregarSocio(socio)">
                                         @SocioLabel(socio)
                                     </button>
                                 }
                             </div>
                         }
+
+                        <div class="text-danger small">@FirstError(() => User.SocioIds)</div>
+                    }
+                    else
+                    {
+                        <div class="form-control bg-light">
+                            Solo los usuarios con rol SOCIO pueden tener razones sociales asociadas.
+                        </div>
                     }
                 </div>
             </div>
 
             <div class="col-12 mt-3">
                 <div class="user-actions">
-                @if (ShowBackButton)
-                {
-                    <a class="btn btn-info" href="Users">
-                        <span class="oi oi-arrow-left" aria-hidden="true"></span> Volver
-                    </a>
-                }
-                <button class="btn btn-primary" type="submit" disabled="@(!_canSubmit)">
-                    <span class="oi oi-check" aria-hidden="true"></span> @SubmitLabel
-                </button>
-                @if (ExtraActions is not null)
-                {
-                    @ExtraActions
-                }
+                    @if (ShowBackButton)
+                    {
+                        <a class="btn btn-info" href="usuarios">
+                            <span class="oi oi-arrow-left" aria-hidden="true"></span> Volver
+                        </a>
+                    }
+                    <button class="btn btn-primary" type="submit" disabled="@(!_canSubmit)">
+                        <span class="oi oi-check" aria-hidden="true"></span> @SubmitLabel
+                    </button>
+                    @if (ExtraActions is not null)
+                    {
+                        @ExtraActions
+                    }
                 </div>
             </div>
         </div>
@@ -225,14 +265,13 @@
     Respuesta<List<AspNetRole>>? oRespuestaRoles = new();
     List<SocioDTO> socios = new();
 
-    public SocioDTO? socioSeleccionado { get; set; }
+    public List<SocioDTO> sociosSeleccionados { get; set; } = new();
 
     private EditContext? _editContext;
     private ValidationMessageStore? _messages;
     private bool _emailExists;
     private int _lastUserId;
-    private int? _lastSyncedSocioId;
-    private bool editandoSocio;
+    private string _lastSocioSignature = string.Empty;
     private string socioSearchText = string.Empty;
 
     // Sin forzar Validate(): sólo miramos si hay mensajes y si el mail existe
@@ -248,6 +287,10 @@
         _editContext.OnFieldChanged += (_, args) =>
         {
             ValidateField(args.FieldIdentifier);
+            if (args.FieldIdentifier.FieldName == nameof(User.Rol))
+            {
+                ValidateField(() => User.SocioIds);
+            }
             StateHasChanged();
         };
 
@@ -256,7 +299,7 @@
             oRespuestaRoles = await Http.GetFromJsonAsync<Respuesta<List<AspNetRole>>>("/api/AspNetRole");
             var rta = await _socioServicio.LimitadosFiltrados(0, 0);
             socios = rta.List;
-            SyncSelectedSocio();
+            SyncSelectedSocios();
         }
         catch (Exception ex)
         {
@@ -269,27 +312,51 @@
         User.Rol = User.Rol?.ToUpperInvariant();
         User.Status = User.Status?.ToUpperInvariant();
 
-        if (_lastUserId != User.Id || _lastSyncedSocioId != User.SocioId)
+        var socioSignature = BuildSocioSignature();
+        if (_lastUserId != User.Id || _lastSocioSignature != socioSignature)
         {
-            SyncSelectedSocio();
+            SyncSelectedSocios();
             _lastUserId = User.Id;
-            _lastSyncedSocioId = User.SocioId;
+            _lastSocioSignature = socioSignature;
         }
     }
 
-    private void SyncSelectedSocio()
+    private bool EsRolSocio => string.Equals(User.Rol, "SOCIO", StringComparison.OrdinalIgnoreCase);
+
+    private string BuildSocioSignature()
     {
-        if (User.SocioId.HasValue && User.SocioId.Value > 0)
+        var ids = (User.SocioIds ?? new List<int>())
+            .Where(x => x > 0)
+            .Distinct()
+            .ToList();
+
+        if (ids.Count == 0 && User.SocioId.HasValue && User.SocioId.Value > 0)
         {
-            socioSeleccionado = socios.FirstOrDefault(x => x.Id == User.SocioId.Value);
-            socioSearchText = string.Empty;
-            editandoSocio = socioSeleccionado is null;
-            return;
+            ids.Add(User.SocioId.Value);
         }
 
-        socioSeleccionado = null;
+        ids.Sort();
+        return string.Join(",", ids);
+    }
+
+    private void SyncSelectedSocios()
+    {
+        var ids = (User.SocioIds ?? new List<int>())
+            .Where(x => x > 0)
+            .Distinct()
+            .ToList();
+
+        if (ids.Count == 0 && User.SocioId.HasValue && User.SocioId.Value > 0)
+        {
+            ids.Add(User.SocioId.Value);
+        }
+
+        sociosSeleccionados = socios
+            .Where(x => ids.Contains(x.Id))
+            .OrderBy(x => x.Nombre)
+            .ToList();
+
         socioSearchText = string.Empty;
-        editandoSocio = true;
     }
 
     /* ---------------- VALIDACIÓN MANUAL ---------------- */
@@ -347,6 +414,12 @@
                     if (empty) AddError(fi, "Campo obligatorio");
                 }
                 break;
+            case nameof(User.SocioIds):
+                if (EsRolSocio && !sociosSeleccionados.Any())
+                {
+                    AddError(fi, "Debe seleccionar al menos una razón social.");
+                }
+                break;
         }
 
         // email formato
@@ -370,7 +443,8 @@
 
         try
         {
-            _emailExists = await Http.GetFromJsonAsync<bool>($"api/Socio/exists-by-email?email={Uri.EscapeDataString(User.Email!)}");
+            _emailExists = await
+Http.GetFromJsonAsync<bool>($"api/Socio/exists-by-email?email={Uri.EscapeDataString(User.Email!)}");
         }
         catch
         {
@@ -397,49 +471,66 @@
         ValidateField(() => User.Email);
         ValidateField(() => User.Rol);
         ValidateField(() => User.Status);
+        ValidateField(() => User.SocioIds);
 
         await CheckEmailUniqueAsync(new());
 
-        if (editandoSocio)
+        if (EsRolSocio)
         {
-            User.SocioId = null;
+            User.SocioIds = sociosSeleccionados.Select(x => x.Id).Distinct().ToList();
+            User.SocioId = User.SocioIds.Count > 0
+                ? (User.SocioId.HasValue && User.SocioIds.Contains(User.SocioId.Value)
+                    ? User.SocioId.Value
+                    : User.SocioIds[0])
+                : null;
         }
         else
         {
-            User.SocioId = socioSeleccionado?.Id;
+            sociosSeleccionados.Clear();
+            User.SocioIds = new List<int>();
+            User.SocioId = null;
         }
 
         if (_canSubmit)
             await EventCallback.InvokeAsync();
     }
 
-    private void HabilitarBusquedaSocio()
-    {
-        socioSearchText = string.Empty;
-        editandoSocio = true;
-    }
-
     private void OnSocioSearchInput(ChangeEventArgs args)
     {
         socioSearchText = args.Value?.ToString() ?? string.Empty;
+        ValidateField(() => User.SocioIds);
     }
 
-    private void SeleccionarSocio(SocioDTO socio)
+    private void AgregarSocio(SocioDTO socio)
     {
-        socioSeleccionado = socio;
-        User.SocioId = socio.Id;
-        _lastSyncedSocioId = User.SocioId;
+        if (sociosSeleccionados.Any(x => x.Id == socio.Id))
+            return;
+
+        sociosSeleccionados.Add(socio);
+        sociosSeleccionados = sociosSeleccionados.OrderBy(x => x.Nombre).ToList();
+        User.SocioIds = sociosSeleccionados.Select(x => x.Id).ToList();
+        if (!User.SocioId.HasValue || User.SocioId.Value <= 0)
+        {
+            User.SocioId = socio.Id;
+        }
         socioSearchText = string.Empty;
-        editandoSocio = false;
+        ValidateField(() => User.SocioIds);
     }
 
-    private void LimpiarSocio()
+    private void QuitarSocio(int socioId)
     {
-        socioSeleccionado = null;
-        socioSearchText = string.Empty;
-        User.SocioId = null;
-        _lastSyncedSocioId = null;
-        editandoSocio = true;
+        sociosSeleccionados = sociosSeleccionados
+            .Where(x => x.Id != socioId)
+            .OrderBy(x => x.Nombre)
+            .ToList();
+
+        User.SocioIds = sociosSeleccionados.Select(x => x.Id).ToList();
+        if (User.SocioId == socioId)
+        {
+            User.SocioId = User.SocioIds.Count > 0 ? User.SocioIds[0] : null;
+        }
+
+        ValidateField(() => User.SocioIds);
     }
 
     private string SocioLabel(SocioDTO socio)
@@ -451,14 +542,18 @@
     private List<SocioDTO> SociosFiltrados =>
         string.IsNullOrWhiteSpace(socioSearchText)
             ? socios
+                .Where(x => sociosSeleccionados.All(s => s.Id != x.Id))
                 .OrderBy(x => x.Nombre)
                 .Take(10)
                 .ToList()
             : socios
                 .Where(x =>
-                    (!string.IsNullOrWhiteSpace(x.Nombre) && x.Nombre.Contains(socioSearchText, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(x.Codpos2) && x.Codpos2.Contains(socioSearchText, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(x.Scod) && x.Scod.Contains(socioSearchText, StringComparison.OrdinalIgnoreCase)))
+                    sociosSeleccionados.All(s => s.Id != x.Id) &&
+                    (
+                        (!string.IsNullOrWhiteSpace(x.Nombre) && x.Nombre.Contains(socioSearchText, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(x.Codpos2) && x.Codpos2.Contains(socioSearchText, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(x.Scod) && x.Scod.Contains(socioSearchText, StringComparison.OrdinalIgnoreCase))
+                    ))
                 .OrderBy(x => x.Nombre)
                 .Take(10)
                 .ToList();

@@ -11,6 +11,32 @@
             display: none !important;
         }
     }
+
+    .page {
+        min-height: 100vh;
+        background: #fff;
+    }
+
+    .app-body {
+        padding: 5.8rem 1.25rem 1.75rem;
+    }
+
+    .app-content {
+        max-width: 1380px;
+        margin: 0 auto;
+    }
+
+    @@media (min-width: 1200px) {
+        .app-body {
+            padding-left: 18.5rem;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .app-body {
+            padding: 7rem 0.75rem 1.25rem;
+        }
+    }
 </style>
 <div class="page">
     <AuthorizeView>
@@ -18,9 +44,9 @@
             <div class="no-print">
                 <NavMenu />
             </div>
-            <main>
-                <div class="grid-container">
-                    <main class="container">
+            <main class="app-body">
+                <div class="app-content">
+                    <main class="container-fluid px-0">
                         @Body
 
                     </main>

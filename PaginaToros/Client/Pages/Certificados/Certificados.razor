@@ -194,8 +194,7 @@ else
         }
         else
         {
-            var usuarioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
-            oRespuesta = await _certifsemanServicio.GetBySocioId(usuarioId);
+            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 0, string.Empty);
             cantotal = oRespuesta.List.Count();
         }
 

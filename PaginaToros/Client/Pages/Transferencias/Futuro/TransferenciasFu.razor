@@ -3,13 +3,12 @@
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
 @inject IFutcontrolServicio _futcontrolServicio
-@inject ISocioServicio _socioServicio
 
 <style>
 
     .rz-cell-data,
     .rz-column-title-content {
-        font-size: 13px !important;
+        font-size: 12px !important;
     }
 
     .rz-cell-data {
@@ -46,7 +45,7 @@
                         Count="cantidad" Data="@oRespuesta.List" LoadData="LoadData" TItem="FutcontrolDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
             <Columns>
 
-                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="NroTrans" Title="Nro Transferencia" Width="6%" />
+                <RadzenDataGridColumn TItem="FutcontrolDTO" Property="NroTrans" Title="Nro Certificado" Width="4.5%" />
                 <RadzenDataGridColumn TItem="FutcontrolDTO" Property="Fectrans" Title="Fecha de Transferencia" Width="7.34%">
                     <Template Context="data">
                         @if (data.Fectrans.HasValue)
@@ -120,7 +119,7 @@ else
                                 Count="cantidad" Data="@oRespuesta.List" TItem="FutcontrolDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                     <Columns>
 
-                        <RadzenDataGridColumn TItem="FutcontrolDTO" Property="NroTrans" Title="Nro Transferencia" Width="6%" />
+                        <RadzenDataGridColumn TItem="FutcontrolDTO" Property="NroTrans" Title="Nro Certificado" Width="5.3%" />
                         <RadzenDataGridColumn TItem="FutcontrolDTO" Property="Fectrans" Title="Fecha de Transferencia" Width="7.34%">
                             <Template Context="data">
                                 @if (data.Fectrans.HasValue)
@@ -183,12 +182,9 @@ else
         }
         else
         {
-            var usuarioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
-            socioId = usuarioId;
-            string filtro = $"Id = {usuarioId}";
-            var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
-            oRespuesta = await _futcontrolServicio.GetBySocioCod(socio.List.First().Scod);
-            cantidad = oRespuesta.List.Count();
+            socioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
+            oRespuesta = await _futcontrolServicio.LimitadosFiltrados(0, 0, string.Empty);
+            cantidad = oRespuesta.List?.Count ?? 0;
         }
         StateHasChanged();
     }

@@ -284,7 +284,7 @@
         else
         {
             socioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
-            oRespuesta = await _solici1Servicio.GetBySocioId(socioId);
+            oRespuesta = await _solici1Servicio.LimitadosFiltrados(0, 0, string.Empty);
             cantidad = oRespuesta.List.Count;
             LogSolicitudesSinSocio("Get socio", oRespuesta.List);
         }
@@ -408,7 +408,7 @@
                 socioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
             }
 
-            oRespuesta = await _solici1Servicio.GetBySocioId(socioId);
+            oRespuesta = await _solici1Servicio.LimitadosFiltrados(0, 0, string.Empty);
             cantidad = oRespuesta.List?.Count ?? 0;
         }
         else

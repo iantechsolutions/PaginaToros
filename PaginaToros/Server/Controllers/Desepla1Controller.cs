@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using PaginaToros.Server.Context;
 using AutoMapper;
 using PaginaToros.Server.Repositorio.Contrato;
 using Newtonsoft.Json;
+using PaginaToros.Server.Services;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -15,10 +17,19 @@ namespace PaginaToros.Server.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IDesepla1Repositorio _Desepla1Repositorio;
-        public Desepla1Controller(IDesepla1Repositorio Desepla1Repositorio, IMapper mapper)
+        private readonly IUserSocioContextService _userSocioContextService;
+        private readonly hereford_prContext _dbContext;
+
+        public Desepla1Controller(
+            IDesepla1Repositorio Desepla1Repositorio,
+            IMapper mapper,
+            IUserSocioContextService userSocioContextService,
+            hereford_prContext dbContext)
         {
             _mapper = mapper;
             _Desepla1Repositorio = Desepla1Repositorio;
+            _userSocioContextService = userSocioContextService;
+            _dbContext = dbContext;
         }
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
@@ -27,16 +38,17 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var a = await _Desepla1Repositorio.Lista(skip, take);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Desepla1DTO>>());
+                }
 
-                // Map
-                var listaPedido = _mapper.Map<List<Desepla1DTO>>(a);
-
-                listaPedido = listaPedido
-                    .GroupBy(x => x.Nrodec)
-                    .Select(g => g.OrderByDescending(x => x.Id).First())
-                    .OrderByDescending(x => x.Nrodec)
-                    .ToList();
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? BuildActiveSocioFilter(accessContext.ActiveSocioCode!)
+                    : null;
+                var lista = await _Desepla1Repositorio.LimitadosFiltrados(skip, take, effectiveExpression);
+                var listaPedido = DeduplicateByDeclaration(_mapper.Map<List<Desepla1DTO>>(lista));
 
                 _ResponseDTO = new Respuesta<List<Desepla1DTO>>()
                 {
@@ -68,7 +80,23 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var a = await _Desepla1Repositorio.CantidadTotal();
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                }
+
+                var query = _dbContext.Desepla1s.AsNoTracking().AsQueryable();
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    query = query.Where(x => x.Nrocri == accessContext.ActiveSocioCode);
+                }
+
+                var a = await query
+                    .Select(x => x.Nrodec)
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Distinct()
+                    .CountAsync();
 
                 _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
 
@@ -89,10 +117,20 @@ namespace PaginaToros.Server.Controllers
             var resp = new Respuesta<List<Desepla1DTO>>();
             try
             {
-                var lista = await _Desepla1Repositorio.LimitadosFiltrados(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Desepla1DTO>>());
+                }
+
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+                var lista = await _Desepla1Repositorio.LimitadosFiltrados(skip, take, effectiveExpression);
+
                 resp.Exito = 1;
                 resp.Mensaje = "Éxito";
-                resp.List = _mapper.Map<List<Desepla1DTO>>(lista);
+                resp.List = DeduplicateByDeclaration(_mapper.Map<List<Desepla1DTO>>(lista));
                 return Ok(resp);
             }
             catch (Exception ex)
@@ -116,9 +154,18 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var a = await _Desepla1Repositorio.LimitadosFiltradosNoInclude(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Desepla1DTO>>());
+                }
 
-                var listaFiltrada = _mapper.Map<List<Desepla1DTO>>(a);
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+                var a = await _Desepla1Repositorio.LimitadosFiltradosNoInclude(skip, take, effectiveExpression);
+
+                var listaFiltrada = DeduplicateByDeclaration(_mapper.Map<List<Desepla1DTO>>(a));
 
                 _ResponseDTO = new Respuesta<List<Desepla1DTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
 
@@ -140,9 +187,20 @@ namespace PaginaToros.Server.Controllers
             Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                }
+
                 Desepla1 _Desepla1Eliminar = await _Desepla1Repositorio.Obtener(u => u.Id == id);
                 if (_Desepla1Eliminar != null)
                 {
+                    if (RequiresActiveSocioScope(accessContext) &&
+                        !string.Equals(_Desepla1Eliminar.Nrocri, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                    }
 
                     bool respuesta = await _Desepla1Repositorio.Eliminar(_Desepla1Eliminar);
 
@@ -168,10 +226,33 @@ namespace PaginaToros.Server.Controllers
             Respuesta<Desepla1DTO> _Respuesta = new Respuesta<Desepla1DTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Desepla1DTO>());
+                }
+
                 Console.WriteLine("Request recibido:");
                 Console.WriteLine(JsonConvert.SerializeObject(request));
                 Desepla1 _Desepla1 = _mapper.Map<Desepla1>(request);
 
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    _Desepla1.Nrocri = accessContext.ActiveSocioCode!;
+                }
+
+                if (!string.IsNullOrWhiteSpace(_Desepla1.Nroplan) &&
+                    RequiresActiveSocioScope(accessContext) &&
+                    !await ActiveSocioOwnsPlantelAsync(_Desepla1.Nroplan, accessContext.ActiveSocioCode!))
+                {
+                    return BadRequest(new Respuesta<Desepla1DTO>
+                    {
+                        Exito = 0,
+                        Mensaje = "El plantel seleccionado no pertenece a la razon social activa."
+                    });
+                }
+
+                _Desepla1.Nrodec = await GenerateNextNrodecAsync();
 
                 Console.WriteLine("Entro aca?");
 
@@ -199,11 +280,34 @@ namespace PaginaToros.Server.Controllers
             Respuesta<Desepla1DTO> _Respuesta = new Respuesta<Desepla1DTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Desepla1DTO>());
+                }
+
                 Desepla1 _Desepla1 = _mapper.Map<Desepla1>(request);
                 Desepla1 _Desepla1ParaEditar = await _Desepla1Repositorio.Obtener(u => u.Id == _Desepla1.Id);
 
                 if (_Desepla1ParaEditar != null)
                 {
+                    if (RequiresActiveSocioScope(accessContext) &&
+                        !string.Equals(_Desepla1ParaEditar.Nrocri, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Desepla1DTO>());
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(_Desepla1.Nroplan) &&
+                        RequiresActiveSocioScope(accessContext) &&
+                        !await ActiveSocioOwnsPlantelAsync(_Desepla1.Nroplan, accessContext.ActiveSocioCode!))
+                    {
+                        return BadRequest(new Respuesta<Desepla1DTO>
+                        {
+                            Exito = 0,
+                            Mensaje = "El plantel seleccionado no pertenece a la razon social activa."
+                        });
+                    }
+
                     _Desepla1ParaEditar.Nrodec = _Desepla1.Nrodec;
                     _Desepla1ParaEditar.Nroplan = _Desepla1.Nroplan;
                     _Desepla1ParaEditar.Tipse = _Desepla1.Tipse;
@@ -226,7 +330,9 @@ namespace PaginaToros.Server.Controllers
                     _Desepla1ParaEditar.CodUsu = _Desepla1.CodUsu;
                     _Desepla1ParaEditar.Reten = _Desepla1.Reten;
                     _Desepla1ParaEditar.Edicion = _Desepla1.Edicion;
-                    _Desepla1ParaEditar.Nrocri = _Desepla1.Nrocri;
+                    _Desepla1ParaEditar.Nrocri = RequiresActiveSocioScope(accessContext)
+                        ? accessContext.ActiveSocioCode!
+                        : _Desepla1.Nrocri;
                     _Desepla1ParaEditar.Desde = _Desepla1.Desde;
                     _Desepla1ParaEditar.Hasta = _Desepla1.Hasta;
                     _Desepla1ParaEditar.Fecdecl = _Desepla1.Fecdecl;
@@ -252,5 +358,70 @@ namespace PaginaToros.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
+
+        private async Task<string> GenerateNextNrodecAsync(CancellationToken cancellationToken = default)
+        {
+            var nrodecs = await _dbContext.Desepla1s
+                .AsNoTracking()
+                .Select(x => x.Nrodec)
+                .ToListAsync(cancellationToken);
+
+            var maxNrodec = 0;
+            foreach (var nrodec in nrodecs)
+            {
+                if (int.TryParse(nrodec, out var parsed) && parsed > maxNrodec)
+                {
+                    maxNrodec = parsed;
+                }
+            }
+
+            return (maxNrodec + 1).ToString();
+        }
+
+        private async Task<bool> ActiveSocioOwnsPlantelAsync(string nroplan, string activeSocioCode, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Planteles
+                .AsNoTracking()
+                .AnyAsync(
+                    x => x.Placod == nroplan && x.Nrocri == activeSocioCode,
+                    cancellationToken);
+        }
+
+        private static List<Desepla1DTO> DeduplicateByDeclaration(List<Desepla1DTO>? list)
+        {
+            if (list is null)
+            {
+                return new List<Desepla1DTO>();
+            }
+
+            return list
+                .GroupBy(x => x.Nrodec ?? string.Empty)
+                .Select(g => g.OrderByDescending(x => x.Id).First())
+                .OrderByDescending(x => x.Nrodec)
+                .ToList();
+        }
+
+        private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
+            => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        private static string BuildActiveSocioFilter(string activeSocioCode)
+            => $"Nrocri == \"{activeSocioCode}\"";
+
+        private static string AppendFilter(string? expression, string requiredFilter)
+        {
+            if (string.IsNullOrWhiteSpace(expression))
+            {
+                return requiredFilter;
+            }
+
+            return $"({expression}) && ({requiredFilter})";
+        }
+
+        private static Respuesta<T> BuildForbiddenResponse<T>()
+            => new Respuesta<T>
+            {
+                Exito = 0,
+                Mensaje = "No tenes permisos para operar sobre otra razon social."
+            };
     }
 }

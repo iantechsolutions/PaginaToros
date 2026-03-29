@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Server.Repositorio.Contrato;
+using PaginaToros.Server.Services;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
 using System.Text.Json;
@@ -18,10 +19,16 @@ namespace PaginaPlantels.Server.Cont{
     {
         private readonly IMapper _mapper;
         private readonly IPlantelRepositorio _plantelRepositorio;
-        public PlantelController(IPlantelRepositorio plantelRepositorio, IMapper mapper)
+        private readonly IUserSocioContextService _userSocioContextService;
+
+        public PlantelController(
+            IPlantelRepositorio plantelRepositorio,
+            IMapper mapper,
+            IUserSocioContextService userSocioContextService)
         {
             _mapper = mapper;
             _plantelRepositorio = plantelRepositorio;
+            _userSocioContextService = userSocioContextService;
         }
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
@@ -31,8 +38,16 @@ namespace PaginaPlantels.Server.Cont{
 
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<PlantelDTO>>());
+                }
+
                 List<PlantelDTO> listaPedido = new List<PlantelDTO>();
-                var a = await _plantelRepositorio.Lista(skip, take);
+                var a = RequiresActiveSocioScope(accessContext)
+                    ? await _plantelRepositorio.LimitadosFiltrados(skip, take, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : await _plantelRepositorio.Lista(skip, take);
 
 
                 listaPedido = _mapper.Map<List<PlantelDTO>>(a);
@@ -71,7 +86,22 @@ namespace PaginaPlantels.Server.Cont{
 
             try
             {
-                var a = await _plantelRepositorio.CantidadTotal();
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                }
+
+                int a;
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    var query = await _plantelRepositorio.Consultar(x => x.Nrocri == accessContext.ActiveSocioCode);
+                    a = query.Count();
+                }
+                else
+                {
+                    a = await _plantelRepositorio.CantidadTotal();
+                }
 
                 _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
 
@@ -94,7 +124,16 @@ namespace PaginaPlantels.Server.Cont{
 
             try
             {
-                var a = await _plantelRepositorio.LimitadosFiltrados(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<PlantelDTO>>());
+                }
+
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+                var a = await _plantelRepositorio.LimitadosFiltrados(skip, take, effectiveExpression);
 
                 var listaFiltrada = _mapper.Map<List<PlantelDTO>>(a);
                 var dupGroups2 = listaFiltrada.GroupBy(p => p.Id).Where(g => g.Count() > 1).ToList();
@@ -129,7 +168,16 @@ namespace PaginaPlantels.Server.Cont{
 
             try
             {
-                var a = await _plantelRepositorio.LimitadosFiltradosNoInclude(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<PlantelDTO>>());
+                }
+
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+                var a = await _plantelRepositorio.LimitadosFiltradosNoInclude(skip, take, effectiveExpression);
 
                 var listaFiltrada = _mapper.Map<List<PlantelDTO>>(a);
                 var dupGroups3 = listaFiltrada.GroupBy(p => p.Id).Where(g => g.Count() > 1).ToList();
@@ -175,7 +223,18 @@ namespace PaginaPlantels.Server.Cont{
 
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<PlantelDTO>>());
+                }
+
                 var a = await _plantelRepositorio.ObtenerPorAnios(anio1, anio2);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    a = FilterByActiveSocio(a, accessContext.ActiveSocioCode!);
+                }
+
                 var listaFiltrada = _mapper.Map<List<PlantelDTO>>(a);
                 var dupGroups4 = listaFiltrada.GroupBy(p => p.Id).Where(g => g.Count() > 1).ToList();
                 if (dupGroups4.Any())
@@ -216,7 +275,18 @@ namespace PaginaPlantels.Server.Cont{
 
             try
             {
-                var lista = await _plantelRepositorio.ObtenerPorRangoFechas(desde, hasta); 
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<PlantelDTO>>());
+                }
+
+                var lista = await _plantelRepositorio.ObtenerPorRangoFechas(desde, hasta);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    lista = FilterByActiveSocio(lista, accessContext.ActiveSocioCode!);
+                }
+
                 var listaDTO = _mapper.Map<List<PlantelDTO>>(lista);
                 var dupGroups5 = listaDTO.GroupBy(p => p.Id).Where(g => g.Count() > 1).ToList();
                 if (dupGroups5.Any())
@@ -259,9 +329,20 @@ namespace PaginaPlantels.Server.Cont{
             Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                }
+
                 Plantel _PlantelEliminar = await _plantelRepositorio.Obtener(u => u.Id == id);
                 if (_PlantelEliminar != null)
                 {
+                    if (RequiresActiveSocioScope(accessContext) &&
+                        !string.Equals(_PlantelEliminar.Nrocri, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                    }
 
                     bool respuesta = await _plantelRepositorio.Eliminar(_PlantelEliminar);
 
@@ -287,7 +368,17 @@ namespace PaginaPlantels.Server.Cont{
             var _Respuesta = new Respuesta<PlantelDTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<PlantelDTO>());
+                }
+
                 var entidad = _mapper.Map<Plantel>(request);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    entidad.Nrocri = accessContext.ActiveSocioCode;
+                }
 
                 var creado = await _plantelRepositorio.Crear(entidad);
 
@@ -328,6 +419,12 @@ namespace PaginaPlantels.Server.Cont{
             Respuesta<PlantelDTO> _Respuesta = new Respuesta<PlantelDTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<PlantelDTO>());
+                }
+
                 Console.WriteLine(JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true }));
 
                 Plantel _Plantel = _mapper.Map<Plantel>(request);
@@ -335,6 +432,12 @@ namespace PaginaPlantels.Server.Cont{
 
                 if (_PlantelParaEditar != null)
                 {
+                    if (RequiresActiveSocioScope(accessContext) &&
+                        !string.Equals(_PlantelParaEditar.Nrocri, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<PlantelDTO>());
+                    }
+
                     _PlantelParaEditar.Placod = _Plantel.Placod;
                     _PlantelParaEditar.Anioex = _Plantel.Anioex;
                     _PlantelParaEditar.Varede = _Plantel.Varede;
@@ -345,7 +448,9 @@ namespace PaginaPlantels.Server.Cont{
                     _PlantelParaEditar.Vqssrp = _Plantel.Vqssrp;
                     _PlantelParaEditar.Feulti = _Plantel.Feulti;
                     _PlantelParaEditar.Nroins = _Plantel.Nroins;
-                    _PlantelParaEditar.Nrocri = _Plantel.Nrocri;
+                    _PlantelParaEditar.Nrocri = RequiresActiveSocioScope(accessContext)
+                        ? accessContext.ActiveSocioCode
+                        : _Plantel.Nrocri;
                     _PlantelParaEditar.Catego = _Plantel.Catego;
                     _PlantelParaEditar.Aniopa = _Plantel.Aniopa;
                     _PlantelParaEditar.Urein = _Plantel.Urein;
@@ -383,17 +488,33 @@ namespace PaginaPlantels.Server.Cont{
             var _Respuesta = new Respuesta<PlantelDTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<PlantelDTO>());
+                }
+
+                var requestSocioCode = RequiresActiveSocioScope(accessContext)
+                    ? accessContext.ActiveSocioCode!
+                    : request.Nrocri.ToString();
+
                 // Try to find by Placod
                 Plantel? found = null;
                 if (!string.IsNullOrWhiteSpace(request.Placod))
                 {
                     found = await _plantelRepositorio.Obtener(p => p.Placod == request.Placod);
+                    if (RequiresActiveSocioScope(accessContext) &&
+                        found != null &&
+                        !string.Equals(found.Nrocri, requestSocioCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        found = null;
+                    }
                 }
 
                 // If not found, try by Anioex + Nrocri
                 if (found == null)
                 {
-                    found = (await _plantelRepositorio.LimitadosFiltradosNoInclude(0, 0, $"Anioex == \"{request.Anioex}\" && Nrocri == {request.Nrocri}"))
+                    found = (await _plantelRepositorio.LimitadosFiltradosNoInclude(0, 0, $"Anioex == \"{request.Anioex}\" && Nrocri == \"{requestSocioCode}\""))
                             .FirstOrDefault();
                 }
 
@@ -432,7 +553,7 @@ namespace PaginaPlantels.Server.Cont{
                     Varepr = request.Varepr,
                     Vqcsrp = request.Vqcsrp,
                     Vqssrp = request.Vqssrp,
-                    Nrocri = request.Nrocri.ToString(),
+                    Nrocri = requestSocioCode,
                     Estado = "A",
                     Fecing = string.Empty
                 };
@@ -470,7 +591,18 @@ namespace PaginaPlantels.Server.Cont{
 
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                }
+
                 var lista = await _plantelRepositorio.ObtenerPorRangoFechas(dDesde, dHasta);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    lista = FilterByActiveSocio(lista, accessContext.ActiveSocioCode!);
+                }
+
                 var listaDTO = _mapper.Map<List<PaginaToros.Shared.Models.PlantelDTO>>(lista);
                 var deduped = Deduplicate(listaDTO);
 
@@ -622,5 +754,33 @@ namespace PaginaPlantels.Server.Cont{
                 .ToList();
             return grouped;
         }
+
+        private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
+            => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        private static string BuildActiveSocioFilter(string activeSocioCode)
+            => $"Nrocri == \"{activeSocioCode}\"";
+
+        private static string AppendFilter(string? expression, string requiredFilter)
+        {
+            if (string.IsNullOrWhiteSpace(expression))
+            {
+                return requiredFilter;
+            }
+
+            return $"({expression}) && ({requiredFilter})";
+        }
+
+        private static List<Plantel> FilterByActiveSocio(IEnumerable<Plantel> planteles, string activeSocioCode)
+            => planteles
+                .Where(x => string.Equals(x.Nrocri, activeSocioCode, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+        private static Respuesta<T> BuildForbiddenResponse<T>()
+            => new Respuesta<T>
+            {
+                Exito = 0,
+                Mensaje = "No tenes permisos para operar sobre otra razon social."
+            };
     }
 }

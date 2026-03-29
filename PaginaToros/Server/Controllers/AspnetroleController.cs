@@ -10,6 +10,13 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class AspNetRoleController : ControllerBase
     {
+        private readonly hereford_prContext _db;
+
+        public AspNetRoleController(hereford_prContext db)
+        {
+            _db = db;
+        }
+
         [HttpGet]
         public IActionResult Get()
         {
@@ -17,12 +24,9 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.AspNetRoles.ToList();
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+                var lst = _db.AspNetRoles.ToList();
+                oRespuesta.Exito = 1;
+                oRespuesta.List = lst;
             }
             catch (Exception ex)
             {
@@ -37,18 +41,15 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    AspNetRole oAspNetRoles = new AspNetRole();
-                    oAspNetRoles.AspNetUserRoles = model.AspNetUserRoles;
-                    oAspNetRoles.AspNetRoleClaims = model.AspNetRoleClaims;
-                    oAspNetRoles.Id = model.Id;
-                    oAspNetRoles.ConcurrencyStamp = model.ConcurrencyStamp;
+                AspNetRole oAspNetRoles = new AspNetRole();
+                oAspNetRoles.AspNetUserRoles = model.AspNetUserRoles;
+                oAspNetRoles.AspNetRoleClaims = model.AspNetRoleClaims;
+                oAspNetRoles.Id = model.Id;
+                oAspNetRoles.ConcurrencyStamp = model.ConcurrencyStamp;
 
-                    db.AspNetRoles.Add(oAspNetRoles);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+                _db.AspNetRoles.Add(oAspNetRoles);
+                _db.SaveChanges();
+                oRespuesta.Exito = 1;
             }
             catch (Exception ex)
             {
@@ -63,16 +64,13 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    AspNetRole oAspNetRoles = db.AspNetRoles.Find(model.Id);
-                    oAspNetRoles.AspNetUserRoles = model.Aspnetuserroles;
-                    oAspNetRoles.AspNetRoleClaims = model.Aspnetroleclaims;
-                    oAspNetRoles.ConcurrencyStamp = model.ConcurrencyStamp;
-                    db.Entry(oAspNetRoles).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+                AspNetRole oAspNetRoles = _db.AspNetRoles.Find(model.Id);
+                oAspNetRoles.AspNetUserRoles = model.Aspnetuserroles;
+                oAspNetRoles.AspNetRoleClaims = model.Aspnetroleclaims;
+                oAspNetRoles.ConcurrencyStamp = model.ConcurrencyStamp;
+                _db.Entry(oAspNetRoles).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                _db.SaveChanges();
+                oRespuesta.Exito = 1;
             }
             catch (Exception ex)
             {
@@ -87,13 +85,10 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    AspNetRole oAspNetRoles = db.AspNetRoles.Find(Id);
-                    db.Remove(oAspNetRoles);
-                    db.SaveChanges();
-                    oRespuesta.Exito = 1;
-                }
+                AspNetRole oAspNetRoles = _db.AspNetRoles.Find(Id);
+                _db.Remove(oAspNetRoles);
+                _db.SaveChanges();
+                oRespuesta.Exito = 1;
             }
             catch (Exception ex)
             {
@@ -108,12 +103,9 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                using (hereford_prContext db = new hereford_prContext())
-                {
-                    var lst = db.AspNetRoles.Find(Id);
-                    oRespuesta.Exito = 1;
-                    oRespuesta.List = lst;
-                }
+                var lst = _db.AspNetRoles.Find(Id);
+                oRespuesta.Exito = 1;
+                oRespuesta.List = lst;
             }
             catch (Exception ex)
             {
@@ -125,5 +117,4 @@ namespace PaginaToros.Server.Controllers
     }
 
 }
-
 

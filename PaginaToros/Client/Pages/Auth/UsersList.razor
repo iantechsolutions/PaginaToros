@@ -240,19 +240,37 @@
 
     private string GetSocioDisplay(User usuario)
     {
-        if (!usuario.SocioId.HasValue || usuario.SocioId.Value <= 0)
+        var socioIds = (usuario.SocioIds ?? new List<int>())
+            .Where(x => x > 0)
+            .Distinct()
+            .ToList();
+
+        if (socioIds.Count == 0 && usuario.SocioId.HasValue && usuario.SocioId.Value > 0)
+        {
+            socioIds.Add(usuario.SocioId.Value);
+        }
+
+        if (socioIds.Count == 0)
         {
             return string.Empty;
         }
 
-        var socio = Socios.FirstOrDefault(x => x.Id == usuario.SocioId.Value);
+        var activeSocioId = usuario.SocioId.HasValue && socioIds.Contains(usuario.SocioId.Value)
+            ? usuario.SocioId.Value
+            : socioIds[0];
+
+        var socio = Socios.FirstOrDefault(x => x.Id == activeSocioId);
         if (socio == null)
         {
             return string.Empty;
         }
 
         var codigo = socio.CodigoVisible();
-        return string.IsNullOrWhiteSpace(codigo) ? (socio.Nombre ?? string.Empty) : $"{codigo} - {socio.Nombre}";
+        var label = string.IsNullOrWhiteSpace(codigo) ? (socio.Nombre ?? string.Empty) : $"{codigo} - {socio.Nombre}";
+
+        return socioIds.Count > 1
+            ? $"{label} (+{socioIds.Count - 1})"
+            : label;
     }
 
     private class ResponseForList

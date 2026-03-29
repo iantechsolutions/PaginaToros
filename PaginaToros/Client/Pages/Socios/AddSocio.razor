@@ -116,7 +116,7 @@
 
                 <div class="col-sm">
                     <label>Codigo de socio *</label>
-                    <InputText class="form-control" @bind-Value="oSocio.Codpos2" placeholder="Codigo de socio" maxlength="4" @onblur="CheckCodpos2" />
+                    <InputText class="form-control" @bind-Value="oSocio.Codpos2" placeholder="Codigo de socio" maxlength="4" />
                 </div>
 
                 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
@@ -407,25 +407,9 @@
             validationErrors.Add("Seleccioná una provincia válida.");
         }
 
-        if (!string.IsNullOrWhiteSpace(oSocio.Codpos2))
+        if (!string.IsNullOrWhiteSpace(oSocio.Codpos2) && oSocio.Codpos2.Length > 4)
         {
-            if (oSocio.Codpos2.Length > 4)
-            {
-                validationErrors.Add("El código de socio no puede tener más de 4 caracteres.");
-            }
-
-            try
-            {
-                var existsResp = await _socioServicio.ExistsCodpos2(oSocio.Codpos2, Id == 0 ? null : Id);
-                if (existsResp.Exito == 1 && existsResp.List)
-                {
-                    validationErrors.Add($"El código de socio '{oSocio.Codpos2}' ya existe en la base de datos.");
-                }
-            }
-            catch
-            {
-                validationErrors.Add("No se pudo validar si el código de socio ya existe. Reintentá.");
-            }
+            validationErrors.Add("El código de socio no puede tener más de 4 caracteres.");
         }
 
         return validationErrors.Count == 0;
@@ -468,20 +452,6 @@
     {
         formMessageCss = "alert alert-danger";
         formMessage = message;
-    }
-
-    private async Task CheckCodpos2(FocusEventArgs _)
-    {
-        if (string.IsNullOrWhiteSpace(oSocio.Codpos2))
-        {
-            return;
-        }
-
-        var resp = await _socioServicio.ExistsCodpos2(oSocio.Codpos2.Trim(), Id == 0 ? null : Id);
-        if (resp.Exito == 1 && resp.List)
-        {
-            SetFormError($"El código de socio '{oSocio.Codpos2}' ya existe en la base de datos.");
-        }
     }
 
     private Task<IEnumerable<string>> SearchMethod(string searchText, List<string> lista)

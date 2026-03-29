@@ -2,11 +2,9 @@
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using PaginaToros.Server.Repositorio.Contrato;
+using PaginaToros.Server.Services;
 using AutoMapper;
-using PaginaToros.Server.Repositorio.Implementacion;
-using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq.Dynamic.Core;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -16,10 +14,16 @@ namespace PaginaToros.Server.Controllers
     {
         private readonly IMapper _mapper;
         private readonly ITorosRepositorio _torosRepositorio;
-        public TorosController( ITorosRepositorio torosRepositorio,IMapper mapper)
+        private readonly IUserSocioContextService _userSocioContextService;
+
+        public TorosController(
+            ITorosRepositorio torosRepositorio,
+            IMapper mapper,
+            IUserSocioContextService userSocioContextService)
         {
             _mapper = mapper;
             _torosRepositorio = torosRepositorio;
+            _userSocioContextService = userSocioContextService;
         }
 
         [HttpGet]
@@ -31,8 +35,16 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<TorosuniDTO>>());
+                }
+
                 List<TorosuniDTO> listaPedido = new List<TorosuniDTO>();
-                var a = await _torosRepositorio.Lista(skip, take);
+                var a = RequiresActiveSocioScope(accessContext)
+                    ? await _torosRepositorio.LimitadosFiltrados(skip, take, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : await _torosRepositorio.Lista(skip, take);
 
                 
                 listaPedido = _mapper.Map<List<TorosuniDTO>>(a);
@@ -59,7 +71,22 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var a = await _torosRepositorio.CantidadTotal();
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                }
+
+                int a;
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    var query = await _torosRepositorio.Consultar(x => x.Criador == accessContext.ActiveSocioCode);
+                    a = query.Count();
+                }
+                else
+                {
+                    a = await _torosRepositorio.CantidadTotal();
+                }
 
                 _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
 
@@ -80,7 +107,16 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                var count = await _torosRepositorio.CantidadFiltrada(expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                }
+
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+                var count = await _torosRepositorio.CantidadFiltrada(effectiveExpression);
                 return Ok(new Respuesta<int> { Exito = 1, Mensaje = "Éxito", List = count });
             }
             catch (Exception ex)
@@ -95,7 +131,16 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                var entidades = await _torosRepositorio.LimitadosFiltrados(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<TorosuniDTO>>());
+                }
+
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+                var entidades = await _torosRepositorio.LimitadosFiltrados(skip, take, effectiveExpression);
 
                 var listaFiltrada = _mapper.Map<List<TorosuniDTO>>(entidades)
                     .GroupBy(x => x.Id)
@@ -133,7 +178,16 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var a = await _torosRepositorio.LimitadosFiltradosNoInclude(skip,take,expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<TorosuniDTO>>());
+                }
+
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+                var a = await _torosRepositorio.LimitadosFiltradosNoInclude(skip, take, effectiveExpression);
 
                 var listaFiltrada = _mapper.Map<List<TorosuniDTO>>(a);
 
@@ -169,6 +223,17 @@ namespace PaginaToros.Server.Controllers
                     });
                 }
 
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    if (string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode) ||
+                        !string.Equals(repo.List.Criador, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden,
+                            BuildForbiddenResponse<TorosuniDTO>());
+                    }
+                }
+
                 var dto = _mapper.Map<TorosuniDTO>(repo.List);
                 Console.WriteLine($"[Ctrl] Map OK -> DTO Id={dto?.Id}");
 
@@ -197,9 +262,20 @@ namespace PaginaToros.Server.Controllers
             Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                }
+
                 Torosuni _ToroEliminar = await _torosRepositorio.Obtener(u => u.Id == id);
                 if (_ToroEliminar != null)
                 {
+                    if (RequiresActiveSocioScope(accessContext) &&
+                        !string.Equals(_ToroEliminar.Criador, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                    }
 
                     bool respuesta = await _torosRepositorio.Eliminar(_ToroEliminar);
 
@@ -225,7 +301,17 @@ namespace PaginaToros.Server.Controllers
             Respuesta<TorosuniDTO> _Respuesta = new Respuesta<TorosuniDTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TorosuniDTO>());
+                }
+
                 Torosuni _Toro = _mapper.Map<Torosuni>(request);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    _Toro.Criador = accessContext.ActiveSocioCode;
+                }
 
                 Torosuni _ToroCreado = await _torosRepositorio.Crear(_Toro);
 
@@ -251,6 +337,12 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TorosuniDTO>());
+                }
+
                 Torosuni entidad;
 
                 if (request.Id != 0)
@@ -263,10 +355,21 @@ namespace PaginaToros.Server.Controllers
                         return StatusCode(StatusCodes.Status404NotFound, resp);
                     }
 
+                    if (RequiresActiveSocioScope(accessContext) &&
+                        !string.Equals(entidad.Criador, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TorosuniDTO>());
+                    }
+
                     if (!string.IsNullOrWhiteSpace(request.Criador))
                         request.Criador = request.Criador.Trim();
 
                     _mapper.Map(request, entidad);
+
+                    if (RequiresActiveSocioScope(accessContext))
+                    {
+                        entidad.Criador = accessContext.ActiveSocioCode;
+                    }
 
 
                     var ok = await _torosRepositorio.Editar(entidad);
@@ -282,6 +385,10 @@ namespace PaginaToros.Server.Controllers
                         request.Criador = request.Criador.Trim();
 
                     entidad = _mapper.Map<Torosuni>(request);
+                    if (RequiresActiveSocioScope(accessContext))
+                    {
+                        entidad.Criador = accessContext.ActiveSocioCode;
+                    }
                     entidad = await _torosRepositorio.Crear(entidad);
 
                     if (entidad.Id == 0)
@@ -300,6 +407,28 @@ namespace PaginaToros.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, resp);
             }
         }
+
+        private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
+            => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        private static string BuildActiveSocioFilter(string activeSocioCode)
+            => $"Criador == \"{activeSocioCode}\"";
+
+        private static string AppendFilter(string? expression, string requiredFilter)
+        {
+            if (string.IsNullOrWhiteSpace(expression))
+            {
+                return requiredFilter;
+            }
+
+            return $"({expression}) and ({requiredFilter})";
+        }
+
+        private static Respuesta<T> BuildForbiddenResponse<T>()
+            => new Respuesta<T>
+            {
+                Exito = 0,
+                Mensaje = "No tenes permisos para operar sobre otra razon social."
+            };
     }
 }
-

@@ -69,3 +69,153 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+.bm-container {
+    inset: 0;
+    z-index: 2000 !important;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.bm-container.position-middle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.bm-container .blazored-modal {
+    box-sizing: border-box;
+    width: min(100%, 1140px);
+    max-height: calc(100vh - 2rem);
+    margin: 0 auto;
+    overflow: auto;
+}
+
+.bm-container .blazored-modal.size-small {
+    width: min(100%, 300px);
+}
+
+.bm-container .blazored-modal.size-medium {
+    width: min(100%, 500px);
+}
+
+.bm-container .blazored-modal.size-large {
+    width: min(100%, 800px);
+}
+
+.bm-container .blazored-modal.size-extra-large {
+    width: min(100%, 1140px);
+}
+
+.bm-container .blazored-modal.size-automatic {
+    width: fit-content;
+    max-width: min(100%, 1140px);
+}
+
+.swal2-container {
+    z-index: 3000 !important;
+}
+
+:root {
+    --pt-grid-header: linear-gradient(135deg, #95af66 0%, #87a35c 38%, #76934d 100%);
+    --pt-grid-header-text: #1f2418;
+    --pt-grid-surface: rgba(255, 251, 244, 0.96);
+    --pt-grid-surface-alt: rgba(249, 244, 235, 0.98);
+    --pt-grid-surface-hover: rgba(238, 230, 214, 0.94);
+    --pt-grid-border: rgba(138, 115, 78, 0.08);
+    --pt-grid-paginator: rgba(245, 239, 226, 0.96);
+}
+
+.tablacontent .rz-datatable-tablewrapper,
+.tablacontent.rz-data-grid .rz-datatable-tablewrapper {
+    border: 0 !important;
+    border-radius: 24px 24px 0 0 !important;
+    overflow: hidden !important;
+    background: var(--pt-grid-surface) !important;
+    box-shadow: none !important;
+}
+
+.tablacontent {
+    border-radius: 24px 24px 0 0;
+    overflow: hidden;
+}
+
+.tablacontent .rz-grid-table,
+.tablacontent.rz-data-grid .rz-grid-table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border: 0 !important;
+}
+
+.tablacontent .rz-grid-table thead,
+.tablacontent.rz-data-grid .rz-grid-table thead,
+.tablacontent .rz-grid-table thead tr,
+.tablacontent.rz-data-grid .rz-grid-table thead tr {
+    background: var(--pt-grid-header) !important;
+}
+
+.tablacontent .rz-grid-table thead th,
+.tablacontent .rz-grid-table th,
+.tablacontent.rz-data-grid .rz-grid-table thead th,
+.tablacontent.rz-data-grid .rz-grid-table th,
+.tablacontent th.rz-unselectable-text.rz-text-align-left {
+    background: transparent !important;
+    background-image: none !important;
+    color: var(--pt-grid-header-text) !important;
+    border-top: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    box-shadow: none !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+    font-weight: 700 !important;
+}
+
+.tablacontent .rz-grid-table thead th:first-child,
+.tablacontent.rz-data-grid .rz-grid-table thead th:first-child {
+    border-top-left-radius: 24px !important;
+}
+
+.tablacontent .rz-grid-table thead th:last-child,
+.tablacontent.rz-data-grid .rz-grid-table thead th:last-child {
+    border-top-right-radius: 24px !important;
+}
+
+.tablacontent .rz-sortable-column,
+.tablacontent .rz-column-title,
+.tablacontent .rz-column-title-content,
+.tablacontent .rz-grid-table th *,
+.tablacontent.rz-data-grid .rz-sortable-column,
+.tablacontent.rz-data-grid .rz-column-title,
+.tablacontent.rz-data-grid .rz-column-title-content,
+.tablacontent.rz-data-grid .rz-grid-table th * {
+    color: var(--pt-grid-header-text) !important;
+    fill: var(--pt-grid-header-text) !important;
+}
+
+.tablacontent .rz-grid-table td,
+.tablacontent.rz-data-grid .rz-grid-table td {
+    background: var(--pt-grid-surface) !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-top: 0 !important;
+    border-bottom: 1px solid rgba(148, 123, 86, 0.1) !important;
+}
+
+.tablacontent .rz-grid-table tr:nth-child(even) td,
+.tablacontent.rz-data-grid .rz-grid-table tr:nth-child(even) td {
+    background: var(--pt-grid-surface-alt) !important;
+}
+
+.tablacontent .rz-grid-table tr:hover td,
+.tablacontent.rz-data-grid .rz-grid-table tr:hover td {
+    background: var(--pt-grid-surface-hover) !important;
+}
+
+.tablacontent .rz-paginator,
+.tablacontent.rz-data-grid .rz-paginator {
+    border-top: 1px solid var(--pt-grid-border) !important;
+    background: var(--pt-grid-paginator) !important;
+    border-radius: 0 0 24px 24px !important;
+}

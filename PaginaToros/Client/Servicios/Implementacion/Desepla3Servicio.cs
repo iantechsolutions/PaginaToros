@@ -30,6 +30,13 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return result!;
         }
 
+        public async Task<Respuesta<List<Desepla3DTO>>> GetByNrodec(string nrodec)
+        {
+            var encoded = Uri.EscapeDataString(nrodec ?? string.Empty);
+            var result = await _http.GetFromJsonAsync<Respuesta<List<Desepla3DTO>>>($"api/Desepla3/GetByNrodec?nrodec={encoded}");
+            return result!;
+        }
+
         public async Task<bool> Eliminar(int id)
         {
             var result = await _http.DeleteAsync($"api/Desepla3/Eliminar/{id}");

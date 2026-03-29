@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PaginaToros.Shared.Models
 {
@@ -14,9 +15,13 @@ namespace PaginaToros.Shared.Models
         public string Rol { get; set; } = null!;
         public string Status { get; set; } = null!;
         public DateTime Created { get; set; }
+        public string? IdentityUserId { get; set; }
         public int? SocioId { get; set; }
 
         //public string? GeneratedPswd { get; set;}
         public Socio? Socio { get; set; }
+
+        [NotMapped]
+        public List<int> SocioIds { get; set; } = new();
     }
 }

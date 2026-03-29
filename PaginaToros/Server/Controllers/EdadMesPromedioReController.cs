@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PaginaToros.Shared.Models.Response;
-using PaginaToros.Shared.Models;
+using Microsoft.EntityFrameworkCore;
 using PaginaToros.Server.Context;
-using AutoMapper;
 using PaginaToros.Server.Repositorio.Contrato;
+using PaginaToros.Server.Services;
+using PaginaToros.Shared.Models;
+using PaginaToros.Shared.Models.Response;
+using System.Linq.Dynamic.Core;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -13,36 +16,58 @@ namespace PaginaToros.Server.Controllers
     public class Resin4Controller : ControllerBase
     {
         private readonly IMapper _mapper;
-        private readonly IResin4Repositorio _Resin4Repositorio;
-        public Resin4Controller(IResin4Repositorio Resin4Repositorio, IMapper mapper)
+        private readonly IResin4Repositorio _resin4Repositorio;
+        private readonly IUserSocioContextService _userSocioContextService;
+        private readonly hereford_prContext _db;
+
+        public Resin4Controller(
+            IResin4Repositorio resin4Repositorio,
+            IMapper mapper,
+            IUserSocioContextService userSocioContextService,
+            hereford_prContext db)
         {
             _mapper = mapper;
-            _Resin4Repositorio = Resin4Repositorio;
+            _resin4Repositorio = resin4Repositorio;
+            _userSocioContextService = userSocioContextService;
+            _db = db;
         }
+
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
         {
-
-            Respuesta<List<Resin4DTO>> _ResponseDTO = new Respuesta<List<Resin4DTO>>();
+            var response = new Respuesta<List<Resin4DTO>>();
 
             try
             {
-                List<Resin4DTO> listaPedido = new List<Resin4DTO>();
-                var a = await _Resin4Repositorio.Lista(skip, take);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Resin4DTO>>());
+                }
 
+                var query = ApplyActiveSocioScope(_db.Resin4s.AsQueryable(), accessContext)
+                    .OrderByDescending(x => x.Id)
+                    .Skip(skip);
 
-                listaPedido = _mapper.Map<List<Resin4DTO>>(a);
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
 
-                _ResponseDTO = new Respuesta<List<Resin4DTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
+                var items = await query.ToListAsync();
+                response = new Respuesta<List<Resin4DTO>>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = _mapper.Map<List<Resin4DTO>>(items)
+                };
 
-                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
-
-
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<Resin4DTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                response = new Respuesta<List<Resin4DTO>> { Exito = 0, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
 
@@ -50,48 +75,68 @@ namespace PaginaToros.Server.Controllers
         [Route("Cantidad")]
         public async Task<IActionResult> CantidadTotal()
         {
-
-            Respuesta<int> _ResponseDTO = new Respuesta<int>();
+            var response = new Respuesta<int>();
 
             try
             {
-                var a = await _Resin4Repositorio.CantidadTotal();
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                }
 
-                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
+                var count = await ApplyActiveSocioScope(_db.Resin4s.AsQueryable(), accessContext).CountAsync();
+                response = new Respuesta<int> { Exito = 1, Mensaje = "Exito", List = count };
 
-                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
-
-
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                response = new Respuesta<int> { Exito = 0, Mensaje = ex.Message, List = 0 };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
+
         [HttpGet]
         [Route("LimitadosFiltrados")]
         public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string? expression = null)
         {
-
-            Respuesta<List<Resin4DTO>> _ResponseDTO = new Respuesta<List<Resin4DTO>>();
+            var response = new Respuesta<List<Resin4DTO>>();
 
             try
             {
-                var a = await _Resin4Repositorio.LimitadosFiltrados(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Resin4DTO>>());
+                }
 
-                var listaFiltrada = _mapper.Map<List<Resin4DTO>>(a);
+                var query = ApplyActiveSocioScope(_db.Resin4s.AsQueryable(), accessContext);
+                if (!string.IsNullOrWhiteSpace(expression))
+                {
+                    query = query.Where(expression);
+                }
 
-                _ResponseDTO = new Respuesta<List<Resin4DTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
+                query = query.OrderByDescending(x => x.Id).Skip(skip);
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
 
-                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+                var items = await query.ToListAsync();
+                response = new Respuesta<List<Resin4DTO>>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = _mapper.Map<List<Resin4DTO>>(items)
+                };
 
-
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<Resin4DTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                response = new Respuesta<List<Resin4DTO>> { Exito = 0, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
 
@@ -99,27 +144,35 @@ namespace PaginaToros.Server.Controllers
         [Route("Eliminar/{id:int}")]
         public async Task<IActionResult> Eliminar(int id)
         {
-            Respuesta<string> _Respuesta = new Respuesta<string>();
+            var response = new Respuesta<string>();
             try
             {
-                Resin4 _Resin4Eliminar = await _Resin4Repositorio.Obtener(u => u.Id == id);
-                if (_Resin4Eliminar != null)
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
                 {
-
-                    bool respuesta = await _Resin4Repositorio.Eliminar(_Resin4Eliminar);
-
-                    if (respuesta)
-                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
-                    else
-                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
                 }
 
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                var entity = await _resin4Repositorio.Obtener(u => u.Id == id);
+                if (entity != null)
+                {
+                    if (!await CanAccessReportAsync(entity.Nrores, accessContext))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                    }
+
+                    var ok = await _resin4Repositorio.Eliminar(entity);
+                    response = ok
+                        ? new Respuesta<string> { Exito = 1, Mensaje = "ok", List = string.Empty }
+                        : new Respuesta<string> { Exito = 0, Mensaje = "No se pudo eliminar el identificador", List = string.Empty };
+                }
+
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                response = new Respuesta<string> { Exito = 0, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
 
@@ -127,24 +180,43 @@ namespace PaginaToros.Server.Controllers
         [Route("Guardar")]
         public async Task<IActionResult> Guardar([FromBody] Resin4DTO request)
         {
-            Respuesta<Resin4DTO> _Respuesta = new Respuesta<Resin4DTO>();
+            if (request == null)
+            {
+                return BadRequest(new Respuesta<Resin4DTO> { Exito = 0, Mensaje = "La solicitud está vacía." });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Nrores))
+            {
+                return BadRequest(new Respuesta<Resin4DTO> { Exito = 0, Mensaje = "El resultado de inspección es obligatorio." });
+            }
+
+            var response = new Respuesta<Resin4DTO>();
             try
             {
-                Resin4 _Resin4 = _mapper.Map<Resin4>(request);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Resin4DTO>());
+                }
 
-                Resin4 _Resin4Creado = await _Resin4Repositorio.Crear(_Resin4);
+                if (!await CanAccessReportAsync(request.Nrores, accessContext))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Resin4DTO>());
+                }
 
-                if (_Resin4Creado.Id != 0)
-                    _Respuesta = new Respuesta<Resin4DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Resin4DTO>(_Resin4Creado) };
-                else
-                    _Respuesta = new Respuesta<Resin4DTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+                var entity = _mapper.Map<Resin4>(request);
+                var created = await _resin4Repositorio.Crear(entity);
 
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                response = created.Id != 0
+                    ? new Respuesta<Resin4DTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<Resin4DTO>(created) }
+                    : new Respuesta<Resin4DTO> { Exito = 0, Mensaje = "No se pudo crear el identificador" };
+
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<Resin4DTO>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                response = new Respuesta<Resin4DTO> { Exito = 0, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
 
@@ -152,45 +224,90 @@ namespace PaginaToros.Server.Controllers
         [Route("Editar")]
         public async Task<IActionResult> Editar([FromBody] Resin4DTO request)
         {
-            Respuesta<Resin4DTO> _Respuesta = new Respuesta<Resin4DTO>();
+            var response = new Respuesta<Resin4DTO>();
             try
             {
-                Resin4 _Resin4 = _mapper.Map<Resin4>(request);
-                Resin4 _Resin4ParaEditar = await _Resin4Repositorio.Obtener(u => u.Id == _Resin4.Id);
-
-                if (_Resin4ParaEditar != null)
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
                 {
-                    _Resin4ParaEditar.Pedad = _Resin4.Pedad;
-                    _Resin4ParaEditar.Ppeso = _Resin4.Ppeso;
-                    _Resin4ParaEditar.Medad = _Resin4.Medad;
-                    _Resin4ParaEditar.Mpeso = _Resin4.Mpeso;
-                    _Resin4ParaEditar.Iedad = _Resin4.Iedad;
-                    _Resin4ParaEditar.Ipeso = _Resin4.Ipeso;
-                    _Resin4ParaEditar.Pdl = _Resin4.Pdl;
-                    _Resin4ParaEditar.P2d = _Resin4.P2d;
-                    _Resin4ParaEditar.P4d = _Resin4.P4d;
-                    _Resin4ParaEditar.Sexo = _Resin4.Sexo;
-                    _Resin4ParaEditar.Nrores = _Resin4.Nrores;
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Resin4DTO>());
+                }
 
-                    bool respuesta = await _Resin4Repositorio.Editar(_Resin4ParaEditar);
+                var entity = _mapper.Map<Resin4>(request);
+                var entityToEdit = await _resin4Repositorio.Obtener(u => u.Id == entity.Id);
 
-                    if (respuesta)
-                        _Respuesta = new Respuesta<Resin4DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Resin4DTO>(_Resin4ParaEditar) };
-                    else
-                        _Respuesta = new Respuesta<Resin4DTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
+                if (entityToEdit != null)
+                {
+                    if (!await CanAccessReportAsync(entityToEdit.Nrores, accessContext) ||
+                        !await CanAccessReportAsync(entity.Nrores, accessContext))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Resin4DTO>());
+                    }
+
+                    entityToEdit.Pedad = entity.Pedad;
+                    entityToEdit.Ppeso = entity.Ppeso;
+                    entityToEdit.Medad = entity.Medad;
+                    entityToEdit.Mpeso = entity.Mpeso;
+                    entityToEdit.Iedad = entity.Iedad;
+                    entityToEdit.Ipeso = entity.Ipeso;
+                    entityToEdit.Pdl = entity.Pdl;
+                    entityToEdit.P2d = entity.P2d;
+                    entityToEdit.P4d = entity.P4d;
+                    entityToEdit.Sexo = entity.Sexo;
+                    entityToEdit.Nrores = entity.Nrores;
+
+                    var ok = await _resin4Repositorio.Editar(entityToEdit);
+                    response = ok
+                        ? new Respuesta<Resin4DTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<Resin4DTO>(entityToEdit) }
+                        : new Respuesta<Resin4DTO> { Exito = 0, Mensaje = "No se pudo editar el identificador" };
                 }
                 else
                 {
-                    _Respuesta = new Respuesta<Resin4DTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                    response = new Respuesta<Resin4DTO> { Exito = 0, Mensaje = "No se encontró el identificador" };
                 }
 
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                return StatusCode(StatusCodes.Status200OK, response);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<Resin4DTO>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                response = new Respuesta<Resin4DTO> { Exito = 0, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
         }
+
+        private IQueryable<Resin4> ApplyActiveSocioScope(IQueryable<Resin4> query, UserSocioAccessContext accessContext)
+        {
+            if (!RequiresActiveSocioScope(accessContext))
+            {
+                return query;
+            }
+
+            return query.Where(x => _db.Resin1s.Any(r => r.Nrores == x.Nrores && r.Scod == accessContext.ActiveSocioCode));
+        }
+
+        private async Task<bool> CanAccessReportAsync(string? nrores, UserSocioAccessContext accessContext)
+        {
+            if (string.IsNullOrWhiteSpace(nrores))
+            {
+                return false;
+            }
+
+            if (!RequiresActiveSocioScope(accessContext))
+            {
+                return true;
+            }
+
+            return await _db.Resin1s.AsNoTracking().AnyAsync(r => r.Nrores == nrores && r.Scod == accessContext.ActiveSocioCode);
+        }
+
+        private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
+            => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        private static Respuesta<T> BuildForbiddenResponse<T>()
+            => new Respuesta<T>
+            {
+                Exito = 0,
+                Mensaje = "No tenes permisos para operar sobre otra razon social."
+            };
     }
 }

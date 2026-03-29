@@ -1,14 +1,14 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
-using PaginaToros.Server.Repositorio.Implementacion;
+using PaginaToros.Server.Services;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
 using System.Dynamic;
 using System.Reflection;
-using System.Text.Json;
 namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
@@ -16,36 +16,47 @@ namespace PaginaToros.Server.Controllers
     public class TranssbController : ControllerBase
     {
         private readonly IMapper _mapper;
-        private readonly ITranssbRepositorio _TranssbRepositorio;
-        private readonly ITorosRepositorio _TorosRepositorio;
-        
-        
-        public TranssbController(ITranssbRepositorio TranssbRepositorio, ITorosRepositorio torosRepositorio, IMapper mapper)
+        private readonly ITranssbRepositorio _transsbRepositorio;
+        private readonly hereford_prContext _db;
+        private readonly IUserSocioContextService _userSocioContextService;
+
+        public TranssbController(
+            ITranssbRepositorio transsbRepositorio,
+            ITorosRepositorio torosRepositorio,
+            IMapper mapper,
+            hereford_prContext db,
+            IUserSocioContextService userSocioContextService)
         {
             _mapper = mapper;
-            _TranssbRepositorio = TranssbRepositorio;
-            _TorosRepositorio = torosRepositorio;
-
+            _transsbRepositorio = transsbRepositorio;
+            _db = db;
+            _userSocioContextService = userSocioContextService;
         }
+
+        [HttpGet]
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
         {
-
             Respuesta<List<TranssbDTO>> _ResponseDTO = new Respuesta<List<TranssbDTO>>();
 
             try
             {
-                List<TranssbDTO> listaPedido = new List<TranssbDTO>();
-                var a = await _TranssbRepositorio.Lista(skip, take);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<TranssbDTO>>());
+                }
 
+                List<TranssbDTO> listaPedido = new List<TranssbDTO>();
+                var a = RequiresActiveSocioScope(accessContext)
+                    ? await _transsbRepositorio.LimitadosFiltrados(skip, take, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : await _transsbRepositorio.Lista(skip, take);
 
                 listaPedido = _mapper.Map<List<TranssbDTO>>(a);
 
                 _ResponseDTO = new Respuesta<List<TranssbDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
 
                 return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
-
-
             }
             catch (Exception ex)
             {
@@ -58,18 +69,31 @@ namespace PaginaToros.Server.Controllers
         [Route("Cantidad")]
         public async Task<IActionResult> CantidadTotal()
         {
-
             Respuesta<int> _ResponseDTO = new Respuesta<int>();
 
             try
             {
-                var a = await _TranssbRepositorio.CantidadTotal();
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                }
+
+                int a;
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    var query = await _transsbRepositorio.Consultar(x =>
+                        x.Sven == accessContext.ActiveSocioCode || x.Scom == accessContext.ActiveSocioCode);
+                    a = query.Count();
+                }
+                else
+                {
+                    a = await _transsbRepositorio.CantidadTotal();
+                }
 
                 _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
 
                 return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
-
-
             }
             catch (Exception ex)
             {
@@ -83,7 +107,16 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                var transfers = await _TranssbRepositorio.LimitadosFiltrados(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<TranssbDTO>>());
+                }
+
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+                var transfers = await _transsbRepositorio.LimitadosFiltrados(skip, take, effectiveExpression);
 
                 var toroIds = transfers
                     .Where(t => t.Torovendido.HasValue)
@@ -91,19 +124,17 @@ namespace PaginaToros.Server.Controllers
                     .Distinct()
                     .ToList();
 
-                var torosTodos = await _TorosRepositorio.LimitadosFiltradosNoInclude(0, 0, null);
-
-                var torosNecesarios = torosTodos.Where(x => x != null && toroIds.Contains(x.Id)).ToList();
-
-                var toroExtras = torosNecesarios.ToDictionary(
-                    t => t.Id,
-                    t => new
-                    {
-                        Hba = t.Hba,
-                        Tatpart = t.Tatpart,
-                        ToroNombre = t.NomDad
-                    }
-                );
+                var toroExtras = await _db.Torosunis
+                    .AsNoTracking()
+                    .Where(t => toroIds.Contains(t.Id))
+                    .ToDictionaryAsync(
+                        t => t.Id,
+                        t => new
+                        {
+                            Hba = t.Hba,
+                            Tatpart = t.Tatpart,
+                            ToroNombre = t.NomDad
+                        });
 
 
                 var resultList = new List<object>(transfers.Count);
@@ -150,12 +181,20 @@ namespace PaginaToros.Server.Controllers
         [Route("LimitadosFiltradosNoInclude")]
         public async Task<IActionResult> LimitadosFiltradosNoInclude(int skip, int take, string? expression = null)
         {
-
             Respuesta<List<TranssbDTO>> _ResponseDTO = new Respuesta<List<TranssbDTO>>();
 
             try
             {
-                var a = await _TranssbRepositorio.LimitadosFiltradosNoInclude(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<TranssbDTO>>());
+                }
+
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+                var a = await _transsbRepositorio.LimitadosFiltradosNoInclude(skip, take, effectiveExpression);
 
                 var listaFiltrada = _mapper.Map<List<TranssbDTO>>(a);
 
@@ -179,16 +218,25 @@ namespace PaginaToros.Server.Controllers
             Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
-                Transsb _TranssbEliminar = await _TranssbRepositorio.Obtener(u => u.Id == id);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                Transsb _TranssbEliminar = await _transsbRepositorio.Obtener(u => u.Id == id);
                 if (_TranssbEliminar != null)
                 {
+                    if (!CanAccessTransfer(accessContext, _TranssbEliminar.Sven, _TranssbEliminar.Scom))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                    }
 
-                    bool respuesta = await _TranssbRepositorio.Eliminar(_TranssbEliminar);
+                    bool respuesta = await _transsbRepositorio.Eliminar(_TranssbEliminar);
 
                     if (respuesta)
                         _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
                     else
                         _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                }
+                else
+                {
+                    _Respuesta = new Respuesta<string>() { Exito = 0, Mensaje = "No se encontró el identificador", List = "" };
                 }
 
                 return StatusCode(StatusCodes.Status200OK, _Respuesta);
@@ -207,9 +255,15 @@ namespace PaginaToros.Server.Controllers
             Respuesta<TranssbDTO> _Respuesta = new Respuesta<TranssbDTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (!CanAccessTransfer(accessContext, request?.Sven, request?.Scom))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TranssbDTO>());
+                }
+
                 Transsb _Transsb = _mapper.Map<Transsb>(request);
 
-                Transsb _TranssbCreado = await _TranssbRepositorio.Crear(_Transsb);
+                Transsb _TranssbCreado = await _transsbRepositorio.Crear(_Transsb);
 
                 if (_TranssbCreado.Id != 0)
                     _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TranssbDTO>(_TranssbCreado) };
@@ -232,11 +286,18 @@ namespace PaginaToros.Server.Controllers
             Respuesta<TranssbDTO> _Respuesta = new Respuesta<TranssbDTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
                 Transsb _Transsb = _mapper.Map<Transsb>(request);
-                Transsb _TranssbParaEditar = await _TranssbRepositorio.Obtener(u => u.Id == _Transsb.Id);
+                Transsb _TranssbParaEditar = await _transsbRepositorio.Obtener(u => u.Id == _Transsb.Id);
 
                 if (_TranssbParaEditar != null)
                 {
+                    if (!CanAccessTransfer(accessContext, _TranssbParaEditar.Sven, _TranssbParaEditar.Scom) ||
+                        !CanAccessTransfer(accessContext, _Transsb.Sven, _Transsb.Scom))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TranssbDTO>());
+                    }
+
                     _TranssbParaEditar.NroTrans = _Transsb.NroTrans;
                     _TranssbParaEditar.Fectrans = _Transsb.Fectrans;
                     _TranssbParaEditar.NroOrden = _Transsb.NroOrden;
@@ -250,7 +311,7 @@ namespace PaginaToros.Server.Controllers
                     _TranssbParaEditar.FchUsu = _Transsb.FchUsu;
                     _TranssbParaEditar.CodUsu = _Transsb.CodUsu;
                     _TranssbParaEditar.Torovendido = _Transsb.Torovendido;
-                    bool respuesta = await _TranssbRepositorio.Editar(_TranssbParaEditar);
+                    bool respuesta = await _transsbRepositorio.Editar(_TranssbParaEditar);
 
                     if (respuesta)
                         _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TranssbDTO>(_TranssbParaEditar) };
@@ -270,5 +331,47 @@ namespace PaginaToros.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
+
+        private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
+            => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        private static bool CanAccessTransfer(UserSocioAccessContext accessContext, string? sellerCode, string? buyerCode)
+        {
+            if (!RequiresActiveSocioScope(accessContext))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+            {
+                return false;
+            }
+
+            return string.Equals(sellerCode, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(buyerCode, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string BuildActiveSocioFilter(string socioCode)
+            => $"(Sven == \"{EscapeValue(socioCode)}\" || Scom == \"{EscapeValue(socioCode)}\")";
+
+        private static string AppendFilter(string? expression, string enforcedFilter)
+        {
+            if (string.IsNullOrWhiteSpace(expression))
+            {
+                return enforcedFilter;
+            }
+
+            return $"({expression}) && ({enforcedFilter})";
+        }
+
+        private static string EscapeValue(string value)
+            => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
+
+        private static Respuesta<T> BuildForbiddenResponse<T>()
+            => new Respuesta<T>
+            {
+                Exito = 0,
+                Mensaje = "No tenes permisos para operar sobre otra razon social."
+            };
     }
 }

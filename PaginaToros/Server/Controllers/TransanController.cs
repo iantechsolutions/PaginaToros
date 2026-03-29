@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Client.Pages.Socios;
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
+using PaginaToros.Server.Services;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
 using System.Net.Mail;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Hosting;
 using System.Text.Json;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -23,13 +25,21 @@ namespace PaginaToros.Server.Controllers
         private readonly IMapper _mapper;
         private readonly ITransanRepositorio _TransanRepositorio;
         private readonly IWebHostEnvironment _env;
-        public TransanController(hereford_prContext db, ITransanRepositorio TransanRepositorio, IMapper mapper, IWebHostEnvironment env)
+        private readonly IUserSocioContextService _userSocioContextService;
+        public TransanController(
+            hereford_prContext db,
+            ITransanRepositorio TransanRepositorio,
+            IMapper mapper,
+            IWebHostEnvironment env,
+            IUserSocioContextService userSocioContextService)
         {
             this.db = db;
             _mapper = mapper;
             _TransanRepositorio = TransanRepositorio;
             _env = env;
+            _userSocioContextService = userSocioContextService;
         }
+        [HttpGet]
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
         {
@@ -38,8 +48,16 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<TransanDTO>>());
+                }
+
                 List<TransanDTO> listaPedido = new List<TransanDTO>();
-                var a = await _TransanRepositorio.Lista(skip, take);
+                var a = RequiresActiveSocioScope(accessContext)
+                    ? await _TransanRepositorio.LimitadosFiltrados(skip, take, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : await _TransanRepositorio.Lista(skip, take);
 
 
                 listaPedido = _mapper.Map<List<TransanDTO>>(a);
@@ -66,7 +84,23 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var a = await _TransanRepositorio.CantidadTotal();
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                }
+
+                int a;
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    var query = await _TransanRepositorio.Consultar(x =>
+                        x.Sven == accessContext.ActiveSocioCode || x.Scom == accessContext.ActiveSocioCode);
+                    a = query.Count();
+                }
+                else
+                {
+                    a = await _TransanRepositorio.CantidadTotal();
+                }
 
                 _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
 
@@ -89,7 +123,16 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var a = await _TransanRepositorio.LimitadosFiltrados(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<TransanDTO>>());
+                }
+
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+                var a = await _TransanRepositorio.LimitadosFiltrados(skip, take, effectiveExpression);
 
                 var listaFiltrada = _mapper.Map<List<TransanDTO>>(a);
 
@@ -109,20 +152,23 @@ namespace PaginaToros.Server.Controllers
 
         [HttpPost]
         [Route("SendMail")]
-        public IActionResult ExampleMethod([FromBody] ContenidoMails request)
+        public async Task<IActionResult> ExampleMethod([FromBody] ContenidoMails request)
         {
             using (MailMessage mail = new MailMessage())
             {
-
-                Console.Write("Envio de mail");
-
                 try
                 {
-                    // Obtener correo del socio vendedor
-                    var socioVendedor = db.User.FirstOrDefault(x => x.SocioId == request.Vendedor);
-                    if (socioVendedor != null && IsValidEmail(socioVendedor.Email))
+                    var accessContext = await _userSocioContextService.ResolveAsync(User);
+                    if (!CanAccessTransfer(accessContext, request?.Vendedor, request?.Comprador))
                     {
-                        mail.To.Add(socioVendedor.Email); // Se agrega el correo del vendedor si es válido
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                    }
+
+                    // Obtener correo del socio vendedor
+                    var socioVendedor = await db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.Vendedor);
+                    if (socioVendedor != null && IsValidEmail(socioVendedor.Mail))
+                    {
+                        mail.To.Add(socioVendedor.Mail); // Se agrega el correo del vendedor si es válido
                     }
                     else
                     {
@@ -133,10 +179,10 @@ namespace PaginaToros.Server.Controllers
                     // Obtener correo del socio comprador o verificar si hay una dirección
                     if (string.IsNullOrEmpty(request.Direccion))
                     {
-                        var socioComprador = db.User.FirstOrDefault(x => x.SocioId == request.Comprador);
-                        if (socioComprador != null && IsValidEmail(socioComprador.Email))
+                        var socioComprador = await db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.Comprador);
+                        if (socioComprador != null && IsValidEmail(socioComprador.Mail))
                         {
-                            mail.To.Add(socioComprador.Email); // Se agrega el correo del comprador si es válido
+                            mail.To.Add(socioComprador.Mail); // Se agrega el correo del comprador si es válido
                         }
                         else
                         {
@@ -168,9 +214,18 @@ namespace PaginaToros.Server.Controllers
                     }
 
                     // Configurar el mensaje
+                    var rawBody = request.Mail ?? "(sin cuerpo)";
+                    var isHtml = rawBody.Contains("<html", StringComparison.OrdinalIgnoreCase)
+                        || rawBody.Contains("<table", StringComparison.OrdinalIgnoreCase)
+                        || rawBody.Contains("<br", StringComparison.OrdinalIgnoreCase);
+                    var body = isHtml
+                        ? rawBody
+                        : WebUtility.HtmlEncode(rawBody).Replace("\r\n", "\n").Replace("\n", "<br/>");
+
                     mail.From = new MailAddress(correoPuroRegistrado);
                     mail.Subject = "Nueva transferencia animal";
-                    mail.Body = request.Mail;
+                    mail.Body = body;
+                    mail.IsBodyHtml = true;
 
                     // Configurar SMTP y enviar
                     using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
@@ -178,7 +233,7 @@ namespace PaginaToros.Server.Controllers
                         smtp.UseDefaultCredentials = false;
                         smtp.Credentials = new System.Net.NetworkCredential(correoPuroRegistrado, "Hereford.2033"); // Agrega tu contraseña aquí
                         smtp.EnableSsl = true;
-                        smtp.Send(mail);
+                        await smtp.SendMailAsync(mail);
                     }
 
                     Console.WriteLine("Transferencia Enviada");
@@ -204,6 +259,12 @@ namespace PaginaToros.Server.Controllers
             {
                 try
                 {
+                    var accessContext = await _userSocioContextService.ResolveAsync(User);
+                    if (!CanAccessTransfer(accessContext, request?.Tipo, request?.Clase))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                    }
+
                     string correoPuroRegistrado = "planteles@hereford.org.ar";
                     string smtpHost = "mail.hereford.org.ar";
                     int smtpPort = 587;
@@ -213,38 +274,48 @@ namespace PaginaToros.Server.Controllers
                     // Siempre agregar planteles
                     TryAddRecipient(mail, correoPuroRegistrado);
 
-                    // Vendedor: si vino MailVendedor y es válido, usarlo. Si no, resolver por SocioId (Tipo)
+                    // Vendedor: si vino MailVendedor y es válido, usarlo. Si no, resolver por socio (Tipo)
                     if (!string.IsNullOrWhiteSpace(request.MailVendedor) && IsValidEmail(request.MailVendedor))
                     {
                         TryAddRecipient(mail, request.MailVendedor);
                     }
                     else if (request.Tipo > 0)
                     {
-                        var socioVendedor = db.User.FirstOrDefault(x => x.SocioId == request.Tipo);
-                        if (socioVendedor != null && IsValidEmail(socioVendedor.Email))
-                            TryAddRecipient(mail, socioVendedor.Email);
+                        var socioVendedor = await db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.Tipo);
+                        if (socioVendedor != null && IsValidEmail(socioVendedor.Mail))
+                            TryAddRecipient(mail, socioVendedor.Mail);
                         else
                             Console.WriteLine("No se pudo resolver mail del vendedor.");
                     }
 
-                    // Comprador: idem con MailCompra o SocioId (Clase)
+                    // Comprador: idem con MailCompra o socio (Clase)
                     if (!string.IsNullOrWhiteSpace(request.MailCompra) && IsValidEmail(request.MailCompra))
                     {
                         TryAddRecipient(mail, request.MailCompra);
                     }
                     else if (request.Clase > 0)
                     {
-                        var socioComprador = db.User.FirstOrDefault(x => x.SocioId == request.Clase);
-                        if (socioComprador != null && IsValidEmail(socioComprador.Email))
-                            TryAddRecipient(mail, socioComprador.Email);
+                        var socioComprador = await db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.Clase);
+                        if (socioComprador != null && IsValidEmail(socioComprador.Mail))
+                            TryAddRecipient(mail, socioComprador.Mail);
                         else
                             Console.WriteLine("No se pudo resolver mail del comprador.");
                     }
 
                     // Mensaje
+                    var rawBody = request.Mail ?? "(sin cuerpo)";
+                    var isHtml = rawBody.Contains("<html", StringComparison.OrdinalIgnoreCase)
+                        || rawBody.Contains("<table", StringComparison.OrdinalIgnoreCase)
+                        || rawBody.Contains("<br", StringComparison.OrdinalIgnoreCase);
+
+                    var body = isHtml
+                        ? rawBody
+                        : WebUtility.HtmlEncode(rawBody).Replace("\r\n", "\n").Replace("\n", "<br/>");
+
                     mail.From = new MailAddress(correoPuroRegistrado);
                     mail.Subject = "El socio " + (request.Nombre ?? "N/D") + " ha modificado una transferencia";
-                    mail.Body = request.Mail ?? "(sin cuerpo)";
+                    mail.Body = body;
+                    mail.IsBodyHtml = true;
 
                     using (SmtpClient smtp = new SmtpClient(smtpHost, smtpPort))
                     {
@@ -297,12 +368,18 @@ namespace PaginaToros.Server.Controllers
             Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
                 // Load existing transfer using DbContext
                 var existing = await db.Transans.FirstOrDefaultAsync(u => u.Id == id);
                 if (existing == null)
                 {
                     _Respuesta = new Respuesta<string>() { Exito = 0, Mensaje = "No se encontró el identificador" };
                     return StatusCode(StatusCodes.Status404NotFound, _Respuesta);
+                }
+
+                if (!CanAccessTransfer(accessContext, existing.Sven, existing.Scom))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
                 }
 
                 var strategy = db.Database.CreateExecutionStrategy();
@@ -386,7 +463,14 @@ namespace PaginaToros.Server.Controllers
                     return BadRequest(respuesta);
                 }
 
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+
                 NormalizeTransfer(request.Transan);
+
+                if (!CanAccessTransfer(accessContext, request.Transan.Sven, request.Transan.Scom))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TransanDTO>());
+                }
 
                 var errores = await ValidateTransferRequestAsync(request, false);
                 if (errores.Count > 0)
@@ -422,6 +506,11 @@ namespace PaginaToros.Server.Controllers
                 respuesta = new Respuesta<TransanDTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<TransanDTO>(transan) };
                 return Ok(respuesta);
             }
+            catch (DbUpdateException ex)
+            {
+                respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = BuildDbUpdateMessage(ex) };
+                return BadRequest(respuesta);
+            }
             catch (Exception ex)
             {
                 respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = ex.Message };
@@ -442,6 +531,8 @@ namespace PaginaToros.Server.Controllers
                     return BadRequest(respuesta);
                 }
 
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+
                 NormalizeTransfer(request.Transan);
 
                 var existing = await db.Transans.FirstOrDefaultAsync(u => u.Id == request.Transan.Id);
@@ -449,6 +540,12 @@ namespace PaginaToros.Server.Controllers
                 {
                     respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = "No se encontró la transferencia indicada." };
                     return NotFound(respuesta);
+                }
+
+                if (!CanAccessTransfer(accessContext, existing.Sven, existing.Scom) ||
+                    !CanAccessTransfer(accessContext, request.Transan.Sven, request.Transan.Scom))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TransanDTO>());
                 }
 
                 if (existing.FchUsu != null &&
@@ -495,6 +592,11 @@ namespace PaginaToros.Server.Controllers
 
                 respuesta = new Respuesta<TransanDTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<TransanDTO>(existing) };
                 return Ok(respuesta);
+            }
+            catch (DbUpdateException ex)
+            {
+                respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = BuildDbUpdateMessage(ex) };
+                return BadRequest(respuesta);
             }
             catch (Exception ex)
             {
@@ -547,6 +649,11 @@ namespace PaginaToros.Server.Controllers
 
             if (string.IsNullOrWhiteSpace(transan.NvoPla))
                 errores.Add("Debés seleccionar un plantel de destino.");
+            else if (transan.NvoPla.Length > 20)
+                errores.Add("El plantel de destino supera el largo permitido (máx 20 caracteres).");
+
+            if (!string.IsNullOrWhiteSpace(transan.Plant) && transan.Plant.Length > 20)
+                errores.Add("El plantel de origen supera el largo permitido (máx 20 caracteres).");
 
             if (!string.IsNullOrWhiteSpace(transan.Plant) &&
                 !string.IsNullOrWhiteSpace(transan.NvoPla) &&
@@ -613,17 +720,46 @@ namespace PaginaToros.Server.Controllers
             {
                 var vendedor = await db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.VendedorId);
                 if (vendedor == null)
+                {
                     errores.Add("El socio vendedor seleccionado no existe.");
+                }
+                else if (!string.Equals(vendedor.Scod, transan.Sven, StringComparison.OrdinalIgnoreCase))
+                {
+                    errores.Add("El socio vendedor seleccionado no coincide con la transferencia.");
+                }
             }
 
             if (request.CompradorId.HasValue && request.CompradorId.Value > 0)
             {
                 var comprador = await db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.CompradorId.Value);
                 if (comprador == null)
+                {
                     errores.Add("El socio comprador seleccionado no existe.");
+                }
+                else if (!string.Equals(comprador.Scod, transan.Scom, StringComparison.OrdinalIgnoreCase))
+                {
+                    errores.Add("El socio comprador seleccionado no coincide con la transferencia.");
+                }
             }
 
             return errores;
+        }
+
+        private static string BuildDbUpdateMessage(DbUpdateException ex)
+        {
+            var innerMessage = ex.InnerException?.Message ?? ex.Message;
+
+            if (innerMessage.Contains("Data too long for column 'NVO_PLA'", StringComparison.OrdinalIgnoreCase))
+            {
+                return "El plantel de destino supera el largo permitido (máx 20 caracteres).";
+            }
+
+            if (innerMessage.Contains("Data too long for column 'PLANT'", StringComparison.OrdinalIgnoreCase))
+            {
+                return "El plantel de origen supera el largo permitido (máx 20 caracteres).";
+            }
+
+            return "No se pudo guardar la transferencia por un error de datos. Revisá los campos ingresados.";
         }
 
         private async Task ApplyTransferChangesAsync(TransanDTO request)
@@ -771,10 +907,6 @@ namespace PaginaToros.Server.Controllers
         {
             if (!socioId.HasValue || socioId.Value <= 0)
                 return null;
-
-            var usuario = await db.User.AsNoTracking().FirstOrDefaultAsync(x => x.SocioId == socioId.Value);
-            if (usuario != null && IsValidEmail(usuario.Email))
-                return usuario.Email;
 
             var socio = await db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == socioId.Value);
             if (socio != null && IsValidEmail(socio.Mail))
@@ -995,6 +1127,64 @@ namespace PaginaToros.Server.Controllers
                     break;
             }
         }
+
+        private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
+            => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        private static bool CanAccessTransfer(UserSocioAccessContext accessContext, string? sellerCode, string? buyerCode)
+        {
+            if (!RequiresActiveSocioScope(accessContext))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+            {
+                return false;
+            }
+
+            return string.Equals(sellerCode, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(buyerCode, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool CanAccessTransfer(UserSocioAccessContext accessContext, int? sellerId, int? buyerId)
+        {
+            if (!RequiresActiveSocioScope(accessContext))
+            {
+                return true;
+            }
+
+            if (!accessContext.ActiveSocioId.HasValue)
+            {
+                return false;
+            }
+
+            return sellerId == accessContext.ActiveSocioId.Value || buyerId == accessContext.ActiveSocioId.Value;
+        }
+
+        private static string BuildActiveSocioFilter(string socioCode)
+            => $"(Sven == \"{EscapeValue(socioCode)}\" || Scom == \"{EscapeValue(socioCode)}\")";
+
+        private static string AppendFilter(string? expression, string enforcedFilter)
+        {
+            if (string.IsNullOrWhiteSpace(expression))
+            {
+                return enforcedFilter;
+            }
+
+            return $"({expression}) && ({enforcedFilter})";
+        }
+
+        private static string EscapeValue(string value)
+            => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
+
+        private static Respuesta<T> BuildForbiddenResponse<T>()
+            => new Respuesta<T>
+            {
+                Exito = 0,
+                Mensaje = "No tenes permisos para operar sobre otra razon social."
+            };
+
         public class ContenidoMails2
         {
             public int Tipo { get; set; }

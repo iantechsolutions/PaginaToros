@@ -8,6 +8,7 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<Respuesta<List<Desepla3DTO>>> Lista(int page, int count);
         Task<Respuesta<int>> CantidadTotal();
         Task<Respuesta<List<Desepla3DTO>>> LimitadosFiltrados(int skip, int take, string filtro = null);
+        Task<Respuesta<List<Desepla3DTO>>> GetByNrodec(string nrodec);
         Task<bool> Eliminar(int id);
         Task<Respuesta<Desepla3DTO>> Crear(Desepla3DTO entidad);
         Task<bool> Editar(Desepla3DTO entidad);

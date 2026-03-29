@@ -2,9 +2,10 @@
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ISocioServicio _sociosServicio
 @inject ITranssbServicio _transsbServicio
-@inject IEstableServicio _estableServicio
 @inject ITorosServicio _torosServicio
 @inject HttpClient http
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using PaginaToros.Client.Helpers
 <style>
     .bm-title {
         font-size: 25px;
@@ -12,7 +13,7 @@
     }
 </style>
 
-@if (establecimientos.Count > 0)
+@if (socios.Count > 0)
 {
     <div class="card">
         <div class="card-body">
@@ -22,7 +23,7 @@
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
                         <label>Socio Vendedor</label><br />
-                        <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" Disabled="IdSocio!=null" EnableDropDown="true" @bind-Value="socioVendedor">
+                        <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" Disabled="IdSocio!=null" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioVendedor" ValueChanged="updateVendedor" ValueExpression="@(() => socioVendedor)">
                             <SelectedTemplate Context="eleccion">
                                 @eleccion.Nombre
                             </SelectedTemplate>
@@ -73,10 +74,11 @@
                         <br />
                         <BlazoredTypeahead SearchMethod="BusquedaToros" placeholder="Busque por nombre" EnableDropDown="true" TItem="TorosuniDTO" TValue="TorosuniDTO" Value="toroSeleccionado" ValueChanged="updateToro" ValueExpression="@(() => toroSeleccionado)">
                             <SelectedTemplate Context="eleccion">
-                                @eleccion.NomDad
+                                @(string.IsNullOrWhiteSpace(eleccion?.NomDad) ? "-" : eleccion.NomDad)
                             </SelectedTemplate>
                             <ResultTemplate Context="eleccion">
-                                @eleccion.NomDad
+                                <div>@(string.IsNullOrWhiteSpace(eleccion?.NomDad) ? "-" : eleccion.NomDad)</div>
+                                <small class="text-muted">HBA: @(string.IsNullOrWhiteSpace(eleccion?.Hba) ? "-" : eleccion.Hba) · Tatuaje: @(string.IsNullOrWhiteSpace(eleccion?.Tatpart) ? "-" : eleccion.Tatpart)</small>
                             </ResultTemplate>
                         </BlazoredTypeahead>
                         <p>*La busqueda del toro se realiza por Nro de Identificacion</p>
@@ -122,36 +124,36 @@ else
     List<TorosuniDTO> toros = new();
     EstableDTO establecimientoSeleccionado = new();
     TorosuniDTO? toroSeleccionado = null;
-    IList<User> Usuarios = new List<User>();
-
     string direccionCompra = "";
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; } = default!;
     [Parameter] public int Id { get; set; }
     [Parameter] public int? IdSocio { get; set; }
+    string? establecimientosSocioCode;
+    string? torosSocioCode;
+    bool esSocioUsuario;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var rta = await _sociosServicio.LimitadosFiltrados(0, 0);
-            socios = rta.List;
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            esSocioUsuario = user?.IsInRole("Socio") == true || user?.IsInRole("SOCIO") == true;
 
-            var rt = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
-            establecimientos = rt.List;
-
-            var result = await http.GetAsync($"api/Account/GetUsers/TODO/TODO/1");
-            var response = JsonSerializer.Deserialize<ResponseForList>(await result.Content.ReadAsStringAsync());
-            if (response != null && !string.IsNullOrWhiteSpace(response.EntitiesPricipal))
+            if (esSocioUsuario)
             {
-                Usuarios = JsonSerializer.Deserialize<IList<User>>(response.EntitiesPricipal) ?? new List<User>();
+                socios = await GetSociosLookupAsync();
             }
-
-            var rtt = await _torosServicio.LimitadosFiltradosNoInclude(0, 0);
-            toros = rtt.List.Where(x => x.TipToro == "S" && x.CodEstado == "1").ToList();
+            else
+            {
+                var rta = await _sociosServicio.LimitadosFiltrados(0, 0);
+                socios = rta.List ?? new();
+            }
 
             if (IdSocio.HasValue && IdSocio.Value != 0)
             {
                 socioVendedor = socios.FirstOrDefault(x => x.Id == IdSocio.Value);
+                await EnsureTorosVendedorLoadedAsync();
             }
 
             if (Id != 0)
@@ -166,6 +168,10 @@ else
                         socioComprador = socios.FirstOrDefault(x => x.Scod == oTranssb.Scom);
                     if (!string.IsNullOrEmpty(oTranssb.Sven))
                         socioVendedor = socios.FirstOrDefault(x => x.Scod == oTranssb.Sven);
+
+                    await EnsureEstablecimientosCompradorLoadedAsync();
+                    await EnsureTorosVendedorLoadedAsync();
+
                     if (!string.IsNullOrEmpty(oTranssb.Ecod))
                         establecimientoSeleccionado = establecimientos.FirstOrDefault(x => x.Ecod == oTranssb.Ecod) ?? new EstableDTO();
                     if (oTranssb.Torovendido.HasValue)
@@ -178,6 +184,12 @@ else
         {
             await Swal.FireAsync("Error", $"No se pudo cargar datos iniciales: {ex.Message}", SweetAlertIcon.Error);
         }
+    }
+
+    private async Task<List<SocioDTO>> GetSociosLookupAsync()
+    {
+        var response = await http.GetFromJsonAsync<Respuesta<List<SocioDTO>>>("api/TransferenciasLookup/Socios");
+        return response?.List ?? new List<SocioDTO>();
     }
 
     async Task Guardar()
@@ -294,17 +306,15 @@ else
     /// </summary>
     private async Task<bool> EnviarMailAsync(bool esAlta)
     {
-        var mailBody = string.Join(Environment.NewLine, new[]
-        {
-            $"Aviso de {(esAlta ? "transferencia" : "edición de transferencia")} S/",
-            $"Nro de transacción: {oTranssb.NroTrans}",
-            $"Socio Vendedor: {socioVendedor?.Nombre}",
-            $"Socio Comprador: {socioComprador?.Nombre}",
-            "Información del toro:",
-            $"- Tatuaje: {toroSeleccionado?.Tatpart}",
-            $"- HBA: {toroSeleccionado?.Hba}",
-            $"- Nombre: {toroSeleccionado?.NomDad}"
-        });
+        var mailBody = TransferenciaSbEmailTemplates.BuildTransferenciaSbEmailHtml(
+            esAlta,
+            oTranssb.NroTrans,
+            oTranssb.NroOrden,
+            socioVendedor?.Nombre,
+            socioComprador?.Nombre,
+            toroSeleccionado?.NomDad,
+            toroSeleccionado?.Hba,
+            toroSeleccionado?.Tatpart);
 
         try
         {
@@ -328,17 +338,14 @@ else
             }
             else
             {
-                var vendedorUsr = Usuarios?.FirstOrDefault(x => x.SocioId == (socioVendedor?.Id ?? 0));
-                var compradorUsr = Usuarios?.FirstOrDefault(x => x.SocioId == (socioComprador?.Id ?? 0));
-
                 var reqEdit = new
                 {
                     Tipo = socioVendedor?.Id ?? 0,
                     Clase = socioComprador?.Id ?? 0,
                     Mail = mailBody,
                     Nombre = socioVendedor?.Nombre,
-                    MailCompra = compradorUsr?.Email ?? (string.IsNullOrWhiteSpace(direccionCompra) ? null : direccionCompra),
-                    MailVendedor = vendedorUsr?.Email
+                    MailCompra = string.IsNullOrWhiteSpace(direccionCompra) ? socioComprador?.Mail : direccionCompra,
+                    MailVendedor = socioVendedor?.Mail
                 };
 
                 var res = await http.PostAsJsonAsync("api/Transan/SendMailChange", reqEdit);
@@ -368,41 +375,90 @@ else
     private Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
         var result = socios
-            .Where(x => x.Criador == "S" && x.Nombre.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
+            .Where(x => x.Criador == "S"
+                && !string.IsNullOrWhiteSpace(x.Nombre)
+                && x.Nombre.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
             .ToList();
         return Task.FromResult<IEnumerable<SocioDTO>>(result);
     }
 
-    private Task<IEnumerable<EstableDTO>> BusquedaEstablecimientos(string searchText)
+    private async Task<IEnumerable<EstableDTO>> BusquedaEstablecimientos(string searchText)
     {
-        if (socioComprador is null) return Task.FromResult<IEnumerable<EstableDTO>>(Array.Empty<EstableDTO>());
+        await EnsureEstablecimientosCompradorLoadedAsync();
         var result = establecimientos
-            .Where(x => x.Codsoc == socioComprador.Scod && x.Nombre.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
+            .Where(x => x.Nombre.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
             .ToList();
-        return Task.FromResult<IEnumerable<EstableDTO>>(result);
+        return result;
     }
 
-    private Task<IEnumerable<TorosuniDTO>> BusquedaToros(string searchText)
+    private async Task<IEnumerable<TorosuniDTO>> BusquedaToros(string searchText)
     {
-        if (socioVendedor is null) return Task.FromResult<IEnumerable<TorosuniDTO>>(Array.Empty<TorosuniDTO>());
+        await EnsureTorosVendedorLoadedAsync();
         var result = toros
-            .Where(x => x.Criador == socioVendedor.Scod && x.NomDad.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
+            .Where(x => x.NomDad.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
             .ToList();
-        return Task.FromResult<IEnumerable<TorosuniDTO>>(result);
+        return result;
     }
 
-    protected Task updateComprador(SocioDTO socio)
+    protected async Task updateComprador(SocioDTO socio)
     {
         socioComprador = socio;
-        var usuarioComprador = Usuarios?.FirstOrDefault(x => x.SocioId == socio.Id);
-        direccionCompra = usuarioComprador?.Email ?? "";
-        return Task.CompletedTask;
+        direccionCompra = socio.Mail ?? "";
+        await EnsureEstablecimientosCompradorLoadedAsync();
+    }
+
+    protected async Task updateVendedor(SocioDTO socio)
+    {
+        socioVendedor = socio;
+        await EnsureTorosVendedorLoadedAsync();
     }
 
     protected Task updateToro(TorosuniDTO toro)
     {
         toroSeleccionado = toro;
         return Task.CompletedTask;
+    }
+
+    private async Task EnsureEstablecimientosCompradorLoadedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(socioComprador?.Scod))
+        {
+            establecimientos = new List<EstableDTO>();
+            establecimientosSocioCode = null;
+            return;
+        }
+
+        if (string.Equals(establecimientosSocioCode, socioComprador.Scod, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var response = await http.GetFromJsonAsync<Respuesta<List<EstableDTO>>>(
+            $"api/TransferenciasLookup/EstablecimientosBySocioCode?socioCode={Uri.EscapeDataString(socioComprador.Scod)}");
+
+        establecimientos = response?.List ?? new List<EstableDTO>();
+        establecimientosSocioCode = socioComprador.Scod;
+    }
+
+    private async Task EnsureTorosVendedorLoadedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(socioVendedor?.Scod))
+        {
+            toros = new List<TorosuniDTO>();
+            torosSocioCode = null;
+            return;
+        }
+
+        if (string.Equals(torosSocioCode, socioVendedor.Scod, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var response = await http.GetFromJsonAsync<Respuesta<List<TorosuniDTO>>>(
+            $"api/TransferenciasLookup/TorosTransferiblesBySocioCode?socioCode={Uri.EscapeDataString(socioVendedor.Scod)}");
+
+        toros = response?.List ?? new List<TorosuniDTO>();
+        torosSocioCode = socioVendedor.Scod;
     }
 
     private static bool EsOk<T>(PaginaToros.Shared.Models.Response.Respuesta<T>? r)

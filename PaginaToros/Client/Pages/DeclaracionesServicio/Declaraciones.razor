@@ -9,6 +9,80 @@
 
 
 <style>
+    .declaraciones-page {
+        width: 93.5%;
+        margin-left: 3.33%;
+        color: #2b2418;
+    }
+
+    .declaraciones-title {
+        margin: 0 0 1.15rem;
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #2f3427;
+    }
+
+    .declaraciones-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.35rem;
+        flex-wrap: wrap;
+    }
+
+    .declaraciones-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        flex-wrap: wrap;
+    }
+
+    .declaraciones-primary-btn,
+    .declaraciones-filter-btn {
+        border: 0;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+    }
+
+    .declaraciones-primary-btn {
+        padding: 0.72rem 1.15rem;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #cab08a 0%, #a78052 100%);
+        color: #fffaf2;
+        box-shadow: 0 16px 30px rgba(116, 83, 47, 0.18);
+        font-weight: 800;
+        font-size: 0.98rem;
+    }
+
+    .declaraciones-primary-btn:hover,
+    .declaraciones-filter-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .declaraciones-filter-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.95rem;
+        height: 2.95rem;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #f0ede1 0%, #ddd6c1 100%);
+        box-shadow: 0 12px 26px rgba(82, 68, 46, 0.12);
+    }
+
+    .declaraciones-filter-btn.active {
+        background: linear-gradient(135deg, #e9dfc9 0%, #d1bc96 100%);
+    }
+
+    .declaraciones-grid-shell {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        border-radius: 24px 24px 0 0;
+        overflow: hidden;
+    }
 
     .rz-cell-data,
     .rz-column-title-content {
@@ -20,123 +94,156 @@
         white-space: normal !important;
     }
 
-    .tablacontent th.rz-unselectable-text.rz-text-align-left {
-        background-color: #82D682;
+    .declaraciones-grid {
+        width: 100%;
     }
 
-    .rz-paginator {
-        border-top: solid #E0E0E0 1px;
+    .declaraciones-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.2rem;
+        height: 2.2rem;
+        border: 0;
+        border-radius: 12px;
+        background: rgba(110, 147, 78, 0.12);
+        transition: background-color 0.18s ease, transform 0.18s ease;
+    }
+
+    .declaraciones-action-btn:hover {
+        background: rgba(110, 147, 78, 0.2);
+        transform: translateY(-1px);
+    }
+
+    @@media (max-width: 767.98px) {
+        .declaraciones-page {
+            width: 100%;
+            margin-left: 0;
+        }
+
+        .declaraciones-title {
+            font-size: 1.6rem;
+        }
+
+        .declaraciones-toolbar {
+            align-items: stretch;
+        }
+
+        .declaraciones-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+
     }
 </style>
 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO,Socio">
     <Authorized>
-        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">
-            Declaraciones de servicio
-        </h3>
+        <section class="declaraciones-page">
+            <h3 class="declaraciones-title">Declaraciones de servicio</h3>
 
-        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent
-                       transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                style="position:relative;left:3.33%"
-                @onclick="() => add(0, esSocio)">
-            Agregar Declaración
-        </button>
-
-        @if (oRespuesta.List != null)
-        {
-            <button style="outline:none; float: right;margin-right:3%;height:100%;"
-                    class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent
-                           transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                    @onclick="() => CambiarModoFiltro()">
-                <FeatherFilter Color="Black"></FeatherFilter>
-            </button>
-            <br />
-            <br />
-
-            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-                <RadzenDataGrid AllowFiltering="allowFiltering"
-                                IsLoading="@isLoading"
-                                LoadData="LoadData"
-                                AllowColumnResize="true"
-                                AllowAllowAlternatingRows="true"
-                                FilterMode="FilterMode.Simple"
-                                AllowSorting="false"
-                                PageSize="15"
-                                Density="Density.Compact"
-                                AllowPaging="true"
-                                ShowPagingSummary="true"
-                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                @ref="grid"
-                                Count="@cantidad"
-                                Data="@oRespuesta.List"
-                                TItem="Desepla1DTO"
-                                ColumnWidth="3.33%"
-                                LogicalFilterOperator="LogicalFilterOperator.Or"
-                                PagerHorizontalAlign="HorizontalAlign.Center">
-
-                    <Columns>
-                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Nrodec" Title="Nro de declaración" Width="6.6%" />
-                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="NrFolio" Title="Nro de folio" Width="3.33%" />
-                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Nroplan" Title="Nro de plantel" Width="3.33%" />
-
-                        @* Solo visible para Admin/Maestro *@
-                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" Visible="@(!esSocio)" />
-
-                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Desde" Title="Desde" Width="4.6%">
-                            <Template Context="data">
-                                @if (data.Desde.HasValue)
-                                {
-                                    <a>@data.Desde.Value.ToString("dd/MM/yyyy")</a>
-                                }
-                            </Template>
-                        </RadzenDataGridColumn>
-
-                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Hasta" Title="Hasta" Width="4.6%">
-                            <Template Context="data">
-                                @if (data.Hasta.HasValue)
-                                {
-                                    <a>@data.Hasta.Value.ToString("dd/MM/yyyy")</a>
-                                }
-                            </Template>
-                        </RadzenDataGridColumn>
-
-                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Fchrecepcion" Title="Fecha de recepción" Width="4.6%">
-                            <Template Context="data">
-                                @if (data.Fchrecepcion.HasValue)
-                                {
-                                    <a>@data.Fchrecepcion.Value.ToString("dd/MM/yyyy")</a>
-                                }
-                            </Template>
-                        </RadzenDataGridColumn>
-
-                        <RadzenDataGridColumn TItem="Desepla1DTO" Property="Tipse" Title="Tipo de servicio" Width="5%" />
-
-                        <RadzenDataGridColumn TItem="Desepla1DTO" Title="" Filterable="false" Width="3.33%">
-                            <Template Context="data">
-                                <button class="btn" position="absolute" title="Editar Declaración"
-                                        @onclick="() => add(data.Id, esSocio)">
-                                    <FeatherEdit Size="16" Color="green" />
-                                </button>
-                            </Template>
-                        </RadzenDataGridColumn>
-
-                        
-                    </Columns>
-                </RadzenDataGrid>
-            </div>
-            <br />
-        }
-        else
-        {
-            <br />
-            <center>
-                <div class="mb-2">
-                    <br />
-                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false"
-                                       ProgressBarStyle="ProgressBarStyle.Primary"
-                                       Mode="ProgressBarMode.Indeterminate" />
+            <div class="declaraciones-toolbar">
+                <div class="declaraciones-actions">
+                    <button class="declaraciones-primary-btn"
+                            @onclick="() => add(0, esSocio)">
+                        Agregar Declaracion
+                    </button>
                 </div>
-            </center>
-        }
+
+                @if (oRespuesta.List != null)
+                {
+                    <button class="declaraciones-filter-btn @(allowFiltering ? "active" : string.Empty)"
+                            type="button"
+                            title="Mostrar filtros"
+                            @onclick="() => CambiarModoFiltro()">
+                        <FeatherFilter Color="#3e3528"></FeatherFilter>
+                    </button>
+                }
+            </div>
+
+            @if (oRespuesta.List != null)
+            {
+                <div class="declaraciones-grid-shell">
+                    <RadzenDataGrid class="tablacontent declaraciones-grid"
+                                    AllowFiltering="allowFiltering"
+                                    IsLoading="@isLoading"
+                                    LoadData="LoadData"
+                                    AllowColumnResize="true"
+                                    AllowAllowAlternatingRows="true"
+                                    FilterMode="FilterMode.Simple"
+                                    AllowSorting="false"
+                                    PageSize="15"
+                                    Density="Density.Compact"
+                                    AllowPaging="true"
+                                    ShowPagingSummary="true"
+                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    @ref="grid"
+                                    Count="@cantidad"
+                                    Data="@oRespuesta.List"
+                                    TItem="Desepla1DTO"
+                                    ColumnWidth="3.33%"
+                                    LogicalFilterOperator="LogicalFilterOperator.Or"
+                                    PagerHorizontalAlign="HorizontalAlign.Center">
+
+                        <Columns>
+                            <RadzenDataGridColumn TItem="Desepla1DTO" Property="Nrodec" Title="Nro de declaracion" Width="6.6%" />
+                            <RadzenDataGridColumn TItem="Desepla1DTO" Property="NrFolio" Title="Nro de folio" Width="3.33%" />
+                            <RadzenDataGridColumn TItem="Desepla1DTO" Property="Nroplan" Title="Nro de plantel" Width="3.33%" />
+
+                            <RadzenDataGridColumn TItem="Desepla1DTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" Visible="@(!esSocio)" />
+
+                            <RadzenDataGridColumn TItem="Desepla1DTO" Property="Desde" Title="Desde" Width="4.6%">
+                                <Template Context="data">
+                                    @if (data.Desde.HasValue)
+                                    {
+                                        <a>@data.Desde.Value.ToString("dd/MM/yyyy")</a>
+                                    }
+                                </Template>
+                            </RadzenDataGridColumn>
+
+                            <RadzenDataGridColumn TItem="Desepla1DTO" Property="Hasta" Title="Hasta" Width="4.6%">
+                                <Template Context="data">
+                                    @if (data.Hasta.HasValue)
+                                    {
+                                        <a>@data.Hasta.Value.ToString("dd/MM/yyyy")</a>
+                                    }
+                                </Template>
+                            </RadzenDataGridColumn>
+
+                            <RadzenDataGridColumn TItem="Desepla1DTO" Property="Fchrecepcion" Title="Fecha de recepcion" Width="4.6%">
+                                <Template Context="data">
+                                    @if (data.Fchrecepcion.HasValue)
+                                    {
+                                        <a>@data.Fchrecepcion.Value.ToString("dd/MM/yyyy")</a>
+                                    }
+                                </Template>
+                            </RadzenDataGridColumn>
+
+                            <RadzenDataGridColumn TItem="Desepla1DTO" Property="Tipse" Title="Tipo de servicio" Width="5%" />
+
+                            <RadzenDataGridColumn TItem="Desepla1DTO" Title="" Filterable="false" Width="3.33%">
+                                <Template Context="data">
+                                    <button class="declaraciones-action-btn"
+                                            title="Editar Declaracion"
+                                            @onclick="() => add(data.Id, esSocio)">
+                                        <FeatherEdit Size="16" Color="#5a8750" />
+                                    </button>
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </div>
+            }
+            else
+            {
+                <center>
+                    <div class="mb-2 pt-4">
+                        <RadzenProgressBar style="width:100%" Value="100" ShowValue="false"
+                                           ProgressBarStyle="ProgressBarStyle.Primary"
+                                           Mode="ProgressBarMode.Indeterminate" />
+                    </div>
+                </center>
+            }
+        </section>
     </Authorized>
 </AuthorizeView>
 
@@ -158,25 +265,8 @@
     async Task Get()
     {
         esSocio = await UserHasRole("Socio");
-
-        if (!esSocio){
-            var c = await _desepla1Servicio.CantidadTotal();
-            cantidad = c.List;
-            oRespuesta = await _desepla1Servicio.Lista(0, 15);
-
-            oRespuesta.List = oRespuesta.List
-                .GroupBy(x => x.Id)
-                .Select(g => g.First())
-                .ToList();
-
-            StateHasChanged();
-        }
-        else{
-            var usuarioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
-            oRespuesta = await _desepla1Servicio.GetBySocioId(usuarioId);
-            cantidad = oRespuesta.List.Count;
-        }
-
+        await LoadPageAsync(0, 15, null);
+        NormalizeList();
     }
 
     private async Task<bool> UserHasRole(string role)
@@ -188,7 +278,6 @@
     public void CambiarModoFiltro()
     {
         allowFiltering = !allowFiltering;
-        StateHasChanged();
     }
 
  
@@ -200,42 +289,32 @@
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
+        await LoadPageAsync(args.Skip ?? 0, args.Top ?? 15, args.Filter);
+        NormalizeList();
+        isLoading = false;
+    }
 
-        if (esSocio)
+    private async Task LoadPageAsync(int skip, int take, string? filterExpression)
+    {
+        if (string.IsNullOrWhiteSpace(filterExpression))
         {
-            var usuarioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
-
-
-            if (!string.IsNullOrWhiteSpace(args.Filter))
-            {
-                oRespuesta = await _desepla1Servicio.GetBySocioId(usuarioId);
-            }
-            else
-            {
-                oRespuesta = await _desepla1Servicio.GetBySocioId(usuarioId);
-
-
-            }
-
-            cantidad = oRespuesta.List?.Count ?? 0;
-        }
-        else
-        {
-            if (!string.IsNullOrWhiteSpace(args.Filter))
-                oRespuesta = await _desepla1Servicio.LimitadosFiltrados(args.Skip ?? 0, args.Top ?? 15, args.Filter);
-            else
-                oRespuesta = await _desepla1Servicio.Lista(args.Skip ?? 0, args.Top ?? 15);
-
             var c = await _desepla1Servicio.CantidadTotal();
             cantidad = c.List;
+            oRespuesta = await _desepla1Servicio.Lista(skip, take);
+            return;
         }
 
+        oRespuesta = await _desepla1Servicio.LimitadosFiltrados(skip, take, filterExpression);
+        var filteredCount = await _desepla1Servicio.LimitadosFiltrados(0, 0, filterExpression);
+        cantidad = filteredCount.List?.GroupBy(x => x.Id).Select(g => g.First()).Count() ?? 0;
+    }
+
+    private void NormalizeList()
+    {
         oRespuesta.List = oRespuesta.List?
             .GroupBy(x => x.Id)
             .Select(g => g.First())
             .ToList();
-
-        isLoading = false;
     }
 
 

@@ -36,8 +36,7 @@ namespace PaginaToros.Client.Servicios.Implementacion
 
         public async Task<Respuesta<List<TranssbDTO>>> GetBySocioCod(string socioCod)
         {
-            string filter = $"Sven = \"{socioCod}\" || Scom = \"{socioCod}\"";
-            var result = await _http.GetFromJsonAsync<Respuesta<List<TranssbDTO>>>($"api/Transsb/LimitadosFiltrados?skip=0&take=0&expression={filter}");
+            var result = await _http.GetFromJsonAsync<Respuesta<List<TranssbDTO>>>($"api/Transsb/LimitadosFiltrados?skip=0&take=0&expression=");
             return result;
         }
 

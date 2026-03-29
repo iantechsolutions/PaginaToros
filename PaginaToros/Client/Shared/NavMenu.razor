@@ -1,372 +1,885 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@implements IDisposable
 @using System.Security.Claims
+@using System.Net.Http.Json
+@using PaginaToros.Shared.Models
 
-<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+<style>
+    .app-topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1080;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 68px;
+        padding: 0.6rem 1rem;
+        background: linear-gradient(135deg, #f8f6ec 0%, #eef3e2 100%);
+        border-bottom: 1px solid rgba(72, 92, 52, 0.18);
+        box-shadow: 0 10px 24px rgba(46, 58, 34, 0.08);
+        backdrop-filter: blur(12px);
+    }
+
+    .topbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        text-decoration: none;
+        color: #1f2a17;
+        min-width: 0;
+    }
+
+    .topbar-brand-copy {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .topbar-brand-copy strong {
+        font-size: 0.94rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .topbar-brand-copy span {
+        color: #5d684f;
+        font-size: 0.74rem;
+        white-space: nowrap;
+    }
+
+    .nav-logo {
+        width: 42px;
+        height: 42px;
+        object-fit: contain;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.82);
+        padding: 0.3rem;
+        box-shadow: 0 8px 18px rgba(55, 70, 39, 0.1);
+    }
+
+    .topbar-actions {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .context-card,
+    .user-card {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.55rem;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(72, 92, 52, 0.14);
+        box-shadow: 0 8px 18px rgba(52, 69, 35, 0.06);
+    }
+
+    .context-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+        min-width: 0;
+    }
+
+    .context-copy span {
+        font-size: 0.58rem;
+        text-transform: uppercase;
+        letter-spacing: 0.11em;
+        color: #6f7963;
+    }
+
+    .context-copy strong {
+        font-size: 0.8rem;
+        color: #24311b;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        max-width: none;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    .context-select {
+        min-width: 150px;
+        max-width: 170px;
+        padding-top: 0.2rem;
+        padding-bottom: 0.2rem;
+        border-radius: 10px;
+        border-color: rgba(72, 92, 52, 0.2);
+        color: #24311b;
+        font-size: 0.8rem;
+    }
+
+    .user-card .dropdown-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        color: #24311b;
+        text-decoration: none;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        font-size: 0.85rem;
+    }
+
+    .user-card .dropdown-toggle::after {
+        margin-left: 0.15rem;
+    }
+
+    .user-avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.95rem;
+        height: 1.95rem;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #88a05b 0%, #546d34 100%);
+        color: white;
+        box-shadow: 0 6px 14px rgba(84, 109, 52, 0.22);
+    }
+
+    .sidebar-toggle {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 2.35rem;
+        height: 2.35rem;
+        border: 0;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 8px 18px rgba(52, 69, 35, 0.08);
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        inset: 68px 0 0 0;
+        z-index: 1070;
+        background: rgba(19, 26, 13, 0.26);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
+
+    .sidebar-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .app-sidebar {
+        position: fixed;
+        top: 80px;
+        left: 1rem;
+        bottom: 1.25rem;
+        z-index: 1075;
+        width: 260px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        padding: 0.85rem;
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 247, 238, 0.98) 100%);
+        border: 1px solid rgba(72, 92, 52, 0.16);
+        box-shadow: 0 18px 34px rgba(40, 52, 28, 0.14);
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+
+    .sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding-bottom: 0.1rem;
+    }
+
+    .sidebar-header strong {
+        color: #24311b;
+        font-size: 0.82rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .sidebar-header span {
+        color: #6d755d;
+        font-size: 0.72rem;
+    }
+
+    .sidebar-close {
+        display: none;
+        border: 0;
+        background: transparent;
+        color: #4d593e;
+    }
+
+    .sidebar-section {
+        padding: 0.22rem 0.22rem 0.25rem;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(72, 92, 52, 0.1);
+    }
+
+    .sidebar-section-toggle {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 0;
+        padding: 0.3rem 0.5rem;
+        border: 0;
+        border-radius: 12px;
+        background: transparent;
+        text-align: left;
+        color: #5d684f;
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background-color 0.18s ease, color 0.18s ease;
+    }
+
+    .sidebar-section-toggle:hover {
+        background: rgba(127, 153, 85, 0.08);
+        color: #334127;
+    }
+
+    .sidebar-section-toggle strong {
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+    }
+
+    .sidebar-section-toggle.active {
+        background: linear-gradient(135deg, #88a05b 0%, #607d3c 100%);
+        color: white;
+        box-shadow: 0 14px 24px rgba(85, 110, 52, 0.18);
+    }
+
+    .sidebar-section-toggle.active:hover {
+        background: linear-gradient(135deg, #88a05b 0%, #607d3c 100%);
+        color: white;
+    }
+
+    .sidebar-section-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.55rem;
+        height: 1.55rem;
+        border-radius: 999px;
+        background: rgba(127, 153, 85, 0.12);
+        color: #435332;
+        flex-shrink: 0;
+        transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+    }
+
+    .sidebar-section-toggle.active .sidebar-section-icon {
+        background: rgba(255, 255, 255, 0.18);
+        color: white;
+    }
+
+    .sidebar-section-toggle:hover .sidebar-section-icon {
+        background: rgba(127, 153, 85, 0.2);
+        color: #2d3a22;
+    }
+
+    .sidebar-section-icon.expanded {
+        transform: rotate(180deg);
+    }
+
+    .sidebar-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.12rem;
+        margin-top: 0.2rem;
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.48rem 0.68rem;
+        border-radius: 12px;
+        color: #223018;
+        font-size: 0.82rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+        line-height: 1.15;
+    }
+
+    .sidebar-link:hover {
+        background: rgba(127, 153, 85, 0.1);
+        transform: translateX(2px);
+        color: #1f2b17;
+        box-shadow: inset 0 0 0 1px rgba(84, 109, 52, 0.08);
+    }
+
+    .sidebar-link.active {
+        background: linear-gradient(135deg, #88a05b 0%, #607d3c 100%);
+        color: white;
+        box-shadow: 0 14px 24px rgba(85, 110, 52, 0.24);
+    }
+
+    .sidebar-link-arrow {
+        font-size: 0.78rem;
+        opacity: 0.65;
+    }
+
+    @@media (max-width: 1199.98px) {
+        .app-topbar {
+            padding: 0.55rem 0.85rem;
+        }
+
+        .sidebar-toggle {
+            display: inline-flex;
+        }
+
+        .topbar-brand-copy span {
+            display: none;
+        }
+
+        .topbar-actions {
+            gap: 0.6rem;
+        }
+
+        .context-card {
+            max-width: 100%;
+        }
+
+        .context-copy strong {
+            max-width: none;
+        }
+
+        .context-select {
+            min-width: 130px;
+            max-width: 145px;
+        }
+
+        .app-sidebar {
+            top: 68px;
+            left: 0;
+            bottom: 0;
+            width: min(290px, 86vw);
+            border-radius: 0 22px 0 0;
+            transform: translateX(-105%);
+            transition: transform 0.28s ease;
+        }
+
+        .app-sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-close {
+            display: inline-flex;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .app-topbar {
+            gap: 0.5rem;
+        }
+
+        .topbar-brand-copy strong {
+            font-size: 0.82rem;
+        }
+
+        .context-card,
+        .user-card {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .topbar-actions {
+            width: 100%;
+        }
+
+        .context-select {
+            min-width: 0;
+            width: 100%;
+            max-width: none;
+        }
+    }
+</style>
+
+<AuthorizeView>
     <Authorized>
-        <nav class="navbar navbar-expand-xl main-navbar mb-4">
-            <div class="container-fluid">
-                <a href="" class="navbar-brand pe-3">
+        @if (showNavigation)
+        {
+            <header class="app-topbar no-print">
+                <a href="" class="topbar-brand" @onclick="CloseSidebar">
                     <img src="images/LOGO PRINCIPAL.png" class="nav-logo" alt="Logo" />
                 </a>
 
-                <button class="navbar-toggler @NavButtonCssClass" type="button" aria-label="Toggle navigation"
-                        @onclick="ToggleNavMenu">
-                    <FeatherList Color="black"></FeatherList>
-                </button>
+                <div class="topbar-actions">
+                    @if (currentUserIsSocio)
+                    {
+                        <div class="context-card">
+                            <div class="context-copy">
+                                <span>Razon social</span>
+                                <strong>@GetActiveSocioHeaderLabel()</strong>
+                            </div>
 
-                <div class="collapse navbar-collapse @NavBarCssClass" id="navbarCollapseAdmin">
-                    <ul class="navbar-nav me-auto mb-2 mb-xl-0 w-100">
-                        <li class="nav-item">
-                            <NavLink class="nav-link text-black" href="" Match="NavLinkMatch.All"
-                                     @onclick="CollapseNavMenu">Inicio</NavLink>
-                        </li>
+                            @if (allowedSocios.Count > 1)
+                            {
+                                <select class="form-select form-select-sm context-select"
+                                        value="@(activeSocioId?.ToString() ?? string.Empty)" @onchange="ChangeActiveSocio">
+                                    @foreach (var socio in allowedSocios)
+                                    {
+                                        <option value="@socio.Id">@socio.DisplayName</option>
+                                    }
+                                </select>
+                            }
+                        </div>
+                    }
 
-                        <li class="nav-item dropdown menu-dropdown">
-                            <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                               data-bs-toggle="dropdown" aria-expanded="false">Socios</a>
-                            <ul class="dropdown-menu">
+                    <div class="dropdown user-card">
+                        <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="user-avatar">
+                                <FeatherUser Size="18" Color="white"></FeatherUser>
+                            </span>
+                            <span>@displayUser</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            @if (isAdminOrMaster)
+                            {
                                 <li>
-                                    <NavLink class="dropdown-item" href="socios" @onclick="CollapseNavMenu">Listado
+                                    <NavLink class="dropdown-item" href="usuarios" @onclick="CloseSidebar">Ver usuarios
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink class="dropdown-item" href="establecimientos" @onclick="CollapseNavMenu">
-                                        Establecimientos</NavLink>
-                                    </li>
-                                </ul>
-                            </li>
+                                    <NavLink class="dropdown-item" href="registrousuario" @onclick="CloseSidebar">Crear usuario
+                                    </NavLink>
+                                </li>
+                            }
+                            <li>
+                                <NavLink class="dropdown-item" href="cambiarpassword" @onclick="CloseSidebar">Cambiar
+                                    contrasena</NavLink>
+                                </li>
+                                <li>
+                                    <NavLink class="dropdown-item" href="logout" @onclick="CloseSidebar">Cerrar sesion</NavLink>
+                                </li>
+                            </ul>
+                        </div>
 
-                            <li class="nav-item dropdown menu-dropdown">
-                                <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                   data-bs-toggle="dropdown" aria-expanded="false">Planteles</a>
-                                <ul class="dropdown-menu">
-                                    <li>
-                                        <NavLink class="dropdown-item" href="planteles" @onclick="CollapseNavMenu">Listado
+                        <button class="sidebar-toggle" type="button" aria-label="Abrir menu" @onclick="ToggleSidebar">
+                            <FeatherList Color="#223018"></FeatherList>
+                        </button>
+                    </div>
+                </header>
+
+                <div class="sidebar-overlay @(sidebarOpen ? "open" : string.Empty)" @onclick="CloseSidebar"></div>
+
+                <aside class="app-sidebar no-print @(sidebarOpen ? "open" : string.Empty)">
+                    <div class="sidebar-header">
+                        <div>
+                            <strong>Menu</strong>
+                            <span>@(isAdminOrMaster ? "Administrador" : "Socio")</span>
+                        </div>
+                        <button class="sidebar-close" type="button" aria-label="Cerrar menu" @onclick="CloseSidebar">
+                            <FeatherX Color="#4d593e"></FeatherX>
+                        </button>
+                    </div>
+
+                    @foreach (var navSection in SidebarSections)
+                    {
+                        <section class="sidebar-section">
+                            <button type="button"
+                                    class="sidebar-section-toggle @(IsSectionCollapsedAndActive(navSection) ? "active" : string.Empty)"
+                                    aria-expanded="@IsSectionExpanded(navSection.Title)"
+                                    @onclick="@(() => ToggleSection(navSection.Title))">
+                                <strong>@navSection.Title</strong>
+                                <span
+                                    class="sidebar-section-icon @(IsSectionExpanded(navSection.Title) ? "expanded" : string.Empty)">
+                                    <FeatherChevronDown Size="15"></FeatherChevronDown>
+                                </span>
+                            </button>
+
+                            @if (IsSectionExpanded(navSection.Title))
+                            {
+                                <div class="sidebar-links">
+                                    @foreach (var item in navSection.Items)
+                                    {
+                                        <NavLink class="sidebar-link" href="@item.Href"
+                                                 Match="@(item.Exact? NavLinkMatch.All: NavLinkMatch.Prefix)" @onclick="CloseSidebar">
+                                            <span>@item.Label</span>
+                                            <span class="sidebar-link-arrow">›</span>
                                         </NavLink>
-                                    </li>
-                                </ul>
-                            </li>
-
-                            <li class="nav-item dropdown menu-dropdown">
-                                <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                   data-bs-toggle="dropdown" aria-expanded="false">Inspecciones</a>
-                                <ul class="dropdown-menu">
-                                    <li>
-                                        <NavLink class="dropdown-item" href="inspectores" @onclick="CollapseNavMenu">
-                                            Inspectores</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink class="dropdown-item" href="solicitudesinspeccion"
-                                                     @onclick="CollapseNavMenu">Solicitudes</NavLink>
-                                        </li>
-                                        <li>
-                                            <NavLink class="dropdown-item" href="reportes" @onclick="CollapseNavMenu">Resultados
-                                            </NavLink>
-                                        </li>
-                                    </ul>
-                                </li>
-
-                                <li class="nav-item dropdown menu-dropdown">
-                                    <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                       data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Toros Padres</span><span class="nav-label-compact">Toros<br />Padres</span></a>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <NavLink class="dropdown-item" href="toros" @onclick="CollapseNavMenu">Listado
-                                            </NavLink>
-                                        </li>
-                                    </ul>
-                                </li>
-
-                                <li class="nav-item dropdown menu-dropdown">
-                                    <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                       data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Centros de IA</span><span class="nav-label-compact">Centros<br />de IA</span></a>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <NavLink class="dropdown-item" href="centros" @onclick="CollapseNavMenu">Listado
-                                            </NavLink>
-                                        </li>
-                                    </ul>
-                                </li>
-
-                                <li class="nav-item dropdown menu-dropdown">
-                                    <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                       data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Certificados de semen</span><span class="nav-label-compact">Certif.<br />de semen</span></a>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <NavLink class="dropdown-item" href="certificados" @onclick="CollapseNavMenu">
-                                                Listado</NavLink>
-                                            </li>
-                                        </ul>
-                                    </li>
-
-                                    <li class="nav-item dropdown menu-dropdown">
-                                        <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                           data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Transferencias</span><span class="nav-label-compact">Trans.</span></a>
-                                        <ul class="dropdown-menu">
-                                            <li>
-                                                <NavLink class="dropdown-item" href="transan" @onclick="CollapseNavMenu">Animales
-                                                </NavLink>
-                                            </li>
-                                            <li>
-                                                <NavLink class="dropdown-item" href="transsb" @onclick="CollapseNavMenu">Toros S/
-                                                </NavLink>
-                                            </li>
-                                            <li>
-                                                <NavLink class="dropdown-item" href="transfu" @onclick="CollapseNavMenu">Futuro
-                                                    Control</NavLink>
-                                                </li>
-                                            </ul>
-                                        </li>
-
-                                        <li class="nav-item dropdown menu-dropdown">
-                                            <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                               data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Declaraciones de servicio</span><span class="nav-label-compact">Declarac.<br />de<br />servicio</span></a>
-                                            <ul class="dropdown-menu">
-                                                <li>
-                                                    <NavLink class="dropdown-item" href="declaraciones" @onclick="CollapseNavMenu">
-                                                        Listado</NavLink>
-                                                    </li>
-                                                </ul>
-                                            </li>
-
-                                            <li class="nav-item">
-                                                <NavLink class="nav-link text-black" href="animalescontrol" Match="NavLinkMatch.All"
-                                                         @onclick="CollapseNavMenu"><span class="nav-label-full">Animales Para Control</span><span class="nav-label-compact">Animales<br />p/control</span></NavLink>
-                                            </li>
-
-                                            <li class="nav-item dropdown menu-dropdown">
-                                                <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                                   data-bs-toggle="dropdown" aria-expanded="false">Informes</a>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <NavLink class="dropdown-item" href="reportegeneral" @onclick="CollapseNavMenu">
-                                                            Inspecciones</NavLink>
-                                                        </li>
-                                                        <li>
-                                                            <NavLink class="dropdown-item" href="reporteplantel" @onclick="CollapseNavMenu">
-                                                                Planteles</NavLink>
-                                                        </li>
-                                                    </ul>
-                                                </li>
-
-                                                <li class="nav-item">
-                                                    <NavLink class="nav-link text-black" href="consultas" Match="NavLinkMatch.All"
-                                                             @onclick="CollapseNavMenu">Consultas</NavLink>
-                                                </li>
-
-                                                    <li class="nav-item dropdown menu-dropdown ms-xl-auto">
-                                                        <a class="nav-link dropdown-toggle text-black d-flex align-items-center gap-2" href="#"
-                                                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <FeatherUser Color="Black"></FeatherUser>
-                                                            <span>@displayUser</span>
-                                                        </a>
-                                                        <ul class="dropdown-menu dropdown-menu-end">
-                                                            <li>
-                                                                <NavLink class="dropdown-item" href="usuarios" @onclick="CollapseNavMenu">Ver
-                                                                    usuarios</NavLink>
-                                                                </li>
-                                                                <li>
-                                                                    <NavLink class="dropdown-item" href="registrousuario" @onclick="CollapseNavMenu">
-                                                                        Crear usuario</NavLink>
-                                                                    </li>
-                                                                    <li>
-                                                                        <NavLink class="dropdown-item" href="logout" @onclick="CollapseNavMenu">Cerrar
-                                                                            sesion</NavLink>
-                                                                        </li>
-                                                                        <li>
-                                                                            <NavLink class="dropdown-item" href="cambiarpassword" @onclick="CollapseNavMenu">
-                                                                                Cambiar la Contrasena</NavLink>
-                                                                            </li>
-                                                                        </ul>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </div>
-                                                    </nav>
-                                                </Authorized>
-                                            </AuthorizeView>
-
-                                            <AuthorizeView Roles="Socio">
-                                                <Authorized>
-                                                    <nav class="navbar navbar-expand-xl main-navbar mb-4">
-                                                        <div class="container-fluid">
-                                                            <a href="" class="navbar-brand pe-3">
-                                                                <img src="images/LOGO PRINCIPAL.png" class="nav-logo" alt="Logo" />
-                                                            </a>
-
-                                                            <button class="navbar-toggler @NavButtonCssClass" type="button" aria-label="Toggle navigation"
-                                                                    @onclick="ToggleNavMenu">
-                                                                <FeatherList Color="black"></FeatherList>
-                                                            </button>
-
-                                                            <div class="collapse navbar-collapse @NavBarCssClass" id="navbarCollapseSocio">
-                                                                <ul class="navbar-nav me-auto mb-2 mb-xl-0 w-100">
-                                                                    <li class="nav-item">
-                                                                        <NavLink class="nav-link text-black" href="" Match="NavLinkMatch.All"
-                                                                                 @onclick="CollapseNavMenu">Inicio</NavLink>
-                                                                    </li>
-
-                                                                    <li class="nav-item dropdown menu-dropdown">
-                                                                        <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                                                           data-bs-toggle="dropdown" aria-expanded="false">Socios</a>
-                                                                        <ul class="dropdown-menu">
-                                                                            <li>
-                                                                                <NavLink class="dropdown-item" href="socios" @onclick="CollapseNavMenu">Listado
-                                                                                </NavLink>
-                                                                            </li>
-                                                                            <li>
-                                                                                <NavLink class="dropdown-item" href="establecimientos" @onclick="CollapseNavMenu">
-                                                                                    Establecimientos</NavLink>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </li>
-
-                                                                        <li class="nav-item dropdown menu-dropdown">
-                                                                            <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                                                               data-bs-toggle="dropdown" aria-expanded="false">Planteles</a>
-                                                                            <ul class="dropdown-menu">
-                                                                                <li>
-                                                                                    <NavLink class="dropdown-item" href="planteles" @onclick="CollapseNavMenu">Listado
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </li>
-
-                                                                        <li class="nav-item dropdown menu-dropdown">
-                                                                            <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                                                               data-bs-toggle="dropdown" aria-expanded="false">Inspecciones</a>
-                                                                            <ul class="dropdown-menu">
-                                                                                <li>
-                                                                                    <NavLink class="dropdown-item" href="solicitudesinspeccion"
-                                                                                             @onclick="CollapseNavMenu">Solicitudes</NavLink>
-                                                                                </li>
-                                                                                <li>
-                                                                                    <NavLink class="dropdown-item" href="reportes" @onclick="CollapseNavMenu">Resultados
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </li>
-
-                                                                        <li class="nav-item dropdown menu-dropdown">
-                                                                            <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                                                               data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Toros Padres</span><span class="nav-label-compact">Toros<br />Padres</span></a>
-                                                                            <ul class="dropdown-menu">
-                                                                                <li>
-                                                                                    <NavLink class="dropdown-item" href="toros" @onclick="CollapseNavMenu">Listado
-                                                                                    </NavLink>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </li>
-
-                                                                        <li class="nav-item dropdown menu-dropdown">
-                                                                            <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                                                               data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Certificados de semen</span><span class="nav-label-compact">Certif.<br />de semen</span></a>
-                                                                            <ul class="dropdown-menu">
-                                                                                <li>
-                                                                                    <NavLink class="dropdown-item" href="certificados" @onclick="CollapseNavMenu">
-                                                                                        Listado</NavLink>
-                                                                                    </li>
-                                                                                </ul>
-                                                                            </li>
-
-                                                                            <li class="nav-item dropdown menu-dropdown">
-                                                                                <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                                                                   data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Transferencias</span><span class="nav-label-compact">Trans.</span></a>
-                                                                                <ul class="dropdown-menu">
-                                                                                    <li>
-                                                                                        <NavLink class="dropdown-item" href="transan" @onclick="CollapseNavMenu">Animales
-                                                                                        </NavLink>
-                                                                                    </li>
-                                                                                    <li>
-                                                                                        <NavLink class="dropdown-item" href="transsb" @onclick="CollapseNavMenu">Toros S/
-                                                                                        </NavLink>
-                                                                                    </li>
-                                                                                    <li>
-                                                                                        <NavLink class="dropdown-item" href="transfu" @onclick="CollapseNavMenu">Futuro
-                                                                                            Control</NavLink>
-                                                                                        </li>
-                                                                                    </ul>
-                                                                                </li>
-
-                                                                                <li class="nav-item dropdown menu-dropdown">
-                                                                                    <a class="nav-link dropdown-toggle text-black" href="#" role="button"
-                                                                                       data-bs-toggle="dropdown" aria-expanded="false"><span class="nav-label-full">Declaraciones de servicio</span><span class="nav-label-compact">Declarac.<br />de<br />servicio</span></a>
-                                                                                    <ul class="dropdown-menu">
-                                                                                        <li>
-                                                                                            <NavLink class="dropdown-item" href="declaraciones" @onclick="CollapseNavMenu">
-                                                                                                Listado</NavLink>
-                                                                                            </li>
-                                                                                        </ul>
-                                                                                    </li>
-
-                                                                                    <li class="nav-item">
-                                                                                        <NavLink class="nav-link text-black" href="animalescontrol" Match="NavLinkMatch.All"
-                                                                                                 @onclick="CollapseNavMenu"><span class="nav-label-full">Animales Para Control</span><span class="nav-label-compact">Animales<br />p/control</span></NavLink>
-                                                                                    </li>
-
-                                                                                                    <li class="nav-item dropdown menu-dropdown ms-xl-auto">
-                                                                                        <a class="nav-link dropdown-toggle text-black d-flex align-items-center gap-2" href="#"
-                                                                                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                                            <FeatherUser Color="Black"></FeatherUser>
-                                                                                            <span>@displayUser</span>
-                                                                                        </a>
-                                                                                        <ul class="dropdown-menu dropdown-menu-end">
-                                                                                            <li>
-                                                                                                <NavLink class="dropdown-item" href="logout" @onclick="CollapseNavMenu">Cerrar
-                                                                                                    sesion</NavLink>
-                                                                                                </li>
-                                                                                                <li>
-                                                                                                    <NavLink class="dropdown-item" href="cambiarpassword" @onclick="CollapseNavMenu">
-                                                                                                        Cambiar Contrasena</NavLink>
-                                                                                                    </li>
-                                                                                                </ul>
-                                                                                            </li>
-                                                                                        </ul>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </nav>
-                                                                        </Authorized>
-                                                                    </AuthorizeView>
+                                    }
+                                </div>
+                            }
+                        </section>
+                    }
+                </aside>
+            }
+        </Authorized>
+    </AuthorizeView>
 
 @code {
-    private bool collapseNavMenu = true;
-    private string? NavBarCssClass => collapseNavMenu ? null : "show";
-    private string? NavButtonCssClass => collapseNavMenu ? "collapsed" : null;
-
+    private bool sidebarOpen;
     private string userName = "Usuario no identificado";
     private string displayUser = "Usuario no identificado";
+    private bool currentUserIsSocio;
+    private bool isAdminOrMaster;
+    private bool showNavigation;
+    private int? activeSocioId;
+    private string? activeSocioDisplayName;
+    private List<UserSocioOptionDTO> allowedSocios = new();
+    private readonly HashSet<string> expandedSections = new(StringComparer.OrdinalIgnoreCase);
+
+    private IReadOnlyList<NavSection> SidebarSections
+        => currentUserIsSocio ? SocioSections : AdminSections;
+
+    private static readonly IReadOnlyList<NavSection> AdminSections = new List<NavSection>
+    {
+        new("General", new List<NavLinkItem>
+        {
+            new("Inicio", string.Empty, true),
+        }),
+        new("Socios", new List<NavLinkItem>
+        {
+            new("Listado", "socios"),
+            new("Establecimientos", "establecimientos")
+        }),
+        new("Planteles", new List<NavLinkItem>
+        {
+            new("Listado", "planteles")
+        }),
+        new("Inspecciones", new List<NavLinkItem>
+        {
+            new("Inspectores", "inspectores"),
+            new("Solicitudes", "solicitudesinspeccion"),
+            new("Resultados", "reportes")
+        }),
+        new("Toros Padres", new List<NavLinkItem>
+        {
+            new("Listado", "toros")
+        }),
+        new("Centros de IA", new List<NavLinkItem>
+        {
+            new("Listado", "centros")
+        }),
+        new("Certificados de semen", new List<NavLinkItem>
+        {
+            new("Listado", "certificados")
+        }),
+        new("Transferencias", new List<NavLinkItem>
+        {
+            new("Animales", "transan"),
+            new("Toros S/", "transsb"),
+            new("Futuro Control", "transfu")
+        }),
+        new("Declaraciones de servicio", new List<NavLinkItem>
+        {
+            new("Listado", "declaraciones")
+        }),
+        new("Operaciones", new List<NavLinkItem>
+        {
+            new("Animales Para Control", "animalescontrol")
+        }),
+        new("Informes", new List<NavLinkItem>
+        {
+            new("Inspecciones", "reportegeneral"),
+            new("Planteles", "reporteplantel")
+        })
+    };
+
+    private static readonly IReadOnlyList<NavSection> SocioSections = new List<NavSection>
+    {
+        new("General", new List<NavLinkItem>
+        {
+            new("Inicio", string.Empty, true)
+        }),
+        new("Socios", new List<NavLinkItem>
+        {
+            new("Listado", "socios"),
+            new("Establecimientos", "establecimientos")
+        }),
+        new("Planteles", new List<NavLinkItem>
+        {
+            new("Listado", "planteles")
+        }),
+        new("Inspecciones", new List<NavLinkItem>
+        {
+            new("Solicitudes", "solicitudesinspeccion"),
+            new("Resultados", "reportes")
+        }),
+        new("Toros Padres", new List<NavLinkItem>
+        {
+            new("Listado", "toros")
+        }),
+        new("Certificados de semen", new List<NavLinkItem>
+        {
+            new("Listado", "certificados")
+        }),
+        new("Transferencias", new List<NavLinkItem>
+        {
+            new("Animales", "transan"),
+            new("Toros S/", "transsb"),
+            new("Futuro Control", "transfu")
+        }),
+        new("Declaraciones de servicio", new List<NavLinkItem>
+        {
+            new("Listado", "declaraciones")
+        }),
+        new("Operaciones", new List<NavLinkItem>
+        {
+            new("Animales Para Control", "animalescontrol")
+        })
+    };
 
     protected override async Task OnInitializedAsync()
     {
+        NavigationManager.LocationChanged += HandleLocationChanged;
+
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        if (user.Identity?.IsAuthenticated == true)
+        if (user.Identity?.IsAuthenticated != true)
         {
-            var email = user.FindFirst(ClaimTypes.Email)?.Value;
+            return;
+        }
+
+        isAdminOrMaster = user.IsInRole("ADMINISTRADOR") || user.IsInRole("USUARIOMAESTRO");
+        currentUserIsSocio = user.IsInRole("Socio") || user.IsInRole("SOCIO");
+        showNavigation = isAdminOrMaster || currentUserIsSocio;
+
+        var fullName = user.FindFirst(ClaimTypes.Name)?.Value;
+        if (!string.IsNullOrWhiteSpace(fullName))
+        {
+            userName = fullName.Trim();
+            displayUser = userName;
+        }
+        else
+        {
+            var email = user.FindFirst(ClaimTypes.Email)?.Value ?? user.FindFirst("userNM")?.Value;
             if (!string.IsNullOrWhiteSpace(email))
             {
                 displayUser = email.Split('@')[0];
                 userName = email;
-                return;
             }
+        }
 
-            var name = user.FindFirst(ClaimTypes.Name)?.Value;
-            if (!string.IsNullOrWhiteSpace(name))
-            {
-                userName = name.Split(' ').Distinct().Aggregate((a, b) => $"{a} {b}");
-                displayUser = userName;
-            }
+        EnsureActiveSectionExpanded();
+        await InvokeAsync(StateHasChanged);
+
+        if (currentUserIsSocio)
+        {
+            await LoadSocioContextAsync();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
-    private void ToggleNavMenu()
+    private void ToggleSidebar()
     {
-        collapseNavMenu = !collapseNavMenu;
+        sidebarOpen = !sidebarOpen;
     }
 
-    private void CollapseNavMenu()
+    private void CloseSidebar()
     {
-        collapseNavMenu = true;
+        sidebarOpen = false;
+    }
+
+    private void ToggleSection(string sectionTitle)
+    {
+        if (!expandedSections.Add(sectionTitle))
+        {
+            expandedSections.Remove(sectionTitle);
+        }
+    }
+
+    private bool IsSectionExpanded(string sectionTitle)
+        => expandedSections.Contains(sectionTitle);
+
+    private bool IsSectionActive(NavSection section)
+        => section.Items.Any(IsItemActive);
+
+    private bool IsSectionCollapsedAndActive(NavSection section)
+        => IsSectionActive(section) && !IsSectionExpanded(section.Title);
+
+    private bool IsItemActive(NavLinkItem item)
+    {
+        var currentPath = GetCurrentRelativePath();
+        var itemPath = NormalizePath(item.Href);
+
+        if (item.Exact)
+        {
+            return string.Equals(currentPath, itemPath, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return string.Equals(currentPath, itemPath, StringComparison.OrdinalIgnoreCase)
+            || (!string.IsNullOrWhiteSpace(itemPath)
+                && currentPath.StartsWith($"{itemPath}/", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void EnsureActiveSectionExpanded()
+    {
+        var activeSection = SidebarSections.FirstOrDefault(IsSectionActive);
+        if (activeSection != null)
+        {
+            expandedSections.Add(activeSection.Title);
+        }
+    }
+
+    private string GetCurrentRelativePath()
+    {
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        var cleanPath = relativePath.Split('?', '#')[0];
+        return NormalizePath(cleanPath);
+    }
+
+    private static string NormalizePath(string? path)
+        => string.IsNullOrWhiteSpace(path) ? string.Empty : path.Trim().Trim('/');
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        EnsureActiveSectionExpanded();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadSocioContextAsync()
+    {
+        try
+        {
+            var context = await Http.GetFromJsonAsync<UserContextDTO>("api/Account/context");
+            allowedSocios = context?.AllowedSocios ?? new List<UserSocioOptionDTO>();
+            activeSocioId = context?.ActiveSocioId;
+            activeSocioDisplayName = ResolveActiveSocioDisplayName(
+                allowedSocios,
+                activeSocioId,
+                context?.ActiveSocioDisplayName);
+        }
+        catch
+        {
+            allowedSocios = new List<UserSocioOptionDTO>();
+            activeSocioId = null;
+            activeSocioDisplayName = null;
+        }
+    }
+
+    private async Task ChangeActiveSocio(ChangeEventArgs args)
+    {
+        if (!currentUserIsSocio)
+        {
+            return;
+        }
+
+        var value = args.Value?.ToString();
+        if (!int.TryParse(value, out var socioId))
+        {
+            return;
+        }
+
+        if (activeSocioId == socioId)
+        {
+            return;
+        }
+
+        var response = await Http.PostAsJsonAsync("api/Account/active-socio", new ChangeActiveSocioRequest
+        {
+            SocioId = socioId
+        });
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return;
+        }
+
+        var context = await response.Content.ReadFromJsonAsync<UserContextDTO>();
+        allowedSocios = context?.AllowedSocios ?? new List<UserSocioOptionDTO>();
+        activeSocioId = context?.ActiveSocioId;
+        activeSocioDisplayName = ResolveActiveSocioDisplayName(
+            allowedSocios,
+            activeSocioId,
+            context?.ActiveSocioDisplayName);
+        sidebarOpen = false;
+
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    private static string? ResolveActiveSocioDisplayName(
+        IReadOnlyList<UserSocioOptionDTO> socios,
+        int? activeId,
+        string? currentDisplayName)
+    {
+        if (!string.IsNullOrWhiteSpace(currentDisplayName))
+        {
+            return currentDisplayName;
+        }
+
+        if (activeId.HasValue)
+        {
+            return socios.FirstOrDefault(x => x.Id == activeId.Value)?.DisplayName;
+        }
+
+        return socios.FirstOrDefault()?.DisplayName;
+    }
+
+    private string GetActiveSocioHeaderLabel()
+    {
+        var activeSocio = activeSocioId.HasValue
+            ? allowedSocios.FirstOrDefault(x => x.Id == activeSocioId.Value)
+            : allowedSocios.FirstOrDefault();
+
+        if (activeSocio != null)
+        {
+            var codigo = activeSocio.Codigo?.Trim();
+            var nombre = activeSocio.Nombre?.Trim();
+
+            if (!string.IsNullOrWhiteSpace(codigo) && !string.IsNullOrWhiteSpace(nombre))
+            {
+                return $"{codigo} - {nombre}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(nombre))
+            {
+                return nombre;
+            }
+        }
+
+        return string.IsNullOrWhiteSpace(activeSocioDisplayName)
+            ? "Sin razon social"
+            : activeSocioDisplayName;
+    }
+
+    private sealed class NavSection
+    {
+        public NavSection(string title, IReadOnlyList<NavLinkItem> items)
+        {
+            Title = title;
+            Items = items;
+        }
+
+        public string Title { get; }
+        public IReadOnlyList<NavLinkItem> Items { get; }
+    }
+
+    private sealed class NavLinkItem
+    {
+        public NavLinkItem(string label, string href, bool exact = false)
+        {
+            Label = label;
+            Href = href;
+            Exact = exact;
+        }
+
+        public string Label { get; }
+        public string Href { get; }
+        public bool Exact { get; }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
     }
 }

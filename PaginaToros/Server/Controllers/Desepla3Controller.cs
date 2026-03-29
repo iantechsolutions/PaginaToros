@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PaginaToros.Server.Context;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using AutoMapper;
 using PaginaToros.Server.Repositorio.Contrato;
+using PaginaToros.Server.Services;
+using System.Linq.Dynamic.Core;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -12,12 +15,22 @@ namespace PaginaToros.Server.Controllers
     [ApiController]
     public class Desepla3Controller : ControllerBase
     {
+        private const int MaxNrodecLength = 15;
         private readonly IMapper _mapper;
         private readonly IDesepla3Repositorio _Desepla3Repositorio;
-        public Desepla3Controller(IDesepla3Repositorio Desepla3Repositorio, IMapper mapper)
+        private readonly IUserSocioContextService _userSocioContextService;
+        private readonly hereford_prContext _dbContext;
+
+        public Desepla3Controller(
+            IDesepla3Repositorio Desepla3Repositorio,
+            IMapper mapper,
+            IUserSocioContextService userSocioContextService,
+            hereford_prContext dbContext)
         {
             _mapper = mapper;
             _Desepla3Repositorio = Desepla3Repositorio;
+            _userSocioContextService = userSocioContextService;
+            _dbContext = dbContext;
         }
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
@@ -27,11 +40,24 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                List<Desepla3DTO> listaPedido = new List<Desepla3DTO>();
-                var a = await _Desepla3Repositorio.Lista(skip, take);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Desepla3DTO>>());
+                }
 
+                IQueryable<Desepla3> query = BuildScopedQuery(accessContext).OrderByDescending(t => t.Id);
+                if (skip > 0)
+                {
+                    query = query.Skip(skip);
+                }
 
-                listaPedido = _mapper.Map<List<Desepla3DTO>>(a);
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
+
+                var listaPedido = _mapper.Map<List<Desepla3DTO>>(await query.ToListAsync());
 
                 _ResponseDTO = new Respuesta<List<Desepla3DTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
 
@@ -55,7 +81,13 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var a = await _Desepla3Repositorio.CantidadTotal();
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                }
+
+                var a = await BuildScopedQuery(accessContext).CountAsync();
 
                 _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
 
@@ -78,9 +110,30 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var a = await _Desepla3Repositorio.LimitadosFiltrados(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Desepla3DTO>>());
+                }
 
-                var listaFiltrada = _mapper.Map<List<Desepla3DTO>>(a);
+                var query = BuildScopedQuery(accessContext);
+                if (!string.IsNullOrWhiteSpace(expression))
+                {
+                    query = query.Where(expression);
+                }
+
+                query = query.OrderByDescending(t => t.Id);
+                if (skip > 0)
+                {
+                    query = query.Skip(skip);
+                }
+
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
+
+                var listaFiltrada = _mapper.Map<List<Desepla3DTO>>(await query.ToListAsync());
 
                 _ResponseDTO = new Respuesta<List<Desepla3DTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
 
@@ -103,6 +156,12 @@ namespace PaginaToros.Server.Controllers
             var resp = new Respuesta<List<Desepla3DTO>>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Desepla3DTO>>());
+                }
+
                 if (string.IsNullOrWhiteSpace(nrodec))
                 {
                     resp.Exito = 1;
@@ -111,13 +170,26 @@ namespace PaginaToros.Server.Controllers
                     return Ok(resp);
                 }
 
-                // Validate length against DB column max length (6)
-                if (nrodec.Length > 6)
+                if (nrodec.Length > MaxNrodecLength)
                 {
                     return BadRequest(new Respuesta<List<Desepla3DTO>> { Exito = 0, Mensaje = "Nrodec demasiado largo" });
                 }
 
+                if (RequiresActiveSocioScope(accessContext) &&
+                    !await CanAccessDeclarationAsync(nrodec.Trim(), accessContext))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<Desepla3DTO>>());
+                }
+
                 var lista = await _Desepla3Repositorio.GetByNrodec(nrodec.Trim());
+                Console.WriteLine($"[Desepla3Controller] GetByNrodec nrodec={nrodec.Trim()} total={lista?.Count ?? 0}");
+                if (lista != null)
+                {
+                    foreach (var item in lista.Take(12))
+                    {
+                        Console.WriteLine($"[Desepla3Controller] GetByNrodec item id={item.Id} tipo={item.Tipo} hba={item.Hardb} tat={item.Tatpart} cantv={item.Cantv} desde={item.Desde} hasta={item.Hasta}");
+                    }
+                }
                 resp.Exito = 1;
                 resp.Mensaje = "Éxito";
                 resp.List = _mapper.Map<List<Desepla3DTO>>(lista);
@@ -139,9 +211,20 @@ namespace PaginaToros.Server.Controllers
             Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                }
+
                 Desepla3 _Desepla3Eliminar = await _Desepla3Repositorio.Obtener(u => u.Id == id);
                 if (_Desepla3Eliminar != null)
                 {
+                    if (RequiresActiveSocioScope(accessContext) &&
+                        !await CanAccessDeclarationAsync(_Desepla3Eliminar.Nrodec, accessContext))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                    }
 
                     bool respuesta = await _Desepla3Repositorio.Eliminar(_Desepla3Eliminar);
 
@@ -167,11 +250,32 @@ namespace PaginaToros.Server.Controllers
             Respuesta<Desepla3DTO> _Respuesta = new Respuesta<Desepla3DTO>();
             try
             {
-                Desepla3 _Desepla3 = _mapper.Map<Desepla3>(request);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Desepla3DTO>());
+                }
 
-                Console.WriteLine("O entro aca??");
+                Desepla3 _Desepla3 = _mapper.Map<Desepla3>(request);
+                if (!await DeclarationExistsAsync(_Desepla3.Nrodec))
+                {
+                    return BadRequest(new Respuesta<Desepla3DTO>
+                    {
+                        Exito = 0,
+                        Mensaje = "La declaracion de servicio indicada no existe."
+                    });
+                }
+
+                if (RequiresActiveSocioScope(accessContext) &&
+                    !await CanAccessDeclarationAsync(_Desepla3.Nrodec, accessContext))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Desepla3DTO>());
+                }
+
+                Console.WriteLine($"[Desepla3Controller] Guardar detalle nrodec={_Desepla3.Nrodec} tipo={_Desepla3.Tipo} hba={_Desepla3.Hardb} tat={_Desepla3.Tatpart} cantv={_Desepla3.Cantv} desde={_Desepla3.Desde} hasta={_Desepla3.Hasta}");
 
                 Desepla3 _Desepla3Creado = await _Desepla3Repositorio.Crear(_Desepla3);
+                Console.WriteLine($"[Desepla3Controller] Guardar detalle creado id={_Desepla3Creado.Id} nrodec={_Desepla3Creado.Nrodec} tipo={_Desepla3Creado.Tipo} hba={_Desepla3Creado.Hardb}");
 
                 if (_Desepla3Creado.Id != 0)
                     _Respuesta = new Respuesta<Desepla3DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Desepla3DTO>(_Desepla3Creado) };
@@ -194,12 +298,43 @@ namespace PaginaToros.Server.Controllers
             Respuesta<Desepla3DTO> _Respuesta = new Respuesta<Desepla3DTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Desepla3DTO>());
+                }
+
                 Desepla3 _Desepla3 = _mapper.Map<Desepla3>(request);
                 Desepla3 _Desepla3ParaEditar = await _Desepla3Repositorio.Obtener(u => u.Id == _Desepla3.Id);
 
                 if (_Desepla3ParaEditar != null)
                 {
-                    _Desepla3ParaEditar.Nrodec = _Desepla3.Nrodec;
+                    if (RequiresActiveSocioScope(accessContext) &&
+                        !await CanAccessDeclarationAsync(_Desepla3ParaEditar.Nrodec, accessContext))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Desepla3DTO>());
+                    }
+
+                    var targetNrodec = string.IsNullOrWhiteSpace(_Desepla3.Nrodec)
+                        ? _Desepla3ParaEditar.Nrodec
+                        : _Desepla3.Nrodec;
+
+                    if (!await DeclarationExistsAsync(targetNrodec))
+                    {
+                        return BadRequest(new Respuesta<Desepla3DTO>
+                        {
+                            Exito = 0,
+                            Mensaje = "La declaracion de servicio indicada no existe."
+                        });
+                    }
+
+                    if (RequiresActiveSocioScope(accessContext) &&
+                        !await CanAccessDeclarationAsync(targetNrodec, accessContext))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Desepla3DTO>());
+                    }
+
+                    _Desepla3ParaEditar.Nrodec = targetNrodec;
                     _Desepla3ParaEditar.Cantv = _Desepla3.Cantv;
                     _Desepla3ParaEditar.Desde = _Desepla3.Desde;
                     _Desepla3ParaEditar.Hasta = _Desepla3.Hasta;
@@ -226,5 +361,65 @@ namespace PaginaToros.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
+
+        private IQueryable<Desepla3> BuildScopedQuery(UserSocioAccessContext accessContext)
+        {
+            var query = _dbContext.Desepla3s.AsNoTracking().AsQueryable();
+
+            if (RequiresActiveSocioScope(accessContext) && !string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+            {
+                var activeSocioCode = accessContext.ActiveSocioCode;
+                query = query.Where(
+                    detail => _dbContext.Desepla1s
+                        .AsNoTracking()
+                        .Any(header => header.Nrodec == detail.Nrodec && header.Nrocri == activeSocioCode));
+            }
+
+            return query;
+        }
+
+        private async Task<bool> DeclarationExistsAsync(string? nrodec, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(nrodec))
+            {
+                return false;
+            }
+
+            return await _dbContext.Desepla1s
+                .AsNoTracking()
+                .AnyAsync(x => x.Nrodec == nrodec, cancellationToken);
+        }
+
+        private async Task<bool> CanAccessDeclarationAsync(
+            string? nrodec,
+            UserSocioAccessContext accessContext,
+            CancellationToken cancellationToken = default)
+        {
+            if (!RequiresActiveSocioScope(accessContext))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(nrodec) || string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+            {
+                return false;
+            }
+
+            return await _dbContext.Desepla1s
+                .AsNoTracking()
+                .AnyAsync(
+                    x => x.Nrodec == nrodec && x.Nrocri == accessContext.ActiveSocioCode,
+                    cancellationToken);
+        }
+
+        private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
+            => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        private static Respuesta<T> BuildForbiddenResponse<T>()
+            => new Respuesta<T>
+            {
+                Exito = 0,
+                Mensaje = "No tenes permisos para operar sobre otra razon social."
+            };
     }
 }

@@ -8,8 +8,10 @@ using System.Text;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Server.Repositorio.Implementacion;
 using Microsoft.Net.Http.Headers;
+using PaginaToros.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 var MyCors = "_MyCors";
 IConfiguration Configuration = builder.Configuration;
 
@@ -68,6 +70,7 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<IUserSocioContextService, UserSocioContextService>();
 builder.Services.AddScoped<ICentrosiumRepositorio, CentrosiumRepositorio>();
 builder.Services.AddScoped<ICertifsemanRepositorio, CertifsemanRepositorio>();
 builder.Services.AddScoped<IDesepla1Repositorio, Desepla1Repositorio>();
@@ -128,10 +131,10 @@ app.UseHttpsRedirection();
 
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
-app.UseAuthentication();
-app.UseAuthorization();
 app.UseRouting();
 app.UseCors(MyCors);
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapControllers();

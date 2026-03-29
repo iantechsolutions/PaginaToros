@@ -2,7 +2,6 @@
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ISocioServicio _sociosServicio
 @inject ITransanServicio _transanServicio
-@inject IPlantelServicio _plantelServicio
 @inject HttpClient http
 
 @inject NavigationManager Navigation
@@ -44,7 +43,7 @@
         justify-content: center;
     }
 </style>
-@if(Planteles.Count>0){
+@if (socios.Count > 0) {
 <div class="card">
     <div class="card-body">
         <EditForm Model="@oTransan" OnValidSubmit="Guardar">
@@ -190,8 +189,8 @@ else
     SocioDTO socioComprador = new();
     SocioDTO socioVendedor = new();
     List<SocioDTO> socios = new();
-    IList<User> Usuarios;
-    List<PlantelDTO> Planteles = new();
+    List<PlantelDTO> plantelesVendedor = new();
+    List<PlantelDTO> plantelesComprador = new();
     List<string> tiposHembra = new List<string> { "VQ", "VA" };
     List<string> tiposHacienda = new List<string> { "PHPR (Puro Registrado)", "HPR (Puro Registrado)", "PHVIP (VIP)", "HVIP (VIP)" };
     List<string> sexoAnimales = new List<string> { "Hembras", "Machos" };
@@ -204,6 +203,7 @@ else
 
 
     private ClaimsPrincipal? user;
+    private bool esSocioUsuario;
 
 
 
@@ -237,37 +237,30 @@ else
     [Parameter] public int Id { get; set; }
     [Parameter] public int? IdSocio { get; set; }
     string direccionCompra = "";
-
-
-
-
+    string? plantelesVendedorSocioCode;
+    string? plantelesCompradorSocioCode;
 
 
 
     protected override async Task OnInitializedAsync()
     {
-
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         user = authState.User;
+        esSocioUsuario = user?.IsInRole("Socio") == true || user?.IsInRole("SOCIO") == true;
 
-
-
-        Console.WriteLine(IdSocio);
-        var rta = await _sociosServicio.LimitadosFiltrados(0, 0);
-        socios = rta.List;
-
-
-        var result = await http.GetAsync($"api/Account/GetUsers/TODO/TODO/1");
-
-        var response = JsonSerializer.Deserialize<ResponseForList>(result.Content.ReadAsStringAsync().Result);
-        Usuarios = JsonSerializer.Deserialize<IList<User>>(response.EntitiesPricipal);
-
-        var rt = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
-        Planteles = rt.List;
+        if (esSocioUsuario)
+        {
+            socios = await GetSociosLookupAsync();
+        }
+        else
+        {
+            var rta = await _sociosServicio.LimitadosFiltrados(0, 0);
+            socios = rta.List ?? new();
+        }
         if (IdSocio != null && IdSocio != 0)
         {
-            
-        socioVendedor = socios.FirstOrDefault(x => x.Id == IdSocio);
+            socioVendedor = socios.FirstOrDefault(x => x.Id == IdSocio);
+            await EnsurePlantelesVendedorLoadedAsync();
         }
 
         if (Id != 0)
@@ -275,13 +268,17 @@ else
             try
             {
                 string filtro = $"Id = {Id}";
-                var r = await _transanServicio.LimitadosFiltrados(0,1,filtro);
+                var r = await _transanServicio.LimitadosFiltrados(0, 1, filtro);
                 oTransan = r.List.FirstOrDefault();
                 oTransan.Fecvta = DateTime.Now;
-                socioComprador = socios.Where(x => x.Scod == oTransan.Scom).First();
-                socioVendedor = socios.Where(x => x.Scod == oTransan.Sven).First();
-                plantelOrigen = Planteles.Where(x => x.Placod == oTransan.Plant).First();
-                plantelDestino = Planteles.Where(x => x.Placod == oTransan.NvoPla).First();
+                socioComprador = socios.FirstOrDefault(x => x.Scod == oTransan.Scom) ?? new SocioDTO();
+                socioVendedor = socios.FirstOrDefault(x => x.Scod == oTransan.Sven) ?? new SocioDTO();
+
+                await EnsurePlantelesVendedorLoadedAsync();
+                await EnsurePlantelesCompradorLoadedAsync();
+
+                plantelOrigen = plantelesVendedor.FirstOrDefault(x => x.Placod == oTransan.Plant) ?? new PlantelDTO();
+                plantelDestino = plantelesComprador.FirstOrDefault(x => x.Placod == oTransan.NvoPla) ?? new PlantelDTO();
                 temp1 = traductorCarga[oTransan.Tiphac];
                 temp2 = traductorCarga[oTransan.Tipani];
                 temp3 = traductorCarga[oTransan.Hemsta];
@@ -499,22 +496,8 @@ else
     protected async Task updateComprador(SocioDTO socio)
     {
         socioComprador = socio;
-
-        Console.WriteLine(socio.Mail);
-
-        var usuarioComprador = Usuarios.FirstOrDefault(x => x.SocioId == socio.Id);
-        if (usuarioComprador != null)
-        {
-            direccionCompra = usuarioComprador.Email;
-        }
-        else if (socio.Mail != null)
-        {
-            direccionCompra = socio.Mail;
-        }
-        else
-        {
-            direccionCompra = string.Empty;
-        }
+        direccionCompra = socio.Mail ?? string.Empty;
+        await EnsurePlantelesCompradorLoadedAsync();
 
         StateHasChanged();
     }
@@ -522,8 +505,9 @@ else
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
 
-        var result = socios.Where(x => 
+        var result = socios.Where(x =>
             // x.Criador=="S" &&
+            !string.IsNullOrWhiteSpace(x.Nombre) &&
             x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
 
@@ -531,21 +515,79 @@ else
 
     private async Task<IEnumerable<PlantelDTO>> BusquedaPlantelesComprador(string searchText)
     {
+        await EnsurePlantelesCompradorLoadedAsync();
+
         if (socioComprador != null && !string.IsNullOrWhiteSpace(socioComprador.Scod))
         {
             return await Task.FromResult(
-                Planteles.Where(x => x.Placod.Contains(searchText) && x.Nrocri == socioComprador.Scod).ToList()
+                plantelesComprador.Where(x => x.Placod.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList()
             );
         }
 
-        return await Task.FromResult(
-            Planteles.Where(x => x.Placod.Contains(searchText)).ToList()
-        );
+        return await Task.FromResult<IEnumerable<PlantelDTO>>(Array.Empty<PlantelDTO>());
     }
 
     private async Task<IEnumerable<PlantelDTO>> BusquedaPlantelesVendedor(string searchText)
     {
-        return await Task.FromResult(Planteles.Where(x => x.Placod.Contains(searchText) && x.Nrocri == socioVendedor.Scod).ToList());
+        await EnsurePlantelesVendedorLoadedAsync();
+
+        return await Task.FromResult(
+            plantelesVendedor.Where(x => x.Placod.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList());
+    }
+
+    private async Task EnsurePlantelesVendedorLoadedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(socioVendedor?.Scod))
+        {
+            plantelesVendedor = new List<PlantelDTO>();
+            plantelesVendedorSocioCode = null;
+            return;
+        }
+
+        if (string.Equals(plantelesVendedorSocioCode, socioVendedor.Scod, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        plantelesVendedor = await GetPlantelesBySocioCodeAsync(socioVendedor.Scod);
+        plantelesVendedorSocioCode = socioVendedor.Scod;
+    }
+
+    private async Task EnsurePlantelesCompradorLoadedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(socioComprador?.Scod))
+        {
+            plantelesComprador = new List<PlantelDTO>();
+            plantelesCompradorSocioCode = null;
+            return;
+        }
+
+        if (string.Equals(plantelesCompradorSocioCode, socioComprador.Scod, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        plantelesComprador = await GetPlantelesBySocioCodeAsync(socioComprador.Scod);
+        plantelesCompradorSocioCode = socioComprador.Scod;
+    }
+
+    private async Task<List<PlantelDTO>> GetPlantelesBySocioCodeAsync(string? socioCode)
+    {
+        if (string.IsNullOrWhiteSpace(socioCode))
+        {
+            return new List<PlantelDTO>();
+        }
+
+        var response = await http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>(
+            $"api/TransferenciasLookup/PlantelesBySocioCode?socioCode={Uri.EscapeDataString(socioCode)}");
+
+        return response?.List ?? new List<PlantelDTO>();
+    }
+
+    private async Task<List<SocioDTO>> GetSociosLookupAsync()
+    {
+        var response = await http.GetFromJsonAsync<Respuesta<List<SocioDTO>>>("api/TransferenciasLookup/Socios");
+        return response?.List ?? new List<SocioDTO>();
     }
 
 }

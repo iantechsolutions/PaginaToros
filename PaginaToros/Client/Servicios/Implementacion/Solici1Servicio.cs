@@ -36,8 +36,7 @@ namespace PaginaToros.Client.Servicios.Implementacion
 
         public async Task<Respuesta<List<Solici1DTO>>> GetBySocioId(int socioId)
         {
-            string filter = $"CodUsu={socioId}";
-            var result = await _http.GetFromJsonAsync<Respuesta<List<Solici1DTO>>>($"api/Solici1/LimitadosFiltrados?skip=0&take=0&expression={filter}");
+            var result = await _http.GetFromJsonAsync<Respuesta<List<Solici1DTO>>>($"api/Solici1/LimitadosFiltrados?skip=0&take=0");
             return result;
         }
 

@@ -2,11 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Client.Pages.Establecimientos;
 using PaginaToros.Client.Pages.Socios;
-using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
-using PaginaToros.Server.Repositorio.Implementacion;
+using PaginaToros.Server.Services;
 using PaginaToros.Shared.Models;
-using PaginaToros.Shared.Models.Request;
 using PaginaToros.Shared.Models.Response;
 
 namespace PaginaToros.Server.Controllers
@@ -17,11 +15,18 @@ namespace PaginaToros.Server.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IEstableRepositorio _EstableRepositorio;
-        public EstablecimientoController(IEstableRepositorio EstableRepositorio, IMapper mapper)
+        private readonly IUserSocioContextService _userSocioContextService;
+
+        public EstablecimientoController(
+            IEstableRepositorio EstableRepositorio,
+            IMapper mapper,
+            IUserSocioContextService userSocioContextService)
         {
             _mapper = mapper;
             _EstableRepositorio = EstableRepositorio;
+            _userSocioContextService = userSocioContextService;
         }
+
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
         {
@@ -29,9 +34,15 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var entities = await _EstableRepositorio.Lista(skip, take);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<EstableDTO>>());
+                }
 
-           
+                var entities = RequiresActiveSocioScope(accessContext)
+                    ? await _EstableRepositorio.LimitadosFiltrados(skip, take, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : await _EstableRepositorio.Lista(skip, take);
 
                 var listaPedido = _mapper.Map<List<EstableDTO>>(entities);
 
@@ -54,7 +65,22 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var a = await _EstableRepositorio.CantidadTotal();
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                }
+
+                int a;
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    var query = await _EstableRepositorio.Consultar(x => x.Codsoc == accessContext.ActiveSocioCode);
+                    a = query.Count();
+                }
+                else
+                {
+                    a = await _EstableRepositorio.CantidadTotal();
+                }
 
                 _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
 
@@ -77,7 +103,16 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var a = await _EstableRepositorio.LimitadosFiltrados(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<EstableDTO>>());
+                }
+
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+                var a = await _EstableRepositorio.LimitadosFiltrados(skip, take, effectiveExpression);
 
                 var listaFiltrada = _mapper.Map<List<EstableDTO>>(a);
 
@@ -102,7 +137,16 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                var a = await _EstableRepositorio.LimitadosFiltradosNoInclude(skip, take, expression);
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<EstableDTO>>());
+                }
+
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioCodeFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+                var a = await _EstableRepositorio.LimitadosFiltradosNoInclude(skip, take, effectiveExpression);
 
                 var listaFiltrada = _mapper.Map<List<EstableDTO>>(a);
 
@@ -126,9 +170,20 @@ namespace PaginaToros.Server.Controllers
             Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                }
+
                 Estable _EstableEliminar = await _EstableRepositorio.Obtener(u => u.Id == id);
                 if (_EstableEliminar != null)
                 {
+                    if (RequiresActiveSocioScope(accessContext) &&
+                        !string.Equals(_EstableEliminar.Codsoc, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
+                    }
 
                     bool respuesta = await _EstableRepositorio.Eliminar(_EstableEliminar);
 
@@ -153,7 +208,18 @@ namespace PaginaToros.Server.Controllers
             Respuesta<EstableDTO> _Respuesta = new Respuesta<EstableDTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<EstableDTO>());
+                }
+
                 Estable _Estable = _mapper.Map<Estable>(request);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    _Estable.Codsoc = accessContext.ActiveSocioCode;
+                }
+
                 var EstL = await _EstableRepositorio.Lista(0, 1);
                 Estable _EstableViejo = EstL.FirstOrDefault();
                 _Estable.Ecod = (Int32.Parse(_EstableViejo.Ecod) + 1).ToString("D6");
@@ -181,14 +247,27 @@ namespace PaginaToros.Server.Controllers
             Respuesta<EstableDTO> _Respuesta = new Respuesta<EstableDTO>();
             try
             {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<EstableDTO>());
+                }
+
                 Estable _Estable = _mapper.Map<Estable>(request);
                 Estable _EstableParaEditar = await _EstableRepositorio.Obtener(u => u.Id == _Estable.Id);
 
                 if (_EstableParaEditar != null)
                 {
+                    if (RequiresActiveSocioScope(accessContext) &&
+                        !string.Equals(_EstableParaEditar.Codsoc, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<EstableDTO>());
+                    }
 
                     _EstableParaEditar.Ecod = _Estable.Ecod;
-                    _EstableParaEditar.Codsoc = _Estable.Codsoc;
+                    _EstableParaEditar.Codsoc = RequiresActiveSocioScope(accessContext)
+                        ? accessContext.ActiveSocioCode
+                        : _Estable.Codsoc;
                     _EstableParaEditar.Activo = _Estable.Activo;
                     _EstableParaEditar.Nombre = _Estable.Nombre;
                     _EstableParaEditar.Encargado = _Estable.Encargado;
@@ -223,5 +302,31 @@ namespace PaginaToros.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
+
+        private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
+            => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        private static string BuildActiveSocioFilter(string activeSocioCode)
+            => $"Socio != null && Socio.Scod == \"{activeSocioCode}\"";
+
+        private static string BuildActiveSocioCodeFilter(string activeSocioCode)
+            => $"Codsoc == \"{activeSocioCode}\"";
+
+        private static string AppendFilter(string? expression, string requiredFilter)
+        {
+            if (string.IsNullOrWhiteSpace(expression))
+            {
+                return requiredFilter;
+            }
+
+            return $"({expression}) && ({requiredFilter})";
+        }
+
+        private static Respuesta<T> BuildForbiddenResponse<T>()
+            => new Respuesta<T>
+            {
+                Exito = 0,
+                Mensaje = "No tenes permisos para operar sobre otra razon social."
+            };
     }
 }

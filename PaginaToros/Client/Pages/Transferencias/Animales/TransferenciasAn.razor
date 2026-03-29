@@ -3,7 +3,6 @@
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ITransanServicio _transanServicio
-@inject ISocioServicio _socioServicio
 <style>
 
     .rz-cell-data,
@@ -195,11 +194,8 @@ else
         else
         {
             idSocio = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
-            string filtro = $"Id = {idSocio}";
-            Console.WriteLine(idSocio);
-            var socio = await _socioServicio.LimitadosFiltrados(0, 0, filtro);
-            oRespuesta = await _transanServicio.GetBySocioCod(socio.List.First().Scod);
-            cantidad = oRespuesta.List.Count();
+            oRespuesta = await _transanServicio.LimitadosFiltrados(0, 0, string.Empty);
+            cantidad = oRespuesta.List?.Count ?? 0;
         }
         StateHasChanged();
     }

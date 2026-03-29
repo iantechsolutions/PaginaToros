@@ -64,6 +64,7 @@ namespace PaginaToros.Server.Context
         public virtual DbSet<Transem> Transems { get; set; } = null!;
         public virtual DbSet<Transsb> Transsbs { get; set; } = null!;
         public virtual DbSet<User> User { get; set; } = null!;
+        public virtual DbSet<UserSocio> UserSocios { get; set; } = null!;
         public virtual DbSet<Usuario> Usuarios { get; set; } = null!;
         public virtual DbSet<Zona> Zonas { get; set; } = null!;
 
@@ -71,12 +72,8 @@ namespace PaginaToros.Server.Context
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseMySql("server=vxsct3514.avnam.net;port=3306;user=herefordapp_com_ar;password=RWEr4dod6g3G;persist security info=True;database=hereford_pr;convert zero datetime=True", ServerVersion.Parse("10.3.39-mariadb"), options => options.EnableRetryOnFailure(
-                    maxRetryCount: 5,
-                    maxRetryDelay: System.TimeSpan.FromSeconds(30),
-                    errorNumbersToAdd: null)
-                );
+                // This context must be configured via dependency injection so local
+                // environments can safely override the connection string.
             }
         }
 
@@ -536,7 +533,7 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("DOSIS_USADA");
 
                 entity.Property(e => e.Nrodec)
-                    .HasMaxLength(6)
+                    .HasMaxLength(15)
                     .HasColumnName("NRODEC");
             });
 
@@ -624,11 +621,11 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("NROCRI");
 
                 entity.Property(e => e.Nrodec)
-                    .HasMaxLength(6)
+                    .HasMaxLength(15)
                     .HasColumnName("NRODEC");
 
                 entity.Property(e => e.Nroplan)
-                    .HasMaxLength(5)
+                    .HasMaxLength(6)
                     .HasColumnName("NROPLAN");
 
                 entity.Property(e => e.PastillasSincro)
@@ -2635,11 +2632,11 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("NRO_CERT");
 
                 entity.Property(e => e.NvoPla)
-                    .HasMaxLength(4)
+                    .HasMaxLength(20)
                     .HasColumnName("NVO_PLA");
 
                 entity.Property(e => e.Plant)
-                    .HasMaxLength(4)
+                    .HasMaxLength(20)
                     .HasColumnName("PLANT");
 
                 entity.Property(e => e.Scom)
@@ -2823,6 +2820,8 @@ namespace PaginaToros.Server.Context
                 entity.HasCharSet("utf8")
                     .UseCollation("utf8_general_ci");
 
+                entity.Ignore(e => e.SocioIds);
+
                 entity.Property(e => e.Id).HasColumnType("int(11)");
 
                 entity.Property(e => e.Created).HasColumnType("datetime");
@@ -2832,6 +2831,8 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("DNI");
 
                 entity.Property(e => e.Email).HasMaxLength(100);
+
+                entity.Property(e => e.IdentityUserId).HasMaxLength(450);
 
                 entity.Property(e => e.LastNames).HasMaxLength(100);
 
@@ -2849,6 +2850,54 @@ namespace PaginaToros.Server.Context
                .WithMany(s => s.Users)
                .HasForeignKey(t => t.SocioId)
                .HasPrincipalKey(s => s.Id);
+
+            modelBuilder.Entity<UserSocio>(entity =>
+            {
+                entity.ToTable("user_socios");
+
+                entity.HasKey(e => e.Id)
+                    .HasName("PRIMARY");
+
+                entity.HasIndex(e => new { e.UserId, e.SocioId }, "UX_user_socios_user_socio")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.SocioId, "IX_user_socios_socio_id");
+
+                entity.HasIndex(e => e.UserId, "IX_user_socios_user_id");
+
+                entity.HasCharSet("utf8")
+                    .UseCollation("utf8_general_ci");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(11)")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime")
+                    .HasColumnName("created_at");
+
+                entity.Property(e => e.SocioId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("socio_id");
+
+                entity.Property(e => e.UserId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("user_id");
+            });
+
+            modelBuilder.Entity<UserSocio>()
+               .HasOne<User>()
+               .WithMany()
+               .HasForeignKey(t => t.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserSocio>()
+               .HasOne<Socio>()
+               .WithMany()
+               .HasForeignKey(t => t.SocioId)
+               .HasPrincipalKey(s => s.Id)
+               .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Usuario>(entity =>
             {

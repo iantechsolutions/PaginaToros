@@ -9,6 +9,7 @@ using System.Text.Json;
 using PaginaToros.Server.Context;
 using PaginaToros.Shared.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Net.Mail;
 using PaginaToros.Client.Pages.Socios;
 using System.Net.Mime;
@@ -53,6 +54,14 @@ namespace PaginaToros.Server.Controllers
             Console.WriteLine("Entró a EditUser");
             try
             {
+                model.Dni = model.Dni?.ToUpperInvariant();
+                model.Rol = model.Rol?.ToUpperInvariant();
+                model.Status = model.Status?.ToUpperInvariant() ?? "ACTIVO";
+
+                var requestedSocioIds = await ResolveRequestedSocioIdsAsync(model);
+                if (requestedSocioIds.ErrorResult is not null)
+                    return requestedSocioIds.ErrorResult;
+
                 // 0) Traer tu usuario de dominio
                 var dbUser = await db.User.FirstOrDefaultAsync(u => u.Id == model.Id);
                 if (dbUser == null)
@@ -125,9 +134,9 @@ namespace PaginaToros.Server.Controllers
                 dbUser.Status = model.Status?.ToUpperInvariant();
                 dbUser.Phone = model.Phone;
                 dbUser.Email = model.Email;
-                dbUser.SocioId = model.SocioId;
-                                                       
+                dbUser.IdentityUserId = aspUser.Id;
 
+                await SyncUserSociosAsync(dbUser, requestedSocioIds.SocioIds);
                 await db.SaveChangesAsync();
 
                 Console.WriteLine("Usuario actualizado correctamente.");
@@ -153,6 +162,10 @@ namespace PaginaToros.Server.Controllers
                 model.Status = model.Status?.ToUpperInvariant() ?? "ACTIVO";
                 model.Created = DateTime.UtcNow;
 
+                var requestedSocioIds = await ResolveRequestedSocioIdsAsync(model);
+                if (requestedSocioIds.ErrorResult is not null)
+                    return requestedSocioIds.ErrorResult;
+
                 var user = new IdentityUser
                 {
                     UserName = model.Email,
@@ -173,7 +186,13 @@ namespace PaginaToros.Server.Controllers
                     if (!result.Succeeded) return BadRequest(result.Errors);
                 }
 
+                model.IdentityUserId = user.Id;
+                model.SocioId = requestedSocioIds.SocioIds.Count > 0
+                    ? requestedSocioIds.SocioIds[0]
+                    : null;
                 await db.User.AddAsync(model);
+                await db.SaveChangesAsync();
+                await SyncUserSociosAsync(model, requestedSocioIds.SocioIds);
                 await db.SaveChangesAsync();
 
                 return Ok(user.Id);
@@ -198,7 +217,7 @@ namespace PaginaToros.Server.Controllers
 
                     Console.WriteLine("LLego");
 
-                   
+
 
 
 
@@ -409,7 +428,7 @@ namespace PaginaToros.Server.Controllers
             catch (Exception e)
             {
                 Console.WriteLine($"Error: {e.Message}");
-                Console.WriteLine(model.Email); 
+                Console.WriteLine(model.Email);
                 Console.WriteLine(password);
                 return BadRequest($"Error al enviar el correo: {e.Message}");
             }
@@ -440,7 +459,7 @@ namespace PaginaToros.Server.Controllers
                     mail.Subject = "Notificación de Cambio en el Sistema de Hereford";
 
 
-                  
+
 
 
 
@@ -719,7 +738,7 @@ namespace PaginaToros.Server.Controllers
         //dmuu kdke jobp bhgo
 
 
-        
+
 
         [HttpPut("ChangePassword")]
         public async Task<ActionResult> ChangePassword([FromBody] ChangePassModel model)
@@ -753,12 +772,12 @@ namespace PaginaToros.Server.Controllers
         }
 
         public class ResetPasswordModel
-            {
-                public int UserId { get; set; }
+        {
+            public int UserId { get; set; }
 
-                public string Email { get; set; }
-                public string Password { get; set; }
-            }
+            public string Email { get; set; }
+            public string Password { get; set; }
+        }
 
         [HttpPut("ResetPassword")]
         public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordModel model)
@@ -1021,6 +1040,8 @@ namespace PaginaToros.Server.Controllers
                     .Take(Utilities.REGISTERSPERPAGE)
                     .ToList();
 
+                await PopulateSocioIdsAsync(entities);
+
                 ResponseForList response = new ResponseForList()
                 {
                     EntitiesPricipal = JsonSerializer.Serialize(entities),
@@ -1037,15 +1058,16 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpGet("GetUserById/{id}")]
-        public ActionResult GetUserById(int id)
+        public async Task<ActionResult> GetUserById(int id)
         {
             try
             {
-                var Usuario = db.User.FirstOrDefault(x => x.Id == id);
+                var Usuario = await db.User.FirstOrDefaultAsync(x => x.Id == id);
                 if (Usuario == null)
                 {
                     return BadRequest("No se pudo encontrar un usuario");
                 }
+                await PopulateSocioIdsAsync(Usuario);
                 return Ok(JsonSerializer.Serialize(Usuario));
             }
             catch (Exception e)
@@ -1055,17 +1077,16 @@ namespace PaginaToros.Server.Controllers
             }
         }
         [HttpGet("GetUserByMail/{email}")]
-        public ActionResult GetUserByMail(string email)
+        public async Task<ActionResult> GetUserByMail(string email)
         {
             try
             {
-                Console.WriteLine(email);
-                Console.WriteLine("Por lo menos entro");
-                var Usuario = db.User.FirstOrDefault(x => x.Email == email);
+                var Usuario = await db.User.FirstOrDefaultAsync(x => x.Email == email);
                 if (Usuario == null)
                 {
                     return BadRequest("No se pudo encontrar un usuario");
                 }
+                await PopulateSocioIdsAsync(Usuario);
                 return Ok(JsonSerializer.Serialize(Usuario));
             }
             catch (Exception e)
@@ -1079,7 +1100,8 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                var entities = await _hfdb.User.Include(x=>x.Socio).ToListAsync();
+                var entities = await _hfdb.User.Include(x => x.Socio).ToListAsync();
+                await PopulateSocioIdsAsync(entities);
 
                 ResponseForList response = new ResponseForList()
                 {
@@ -1102,7 +1124,7 @@ namespace PaginaToros.Server.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> Login([FromBody] UserLogin userInfo)
         {
-            var Usuario = db.User.FirstOrDefault(x => x.Email == userInfo.UserName);
+            var Usuario = await db.User.FirstOrDefaultAsync(x => x.Email == userInfo.UserName);
             if (Usuario != null)
             {
                 if (Usuario != null && Usuario.Status != "ACTIVO")
@@ -1113,7 +1135,7 @@ namespace PaginaToros.Server.Controllers
                 var result = await _signInManager.PasswordSignInAsync(userInfo.UserName, userInfo.Password, isPersistent: false, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
-                    return Ok(BuildToken(userInfo.UserName));
+                    return Ok(await BuildTokenAsync(userInfo.UserName));
                 }
                 else
                 {
@@ -1132,13 +1154,13 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                var Usuario = db.User.FirstOrDefault(x => x.Id == id);
+                var Usuario = await db.User.FirstOrDefaultAsync(x => x.Id == id);
                 if (Usuario == null)
                 {
                     return BadRequest("No se pudo encontrar un usuario");
                 }
 
-                var user = db.Users.FirstOrDefault(x => x.UserName == Usuario.Email);
+                var user = await db.Users.FirstOrDefaultAsync(x => x.UserName == Usuario.Email);
                 if (user == null)
                 {
                     return BadRequest("No se pudo encontrar un usuario de acceso");
@@ -1149,6 +1171,13 @@ namespace PaginaToros.Server.Controllers
                 {
                     return BadRequest(result.Errors);
                 }
+
+                var relaciones = await db.UserSocios.Where(x => x.UserId == Usuario.Id).ToListAsync();
+                if (relaciones.Count > 0)
+                {
+                    db.UserSocios.RemoveRange(relaciones);
+                }
+
                 db.Remove(Usuario);
 
                 await db.SaveChangesAsync();
@@ -1161,16 +1190,90 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
-        private string BuildToken(string username)
+        [HttpGet("context")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ActionResult<UserContextDTO>> GetCurrentContext()
         {
-            var user = db.Users.First(x => x.UserName == username);
-            string role = db.UserRoles.First(x => x.UserId == user.Id).RoleId;
+            var currentUser = await GetCurrentDomainUserAsync();
+            if (currentUser is null)
+                return NotFound("No se pudo encontrar el usuario autenticado.");
+
+            var context = await BuildUserContextAsync(currentUser);
+            return Ok(context);
+        }
+
+        [HttpGet("allowed-socios")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ActionResult<List<UserSocioOptionDTO>>> GetAllowedSocios()
+        {
+            var currentUser = await GetCurrentDomainUserAsync();
+            if (currentUser is null)
+                return NotFound("No se pudo encontrar el usuario autenticado.");
+
+            var context = await BuildUserContextAsync(currentUser);
+            return Ok(context.AllowedSocios);
+        }
+
+        [HttpPost("active-socio")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ActionResult<UserContextDTO>> SetActiveSocio([FromBody] ChangeActiveSocioRequest request)
+        {
+            if (request is null || request.SocioId <= 0)
+                return BadRequest("Debe indicar una razón social válida.");
+
+            var currentUser = await GetCurrentDomainUserAsync();
+            if (currentUser is null)
+                return NotFound("No se pudo encontrar el usuario autenticado.");
+
+            if (!IsSocioRole(currentUser.Rol))
+                return Forbid();
+
+            var socioIds = await GetUserSocioIdsAsync(currentUser);
+            if (!socioIds.Contains(request.SocioId))
+                return BadRequest("La razón social seleccionada no está asociada al usuario.");
+
+            currentUser.SocioId = request.SocioId;
+            await db.SaveChangesAsync();
+
+            var context = await BuildUserContextAsync(currentUser, socioIds);
+            return Ok(context);
+        }
+
+        private async Task<string> BuildTokenAsync(string username)
+        {
+            var user = await db.Users.FirstAsync(x => x.UserName == username);
+            var roleId = await db.UserRoles
+                .Where(x => x.UserId == user.Id)
+                .Select(x => x.RoleId)
+                .FirstAsync();
+            var role = await db.Roles
+                .Where(x => x.Id == roleId)
+                .Select(x => x.Name)
+                .FirstOrDefaultAsync() ?? roleId;
+
             string completeName = "USUARIO MAESTRO";
             int UsuarioId = 0;
             int? SocioId = 0;
-            if (role != "USUARIOMAESTRO")
+
+            if (!string.Equals(role, "USUARIOMAESTRO", StringComparison.OrdinalIgnoreCase))
             {
-                var Usuario = db.User.First(x => x.Email == user.UserName);
+                var Usuario = await db.User.FirstOrDefaultAsync(x => x.IdentityUserId == user.Id)
+                    ?? await db.User.FirstAsync(x => x.Email == user.UserName);
+
+                if (string.IsNullOrWhiteSpace(Usuario.IdentityUserId))
+                {
+                    Usuario.IdentityUserId = user.Id;
+                    await db.SaveChangesAsync();
+                }
+
+                var socioIds = await GetUserSocioIdsAsync(Usuario);
+                if (IsSocioRole(role) && socioIds.Count > 0 &&
+                    (!Usuario.SocioId.HasValue || !socioIds.Contains(Usuario.SocioId.Value)))
+                {
+                    Usuario.SocioId = socioIds[0];
+                    await db.SaveChangesAsync();
+                }
+
                 completeName = $"{Usuario.Names} {Usuario.LastNames}";
                 UsuarioId = Usuario.Id;
                 SocioId = Usuario.SocioId;
@@ -1183,9 +1286,9 @@ namespace PaginaToros.Server.Controllers
                 new Claim(ClaimTypes.Name, completeName),
                 new Claim("userId", user.Id),
                 new Claim("UsuarioId", UsuarioId.ToString()),
-                new Claim(ClaimTypes.Role, role),
+                new Claim(ClaimTypes.Role, role ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("SocioId",SocioId.ToString())
+                new Claim("SocioId", SocioId?.ToString() ?? string.Empty)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:key"]));
@@ -1201,5 +1304,228 @@ namespace PaginaToros.Server.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-}
+
+        private static bool IsSocioRole(string? role)
+            => string.Equals(role, "SOCIO", StringComparison.OrdinalIgnoreCase)
+               || string.Equals(role, "Socio", StringComparison.OrdinalIgnoreCase);
+
+        private static List<int> NormalizeRequestedSocioIds(User model)
+        {
+            var socioIds = (model.SocioIds ?? new List<int>())
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+
+            if (socioIds.Count == 0 && model.SocioId.HasValue && model.SocioId.Value > 0)
+            {
+                socioIds.Add(model.SocioId.Value);
+            }
+
+            return socioIds;
+        }
+
+        private async Task<(List<int> SocioIds, ActionResult? ErrorResult)> ResolveRequestedSocioIdsAsync(User model)
+        {
+            if (!IsSocioRole(model.Rol))
+            {
+                return (new List<int>(), null);
+            }
+
+            var requestedSocioIds = NormalizeRequestedSocioIds(model);
+            if (requestedSocioIds.Count == 0)
+            {
+                return (new List<int>(), BadRequest("Un usuario con rol Socio debe tener al menos una razón social asociada."));
+            }
+
+            var existingSocioIds = await _hfdb.Socios
+                .AsNoTracking()
+                .Where(x => requestedSocioIds.Contains(x.Id))
+                .Select(x => x.Id)
+                .ToListAsync();
+
+            if (existingSocioIds.Count != requestedSocioIds.Count)
+            {
+                return (new List<int>(), BadRequest("Una o más razones sociales asociadas no existen en la base de datos."));
+            }
+
+            return (existingSocioIds, null);
+        }
+
+        private async Task SyncUserSociosAsync(User user, IEnumerable<int> requestedSocioIds)
+        {
+            var normalized = requestedSocioIds
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+
+            var existing = await db.UserSocios
+                .Where(x => x.UserId == user.Id)
+                .ToListAsync();
+
+            if (!IsSocioRole(user.Rol) || normalized.Count == 0)
+            {
+                if (existing.Count > 0)
+                {
+                    db.UserSocios.RemoveRange(existing);
+                }
+
+                user.SocioId = null;
+                return;
+            }
+
+            var existingIds = existing.Select(x => x.SocioId).ToHashSet();
+            var toRemove = existing.Where(x => !normalized.Contains(x.SocioId)).ToList();
+            if (toRemove.Count > 0)
+            {
+                db.UserSocios.RemoveRange(toRemove);
+            }
+
+            foreach (var socioId in normalized.Where(x => !existingIds.Contains(x)))
+            {
+                await db.UserSocios.AddAsync(new UserSocio
+                {
+                    UserId = user.Id,
+                    SocioId = socioId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            if (!user.SocioId.HasValue || !normalized.Contains(user.SocioId.Value))
+            {
+                user.SocioId = normalized[0];
+            }
+        }
+
+        private async Task<List<int>> GetUserSocioIdsAsync(User user)
+        {
+            var ids = await db.UserSocios
+                .AsNoTracking()
+                .Where(x => x.UserId == user.Id)
+                .Select(x => x.SocioId)
+                .ToListAsync();
+
+            if (ids.Count == 0 && user.SocioId.HasValue && user.SocioId.Value > 0)
+            {
+                ids.Add(user.SocioId.Value);
+            }
+
+            return ids
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+        }
+
+        private async Task PopulateSocioIdsAsync(IList<User> users)
+        {
+            var userIds = users.Select(x => x.Id).Distinct().ToList();
+            if (userIds.Count == 0)
+                return;
+
+            var relations = await db.UserSocios
+                .AsNoTracking()
+                .Where(x => userIds.Contains(x.UserId))
+                .ToListAsync();
+
+            var lookup = relations
+                .GroupBy(x => x.UserId)
+                .ToDictionary(
+                    x => x.Key,
+                    x => x.Select(r => r.SocioId).Distinct().ToList());
+
+            foreach (var user in users)
+            {
+                if (lookup.TryGetValue(user.Id, out var socioIds) && socioIds.Count > 0)
+                {
+                    user.SocioIds = socioIds;
+                }
+                else
+                {
+                    user.SocioIds = user.SocioId.HasValue && user.SocioId.Value > 0
+                        ? new List<int> { user.SocioId.Value }
+                        : new List<int>();
+                }
+            }
+        }
+
+        private Task PopulateSocioIdsAsync(User user)
+            => PopulateSocioIdsAsync(new List<User> { user });
+
+        private async Task<User?> GetCurrentDomainUserAsync()
+        {
+            var usuarioIdClaim = User.Claims.FirstOrDefault(x => x.Type == "UsuarioId")?.Value;
+            var identityUserId = User.Claims.FirstOrDefault(x => x.Type == "userId")?.Value;
+            var email = User.Claims.FirstOrDefault(x => x.Type == "userNM")?.Value
+                ?? User.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.UniqueName)?.Value
+                ?? User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
+
+            User? currentUser = null;
+
+            if (int.TryParse(usuarioIdClaim, out var usuarioId) && usuarioId > 0)
+            {
+                currentUser = await db.User.FirstOrDefaultAsync(x => x.Id == usuarioId);
+            }
+
+            if (currentUser is null && !string.IsNullOrWhiteSpace(identityUserId))
+            {
+                currentUser = await db.User.FirstOrDefaultAsync(x => x.IdentityUserId == identityUserId);
+            }
+
+            if (currentUser is null && !string.IsNullOrWhiteSpace(email))
+            {
+                currentUser = await db.User.FirstOrDefaultAsync(x => x.Email == email);
+            }
+
+            if (currentUser is not null && string.IsNullOrWhiteSpace(currentUser.IdentityUserId) && !string.IsNullOrWhiteSpace(identityUserId))
+            {
+                currentUser.IdentityUserId = identityUserId;
+                await db.SaveChangesAsync();
+            }
+
+            if (currentUser is not null)
+            {
+                await PopulateSocioIdsAsync(currentUser);
+            }
+
+            return currentUser;
+        }
+
+        private async Task<UserContextDTO> BuildUserContextAsync(User currentUser, List<int>? socioIds = null)
+        {
+            socioIds ??= await GetUserSocioIdsAsync(currentUser);
+            var isSocioUser = IsSocioRole(currentUser.Rol);
+
+            if (isSocioUser && socioIds.Count > 0 &&
+                (!currentUser.SocioId.HasValue || !socioIds.Contains(currentUser.SocioId.Value)))
+            {
+                currentUser.SocioId = socioIds[0];
+                await db.SaveChangesAsync();
+            }
+
+            var allowedSocios = await _hfdb.Socios
+                .AsNoTracking()
+                .Where(x => socioIds.Contains(x.Id))
+                .OrderBy(x => x.Nombre)
+                .Select(x => new UserSocioOptionDTO
+                {
+                    Id = x.Id,
+                    Codigo = string.IsNullOrWhiteSpace(x.Codpos2) ? string.Empty : x.Codpos2.Trim(),
+                    Nombre = string.IsNullOrWhiteSpace(x.Nombre) ? string.Empty : x.Nombre.Trim(),
+                    DisplayName = string.IsNullOrWhiteSpace(x.Codpos2)
+                        ? (x.Nombre ?? string.Empty)
+                        : $"{x.Codpos2.Trim()} - {(x.Nombre ?? string.Empty).Trim()}"
+                })
+                .ToListAsync();
+
+            var activeSocio = allowedSocios.FirstOrDefault(x => x.Id == currentUser.SocioId);
+
+            return new UserContextDTO
+            {
+                UserId = currentUser.Id,
+                IsSocioUser = isSocioUser,
+                ActiveSocioId = currentUser.SocioId,
+                ActiveSocioDisplayName = activeSocio?.DisplayName,
+                AllowedSocios = allowedSocios
+            };
+        }
+    }
 }

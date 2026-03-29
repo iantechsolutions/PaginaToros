@@ -1703,20 +1703,167 @@ async Task ResultWithoutSolicitud()
             }
         };
 
-        RenderFragment InformeGeneralContent => builder =>
-        {
-            if (loadingProms || loadingRech)
+        RenderFragment InformeGeneralContent => @<div class="p-2">
+            @if (loadingProms || loadingRech)
             {
-                builder.OpenElement(0, "div");
-                builder.AddAttribute(1, "class", "p-2");
-                builder.AddMarkupContent(2, "<RadzenSkeleton Shape=\"SkeletonShape.Rectangle\" Height=\"200px\" />");
-                builder.CloseElement();
+                <div class="p-2">
+                    <RadzenSkeleton Shape="SkeletonShape.Rectangle" Height="200px" />
+                </div>
             }
             else
             {
-                builder.AddMarkupContent(3, "<!-- Informe general content omitted for brevity -->");
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <strong>Promedios de edad y peso</strong>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm table-bordered align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Sexo</th>
+                                            <th>Prom. edad</th>
+                                            <th>Prom. peso</th>
+                                            <th>Min. edad</th>
+                                            <th>Max. edad</th>
+                                            <th>Min. peso</th>
+                                            <th>Max. peso</th>
+                                            <th>D. leche %</th>
+                                            <th>2 dientes %</th>
+                                            <th>4 dientes %</th>
+                                            @if (!esSocio)
+                                            {
+                                                <th></th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Hembras</strong></td>
+                                            <td>@promediohembra.Pedad</td>
+                                            <td>@promediohembra.Ppeso</td>
+                                            <td>@promediohembra.Iedad</td>
+                                            <td>@promediohembra.Medad</td>
+                                            <td>@promediohembra.Ipeso</td>
+                                            <td>@promediohembra.Mpeso</td>
+                                            <td>@promediohembra.Pdl</td>
+                                            <td>@promediohembra.P2d</td>
+                                            <td>@promediohembra.P4d</td>
+                                            @if (!esSocio)
+                                            {
+                                                <td class="text-center">
+                                                    <button class="btn btn-sm btn-outline-success"
+                                                            title="Editar promedio hembras"
+                                                            @onclick='() => editarPromedio(promediohembra.Id, "H")'>
+                                                        <FeatherEdit Color="green" Width="16" Height="16" />
+                                                    </button>
+                                                </td>
+                                            }
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Machos</strong></td>
+                                            <td>@promediomacho.Pedad</td>
+                                            <td>@promediomacho.Ppeso</td>
+                                            <td>@promediomacho.Iedad</td>
+                                            <td>@promediomacho.Medad</td>
+                                            <td>@promediomacho.Ipeso</td>
+                                            <td>@promediomacho.Mpeso</td>
+                                            <td>@promediomacho.Pdl</td>
+                                            <td>@promediomacho.P2d</td>
+                                            <td>@promediomacho.P4d</td>
+                                            @if (!esSocio)
+                                            {
+                                                <td class="text-center">
+                                                    <button class="btn btn-sm btn-outline-success"
+                                                            title="Editar promedio machos"
+                                                            @onclick='() => editarPromedio(promediomacho.Id, "M")'>
+                                                        <FeatherEdit Color="green" Width="16" Height="16" />
+                                                    </button>
+                                                </td>
+                                            }
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <strong>Rechazos</strong>
+                                @if (!esSocio)
+                                {
+                                    <button class="btn btn-sm btn-outline-primary"
+                                            title="Agregar rechazo"
+                                            @onclick='() => agregarRechazo(0)'>
+                                        Agregar
+                                    </button>
+                                }
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm table-bordered align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Motivo</th>
+                                            <th>Hembras</th>
+                                            <th>Machos</th>
+                                            @if (!esSocio)
+                                            {
+                                                <th></th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (rechazos.Any())
+                                        {
+                                            @foreach (var rechazo in rechazos.OrderBy(x => x.MotivoRechazo))
+                                            {
+                                                <tr>
+                                                    <td>@GetMotivoRechazoLabel(rechazo.MotivoRechazo)</td>
+                                                    <td>@(rechazo.Hembras ?? 0)</td>
+                                                    <td>@(rechazo.Machos ?? 0)</td>
+                                                    @if (!esSocio)
+                                                    {
+                                                        <td class="text-center">
+                                                            <button class="btn btn-sm btn-outline-success me-1"
+                                                                    title="Editar rechazo"
+                                                                    @onclick='() => agregarRechazo(rechazo.Id)'>
+                                                                <FeatherEdit Color="green" Width="16" Height="16" />
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-danger"
+                                                                    title="Eliminar rechazo"
+                                                                    @onclick='() => alertaDeleteRechazo(rechazo.Id)'>
+                                                                <FeatherTrash2 Color="red" Width="16" Height="16" />
+                                                            </button>
+                                                        </td>
+                                                    }
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="@(esSocio ? 3 : 4)" class="text-center text-muted">
+                                                    No hay rechazos cargados para este reporte.
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
-        };
+        </div>;
+
+        private string GetMotivoRechazoLabel(int? motivoRechazo)
+        {
+            var key = (motivoRechazo ?? 0).ToString();
+            return traductor.TryGetValue(key, out var descripcion) ? descripcion : "Sin motivo";
+        }
 
         // Search helpers used by Blazored.Typeahead
         private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
