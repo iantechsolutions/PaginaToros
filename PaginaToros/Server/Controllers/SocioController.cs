@@ -444,54 +444,27 @@ namespace PaginaToros.Server.Controllers
                 }
             }
 
-            var normalizedEmail = socioDto.Mail!.Trim().ToUpperInvariant();
-            var existingDomainUser = await FindDomainUserBySocioIdAsync(socioDto.Id);
-            var emailDomainUser = await _identityDb.User.FirstOrDefaultAsync(
-                u => u.Email != null && u.Email.ToUpper() == normalizedEmail);
-
-            if (emailDomainUser != null && !IsSocioRole(emailDomainUser.Rol))
-            {
-                response.Mensaje = "El mail ya pertenece a otro usuario.";
-                response.List.CodigoError = "EMAIL_IN_USE_BY_OTHER_ROLE";
-                response.List.MensajeUsuario = $"El mail '{socioDto.Mail}' ya está asociado a un usuario con rol {emailDomainUser.Rol}.";
-                response.List.MailAsociado = emailDomainUser.Email;
-                response.List.Errores.Add(response.List.MensajeUsuario);
-                return Conflict(response);
-            }
-
-            if (existingDomainUser != null && emailDomainUser != null && existingDomainUser.Id != emailDomainUser.Id)
-            {
-                var associatedSocio = await FindAssociatedSocioAsync(existingDomainUser, socioDto.Id);
-
-                response.Mensaje = "El socio ya está asociado a otro usuario.";
-                response.List.CodigoError = "SOCIO_ALREADY_LINKED_TO_OTHER_USER";
-                response.List.MensajeUsuario = $"El socio {BuildSocioDisplayName(socioDb)} ya está asociado a otro usuario. No se puede vincular con el mail '{socioDto.Mail}'.";
-                response.List.MailAsociado = existingDomainUser.Email;
-                response.List.SocioAsociadoId = associatedSocio?.Id ?? socioDb.Id;
-                response.List.SocioAsociadoCodigo = associatedSocio?.Codpos2 ?? associatedSocio?.Scod ?? socioDb.Codpos2 ?? socioDb.Scod;
-                response.List.SocioAsociadoNombre = associatedSocio != null ? BuildSocioDisplayName(associatedSocio) : BuildSocioDisplayName(socioDb);
-                response.List.Errores.Add(response.List.MensajeUsuario);
-                return Conflict(response);
-            }
-
-            var targetDomainUser = existingDomainUser ?? emailDomainUser;
-            var targetIdentityUser = targetDomainUser == null
-                ? null
-                : await FindIdentityUserForDomainUserAsync(targetDomainUser);
-
+            var targetDomainUser = await FindDomainUserBySocioIdAsync(socioDto.Id);
             if (targetDomainUser == null)
             {
-                var duplicateIdentity = await _userManager.FindByEmailAsync(socioDto.Mail!);
-                if (duplicateIdentity != null)
-                {
-                    response.Mensaje = "El mail ya pertenece a otro usuario.";
-                    response.List.CodigoError = "EMAIL_IN_USE_BY_OTHER_USER";
-                    response.List.MensajeUsuario = $"El mail '{socioDto.Mail}' ya está registrado. Eliminá o corregí ese usuario antes de continuar.";
-                    response.List.Errores.Add(response.List.MensajeUsuario);
-                    return Conflict(response);
-                }
+                response.Mensaje = "El socio no tiene usuario asociado.";
+                response.List.CodigoError = "SOCIO_WITHOUT_USER";
+                response.List.MensajeUsuario = $"El socio {BuildSocioDisplayName(socioDb)} no tiene un usuario asociado. No se puede enviar el mail de inscripción.";
+                AddUniqueError(response.List, response.List.MensajeUsuario);
+                return Conflict(response);
             }
-            else if (targetIdentityUser == null)
+
+            if (!IsSocioRole(targetDomainUser.Rol))
+            {
+                response.Mensaje = "El usuario asociado no es un socio.";
+                response.List.CodigoError = "ASSOCIATED_USER_INVALID_ROLE";
+                response.List.MensajeUsuario = $"El usuario asociado al socio tiene rol {targetDomainUser.Rol}. No se puede enviar el mail de inscripción desde este flujo.";
+                AddUniqueError(response.List, response.List.MensajeUsuario);
+                return Conflict(response);
+            }
+
+            var targetIdentityUser = await FindIdentityUserForDomainUserAsync(targetDomainUser);
+            if (targetIdentityUser == null)
             {
                 response.Mensaje = "Usuario de acceso inconsistente.";
                 response.List.CodigoError = "IDENTITY_USER_NOT_FOUND";
@@ -499,155 +472,93 @@ namespace PaginaToros.Server.Controllers
                 return BadRequest(response);
             }
 
-            var previousSocioState = CaptureSocioState(socioDb);
-            User? previousDomainUserState = targetDomainUser == null ? null : CloneDomainUser(targetDomainUser);
-            IdentityUser? previousIdentityState = targetIdentityUser == null ? null : CloneIdentityUser(targetIdentityUser);
-            var previousUserSocioIds = targetDomainUser == null
-                ? null
-                : await GetUserSocioIdsAsync(targetDomainUser);
+            var normalizedEmail = socioDto.Mail!.Trim().ToUpperInvariant();
+            var emailDomainUser = await _identityDb.User.FirstOrDefaultAsync(
+                u => u.Email != null && u.Email.ToUpper() == normalizedEmail);
+            if (emailDomainUser != null && emailDomainUser.Id != targetDomainUser.Id)
+            {
+                response.Mensaje = "El mail ya pertenece a otro usuario.";
+                response.List.CodigoError = "EMAIL_IN_USE_BY_OTHER_USER";
+                response.List.MensajeUsuario = $"El mail '{socioDto.Mail}' ya está asociado a otro usuario. No se puede actualizar el usuario asociado a este socio con ese mail.";
+                response.List.MailAsociado = emailDomainUser.Email;
+                AddUniqueError(response.List, response.List.MensajeUsuario);
+                return Conflict(response);
+            }
 
-            IdentityUser? createdIdentityUser = null;
-            User? createdDomainUser = null;
+            var duplicateIdentity = await _userManager.FindByEmailAsync(socioDto.Mail!);
+            if (duplicateIdentity != null && !string.Equals(duplicateIdentity.Id, targetIdentityUser.Id, StringComparison.Ordinal))
+            {
+                response.Mensaje = "El mail ya pertenece a otro usuario.";
+                response.List.CodigoError = "EMAIL_IN_USE_BY_OTHER_USER";
+                response.List.MensajeUsuario = $"El mail '{socioDto.Mail}' ya está registrado en otro acceso. No se puede actualizar el usuario asociado a este socio con ese mail.";
+                AddUniqueError(response.List, response.List.MensajeUsuario);
+                return Conflict(response);
+            }
+
+            var previousSocioState = CaptureSocioState(socioDb);
+            var previousDomainUserState = CloneDomainUser(targetDomainUser);
+            var previousIdentityState = CloneIdentityUser(targetIdentityUser);
             var password = GenerateServerPassword(12);
-            var userWasReset = false;
-            var userWasLinked = false;
 
             try
             {
                 ApplySocioChanges(socioDb, socioDto);
                 await _db.SaveChangesAsync();
 
-                if (targetDomainUser == null)
+                ApplyDomainUserChanges(targetDomainUser, socioDto);
+                targetDomainUser.Status = string.IsNullOrWhiteSpace(targetDomainUser.Status)
+                    ? "ACTIVO"
+                    : targetDomainUser.Status.ToUpperInvariant();
+
+                targetIdentityUser.Email = socioDto.Mail!;
+                targetIdentityUser.UserName = socioDto.Mail!;
+                targetIdentityUser.NormalizedEmail = socioDto.Mail!.ToUpperInvariant();
+                targetIdentityUser.NormalizedUserName = socioDto.Mail.ToUpperInvariant();
+                targetIdentityUser.EmailConfirmed = true;
+                targetIdentityUser.PhoneNumber = socioDto.Telefo1;
+
+                var passwordValidation = await ValidatePasswordAsync(targetIdentityUser, password);
+                if (!passwordValidation.Succeeded)
                 {
-                    var identityUser = new IdentityUser
-                    {
-                        UserName = socioDto.Mail,
-                        Email = socioDto.Mail,
-                        EmailConfirmed = true,
-                        PhoneNumber = socioDto.Telefo1,
-                        SecurityStamp = Guid.NewGuid().ToString("D"),
-                        ConcurrencyStamp = Guid.NewGuid().ToString("D")
-                    };
-                    identityUser.NormalizedEmail = socioDto.Mail!.ToUpperInvariant();
-                    identityUser.NormalizedUserName = socioDto.Mail.ToUpperInvariant();
-
-                    var createResult = await _userManager.CreateAsync(identityUser, password);
-                    if (!createResult.Succeeded)
-                    {
-                        response.Mensaje = "No se pudo crear el usuario.";
-                        response.List.CodigoError = "CREATE_USER_FAILED";
-                        response.List.MensajeUsuario = MapIdentityErrors(createResult.Errors);
-                        response.List.Errores.Add(response.List.MensajeUsuario);
-                        throw new FriendlySocioRegistrationException(response);
-                    }
-
-                    createdIdentityUser = identityUser;
-                    targetIdentityUser = identityUser;
-
-                    var roleResult = await _userManager.AddToRoleAsync(identityUser, "SOCIO");
-                    if (!roleResult.Succeeded)
-                    {
-                        response.Mensaje = "No se pudo asignar el rol del usuario.";
-                        response.List.CodigoError = "ASSIGN_ROLE_FAILED";
-                        response.List.MensajeUsuario = MapIdentityErrors(roleResult.Errors);
-                        response.List.Errores.Add(response.List.MensajeUsuario);
-                        throw new FriendlySocioRegistrationException(response);
-                    }
-                    createdDomainUser = new User
-                    {
-                        Names = socioDto.Nombre!,
-                        LastNames = socioDto.Nombre!,
-                        Dni = "0",
-                        Phone = socioDto.Telefo1!,
-                        Email = socioDto.Mail!,
-                        Rol = "SOCIO",
-                        Status = "ACTIVO",
-                        Created = DateTime.UtcNow,
-                        IdentityUserId = identityUser.Id,
-                        SocioId = socioDto.Id
-                    };
-
-                    await _identityDb.User.AddAsync(createdDomainUser);
-                    await _identityDb.SaveChangesAsync();
-                    targetDomainUser = createdDomainUser;
-                }
-                else
-                {
-                    userWasLinked = existingDomainUser == null && emailDomainUser != null;
-
-                    ApplyDomainUserChanges(targetDomainUser, socioDto);
-                    targetDomainUser.Status = string.IsNullOrWhiteSpace(targetDomainUser.Status)
-                        ? "ACTIVO"
-                        : targetDomainUser.Status.ToUpperInvariant();
-                    targetDomainUser.Rol = "SOCIO";
-                    targetDomainUser.IdentityUserId = targetIdentityUser!.Id;
-
-                    if (!targetDomainUser.SocioId.HasValue || !previousUserSocioIds!.Contains(targetDomainUser.SocioId.Value))
-                    {
-                        targetDomainUser.SocioId = socioDto.Id;
-                    }
-
-                    targetIdentityUser.Email = socioDto.Mail!;
-                    targetIdentityUser.UserName = socioDto.Mail!;
-                    targetIdentityUser.NormalizedEmail = socioDto.Mail!.ToUpperInvariant();
-                    targetIdentityUser.NormalizedUserName = socioDto.Mail.ToUpperInvariant();
-                    targetIdentityUser.EmailConfirmed = true;
-                    targetIdentityUser.PhoneNumber = socioDto.Telefo1;
-
-                    if (!await _userManager.IsInRoleAsync(targetIdentityUser, "SOCIO"))
-                    {
-                        var roleResult = await _userManager.AddToRoleAsync(targetIdentityUser, "SOCIO");
-                        if (!roleResult.Succeeded)
-                        {
-                            response.Mensaje = "No se pudo asignar el rol del usuario.";
-                            response.List.CodigoError = "ASSIGN_ROLE_FAILED";
-                            response.List.MensajeUsuario = MapIdentityErrors(roleResult.Errors);
-                            response.List.Errores.Add(response.List.MensajeUsuario);
-                            throw new FriendlySocioRegistrationException(response);
-                        }
-                    }
-
-                    var passwordValidation = await ValidatePasswordAsync(targetIdentityUser, password);
-                    if (!passwordValidation.Succeeded)
-                    {
-                        response.Mensaje = "No se pudo generar una contraseña válida.";
-                        response.List.CodigoError = "PASSWORD_POLICY_FAILED";
-                        response.List.MensajeUsuario = MapIdentityErrors(passwordValidation.Errors);
-                        response.List.Errores.Add(response.List.MensajeUsuario);
-                        throw new FriendlySocioRegistrationException(response);
-                    }
-
-                    targetIdentityUser.PasswordHash = _userManager.PasswordHasher.HashPassword(targetIdentityUser, password);
-                    targetIdentityUser.SecurityStamp = Guid.NewGuid().ToString("D");
-                    targetIdentityUser.ConcurrencyStamp = Guid.NewGuid().ToString("D");
-
-                    userWasReset = true;
+                    response.Mensaje = "No se pudo generar una contraseña válida.";
+                    response.List.CodigoError = "PASSWORD_POLICY_FAILED";
+                    response.List.MensajeUsuario = MapIdentityErrors(passwordValidation.Errors);
+                    AddUniqueError(response.List, response.List.MensajeUsuario);
+                    throw new FriendlySocioRegistrationException(response);
                 }
 
-                await EnsureSocioLinkedAsync(targetDomainUser!, socioDto.Id);
+                targetIdentityUser.PasswordHash = _userManager.PasswordHasher.HashPassword(targetIdentityUser, password);
+                targetIdentityUser.SecurityStamp = Guid.NewGuid().ToString("D");
+                targetIdentityUser.ConcurrencyStamp = Guid.NewGuid().ToString("D");
+
+                var identityUpdate = await _userManager.UpdateAsync(targetIdentityUser);
+                if (!identityUpdate.Succeeded)
+                {
+                    response.Mensaje = "No se pudo actualizar el usuario.";
+                    response.List.CodigoError = "UPDATE_USER_FAILED";
+                    response.List.MensajeUsuario = MapIdentityErrors(identityUpdate.Errors);
+                    AddUniqueError(response.List, response.List.MensajeUsuario);
+                    throw new FriendlySocioRegistrationException(response);
+                }
+
                 await _identityDb.SaveChangesAsync();
 
-                var mailUser = targetDomainUser!;
-                var mailSent = await TrySendRegistrationMailAsync(mailUser, password);
+                var mailSent = await TrySendRegistrationMailAsync(targetDomainUser, password);
                 if (!mailSent.Success)
                 {
                     response.Mensaje = "No se pudo enviar el mail de inscripción.";
                     response.List.CodigoError = "SEND_MAIL_FAILED";
                     response.List.MensajeUsuario = "No se pudo enviar el mail de inscripción. No se guardaron los cambios.";
-                    response.List.Errores.Add(mailSent.ErrorMessage ?? "Error desconocido al enviar el correo.");
+                    AddUniqueError(response.List, mailSent.ErrorMessage ?? "Error desconocido al enviar el correo.");
                     throw new FriendlySocioRegistrationException(response);
                 }
 
                 response.Exito = 1;
                 response.Mensaje = "OK";
-                response.List.UsuarioCreado = createdDomainUser != null;
-                response.List.UsuarioReiniciado = userWasReset;
+                response.List.UsuarioCreado = false;
+                response.List.UsuarioReiniciado = true;
                 response.List.CodigoError = null;
-                response.List.MensajeUsuario = createdDomainUser != null
-                    ? "Se guardó el socio, se creó el usuario y se envió el mail de inscripción."
-                    : userWasLinked
-                        ? "Se guardó el socio, se vinculó al usuario existente y se envió el mail de inscripción."
-                        : "Se actualizaron los datos del socio, se restableció la contraseña y se reenvió el mail de inscripción.";
+                response.List.MensajeUsuario = "Se actualizaron los datos del socio, se restableció la contraseña y se reenvió el mail de inscripción.";
                 response.List.Socio = _mapper.Map<SocioDTO>(socioDb);
                 return Ok(response);
             }
@@ -658,11 +569,11 @@ namespace PaginaToros.Server.Controllers
                     previousSocioState,
                     targetDomainUser,
                     previousDomainUserState,
-                    previousUserSocioIds,
+                    null,
                     targetIdentityUser,
                     previousIdentityState,
-                    createdDomainUser,
-                    createdIdentityUser);
+                    null,
+                    null);
 
                 return BadRequest(response);
             }
@@ -673,18 +584,18 @@ namespace PaginaToros.Server.Controllers
                     previousSocioState,
                     targetDomainUser,
                     previousDomainUserState,
-                    previousUserSocioIds,
+                    null,
                     targetIdentityUser,
                     previousIdentityState,
-                    createdDomainUser,
-                    createdIdentityUser);
+                    null,
+                    null);
 
                 response.Mensaje = ex.Message;
                 response.List.CodigoError = "UNEXPECTED_ERROR";
                 response.List.MensajeUsuario = "Ocurrió un error al enviar el mail de inscripción. No se guardaron los cambios.";
                 if (!string.IsNullOrWhiteSpace(ex.Message))
                 {
-                    response.List.Errores.Add(ex.Message);
+                    AddUniqueError(response.List, ex.Message);
                 }
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
@@ -1237,6 +1148,19 @@ namespace PaginaToros.Server.Controllers
             }
 
             return string.Join(" ", list.Where(e => !string.IsNullOrWhiteSpace(e.Description)).Select(e => e.Description));
+        }
+
+        private static void AddUniqueError(SocioRegistrationResult? result, string? message)
+        {
+            if (result == null || string.IsNullOrWhiteSpace(message))
+            {
+                return;
+            }
+
+            if (!result.Errores.Any(x => string.Equals(x, message, StringComparison.OrdinalIgnoreCase)))
+            {
+                result.Errores.Add(message);
+            }
         }
 
         private static User CloneDomainUser(User source)

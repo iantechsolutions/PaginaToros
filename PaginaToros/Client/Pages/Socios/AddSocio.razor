@@ -421,16 +421,35 @@
 
         if (response.List?.Errores != null && response.List.Errores.Count > 0)
         {
-            validationErrors.AddRange(response.List.Errores.Where(x => !string.IsNullOrWhiteSpace(x)));
+            var distinctErrors = response.List.Errores
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            validationErrors.AddRange(distinctErrors);
         }
 
-        if (!string.IsNullOrWhiteSpace(response.List?.MensajeUsuario))
+        var userMessage = response.List?.MensajeUsuario?.Trim();
+        if (!string.IsNullOrWhiteSpace(userMessage))
         {
-            SetFormError(response.List.MensajeUsuario);
+            if (validationErrors.Count == 0)
+            {
+                SetFormError(userMessage);
+                return;
+            }
+
+            if (!validationErrors.Any(x => string.Equals(x, userMessage, StringComparison.OrdinalIgnoreCase)))
+            {
+                validationErrors.Insert(0, userMessage);
+            }
+
             return;
         }
 
-        SetFormError(response.Mensaje ?? "No se pudo enviar el mail de inscripción.");
+        if (validationErrors.Count == 0)
+        {
+            SetFormError(response.Mensaje ?? "No se pudo enviar el mail de inscripción.");
+        }
     }
 
     private void AddIfMissing(string? value, string message)
