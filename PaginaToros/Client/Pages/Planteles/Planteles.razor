@@ -32,7 +32,10 @@
 <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Planteles</h3>
 
 
-<button style="position:relative;left:3.33%" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="()=>add(0,false)">Agregar Plantel</button>
+<div style="position:relative;left:3.33%" class="d-flex gap-3 flex-wrap">
+    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="()=>add(0,false)">Agregar Plantel</button>
+    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="CompletarFechasCreacion" disabled="@updatingCreationDates">Completar fechas creación</button>
+</div>
     <br />
         <br />
         
@@ -136,7 +139,10 @@ else
         @if (oRespuesta.List != null)
         {
 
-            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <div class="d-flex justify-content-end gap-3" style="margin-right:3%;">
+                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="CompletarFechasCreacion" disabled="@updatingCreationDates">Completar fechas creación</button>
+                <button style="outline:none;height:100%;" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            </div>
             <br />
             <br />
             <RadzenDataGrid class="tablacontent" style="position:relative;width:93.5%;left:3.33%" IsLoading="isLoading" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
@@ -192,6 +198,7 @@ else
     public RadzenDataGrid<PlantelDTO>? grid;
     int currentPage;
     bool isLoading = false;
+    bool updatingCreationDates = false;
     int cantidad;
     SocioDTO socioSeleccionado;
     public bool allowFiltering = false;
@@ -239,6 +246,48 @@ else
     {
         allowFiltering = !allowFiltering;
         StateHasChanged();
+    }
+
+    async Task CompletarFechasCreacion()
+    {
+        if (updatingCreationDates)
+        {
+            return;
+        }
+
+        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "¿Completar fechas de creación?",
+                Text = "Se intentará asignar una fecha de creación a los planteles que no la tengan, usando la primera fecha de inspección disponible.",
+                Icon = SweetAlertIcon.Question,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Actualizar",
+                CancelButtonText = "Cancelar"
+            });
+
+        if (string.IsNullOrEmpty(result.Value))
+        {
+            return;
+        }
+
+        updatingCreationDates = true;
+        StateHasChanged();
+
+        try
+        {
+            var respuesta = await _plantelServicio.CompletarFechasCreacion();
+            await Get();
+            await Swal.FireAsync("Actualización completa", $"Se actualizaron {respuesta.List} planteles.", SweetAlertIcon.Success);
+        }
+        catch (Exception ex)
+        {
+            await Swal.FireAsync("Error", $"No se pudieron completar las fechas. {ex.Message}", SweetAlertIcon.Error);
+        }
+        finally
+        {
+            updatingCreationDates = false;
+            StateHasChanged();
+        }
     }
 
     async Task delete(int id)
@@ -487,18 +536,39 @@ else
         }
     }
 
-    // Order planteles by FchUsu descending (most recent first)
+    DateTime? GetPlantelCreationDate(PlantelDTO plantel)
+    {
+        if (plantel == null)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(plantel.Fecing))
+        {
+            var formatos = new[] { "yyyy/MM/dd", "yyyy-MM-dd", "dd/MM/yyyy", "MM/dd/yyyy" };
+            if (DateTime.TryParseExact(plantel.Fecing, formatos, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var fechaCreacion))
+            {
+                return fechaCreacion;
+            }
+
+            if (DateTime.TryParse(plantel.Fecing, out fechaCreacion))
+            {
+                return fechaCreacion;
+            }
+        }
+
+        return plantel.FchUsu;
+    }
+
+    // Order planteles by creation date descending (most recent first)
     void OrderPlantelesByFchUsu(Respuesta<List<PlantelDTO>> respuesta)
     {
         if (respuesta == null || respuesta.List == null) return;
-        // Primary sort by Anioex (numeric when possible, DESC), secondary by Placod (string, ascending)
+
         respuesta.List = respuesta.List
-            .OrderByDescending(x => {
-                if (int.TryParse(x.Anioex, out var y)) return y;
-                // Non-numeric or empty Anioex should appear after numeric years
-                return int.MinValue; // so that when ordering desc they come last
-            })
-            .ThenBy(x => x.Placod ?? string.Empty)
+            .OrderByDescending(x => GetPlantelCreationDate(x).HasValue)
+            .ThenByDescending(x => GetPlantelCreationDate(x))
+            .ThenByDescending(x => x.Id)
             .ToList();
     }
 }

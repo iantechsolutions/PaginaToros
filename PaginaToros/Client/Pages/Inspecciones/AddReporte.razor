@@ -1274,6 +1274,7 @@ async Task<PlantelDTO> updatePlantel(bool _subirDeAnioNoSeUsa)
     }
 
     var ultimoDigito = anioDestino.Last();
+    var fechaCreacionPlantel = (oResin1?.Freali ?? fechaTemp).ToString("yyyy/MM/dd");
 
     if (planDestino != null && !_subirDeAnioNoSeUsa)
     {
@@ -1284,7 +1285,10 @@ async Task<PlantelDTO> updatePlantel(bool _subirDeAnioNoSeUsa)
         planDestino.Varepr = estadoFinal.Ea4;
         planDestino.Vqcsrp = estadoFinal.Ea5;
         planDestino.Vqssrp = estadoFinal.Ea6;
-        planDestino.Fecing = "";
+        if (string.IsNullOrWhiteSpace(planDestino.Fecing))
+        {
+            planDestino.Fecing = fechaCreacionPlantel;
+        }
         await _plantelServicio.Editar(planDestino);
     }
     else
@@ -1320,7 +1324,7 @@ async Task<PlantelDTO> updatePlantel(bool _subirDeAnioNoSeUsa)
             Vqssrp = estadoFinal.Ea6,
             Nrocri = planViejo.Nrocri,
             Estado = planViejo.Estado,
-            Fecing = planViejo.Fecing ?? "",
+            Fecing = fechaCreacionPlantel,
             Nroins = planViejo.Nroins
         };
 

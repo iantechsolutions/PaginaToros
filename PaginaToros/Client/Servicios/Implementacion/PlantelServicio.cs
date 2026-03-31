@@ -80,6 +80,13 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return result!;
         }
 
+        public async Task<Respuesta<int>> CompletarFechasCreacion()
+        {
+            var http = await _http.PostAsync("api/plantel/CompletarFechasCreacion", null);
+            var resp = await http.Content.ReadFromJsonAsync<Respuesta<int>>();
+            return resp!;
+        }
+
         public async Task<Respuesta<PlantelDTO>> Filtrar(string descripcion)
         {
             var result = await _http.GetFromJsonAsync<Respuesta<PlantelDTO>>($"api/plantel/filtrar?categoriaItem={descripcion}");

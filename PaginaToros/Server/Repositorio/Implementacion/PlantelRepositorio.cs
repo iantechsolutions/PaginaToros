@@ -23,12 +23,13 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             try
             {
 
-                // Use Skip and Take for paging, and include Socio
-                // Order by Anioex (desc) so newest years appear first, then by Placod
+                // Prefer creation date when available, then last update, then newest id.
                 return await _dbContext.Planteles
                                          .Include(t => t.Socio)
-                                         .OrderByDescending(t => t.Anioex)
-                                         .ThenBy(t => t.Placod)
+                                         .OrderByDescending(t => !string.IsNullOrWhiteSpace(t.Fecing))
+                                         .ThenByDescending(t => t.Fecing)
+                                         .ThenByDescending(t => t.FchUsu)
+                                         .ThenByDescending(t => t.Id)
                                          .Skip(skip)
                                          .Take(take)
                                          .ToListAsync();
@@ -83,8 +84,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = query.Where(filtro);
                 }
 
-                // Order by Anioex (desc) so newest years appear first, then by Placod
-                query = query.OrderByDescending(t => t.Anioex).ThenBy(t => t.Placod);
+                query = query
+                    .OrderByDescending(t => !string.IsNullOrWhiteSpace(t.Fecing))
+                    .ThenByDescending(t => t.Fecing)
+                    .ThenByDescending(t => t.FchUsu)
+                    .ThenByDescending(t => t.Id);
 
                 if (take == 0)
                 {
@@ -111,8 +115,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = query.Where(filtro);
                 }
 
-                // Order by Anioex (desc) so newest years appear first, then by Placod
-                query = query.OrderByDescending(t => t.Anioex).ThenBy(t => t.Placod);
+                query = query
+                    .OrderByDescending(t => !string.IsNullOrWhiteSpace(t.Fecing))
+                    .ThenByDescending(t => t.Fecing)
+                    .ThenByDescending(t => t.FchUsu)
+                    .ThenByDescending(t => t.Id);
 
                 if (take == 0)
                 {

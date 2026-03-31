@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Server.Services;
 using PaginaToros.Shared.Models;
@@ -19,15 +20,18 @@ namespace PaginaPlantels.Server.Cont{
     {
         private readonly IMapper _mapper;
         private readonly IPlantelRepositorio _plantelRepositorio;
+        private readonly IResin1Repositorio _resin1Repositorio;
         private readonly IUserSocioContextService _userSocioContextService;
 
         public PlantelController(
             IPlantelRepositorio plantelRepositorio,
+            IResin1Repositorio resin1Repositorio,
             IMapper mapper,
             IUserSocioContextService userSocioContextService)
         {
             _mapper = mapper;
             _plantelRepositorio = plantelRepositorio;
+            _resin1Repositorio = resin1Repositorio;
             _userSocioContextService = userSocioContextService;
         }
         [Route("Lista")]
@@ -362,6 +366,94 @@ namespace PaginaPlantels.Server.Cont{
         }
 
         [HttpPost]
+        [Route("CompletarFechasCreacion")]
+        public async Task<IActionResult> CompletarFechasCreacion()
+        {
+            var respuesta = new Respuesta<int>();
+
+            try
+            {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                }
+
+                var plantelesQuery = RequiresActiveSocioScope(accessContext)
+                    ? await _plantelRepositorio.Consultar(x => x.Nrocri == accessContext.ActiveSocioCode)
+                    : await _plantelRepositorio.Consultar(x => true);
+
+                var planteles = await plantelesQuery.ToListAsync();
+                var resinas = await _resin1Repositorio.Consultar(x => x.Freali != null);
+                var inspecciones = await resinas.ToListAsync();
+
+                var inspeccionesPorPlantel = inspecciones
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Nropla))
+                    .GroupBy(x => new { Plantel = x.Nropla!, Socio = x.Scod ?? string.Empty })
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.OrderBy(x => x.Freali).FirstOrDefault()?.Freali);
+
+                var actualizados = 0;
+                var plantelesActualizados = new List<Plantel>();
+
+                foreach (var plantel in planteles)
+                {
+                    if (!string.IsNullOrWhiteSpace(plantel.Fecing))
+                    {
+                        continue;
+                    }
+
+                    DateTime? fechaCreacion = null;
+                    if (!string.IsNullOrWhiteSpace(plantel.Placod))
+                    {
+                        inspeccionesPorPlantel.TryGetValue(
+                            new { Plantel = plantel.Placod, Socio = plantel.Nrocri ?? string.Empty },
+                            out fechaCreacion);
+                    }
+
+                    fechaCreacion ??= plantel.FchUsu;
+
+                    if (!fechaCreacion.HasValue)
+                    {
+                        continue;
+                    }
+
+                    plantel.Fecing = fechaCreacion.Value.ToString("yyyy/MM/dd");
+                    actualizados++;
+                    plantelesActualizados.Add(plantel);
+                }
+
+                if (plantelesActualizados.Count > 0)
+                {
+                    foreach (var plantel in plantelesActualizados)
+                    {
+                        _ = await _plantelRepositorio.Editar(plantel);
+                    }
+                }
+
+                respuesta = new Respuesta<int>
+                {
+                    Exito = 1,
+                    Mensaje = "ok",
+                    List = actualizados
+                };
+
+                return Ok(respuesta);
+            }
+            catch (Exception ex)
+            {
+                respuesta = new Respuesta<int>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = 0
+                };
+                return StatusCode(StatusCodes.Status500InternalServerError, respuesta);
+            }
+        }
+
+        [HttpPost]
         [Route("Guardar")]
         public async Task<IActionResult> Guardar([FromBody] PlantelDTO request)
         {
@@ -378,6 +470,11 @@ namespace PaginaPlantels.Server.Cont{
                 if (RequiresActiveSocioScope(accessContext))
                 {
                     entidad.Nrocri = accessContext.ActiveSocioCode;
+                }
+
+                if (string.IsNullOrWhiteSpace(entidad.Fecing))
+                {
+                    entidad.Fecing = DateTime.Now.ToString("yyyy/MM/dd");
                 }
 
                 var creado = await _plantelRepositorio.Crear(entidad);

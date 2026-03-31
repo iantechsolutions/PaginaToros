@@ -359,8 +359,9 @@
         }
         if (Id == 0 || Id == null)
         {
-            if(oPlantel.Fecing==null){
-                oPlantel.Fecing = "";
+            if (string.IsNullOrWhiteSpace(oPlantel.Fecing))
+            {
+                oPlantel.Fecing = DateTime.Now.ToString("yyyy/MM/dd");
             }
             try
             {
@@ -439,4 +440,3 @@
     }
 
 }
-
