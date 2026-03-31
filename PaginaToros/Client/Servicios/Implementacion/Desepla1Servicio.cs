@@ -69,5 +69,12 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var result = await _http.GetFromJsonAsync<Respuesta<Desepla1DTO>>($"api/Desepla1/filtrar?categoriaItem={descripcion}");
             return result!;
         }
+
+        public async Task<Respuesta<int>> RecalcularPeriodosCabecera()
+        {
+            var result = await _http.PostAsync("api/Desepla1/RecalcularPeriodosCabecera", null);
+            var response = await result.Content.ReadFromJsonAsync<Respuesta<int>>();
+            return response!;
+        }
     }
 }

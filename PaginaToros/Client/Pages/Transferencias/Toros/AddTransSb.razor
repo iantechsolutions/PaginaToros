@@ -2,7 +2,6 @@
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ISocioServicio _sociosServicio
 @inject ITranssbServicio _transsbServicio
-@inject ITorosServicio _torosServicio
 @inject HttpClient http
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @using PaginaToros.Client.Helpers
@@ -260,36 +259,22 @@ else
                 return;
             }
 
-            // 4) ENVIAR MAIL (si falla, NO editar toro)
+            // 4) ENVIAR MAIL (si falla, la transferencia y el movimiento ya quedaron guardados)
             var mailOk = await EnviarMailAsync(esAlta: Id == 0);
             if (!mailOk)
             {
                 await Swal.FireAsync(
                     "Aviso",
-                    "La transferencia se guardó, pero hubo un error al enviar el correo. No se actualizó el dueño del toro.",
+                    "La transferencia se guardó y el toro fue transferido, pero hubo un error al enviar el correo.",
                     SweetAlertIcon.Warning
                 );
                 return;
             }
 
-            // 5) ACTUALIZAR TORO (recién si el mail salió OK)
-            toroSeleccionado.Criador = socioComprador.Scod;
-            var okToro = await _torosServicio.Editar(toroSeleccionado);
-            if (!okToro)
-            {
-                await Swal.FireAsync(
-                    "Atención",
-                    "La transferencia y el correo se procesaron, pero no se pudo actualizar el toro.",
-                    SweetAlertIcon.Warning
-                );
-                await ModalInstance.CloseAsync(ModalResult.Ok("Parcial: sin actualización de toro"));
-                return;
-            }
-
-            // 6) TODO OK
+            // 5) TODO OK
             await Swal.FireAsync(
                 "Éxito",
-                Id == 0 ? "Transferencia creada, correo enviado y toro actualizado." : "Transferencia editada, correo enviado y toro actualizado.",
+                Id == 0 ? "Transferencia creada, correo enviado y toro transferido." : "Transferencia editada, correo enviado y toro transferido.",
                 SweetAlertIcon.Success
             );
             await ModalInstance.CloseAsync(ModalResult.Ok("OK"));

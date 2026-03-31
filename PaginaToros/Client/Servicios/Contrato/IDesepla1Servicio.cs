@@ -14,5 +14,6 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<Respuesta<Desepla1DTO>> Crear(Desepla1DTO entidad);
         Task<bool> Editar(Desepla1DTO entidad);
         Task<Respuesta<Desepla1DTO>> Filtrar(string descripcion);
+        Task<Respuesta<int>> RecalcularPeriodosCabecera();
     }
 }

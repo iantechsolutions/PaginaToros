@@ -9,6 +9,11 @@
 
 
 <style>
+    .tablacontent {
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(76, 101, 39, 0.12);
+    }
 
     .rz-cell-data,
     .rz-column-title-content {
@@ -21,8 +26,9 @@
         overflow-wrap: break-word;
     }
 
-    .tablacontent th.rz-unselectable-text.rz-text-align-left {
-        background-color: #82D682;
+    .tablacontent .rz-sortable-column,
+    .tablacontent .rz-column-title {
+        font-weight: 600;
     }
 
     .rz-paginator {

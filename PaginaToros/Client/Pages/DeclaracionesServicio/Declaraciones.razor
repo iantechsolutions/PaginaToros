@@ -55,6 +55,16 @@
         font-size: 0.98rem;
     }
 
+    .declaraciones-maintenance-btn {
+        padding: 0.72rem 1.15rem;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #d96b4f 0%, #b8452e 100%);
+        color: #fffaf7;
+        box-shadow: 0 16px 30px rgba(145, 62, 41, 0.18);
+        font-weight: 800;
+        font-size: 0.98rem;
+    }
+
     .declaraciones-primary-btn:hover,
     .declaraciones-filter-btn:hover {
         transform: translateY(-1px);
@@ -147,6 +157,16 @@
                             @onclick="() => add(0, esSocio)">
                         Agregar Declaracion
                     </button>
+
+                    @if (!esSocio && ShowRecalcularFechasButton)
+                    {
+                        <button class="declaraciones-primary-btn declaraciones-maintenance-btn"
+                                type="button"
+                                disabled="@isRepairingDates"
+                                @onclick="RecalcularFechasHasta">
+                            @(isRepairingDates ? "Recalculando..." : "Corregir fechas Hasta")
+                        </button>
+                    }
                 </div>
 
                 @if (oRespuesta.List != null)
@@ -254,8 +274,10 @@
     int cantidad;
     int currentPage;
     bool isLoading = false;
+    bool isRepairingDates = false;
     public bool allowFiltering = false;
     public Respuesta<List<Desepla1DTO>> oRespuesta = new Respuesta<List<Desepla1DTO>>();
+    private const bool ShowRecalcularFechasButton = true;
 
     Boolean esSocio = true;
     protected override async Task OnInitializedAsync()
@@ -286,6 +308,54 @@
         nav.NavigateTo($"/declaraciones/{Id}");
 
     }
+
+    async Task RecalcularFechasHasta()
+    {
+        var confirm = await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Recalcular fechas",
+            Text = "Se actualizarán las fechas Desde y Hasta de las declaraciones según sus detalles guardados.",
+            Icon = SweetAlertIcon.Warning,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí, recalcular",
+            CancelButtonText = "Cancelar"
+        });
+
+        if (!confirm.IsConfirmed)
+        {
+            return;
+        }
+
+        isRepairingDates = true;
+        try
+        {
+            var result = await _desepla1Servicio.RecalcularPeriodosCabecera();
+            if (result.Exito != 1)
+            {
+                await Swal.FireAsync("Error", result.Mensaje ?? "No se pudieron recalcular las fechas.", SweetAlertIcon.Error);
+                return;
+            }
+
+            await LoadPageAsync(0, 15, null);
+            NormalizeList();
+            if (grid != null)
+            {
+                await grid.FirstPage(true);
+            }
+
+            await Swal.FireAsync("Listo", result.Mensaje ?? "Fechas recalculadas correctamente.", SweetAlertIcon.Success);
+        }
+        catch (Exception ex)
+        {
+            await Swal.FireAsync("Error", $"No se pudieron recalcular las fechas. {ex.Message}", SweetAlertIcon.Error);
+        }
+        finally
+        {
+            isRepairingDates = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;

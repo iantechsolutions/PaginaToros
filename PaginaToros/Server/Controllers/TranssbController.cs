@@ -261,9 +261,20 @@ namespace PaginaToros.Server.Controllers
                     return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TranssbDTO>());
                 }
 
-                Transsb _Transsb = _mapper.Map<Transsb>(request);
+                NormalizeTransfer(request);
+                await ValidateTransferRequestAsync(request);
 
-                Transsb _TranssbCreado = await _transsbRepositorio.Crear(_Transsb);
+                Transsb _Transsb = _mapper.Map<Transsb>(request);
+                var strategy = _db.Database.CreateExecutionStrategy();
+                Transsb _TranssbCreado = null!;
+
+                await strategy.ExecuteAsync(async () =>
+                {
+                    await using var transaction = await _db.Database.BeginTransactionAsync();
+                    _TranssbCreado = await _transsbRepositorio.Crear(_Transsb);
+                    await TransferToroAsync(request);
+                    await transaction.CommitAsync();
+                });
 
                 if (_TranssbCreado.Id != 0)
                     _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TranssbDTO>(_TranssbCreado) };
@@ -287,16 +298,27 @@ namespace PaginaToros.Server.Controllers
             try
             {
                 var accessContext = await _userSocioContextService.ResolveAsync(User);
+                NormalizeTransfer(request);
                 Transsb _Transsb = _mapper.Map<Transsb>(request);
                 Transsb _TranssbParaEditar = await _transsbRepositorio.Obtener(u => u.Id == _Transsb.Id);
 
                 if (_TranssbParaEditar != null)
                 {
+                    var previousTransferState = new Transsb
+                    {
+                        Id = _TranssbParaEditar.Id,
+                        Sven = _TranssbParaEditar.Sven,
+                        Scom = _TranssbParaEditar.Scom,
+                        Torovendido = _TranssbParaEditar.Torovendido
+                    };
+
                     if (!CanAccessTransfer(accessContext, _TranssbParaEditar.Sven, _TranssbParaEditar.Scom) ||
                         !CanAccessTransfer(accessContext, _Transsb.Sven, _Transsb.Scom))
                     {
                         return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TranssbDTO>());
                     }
+
+                    await ValidateTransferRequestAsync(request, previousTransferState);
 
                     _TranssbParaEditar.NroTrans = _Transsb.NroTrans;
                     _TranssbParaEditar.Fectrans = _Transsb.Fectrans;
@@ -311,7 +333,22 @@ namespace PaginaToros.Server.Controllers
                     _TranssbParaEditar.FchUsu = _Transsb.FchUsu;
                     _TranssbParaEditar.CodUsu = _Transsb.CodUsu;
                     _TranssbParaEditar.Torovendido = _Transsb.Torovendido;
-                    bool respuesta = await _transsbRepositorio.Editar(_TranssbParaEditar);
+                    var strategy = _db.Database.CreateExecutionStrategy();
+                    bool respuesta = false;
+
+                    await strategy.ExecuteAsync(async () =>
+                    {
+                        await using var transaction = await _db.Database.BeginTransactionAsync();
+                        respuesta = await _transsbRepositorio.Editar(_TranssbParaEditar);
+
+                        if (!respuesta)
+                        {
+                            return;
+                        }
+
+                        await TransferToroAsync(request, previousTransferState);
+                        await transaction.CommitAsync();
+                    });
 
                     if (respuesta)
                         _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TranssbDTO>(_TranssbParaEditar) };
@@ -334,6 +371,110 @@ namespace PaginaToros.Server.Controllers
 
         private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
             => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        private static void NormalizeTransfer(TranssbDTO? request)
+        {
+            if (request is null)
+            {
+                return;
+            }
+
+            request.NroTrans = request.NroTrans?.Trim() ?? string.Empty;
+            request.NroOrden = request.NroOrden?.Trim();
+            request.Sven = request.Sven?.Trim();
+            request.Scom = request.Scom?.Trim();
+            request.Vnom = request.Vnom?.Trim();
+            request.Cnom = request.Cnom?.Trim();
+            request.Ecod = request.Ecod?.Trim();
+        }
+
+        private async Task ValidateTransferRequestAsync(TranssbDTO? request, Transsb? existingTransfer = null)
+        {
+            if (request is null)
+            {
+                throw new InvalidOperationException("No se recibieron datos de la transferencia.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Sven))
+            {
+                throw new InvalidOperationException("Debe seleccionar un socio vendedor.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Scom))
+            {
+                throw new InvalidOperationException("Debe seleccionar un socio comprador.");
+            }
+
+            if (!request.Torovendido.HasValue || request.Torovendido.Value <= 0)
+            {
+                throw new InvalidOperationException("Debe seleccionar un toro válido.");
+            }
+
+            if (string.Equals(request.Sven, request.Scom, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("El socio comprador debe ser distinto del vendedor.");
+            }
+
+            var vendedorExiste = await _db.Socios.AnyAsync(x => x.Scod == request.Sven);
+            if (!vendedorExiste)
+            {
+                throw new InvalidOperationException("El socio vendedor no existe.");
+            }
+
+            var compradorExiste = await _db.Socios.AnyAsync(x => x.Scod == request.Scom);
+            if (!compradorExiste)
+            {
+                throw new InvalidOperationException("El socio comprador no existe.");
+            }
+
+            var toro = await _db.Torosunis
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == request.Torovendido.Value);
+
+            if (toro is null)
+            {
+                throw new InvalidOperationException("El toro seleccionado no existe.");
+            }
+
+            var ownerCode = toro.Criador?.Trim();
+            var ownerMatchesSeller = string.Equals(ownerCode, request.Sven, StringComparison.OrdinalIgnoreCase);
+            var ownerMatchesPreviousBuyer = existingTransfer is not null &&
+                string.Equals(ownerCode, existingTransfer.Scom, StringComparison.OrdinalIgnoreCase) &&
+                existingTransfer.Torovendido == request.Torovendido;
+
+            if (!ownerMatchesSeller && !ownerMatchesPreviousBuyer)
+            {
+                throw new InvalidOperationException("El toro seleccionado ya no pertenece al socio vendedor.");
+            }
+        }
+
+        private async Task TransferToroAsync(TranssbDTO request, Transsb? existingTransfer = null)
+        {
+            if (!request.Torovendido.HasValue)
+            {
+                throw new InvalidOperationException("La transferencia no tiene un toro asociado.");
+            }
+
+            var toro = await _db.Torosunis.FirstOrDefaultAsync(x => x.Id == request.Torovendido.Value);
+            if (toro is null)
+            {
+                throw new InvalidOperationException("No se encontró el toro a transferir.");
+            }
+
+            var ownerCode = toro.Criador?.Trim();
+            var ownerMatchesSeller = string.Equals(ownerCode, request.Sven, StringComparison.OrdinalIgnoreCase);
+            var ownerMatchesPreviousBuyer = existingTransfer is not null &&
+                string.Equals(ownerCode, existingTransfer.Scom, StringComparison.OrdinalIgnoreCase) &&
+                existingTransfer.Torovendido == request.Torovendido;
+
+            if (!ownerMatchesSeller && !ownerMatchesPreviousBuyer)
+            {
+                throw new InvalidOperationException("El toro ya no pertenece al socio vendedor.");
+            }
+
+            toro.Criador = request.Scom;
+            await _db.SaveChangesAsync();
+        }
 
         private static bool CanAccessTransfer(UserSocioAccessContext accessContext, string? sellerCode, string? buyerCode)
         {

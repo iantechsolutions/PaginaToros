@@ -8,6 +8,7 @@ using AutoMapper;
 using PaginaToros.Server.Repositorio.Contrato;
 using Newtonsoft.Json;
 using PaginaToros.Server.Services;
+using System.Globalization;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -359,6 +360,83 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
+        [HttpPost("RecalcularPeriodosCabecera")]
+        public async Task<IActionResult> RecalcularPeriodosCabecera()
+        {
+            var response = new Respuesta<int>();
+
+            try
+            {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (!accessContext.IsPrivilegedUser)
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                }
+
+                var headers = await _dbContext.Desepla1s.ToListAsync();
+                var details = await _dbContext.Desepla3s
+                    .AsNoTracking()
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Nrodec))
+                    .Select(x => new { x.Nrodec, x.Desde, x.Hasta })
+                    .ToListAsync();
+
+                var periodosPorDeclaracion = details
+                    .Select(x => new
+                    {
+                        Nrodec = x.Nrodec!,
+                        Desde = TryParseDetalleDate(x.Desde),
+                        Hasta = TryParseDetalleDate(x.Hasta)
+                    })
+                    .Where(x => x.Desde.HasValue && x.Hasta.HasValue)
+                    .GroupBy(x => x.Nrodec)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => new
+                        {
+                            Desde = g.Min(x => x.Desde)!.Value,
+                            Hasta = g.Max(x => x.Hasta)!.Value
+                        });
+
+                var updated = 0;
+                foreach (var header in headers)
+                {
+                    if (string.IsNullOrWhiteSpace(header.Nrodec))
+                    {
+                        continue;
+                    }
+
+                    if (!periodosPorDeclaracion.TryGetValue(header.Nrodec, out var periodo))
+                    {
+                        continue;
+                    }
+
+                    if (header.Desde != periodo.Desde || header.Hasta != periodo.Hasta)
+                    {
+                        header.Desde = periodo.Desde;
+                        header.Hasta = periodo.Hasta;
+                        updated++;
+                    }
+                }
+
+                if (updated > 0)
+                {
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                response.Exito = 1;
+                response.Mensaje = $"Se recalcularon {updated} declaraciones.";
+                response.List = updated;
+                return StatusCode(StatusCodes.Status200OK, response);
+            }
+            catch (Exception ex)
+            {
+                response.Exito = 0;
+                response.Mensaje = ex.Message;
+                response.List = 0;
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
         private async Task<string> GenerateNextNrodecAsync(CancellationToken cancellationToken = default)
         {
             var nrodecs = await _dbContext.Desepla1s
@@ -423,5 +501,22 @@ namespace PaginaToros.Server.Controllers
                 Exito = 0,
                 Mensaje = "No tenes permisos para operar sobre otra razon social."
             };
+
+        private static DateTime? TryParseDetalleDate(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            return DateTime.TryParseExact(
+                value,
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var parsed)
+                ? parsed
+                : null;
+        }
     }
 }

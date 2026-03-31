@@ -756,6 +756,18 @@ else
         Log($"{title} | total={list.Count} | {resumen}");
     }
 
+    private (DateTime Desde, DateTime Hasta)? GetPeriodoSeleccionado()
+    {
+        var items = torosSeleccionados.Concat(certificadosSeleccionados).ToList();
+        if (items.Count == 0)
+            return null;
+
+        return (
+            items.Min(x => x.Desde),
+            items.Max(x => x.Hasta)
+        );
+    }
+
 
     Desepla3DTO CloneDesepla(Desepla3DTO s) => new Desepla3DTO
         {
@@ -1254,8 +1266,6 @@ else
         oDeclaracion.Nrocri = socioSeleccionado.Scod;
         oDeclaracion.Nroplan = Plantelseleccionado.Placod;
         oDeclaracion.Tipse = ToCode(tipoTemp);
-        oDeclaracion.Desde ??= DateTime.Now;
-        oDeclaracion.Hasta ??= DateTime.Now;
         Log($"Cabecera lista para persistir | Nrocri={Q(oDeclaracion.Nrocri)} | Nroplan={Q(oDeclaracion.Nroplan)} | Tipse={Q(oDeclaracion.Tipse)}");
 
 
@@ -1284,12 +1294,6 @@ else
             adaptacion.original.Desde = adaptacion.Desde.ToString("yyyy-MM-dd");
             adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyyy-MM-dd");
             seleccionFinal.Add(adaptacion.original);
-
-            if (tipoTemp != "Natural")
-            {
-                if (adaptacion.Desde < oDeclaracion.Desde!.Value) oDeclaracion.Desde = adaptacion.Desde;
-                if (adaptacion.Hasta > oDeclaracion.Hasta!.Value) oDeclaracion.Hasta = adaptacion.Hasta;
-            }
         }
 
         foreach (var adaptacion in certificadosSeleccionados)
@@ -1297,11 +1301,21 @@ else
             adaptacion.original.Desde = adaptacion.Desde.ToString("yyyy-MM-dd");
             adaptacion.original.Hasta = adaptacion.Hasta.ToString("yyyy-MM-dd");
             seleccionFinal.Add(adaptacion.original);
+        }
 
-            // Ajusto rango general con min/max
-            if (adaptacion.Desde < oDeclaracion.Desde!.Value) oDeclaracion.Desde = adaptacion.Desde;
-            if (adaptacion.Hasta > oDeclaracion.Hasta!.Value) oDeclaracion.Hasta = adaptacion.Hasta;
-
+        if (IsNaturalTipo(tipoTemp))
+        {
+            oDeclaracion.Desde ??= DateTime.Now;
+            oDeclaracion.Hasta ??= DateTime.Now;
+        }
+        else
+        {
+            var periodoSeleccionado = GetPeriodoSeleccionado();
+            if (periodoSeleccionado.HasValue)
+            {
+                oDeclaracion.Desde = periodoSeleccionado.Value.Desde;
+                oDeclaracion.Hasta = periodoSeleccionado.Value.Hasta;
+            }
         }
         Log($"seleccionFinal armada | total={seleccionFinal.Count} | toros={torosSeleccionados.Count} | certifs={certificadosSeleccionados.Count}");
         LogDetalleSnapshot("Guardar -> seleccionFinal", seleccionFinal);

@@ -117,8 +117,12 @@ a, .btn-link {
 }
 
 :root {
-    --pt-grid-header: linear-gradient(135deg, #95af66 0%, #87a35c 38%, #76934d 100%);
-    --pt-grid-header-text: #1f2418;
+    --pt-grid-header: linear-gradient(180deg, rgba(157, 111, 64, 0.98) 0%, rgba(133, 88, 47, 0.98) 48%, rgba(108, 68, 34, 0.98) 100%);
+    --pt-grid-header-accent: linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 18%, rgba(0, 0, 0, 0.08) 52%, rgba(255, 244, 214, 0.08) 75%, rgba(0, 0, 0, 0.1) 100%);
+    --pt-grid-header-text: #fff6e6;
+    --pt-grid-filter-input: rgba(255, 248, 235, 0.16);
+    --pt-grid-filter-input-border: rgba(255, 237, 205, 0.38);
+    --pt-grid-filter-input-focus: rgba(255, 248, 235, 0.24);
     --pt-grid-surface: rgba(255, 251, 244, 0.96);
     --pt-grid-surface-alt: rgba(249, 244, 235, 0.98);
     --pt-grid-surface-hover: rgba(238, 230, 214, 0.94);
@@ -126,6 +130,7 @@ a, .btn-link {
     --pt-grid-paginator: rgba(245, 239, 226, 0.96);
 }
 
+/* Shell base del grid */
 .tablacontent .rz-datatable-tablewrapper,
 .tablacontent.rz-data-grid .rz-datatable-tablewrapper {
     border: 0 !important;
@@ -142,16 +147,36 @@ a, .btn-link {
 
 .tablacontent .rz-grid-table,
 .tablacontent.rz-data-grid .rz-grid-table {
-    border-collapse: separate !important;
+    border-collapse: collapse !important;
     border-spacing: 0 !important;
     border: 0 !important;
 }
 
+/* Unifica ambas filas del header en una sola pieza visual */
 .tablacontent .rz-grid-table thead,
 .tablacontent.rz-data-grid .rz-grid-table thead,
 .tablacontent .rz-grid-table thead tr,
 .tablacontent.rz-data-grid .rz-grid-table thead tr {
     background: var(--pt-grid-header) !important;
+    background-image: var(--pt-grid-header-accent), var(--pt-grid-header) !important;
+    border: 0 !important;
+}
+
+.tablacontent .rz-grid-table thead,
+.tablacontent.rz-data-grid .rz-grid-table thead {
+    position: relative !important;
+    isolation: isolate !important;
+}
+
+.tablacontent .rz-grid-table thead::before,
+.tablacontent.rz-data-grid .rz-grid-table thead::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    background: var(--pt-grid-header) !important;
+    background-image: var(--pt-grid-header-accent), var(--pt-grid-header) !important;
+    z-index: -1 !important;
+    pointer-events: none !important;
 }
 
 .tablacontent .rz-grid-table thead th,
@@ -167,9 +192,229 @@ a, .btn-link {
     border-right: 0 !important;
     border-bottom: 0 !important;
     box-shadow: none !important;
+    outline: 0 !important;
     padding-top: 1rem !important;
     padding-bottom: 1rem !important;
     font-weight: 700 !important;
+}
+
+/* Neutraliza los estilos internos de Radzen en filtros */
+.tablacontent .rz-grid-table thead tr + tr,
+.tablacontent.rz-data-grid .rz-grid-table thead tr + tr,
+.tablacontent .rz-grid-table thead tr + tr th,
+.tablacontent.rz-data-grid .rz-grid-table thead tr + tr th,
+.tablacontent .rz-cell-filter,
+.tablacontent .rz-grid-filter,
+.tablacontent .rz-cell-filter-content,
+.tablacontent .rz-column-filter,
+.tablacontent .rz-grid-table thead .rz-textbox,
+.tablacontent .rz-grid-table thead .rz-inputtext,
+.tablacontent .rz-grid-table thead .rz-dropdown,
+.tablacontent .rz-grid-table thead .rz-dropdown-label,
+.tablacontent .rz-grid-table thead .rz-calendar,
+.tablacontent .rz-grid-table thead .rz-calendar .rz-inputtext,
+.tablacontent .rz-grid-table thead .rz-spinner,
+.tablacontent .rz-grid-table thead .rz-spinner-input,
+.tablacontent .rz-grid-table thead .rz-spinner-button,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-textbox,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-inputtext,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-dropdown,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-dropdown-label,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-calendar,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-calendar .rz-inputtext,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-spinner,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-spinner-input,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-spinner-button,
+.tablacontent .rz-grid-table thead .rz-dropdown-trigger,
+.tablacontent .rz-grid-table thead .rz-datepicker-trigger,
+.tablacontent .rz-grid-table thead .rz-date-filter-buttons,
+.tablacontent .rz-grid-table thead .rz-date-filter-buttons .rz-button,
+.tablacontent .rz-grid-table thead .rz-date-filter-buttons .rz-paginator-element,
+.tablacontent .rz-grid-table thead .rz-date-filter-buttons .rz-button-box,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-dropdown-trigger,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-datepicker-trigger,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-date-filter-buttons,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-date-filter-buttons .rz-button,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-date-filter-buttons .rz-paginator-element,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-date-filter-buttons .rz-button-box {
+    background-color: transparent !important;
+    background-image: none !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+.tablacontent .rz-grid-table thead tr + tr th,
+.tablacontent.rz-data-grid .rz-grid-table thead tr + tr th,
+.tablacontent .rz-cell-filter,
+.tablacontent .rz-grid-filter {
+    background: transparent !important;
+    background-image: none !important;
+    padding-top: 0.7rem !important;
+    padding-bottom: 0.9rem !important;
+    box-shadow: none !important;
+    border: 0 !important;
+}
+
+.tablacontent .rz-cell-filter-content,
+.tablacontent.rz-data-grid .rz-cell-filter-content {
+    padding: 0.15rem 0.1rem !important;
+    background: transparent !important;
+    background-image: none !important;
+    border: 0 !important;
+}
+
+.tablacontent .rz-grid-table thead tr + tr,
+.tablacontent.rz-data-grid .rz-grid-table thead tr + tr {
+    background: transparent !important;
+    background-image: none !important;
+}
+
+/* Estilo común para inputs, numeric y date filters */
+.tablacontent .rz-grid-table thead input,
+.tablacontent .rz-grid-table thead .rz-textbox,
+.tablacontent .rz-grid-table thead .rz-inputtext,
+.tablacontent .rz-grid-table thead .rz-dropdown,
+.tablacontent .rz-grid-table thead .rz-dropdown-label,
+.tablacontent .rz-grid-table thead .rz-calendar,
+.tablacontent .rz-grid-table thead .rz-calendar input,
+.tablacontent .rz-grid-table thead .rz-calendar .rz-inputtext,
+.tablacontent .rz-grid-table thead .rz-spinner,
+.tablacontent .rz-grid-table thead .rz-spinner-input,
+.tablacontent.rz-data-grid .rz-grid-table thead input,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-textbox,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-inputtext,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-dropdown,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-dropdown-label,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-calendar,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-calendar input,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-calendar .rz-inputtext,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-spinner,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-spinner-input {
+    background: var(--pt-grid-filter-input) !important;
+    border: 1px solid var(--pt-grid-filter-input-border) !important;
+    border-radius: 10px !important;
+    color: var(--pt-grid-header-text) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Botones auxiliares internos: spinner y date filter */
+.tablacontent .rz-grid-table thead .rz-spinner-button,
+.tablacontent .rz-grid-table thead .rz-date-filter-buttons .rz-button,
+.tablacontent .rz-grid-table thead .rz-date-filter-buttons .rz-paginator-element,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-spinner-button,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-date-filter-buttons .rz-button,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-date-filter-buttons .rz-paginator-element {
+    background: transparent !important;
+    border: 0 !important;
+    color: rgba(255, 246, 230, 0.72) !important;
+    box-shadow: none !important;
+}
+
+.tablacontent .rz-grid-table thead .rz-date-filter-buttons .rzi,
+.tablacontent .rz-grid-table thead .rz-date-filter-buttons .rz-icon,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-date-filter-buttons .rzi,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-date-filter-buttons .rz-icon {
+    color: rgba(255, 246, 230, 0.78) !important;
+    fill: rgba(255, 246, 230, 0.78) !important;
+}
+
+.tablacontent .rz-grid-table thead .rz-cell-filter-label > .rz-button.rz-button-icon-only,
+.tablacontent .rz-grid-table thead .rz-cell-filter-label > .rz-paginator-element.rz-button-icon-only,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-cell-filter-label > .rz-button.rz-button-icon-only,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-cell-filter-label > .rz-paginator-element.rz-button-icon-only {
+    background: #8c5b2d !important;
+    border: 1px solid rgba(255, 239, 214, 0.18) !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+}
+
+.tablacontent .rz-grid-table thead .rz-cell-filter-label > .rz-button.rz-button-icon-only:hover,
+.tablacontent .rz-grid-table thead .rz-cell-filter-label > .rz-paginator-element.rz-button-icon-only:hover,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-cell-filter-label > .rz-button.rz-button-icon-only:hover,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-cell-filter-label > .rz-paginator-element.rz-button-icon-only:hover {
+    background: #9d6f40 !important;
+    border-color: rgba(255, 243, 221, 0.28) !important;
+}
+
+.tablacontent .rz-grid-table thead .rz-cell-filter-label > .rz-button.rz-button-icon-only .rzi,
+.tablacontent .rz-grid-table thead .rz-cell-filter-label > .rz-button.rz-button-icon-only .rz-icon,
+.tablacontent .rz-grid-table thead .rz-cell-filter-label > .rz-paginator-element.rz-button-icon-only .rzi,
+.tablacontent .rz-grid-table thead .rz-cell-filter-label > .rz-paginator-element.rz-button-icon-only .rz-icon,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-cell-filter-label > .rz-button.rz-button-icon-only .rzi,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-cell-filter-label > .rz-button.rz-button-icon-only .rz-icon,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-cell-filter-label > .rz-paginator-element.rz-button-icon-only .rzi,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-cell-filter-label > .rz-paginator-element.rz-button-icon-only .rz-icon {
+    color: #f2dfbf !important;
+}
+
+.tablacontent .rz-grid-table thead .rz-datepicker-trigger,
+.tablacontent .rz-grid-table thead .rz-button.rz-datepicker-trigger,
+.tablacontent .rz-grid-table thead .rz-datepicker-trigger.rz-paginator-element,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-datepicker-trigger,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-button.rz-datepicker-trigger,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-datepicker-trigger.rz-paginator-element {
+    background: #8c5b2d !important;
+    border: 1px solid rgba(255, 239, 214, 0.18) !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+}
+
+.tablacontent .rz-grid-table thead .rz-datepicker-trigger:hover,
+.tablacontent .rz-grid-table thead .rz-button.rz-datepicker-trigger:hover,
+.tablacontent .rz-grid-table thead .rz-datepicker-trigger.rz-paginator-element:hover,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-datepicker-trigger:hover,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-button.rz-datepicker-trigger:hover,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-datepicker-trigger.rz-paginator-element:hover {
+    background: #9d6f40 !important;
+    border-color: rgba(255, 243, 221, 0.28) !important;
+}
+
+.tablacontent .rz-grid-table thead .rz-datepicker-trigger,
+.tablacontent .rz-grid-table thead .rz-datepicker-trigger .rzi,
+.tablacontent .rz-grid-table thead .rz-datepicker-trigger .rz-icon,
+.tablacontent .rz-grid-table thead .rz-datepicker-trigger svg,
+.tablacontent .rz-grid-table thead .rz-datepicker-trigger svg *,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-datepicker-trigger,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-datepicker-trigger .rzi,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-datepicker-trigger .rz-icon,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-datepicker-trigger svg,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-datepicker-trigger svg * {
+    color: #f2dfbf !important;
+    fill: #f2dfbf !important;
+    stroke: #f2dfbf !important;
+}
+
+.tablacontent .rz-grid-table thead input::placeholder,
+.tablacontent .rz-grid-table thead .rz-textbox::placeholder,
+.tablacontent .rz-grid-table thead .rz-inputtext::placeholder,
+.tablacontent .rz-grid-table thead .rz-spinner-input::placeholder,
+.tablacontent.rz-data-grid .rz-grid-table thead input::placeholder,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-textbox::placeholder,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-inputtext::placeholder,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-spinner-input::placeholder {
+    color: rgba(255, 246, 230, 0.78) !important;
+}
+
+.tablacontent .rz-grid-table thead input:focus,
+.tablacontent .rz-grid-table thead .rz-textbox:focus,
+.tablacontent .rz-grid-table thead .rz-inputtext:focus,
+.tablacontent .rz-grid-table thead .rz-calendar:focus-within,
+.tablacontent .rz-grid-table thead .rz-spinner:focus-within,
+.tablacontent .rz-grid-table thead .rz-spinner-input:focus,
+.tablacontent .rz-grid-table thead .rz-dropdown:focus-within,
+.tablacontent .rz-grid-table thead .rz-calendar input:focus,
+.tablacontent.rz-data-grid .rz-grid-table thead input:focus,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-textbox:focus,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-inputtext:focus,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-calendar:focus-within,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-spinner:focus-within,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-spinner-input:focus,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-dropdown:focus-within,
+.tablacontent.rz-data-grid .rz-grid-table thead .rz-calendar input:focus {
+    background: var(--pt-grid-filter-input-focus) !important;
+    border-color: rgba(255, 243, 221, 0.78) !important;
+    box-shadow: 0 0 0 3px rgba(255, 233, 192, 0.15) !important;
+    outline: none !important;
 }
 
 .tablacontent .rz-grid-table thead th:first-child,
@@ -218,4 +463,96 @@ a, .btn-link {
     border-top: 1px solid var(--pt-grid-border) !important;
     background: var(--pt-grid-paginator) !important;
     border-radius: 0 0 24px 24px !important;
+}
+
+/* Popup del filtro de fecha de Radzen */
+.rz-date-filter {
+    background: rgba(248, 242, 232, 0.98) !important;
+    border: 1px solid rgba(146, 108, 65, 0.18) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 18px 36px rgba(68, 45, 22, 0.16) !important;
+    color: #4b3320 !important;
+}
+
+.rz-date-filter .rz-listbox,
+.rz-date-filter .rz-calendar-inline,
+.rz-date-filter .rz-datepicker,
+.rz-date-filter .rz-timepicker {
+    background: rgba(255, 251, 245, 0.96) !important;
+    border: 1px solid rgba(146, 108, 65, 0.2) !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+}
+
+.rz-date-filter .rz-listbox-item {
+    color: #4b3320 !important;
+    border-radius: 10px !important;
+}
+
+.rz-date-filter .rz-listbox-item:hover,
+.rz-date-filter .rz-listbox-item.rz-state-highlight,
+.rz-date-filter .rz-listbox-item.rz-state-highlight:hover {
+    background: rgba(174, 132, 82, 0.16) !important;
+    color: #6b4320 !important;
+    box-shadow: none !important;
+}
+
+.rz-date-filter .rz-datepicker-header,
+.rz-date-filter .rz-datepicker-title,
+.rz-date-filter .rz-datepicker-calendar th,
+.rz-date-filter .rz-datepicker-calendar td .rz-state-default,
+.rz-date-filter .rz-timepicker,
+.rz-date-filter .rz-timepicker * {
+    color: #5a3a22 !important;
+}
+
+.rz-date-filter .rz-datepicker-header {
+    background: rgba(243, 232, 214, 0.92) !important;
+    border-bottom: 1px solid rgba(146, 108, 65, 0.16) !important;
+}
+
+.rz-date-filter .rz-datepicker-prev,
+.rz-date-filter .rz-datepicker-next,
+.rz-date-filter .rz-datepicker-trigger,
+.rz-date-filter .rz-dropdown,
+.rz-date-filter .rz-dropdown-label,
+.rz-date-filter .rz-spinner,
+.rz-date-filter .rz-spinner-input,
+.rz-date-filter .rz-textbox,
+.rz-date-filter .rz-inputtext {
+    background: rgba(255, 250, 243, 0.98) !important;
+    border-color: rgba(146, 108, 65, 0.26) !important;
+    box-shadow: none !important;
+    color: #5a3a22 !important;
+}
+
+.rz-date-filter .rz-datepicker-calendar td .rz-state-default:hover {
+    background: rgba(174, 132, 82, 0.14) !important;
+    color: #6b4320 !important;
+}
+
+.rz-date-filter .rz-datepicker-calendar td .rz-state-active,
+.rz-date-filter .rz-datepicker-calendar td .rz-state-active:hover {
+    background: #9d6f40 !important;
+    color: #fff7ea !important;
+}
+
+.rz-date-filter-buttons {
+    background: rgba(243, 232, 214, 0.92) !important;
+    border-top: 1px solid rgba(146, 108, 65, 0.16) !important;
+}
+
+.rz-date-filter-buttons .rz-button,
+.rz-date-filter-buttons .rz-paginator-element {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+.rz-date-filter-buttons .rz-clear-filter {
+    color: #6a4a2b !important;
+}
+
+.rz-date-filter-buttons .rz-apply-filter {
+    color: #9d6f40 !important;
 }
