@@ -90,9 +90,9 @@
                     </td>
                     <td>@toro.NomDad</td>
                     <td></td>
-                    <td>@traductor[toro.CodEstado]</td>
+                    <td>@TraducirValor(toro.CodEstado)</td>
                     <td></td>
-                    <td>@traductor[toro.TipToro]</td>
+                    <td>@TraducirValor(toro.TipToro)</td>
                 </tr>
 
             }
@@ -205,6 +205,17 @@ else if (seleccion && !terminado)
         {"4","Muerto"},
         {"5","Vendido"}
     };
+
+    private string TraducirValor(string? codigo)
+    {
+        if (string.IsNullOrWhiteSpace(codigo))
+        {
+            return string.Empty;
+        }
+
+        return traductor.TryGetValue(codigo, out var descripcion) ? descripcion : codigo;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var rta = await _socioServicio.LimitadosFiltrados(0, 0);
