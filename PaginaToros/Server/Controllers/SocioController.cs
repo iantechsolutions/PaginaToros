@@ -982,7 +982,7 @@ namespace PaginaToros.Server.Controllers
                                         <p>Señor {WebUtility.HtmlEncode(model.Names ?? "criador")} {WebUtility.HtmlEncode(model.LastNames ?? string.Empty)}:</p>
                                         <p>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar:1050/'>aquí</a>.</p>
                                         <p><strong>Detalles de inicio de sesión:</strong></p>
-                                        <p>Correo electrónico registrado: {WebUtility.HtmlEncode(model.Email)}<br>Contraseña: '{WebUtility.HtmlEncode(password)}'</p>
+                                        <p>Correo electrónico registrado: {WebUtility.HtmlEncode(model.Email)}<br>Contraseña: {WebUtility.HtmlEncode(password)}</p>
                                         <p>Recuerde mantener segura esta información y no compartirla. Gracias por su tiempo y ante cualquier consulta no dude en comunicarse por mail a planteles@hereford.org.ar</p>
                                         <p>Gracias por su comprensión y colaboración.</p>
                                     </td>

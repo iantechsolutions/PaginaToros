@@ -360,7 +360,7 @@ namespace PaginaToros.Server.Controllers
                                         <p>Señor {model.Names ?? "criador"} {model.LastNames}:</p>
                                         <p>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar:1050/'>aquí</a>.</p>
                                         <p><strong>Detalles de inicio de sesión:</strong></p>
-                                        <p>Correo electrónico registrado: {model.Email}<br>Contraseña: '{password}'</p>
+                                        <p>Correo electrónico registrado: {model.Email}<br>Contraseña: {password}</p>
                                         <p>Recuerde mantener segura esta información y no compartirla. Gracias por su tiempo y ante cualquier consulta no dude en comunicarse por mail a planteles@hereford.org.ar</p>
                                         <p>Gracias por su comprensión y colaboración.</p>
                                     </td>
@@ -602,7 +602,7 @@ namespace PaginaToros.Server.Controllers
                                       <p>Señor {(!string.IsNullOrWhiteSpace(model.Names) ? model.Names : "criador")}:</p>
                                       <p>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar:1050/'>aquí</a>.</p>
                                       <p><strong>Detalles de inicio de sesión:</strong></p>
-                                      <p>Correo electrónico registrado: {model.Email}<br>Contraseña: <code>'{nuevaContraseña}'</code></p>
+                                      <p>Correo electrónico registrado: {model.Email}<br>Contraseña: <code>{nuevaContraseña}</code></p>
                                       <p>Recuerde mantener segura esta información y no compartirla. Ante cualquier consulta escriba a <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a>.</p>
                                       <p>Gracias por su comprensión y colaboración.</p>
                                     </td>
