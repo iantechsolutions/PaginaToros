@@ -367,7 +367,6 @@ namespace PaginaToros.Server.Controllers
                                 </tr>
                                 <tr>
                                     <td style='padding: 20px; padding-top: 25px; color: #777;'>
-                                        <p>Ing. Emilio Ortiz (Responsable Puro Registrado) - <a href='mailto:eortiz@hereford.org.ar'>eortiz@hereford.org.ar</a></p>
                                         <p>Paz Hernández (Encargada Registros) - <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a></p>
                                     </td>
                                 </tr>
@@ -609,7 +608,6 @@ namespace PaginaToros.Server.Controllers
                                   </tr>
                                   <tr>
                                     <td style='padding: 20px; padding-top: 25px; color: #777;'>
-                                      <p>Ing. Emilio Ortiz (Responsable Puro Registrado) - <a href='mailto:eortiz@hereford.org.ar'>eortiz@hereford.org.ar</a></p>
                                       <p>Paz Hernández (Encargada Registros) - <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a></p>
                                     </td>
                                   </tr>
