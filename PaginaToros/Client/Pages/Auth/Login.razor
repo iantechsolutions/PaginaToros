@@ -1,9 +1,64 @@
 ﻿@page "/Login"
-﻿
+
 @inject HttpClient http
 @inject NavigationManager uriHelper
 @inject PaginaToros.Client.Auth.ILoginServices loginService
 @inject IModalService ModalService
+
+<style>
+    .password-input-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .password-input-wrapper input {
+        width: 100%;
+        padding-right: 46px;
+    }
+
+    .password-toggle-button {
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        transform: translateY(-50%);
+
+        width: 28px;
+        height: 28px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border: none;
+        background: transparent;
+        padding: 0;
+
+        color: #555;
+        cursor: pointer;
+    }
+
+    .password-toggle-button:hover {
+        color: #111;
+    }
+
+    .password-toggle-button:focus {
+        outline: none;
+    }
+
+    .password-toggle-button:focus-visible {
+        outline: 2px solid rgba(0, 0, 0, 0.25);
+        outline-offset: 2px;
+        border-radius: 6px;
+    }
+
+    .password-toggle-button svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+        pointer-events: none;
+    }
+</style>
+
 
 <div class="login-screen">
     <div class="login-overlay"></div>
@@ -14,12 +69,47 @@
         <form class="login-form">
             <div class="login-field">
                 <label for="username">Usuario</label>
-                <input id="username" type="text" @bind-value="@userInfo.UserName" placeholder="Ingrese su usuario" />
+                <input 
+                    id="username" 
+                    type="text" 
+                    @bind-value="@userInfo.UserName" 
+                    placeholder="Ingrese su usuario"
+                    autocomplete="username" />
             </div>
 
             <div class="login-field">
                 <label for="password">Contraseña</label>
-                <input id="password" type="password" @bind-value="@userInfo.Password" placeholder="Ingrese su contraseña" />
+
+                <div class="password-input-wrapper">
+                    <input
+                        id="password"
+                        type="@PasswordInputType"
+                        @bind-value="@userInfo.Password"
+                        placeholder="Ingrese su contraseña"
+                        autocomplete="current-password" />
+
+                    <button
+                        type="button"
+                        class="password-toggle-button"
+                        @onclick="TogglePasswordVisibility"
+                        @onmousedown:preventDefault="true"
+                        aria-label="@PasswordToggleLabel"
+                        title="@PasswordToggleLabel">
+
+                        @if (showPassword)
+                        {
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M2.1 3.5 3.5 2.1l18.4 18.4-1.4 1.4-3.2-3.2A11.8 11.8 0 0 1 12 20C6.5 20 2.2 16.4 1 12c.5-1.8 1.6-3.5 3.1-4.8L2.1 3.5Zm7.1 7.1A3 3 0 0 0 12 15a3 3 0 0 0 1.4-.4l-4.2-4ZM12 4c5.5 0 9.8 3.6 11 8-.4 1.5-1.2 2.9-2.4 4.1l-2.8-2.8A6 6 0 0 0 10.7 6.2L8.5 4A12 12 0 0 1 12 4Zm0 3a5 5 0 0 1 5 5v.4l-1.9-1.9A3 3 0 0 0 13.5 8.9L12 7Z" />
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 4C6.5 4 2.2 7.6 1 12c1.2 4.4 5.5 8 11 8s9.8-3.6 11-8c-1.2-4.4-5.5-8-11-8Zm0 13a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2.2a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6Z" />
+                            </svg>
+                        }
+                    </button>
+                </div>
             </div>
 
             <button class="login-button" type="button" @onclick="Loger">Acceder</button>
@@ -29,29 +119,51 @@
     </div>
 </div>
 
-
 @code {
     [CascadingParameter] public IModalService Modal { get; set; }
 
     private UserLogin userInfo = new UserLogin();
+
+    private bool showPassword = false;
+
+    private string PasswordInputType => showPassword ? "text" : "password";
+
+    private string PasswordToggleLabel => showPassword
+        ? "Ocultar contraseña"
+        : "Mostrar contraseña";
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
+
     private async Task Loger()
     {
         var validationMessage = GetValidationMessage();
+
         if (validationMessage is not null)
         {
-            Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(validationMessage, "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
+            Modal.Show<ModalInfo>(
+                "Error",
+                SharedModalOptions.SetParameterModalInfo(validationMessage, "alert alert-danger"),
+                SharedModalOptions.modalOptionsInfo
+            );
+
             return;
         }
 
         var options = new ModalOptions()
-            {
-                Position = ModalPosition.Middle,
-                HideCloseButton=true,
-            };
+        {
+            Position = ModalPosition.Middle,
+            HideCloseButton = true,
+        };
+
         var modal = Modal.Show<ModalWait>("", options);
+
         try
         {
             var result = await http.PostAsJsonAsync($"{http.BaseAddress}api/Account/Login", userInfo);
+
             if (result.IsSuccessStatusCode)
             {
                 var token = await result.Content.ReadAsStringAsync();
@@ -61,13 +173,27 @@
             }
 
             var serverMessage = await result.Content.ReadAsStringAsync();
+
             modal.Close();
-            Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo(GetFriendlyLoginError(serverMessage), "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
+
+            Modal.Show<ModalInfo>(
+                "Error",
+                SharedModalOptions.SetParameterModalInfo(GetFriendlyLoginError(serverMessage), "alert alert-danger"),
+                SharedModalOptions.modalOptionsInfo
+            );
         }
         catch
         {
             modal.Close();
-            Modal.Show<ModalInfo>("Error", SharedModalOptions.SetParameterModalInfo("No se pudo iniciar sesión en este momento. Intente nuevamente en unos minutos.", "alert alert-danger"), SharedModalOptions.modalOptionsInfo);
+
+            Modal.Show<ModalInfo>(
+                "Error",
+                SharedModalOptions.SetParameterModalInfo(
+                    "No se pudo iniciar sesión en este momento. Intente nuevamente en unos minutos.",
+                    "alert alert-danger"
+                ),
+                SharedModalOptions.modalOptionsInfo
+            );
         }
     }
 
@@ -115,5 +241,4 @@
 
         return null;
     }
-
 }

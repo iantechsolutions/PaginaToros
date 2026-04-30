@@ -2396,6 +2396,10 @@ namespace PaginaToros.Server.Context
                     .HasMaxLength(15)
                     .HasDefaultValueSql("'0'");
 
+                entity.Property(e => e.EstablecimientoId)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("establecimientoId");
+
                 entity.Property(e => e.CodUsu)
                     .HasColumnType("int(11)")
                     .HasColumnName("COD_USU")
@@ -2552,10 +2556,21 @@ namespace PaginaToros.Server.Context
             });
 
             modelBuilder.Entity<Torosuni>()
+               .HasIndex(t => t.EstablecimientoId)
+               .HasDatabaseName("IX_TOROSUNI_establecimientoId");
+
+            modelBuilder.Entity<Torosuni>()
                .HasOne(t => t.Socio)
                .WithMany(s => s.Torosunis)
                .HasForeignKey(t => t.Criador)
                .HasPrincipalKey(s => s.Scod);
+
+            modelBuilder.Entity<Torosuni>()
+               .HasOne(t => t.Establecimiento)
+               .WithMany()
+               .HasForeignKey(t => t.EstablecimientoId)
+               .HasPrincipalKey(e => e.Id)
+               .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Torosuniestado>(entity =>
             {

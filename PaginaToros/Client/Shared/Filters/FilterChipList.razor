@@ -1,0 +1,20 @@
+@if (Items?.Any() == true)
+{
+    <div class="filter-chip-list">
+        @foreach (var item in Items)
+        {
+            <button type="button" class="filter-chip" @onclick="() => Remove(item.Key)">
+                <span>@item.Label: @item.Value</span>
+                <span class="filter-chip-close">x</span>
+            </button>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<FilterChipItem> Items { get; set; } = Array.Empty<FilterChipItem>();
+    [Parameter] public EventCallback<string> OnRemove { get; set; }
+
+    private Task Remove(string key)
+        => OnRemove.InvokeAsync(key);
+}

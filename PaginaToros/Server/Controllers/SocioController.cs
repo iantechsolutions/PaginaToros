@@ -201,6 +201,68 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
+        [HttpGet("search")]
+        public async Task<IActionResult> Search(string? term = null, int take = 20)
+        {
+            try
+            {
+                if (take <= 0)
+                {
+                    take = 20;
+                }
+
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                var query = _db.Socios
+                    .AsNoTracking()
+                    .Where(s => s.Criador == "S");
+
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    query = query.Where(s => accessContext.AllowedSocioIds.Contains(s.Id));
+                }
+
+                if (!string.IsNullOrWhiteSpace(term))
+                {
+                    var normalized = term.Trim();
+                    query = query.Where(s =>
+                        (s.Nombre != null && s.Nombre.Contains(normalized)) ||
+                        (s.Codpos2 != null && s.Codpos2.Contains(normalized)) ||
+                        (s.Scod != null && s.Scod.Contains(normalized)));
+                }
+
+                var result = await query
+                    .OrderBy(s => s.Nombre)
+                    .Take(take)
+                    .Select(s => new SocioLookupItemDTO
+                    {
+                        Id = s.Id,
+                        Scod = s.Scod ?? string.Empty,
+                        NumeroSocio = s.Codpos2 ?? string.Empty,
+                        Nombre = s.Nombre ?? string.Empty,
+                        DisplayName = string.IsNullOrWhiteSpace(s.Codpos2)
+                            ? (s.Nombre ?? string.Empty)
+                            : $"{s.Codpos2} - {s.Nombre}"
+                    })
+                    .ToListAsync();
+
+                return Ok(new Respuesta<List<SocioLookupItemDTO>>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<List<SocioLookupItemDTO>>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = null
+                });
+            }
+        }
+
 
 
         [HttpDelete]

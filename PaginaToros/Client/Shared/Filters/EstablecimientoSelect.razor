@@ -1,0 +1,46 @@
+@inject IEstableServicio EstableServicio
+
+<RadzenDropDown TValue="int?"
+                Data="@Options"
+                TextProperty="Label"
+                ValueProperty="IntValue"
+                Value="Value"
+                ValueChanged="HandleChanged"
+                Placeholder="@Placeholder"
+                AllowClear="true"
+                Style="width: 100%;" />
+
+@code {
+    [Parameter] public int? Value { get; set; }
+    [Parameter] public EventCallback<int?> ValueChanged { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "Seleccionar establecimiento";
+    [Parameter] public int? SocioId { get; set; }
+    [Parameter] public IEnumerable<int>? SocioIds { get; set; }
+    [Parameter] public bool IncludeSinEstablecimiento { get; set; }
+
+    private List<TorosFilterOptionDTO> Options { get; set; } = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var response = await EstableServicio.Search(
+            socioId: SocioId,
+            socioIds: SocioIds,
+            take: 100);
+
+        Options = response.List ?? new List<TorosFilterOptionDTO>();
+        if (IncludeSinEstablecimiento)
+        {
+            Options.Insert(0, new TorosFilterOptionDTO
+            {
+                IntValue = -1,
+                Value = "-1",
+                Label = "Sin establecimiento"
+            });
+        }
+    }
+
+    private async Task HandleChanged(int? value)
+    {
+        await ValueChanged.InvokeAsync(value);
+    }
+}

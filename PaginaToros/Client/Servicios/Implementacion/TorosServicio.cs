@@ -50,6 +50,18 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var result = await _http.GetFromJsonAsync<Respuesta<List<TorosuniDTO>>>(url);
             return result;
         }
+        public async Task<Respuesta<TorosPagedResponse>> Search(TorosFilterRequest request)
+        {
+            var response = await _http.PostAsJsonAsync("api/toros/search", request);
+            var payload = await response.Content.ReadFromJsonAsync<Respuesta<TorosPagedResponse>>();
+            return payload ?? new Respuesta<TorosPagedResponse> { Exito = 0, Mensaje = "Sin respuesta" };
+        }
+        public async Task<Respuesta<TorosFilterMetadataResponse>> GetFilterMetadata(TorosFilterRequest request)
+        {
+            var response = await _http.PostAsJsonAsync("api/toros/filter-metadata", request);
+            var payload = await response.Content.ReadFromJsonAsync<Respuesta<TorosFilterMetadataResponse>>();
+            return payload ?? new Respuesta<TorosFilterMetadataResponse> { Exito = 0, Mensaje = "Sin respuesta" };
+        }
         public async Task<bool> Eliminar(int id)
         {
             var result = await _http.DeleteAsync($"api/toros/Eliminar/{id}");

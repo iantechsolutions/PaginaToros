@@ -13,6 +13,8 @@ namespace PaginaToros.Server.Repositorio.Contrato
         Task<int> CantidadFiltrada(string? expression = null);
         Task<List<Torosuni>> LimitadosFiltrados(int skip, int take, string filtro = null);
         Task<List<Torosuni>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null);
+        Task<(List<Torosuni> Items, int TotalCount)> SearchAsync(TorosFilterRequest request, IReadOnlyCollection<int>? allowedSocioIds = null, bool restrictToAllowedSocios = false);
+        Task<TorosFilterMetadataResponse> GetFilterMetadataAsync(TorosFilterRequest request, IReadOnlyCollection<int>? allowedSocioIds = null, bool restrictToAllowedSocios = false);
         Task<bool> Eliminar(Torosuni entidad);
         Task<Torosuni> Crear(Torosuni entidad);
         Task<bool> Editar(Torosuni entidad);

@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Client.Pages.Establecimientos;
 using PaginaToros.Client.Pages.Socios;
+using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Server.Services;
 using PaginaToros.Shared.Models;
@@ -16,15 +18,18 @@ namespace PaginaToros.Server.Controllers
         private readonly IMapper _mapper;
         private readonly IEstableRepositorio _EstableRepositorio;
         private readonly IUserSocioContextService _userSocioContextService;
+        private readonly hereford_prContext _dbContext;
 
         public EstablecimientoController(
             IEstableRepositorio EstableRepositorio,
             IMapper mapper,
-            IUserSocioContextService userSocioContextService)
+            IUserSocioContextService userSocioContextService,
+            hereford_prContext dbContext)
         {
             _mapper = mapper;
             _EstableRepositorio = EstableRepositorio;
             _userSocioContextService = userSocioContextService;
+            _dbContext = dbContext;
         }
 
         [Route("Lista")]
@@ -160,6 +165,87 @@ namespace PaginaToros.Server.Controllers
             {
                 _ResponseDTO = new Respuesta<List<EstableDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> Search(string? term = null, int? socioId = null, string? socioIds = null, int take = 20)
+        {
+            try
+            {
+                if (take <= 0)
+                {
+                    take = 20;
+                }
+
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                var scopedSocioIds = new List<int>();
+                if (!string.IsNullOrWhiteSpace(socioIds))
+                {
+                    scopedSocioIds = socioIds
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => int.TryParse(s, out var parsed) ? parsed : 0)
+                        .Where(id => id > 0)
+                        .Distinct()
+                        .ToList();
+                }
+
+                var query = _dbContext.Estables
+                    .AsNoTracking()
+                    .Include(e => e.Socio)
+                    .AsQueryable();
+
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    query = query.Where(e => e.Socio != null && accessContext.AllowedSocioIds.Contains(e.Socio.Id));
+                }
+
+                if (socioId.HasValue)
+                {
+                    query = query.Where(e => e.Socio != null && e.Socio.Id == socioId.Value);
+                }
+                else if (scopedSocioIds.Count > 0)
+                {
+                    query = query.Where(e => e.Socio != null && scopedSocioIds.Contains(e.Socio.Id));
+                }
+
+                if (!string.IsNullOrWhiteSpace(term))
+                {
+                    var normalized = term.Trim();
+                    query = query.Where(e =>
+                        (e.Nombre != null && e.Nombre.Contains(normalized)) ||
+                        (e.Ecod != null && e.Ecod.Contains(normalized)) ||
+                        (e.Codsoc != null && e.Codsoc.Contains(normalized)));
+                }
+
+                var result = await query
+                    .OrderBy(e => e.Nombre)
+                    .Take(take)
+                    .Select(e => new TorosFilterOptionDTO
+                    {
+                        IntValue = e.Id,
+                        Value = e.Id.ToString(),
+                        Label = string.IsNullOrWhiteSpace(e.Ecod)
+                            ? (e.Nombre ?? string.Empty)
+                            : $"{e.Ecod} - {e.Nombre}"
+                    })
+                    .ToListAsync();
+
+                return Ok(new Respuesta<List<TorosFilterOptionDTO>>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<List<TorosFilterOptionDTO>>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = null
+                });
             }
         }
 

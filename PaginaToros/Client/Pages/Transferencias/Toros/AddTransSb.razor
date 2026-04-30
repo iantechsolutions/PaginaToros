@@ -44,14 +44,20 @@
                     </div>
                     <div class="col-sm">
                         <label class="col-sm">Establecimiento</label>
-                        <BlazoredTypeahead SearchMethod="BusquedaEstablecimientos" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="establecimientoSeleccionado">
-                            <SelectedTemplate Context="eleccion">
-                                @eleccion.Nombre
-                            </SelectedTemplate>
-                            <ResultTemplate Context="eleccion">
-                                @eleccion.Nombre
-                            </ResultTemplate>
-                        </BlazoredTypeahead>
+                        <RadzenDropDown TValue="string"
+                                        Data="@establecimientos"
+                                        TextProperty="Nombre"
+                                        ValueProperty="Ecod"
+                                        Value="@establecimientoSeleccionadoEcod"
+                                        Change="OnEstablecimientoChanged"
+                                        AllowClear="true"
+                                        Disabled="@(socioComprador is null || establecimientos.Count == 0)"
+                                        Placeholder="Seleccionar establecimiento"
+                                        Style="width: 100%;" />
+                        @if (socioComprador is not null && establecimientos.Count == 0)
+                        {
+                            <small class="text-muted">No hay establecimientos disponibles para el comprador seleccionado.</small>
+                        }
                     </div>
                 </div>
 
@@ -121,7 +127,7 @@ else
     List<SocioDTO> socios = new();
     List<EstableDTO> establecimientos = new();
     List<TorosuniDTO> toros = new();
-    EstableDTO establecimientoSeleccionado = new();
+    EstableDTO? establecimientoSeleccionado = null;
     TorosuniDTO? toroSeleccionado = null;
     string direccionCompra = "";
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; } = default!;
@@ -130,6 +136,7 @@ else
     string? establecimientosSocioCode;
     string? torosSocioCode;
     bool esSocioUsuario;
+    string? establecimientoSeleccionadoEcod;
 
     protected override async Task OnInitializedAsync()
     {
@@ -172,7 +179,10 @@ else
                     await EnsureTorosVendedorLoadedAsync();
 
                     if (!string.IsNullOrEmpty(oTranssb.Ecod))
-                        establecimientoSeleccionado = establecimientos.FirstOrDefault(x => x.Ecod == oTranssb.Ecod) ?? new EstableDTO();
+                    {
+                        establecimientoSeleccionado = establecimientos.FirstOrDefault(x => x.Ecod == oTranssb.Ecod);
+                        establecimientoSeleccionadoEcod = establecimientoSeleccionado?.Ecod;
+                    }
                     if (oTranssb.Torovendido.HasValue)
                         toroSeleccionado = toros.FirstOrDefault(x => x.Id == oTranssb.Torovendido.Value);
                 }
@@ -371,7 +381,8 @@ else
     {
         await EnsureEstablecimientosCompradorLoadedAsync();
         var result = establecimientos
-            .Where(x => x.Nombre.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
+            .Where(x => !string.IsNullOrWhiteSpace(x.Nombre)
+                && x.Nombre.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
             .ToList();
         return result;
     }
@@ -380,27 +391,43 @@ else
     {
         await EnsureTorosVendedorLoadedAsync();
         var result = toros
-            .Where(x => x.NomDad.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase))
+            .Where(x =>
+                (!string.IsNullOrWhiteSpace(x.NomDad) && x.NomDad.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(x.Hba) && x.Hba.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(x.Tatpart) && x.Tatpart.Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase)) ||
+                (x.Sbcod.HasValue && x.Sbcod.Value.ToString().Contains(searchText ?? "", StringComparison.OrdinalIgnoreCase)))
             .ToList();
         return result;
     }
 
-    protected async Task updateComprador(SocioDTO socio)
+    protected async Task updateComprador(SocioDTO? socio)
     {
         socioComprador = socio;
-        direccionCompra = socio.Mail ?? "";
+        direccionCompra = socio?.Mail ?? string.Empty;
+        establecimientoSeleccionado = null;
+        establecimientoSeleccionadoEcod = null;
         await EnsureEstablecimientosCompradorLoadedAsync();
     }
 
-    protected async Task updateVendedor(SocioDTO socio)
+    protected async Task updateVendedor(SocioDTO? socio)
     {
         socioVendedor = socio;
+        toroSeleccionado = null;
+        oTranssb.NroOrden = null;
         await EnsureTorosVendedorLoadedAsync();
     }
 
-    protected Task updateToro(TorosuniDTO toro)
+    protected Task updateToro(TorosuniDTO? toro)
     {
         toroSeleccionado = toro;
+        oTranssb.NroOrden = toro?.Sbcod?.ToString();
+        return Task.CompletedTask;
+    }
+
+    private Task OnEstablecimientoChanged(object value)
+    {
+        establecimientoSeleccionadoEcod = value?.ToString();
+        establecimientoSeleccionado = establecimientos.FirstOrDefault(x => x.Ecod == establecimientoSeleccionadoEcod);
         return Task.CompletedTask;
     }
 
@@ -410,6 +437,8 @@ else
         {
             establecimientos = new List<EstableDTO>();
             establecimientosSocioCode = null;
+            establecimientoSeleccionado = null;
+            establecimientoSeleccionadoEcod = null;
             return;
         }
 
@@ -423,6 +452,7 @@ else
 
         establecimientos = response?.List ?? new List<EstableDTO>();
         establecimientosSocioCode = socioComprador.Scod;
+        establecimientoSeleccionado = establecimientos.FirstOrDefault(x => x.Ecod == establecimientoSeleccionadoEcod);
     }
 
     private async Task EnsureTorosVendedorLoadedAsync()
@@ -431,6 +461,7 @@ else
         {
             toros = new List<TorosuniDTO>();
             torosSocioCode = null;
+            toroSeleccionado = null;
             return;
         }
 

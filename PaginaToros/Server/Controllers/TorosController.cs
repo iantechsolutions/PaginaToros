@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using PaginaToros.Shared.Models.Response;
-using PaginaToros.Shared.Models;
+using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Server.Services;
-using AutoMapper;
-using System;
+using PaginaToros.Shared.Models;
+using PaginaToros.Shared.Models.Response;
+using System.Linq.Dynamic.Core;
+using System.Text.RegularExpressions;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -15,50 +18,47 @@ namespace PaginaToros.Server.Controllers
         private readonly IMapper _mapper;
         private readonly ITorosRepositorio _torosRepositorio;
         private readonly IUserSocioContextService _userSocioContextService;
+        private readonly hereford_prContext _dbContext;
 
         public TorosController(
             ITorosRepositorio torosRepositorio,
             IMapper mapper,
-            IUserSocioContextService userSocioContextService)
+            IUserSocioContextService userSocioContextService,
+            hereford_prContext dbContext)
         {
             _mapper = mapper;
             _torosRepositorio = torosRepositorio;
             _userSocioContextService = userSocioContextService;
+            _dbContext = dbContext;
         }
 
         [HttpGet]
         [Route("Lista")]
-        public async Task<IActionResult> Lista(int skip,int take)
+        public async Task<IActionResult> Lista(int skip, int take)
         {
-
-            Respuesta<List<TorosuniDTO>> _ResponseDTO = new Respuesta<List<TorosuniDTO>>();
-
             try
             {
                 var accessContext = await _userSocioContextService.ResolveAsync(User);
-                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                var scopedResponse = await _torosRepositorio.SearchAsync(
+                    new TorosFilterRequest { Skip = skip, Take = take },
+                    accessContext.AllowedSocioIds,
+                    RequiresAllowedSocioScope(accessContext));
+
+                return Ok(new Respuesta<List<TorosuniDTO>>
                 {
-                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<TorosuniDTO>>());
-                }
-
-                List<TorosuniDTO> listaPedido = new List<TorosuniDTO>();
-                var a = RequiresActiveSocioScope(accessContext)
-                    ? await _torosRepositorio.LimitadosFiltrados(skip, take, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
-                    : await _torosRepositorio.Lista(skip, take);
-
-                
-                listaPedido = _mapper.Map<List<TorosuniDTO>>(a);
-
-                _ResponseDTO = new Respuesta<List<TorosuniDTO>>() { Exito = 1, Mensaje = "Exito", List = listaPedido };
-
-                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
-             
-
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = _mapper.Map<List<TorosuniDTO>>(scopedResponse.Items)
+                });
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<TorosuniDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<List<TorosuniDTO>>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = null
+                });
             }
         }
 
@@ -66,38 +66,29 @@ namespace PaginaToros.Server.Controllers
         [Route("Cantidad")]
         public async Task<IActionResult> CantidadTotal()
         {
-
-            Respuesta<int> _ResponseDTO = new Respuesta<int>();
-
             try
             {
                 var accessContext = await _userSocioContextService.ResolveAsync(User);
-                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                if (!RequiresAllowedSocioScope(accessContext))
                 {
-                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                    return Ok(new Respuesta<int> { Exito = 1, Mensaje = "Exito", List = await _torosRepositorio.CantidadTotal() });
                 }
 
-                int a;
-                if (RequiresActiveSocioScope(accessContext))
-                {
-                    var query = await _torosRepositorio.Consultar(x => x.Criador == accessContext.ActiveSocioCode);
-                    a = query.Count();
-                }
-                else
-                {
-                    a = await _torosRepositorio.CantidadTotal();
-                }
+                var query = _dbContext.Torosunis
+                    .AsNoTracking()
+                    .Include(t => t.Socio)
+                    .Where(t => t.Socio != null && accessContext.AllowedSocioIds.Contains(t.Socio.Id));
 
-                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = "Exito", List = a };
-
-                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
-
-
+                return Ok(new Respuesta<int> { Exito = 1, Mensaje = "Exito", List = await query.CountAsync() });
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<int>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = 0
+                });
             }
         }
 
@@ -108,23 +99,26 @@ namespace PaginaToros.Server.Controllers
             try
             {
                 var accessContext = await _userSocioContextService.ResolveAsync(User);
-                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                var query = BuildLegacyScopedQuery(accessContext);
+
+                if (!string.IsNullOrWhiteSpace(expression))
                 {
-                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<int>());
+                    query = query.Where(NormalizeDynamicFilter(expression));
                 }
 
-                var effectiveExpression = RequiresActiveSocioScope(accessContext)
-                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
-                    : expression;
-                var count = await _torosRepositorio.CantidadFiltrada(effectiveExpression);
-                return Ok(new Respuesta<int> { Exito = 1, Mensaje = "Éxito", List = count });
+                return Ok(new Respuesta<int> { Exito = 1, Mensaje = "Éxito", List = await query.CountAsync() });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new Respuesta<int> { Exito = 0, Mensaje = ex.Message, List = 0 });
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<int>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = 0
+                });
             }
         }
+
         [HttpGet]
         [Route("LimitadosFiltrados")]
         public async Task<IActionResult> LimitadosFiltrados(int skip, int take, string? expression = null)
@@ -132,40 +126,38 @@ namespace PaginaToros.Server.Controllers
             try
             {
                 var accessContext = await _userSocioContextService.ResolveAsync(User);
-                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                var query = BuildLegacyScopedQuery(accessContext);
+
+                if (!string.IsNullOrWhiteSpace(expression))
                 {
-                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<TorosuniDTO>>());
+                    query = query.Where(NormalizeDynamicFilter(expression));
                 }
 
-                var effectiveExpression = RequiresActiveSocioScope(accessContext)
-                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
-                    : expression;
-                var entidades = await _torosRepositorio.LimitadosFiltrados(skip, take, effectiveExpression);
+                if (take == 0)
+                {
+                    take = int.MaxValue;
+                }
 
-                var listaFiltrada = _mapper.Map<List<TorosuniDTO>>(entidades)
-                    .GroupBy(x => x.Id)
-                    .Select(g => g.First())
-                    .ToList();
+                var entidades = await query
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
 
-                var resp = new Respuesta<List<TorosuniDTO>>
+                return Ok(new Respuesta<List<TorosuniDTO>>
                 {
                     Exito = 1,
                     Mensaje = "Exito",
-                    List = listaFiltrada
-                };
-
-                return Ok(resp);
+                    List = _mapper.Map<List<TorosuniDTO>>(entidades)
+                });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[TorosController] Error: {ex}");
-                return StatusCode(StatusCodes.Status400BadRequest,
-                    new Respuesta<List<TorosuniDTO>>
-                    {
-                        Exito = 0,
-                        Mensaje = $"Error en filtro: {ex.Message}",
-                        List = null
-                    });
+                return StatusCode(StatusCodes.Status400BadRequest, new Respuesta<List<TorosuniDTO>>
+                {
+                    Exito = 0,
+                    Mensaje = $"Error en filtro: {ex.Message}",
+                    List = null
+                });
             }
         }
 
@@ -173,124 +165,208 @@ namespace PaginaToros.Server.Controllers
         [Route("LimitadosFiltradosNoInclude")]
         public async Task<IActionResult> LimitadosFiltradosNoInclude(int skip, int take, string? expression = null)
         {
-
-            Respuesta<List<TorosuniDTO>> _ResponseDTO = new Respuesta<List<TorosuniDTO>>();
-
             try
             {
                 var accessContext = await _userSocioContextService.ResolveAsync(User);
-                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                var query = BuildLegacyScopedQuery(accessContext, includeEstablecimiento: false);
+
+                if (!string.IsNullOrWhiteSpace(expression))
                 {
-                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<TorosuniDTO>>());
+                    query = query.Where(NormalizeDynamicFilter(expression));
                 }
 
-                var effectiveExpression = RequiresActiveSocioScope(accessContext)
-                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
-                    : expression;
-                var a = await _torosRepositorio.LimitadosFiltradosNoInclude(skip, take, effectiveExpression);
+                if (take == 0)
+                {
+                    take = int.MaxValue;
+                }
 
-                var listaFiltrada = _mapper.Map<List<TorosuniDTO>>(a);
+                var entidades = await query
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
 
-                _ResponseDTO = new Respuesta<List<TorosuniDTO>>() { Exito = 1, Mensaje = "Exito", List = listaFiltrada };
-
-                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
-
-
+                return Ok(new Respuesta<List<TorosuniDTO>>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = _mapper.Map<List<TorosuniDTO>>(entidades)
+                });
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<TorosuniDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<List<TorosuniDTO>>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = null
+                });
+            }
+        }
+
+        [HttpPost("search")]
+        public async Task<IActionResult> Search([FromBody] TorosFilterRequest request)
+        {
+            try
+            {
+                request ??= new TorosFilterRequest();
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+
+                if (RequiresAllowedSocioScope(accessContext))
+                {
+                    request.SocioIds = request.SocioIds
+                        .Where(id => accessContext.AllowedSocioIds.Contains(id))
+                        .Distinct()
+                        .ToList();
+
+                    if (request.SocioId.HasValue && !accessContext.AllowedSocioIds.Contains(request.SocioId.Value))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TorosPagedResponse>());
+                    }
+                }
+
+                var result = await _torosRepositorio.SearchAsync(
+                    request,
+                    accessContext.AllowedSocioIds,
+                    RequiresAllowedSocioScope(accessContext));
+
+                return Ok(new Respuesta<TorosPagedResponse>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = new TorosPagedResponse
+                    {
+                        Items = _mapper.Map<List<TorosuniDTO>>(result.Items),
+                        TotalCount = result.TotalCount
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<TorosPagedResponse>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = null
+                });
+            }
+        }
+
+        [HttpPost("filter-metadata")]
+        public async Task<IActionResult> FilterMetadata([FromBody] TorosFilterRequest request)
+        {
+            try
+            {
+                request ??= new TorosFilterRequest();
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+
+                if (RequiresAllowedSocioScope(accessContext))
+                {
+                    request.SocioIds = request.SocioIds
+                        .Where(id => accessContext.AllowedSocioIds.Contains(id))
+                        .Distinct()
+                        .ToList();
+
+                    if (request.SocioId.HasValue && !accessContext.AllowedSocioIds.Contains(request.SocioId.Value))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TorosFilterMetadataResponse>());
+                    }
+                }
+
+                var metadata = await _torosRepositorio.GetFilterMetadataAsync(
+                    request,
+                    accessContext.AllowedSocioIds,
+                    RequiresAllowedSocioScope(accessContext));
+
+                if (RequiresAllowedSocioScope(accessContext) && metadata.Socios.Count > 0)
+                {
+                    metadata.ShowSocioSelector = metadata.Socios.Count > 1;
+                }
+
+                return Ok(new Respuesta<TorosFilterMetadataResponse>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = metadata
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<TorosFilterMetadataResponse>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = null
+                });
             }
         }
 
         [HttpGet("ById/{id:int}")]
         public async Task<IActionResult> ById(int id)
         {
-            Console.WriteLine($"=== ENTRO Toros/ById/{id} ===");
             try
             {
                 var repo = await _torosRepositorio.GetById(id);
-                Console.WriteLine($"[Ctrl] Repo.Exito={repo.Exito}, HasObj={repo.List != null}");
-
                 if (repo.Exito == 0 || repo.List == null)
                 {
-                    Console.WriteLine($"[Ctrl] NOT FOUND Id={id}. Msg={repo.Mensaje}");
-                    return NotFound(new Respuesta<TorosuniDTO>
-                    {
-                        Exito = 0,
-                        Mensaje = repo.Mensaje
-                    });
+                    return NotFound(new Respuesta<TorosuniDTO> { Exito = 0, Mensaje = repo.Mensaje });
                 }
 
                 var accessContext = await _userSocioContextService.ResolveAsync(User);
-                if (RequiresActiveSocioScope(accessContext))
+                if (RequiresAllowedSocioScope(accessContext) && !CanAccessToro(accessContext, repo.List))
                 {
-                    if (string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode) ||
-                        !string.Equals(repo.List.Criador, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return StatusCode(StatusCodes.Status403Forbidden,
-                            BuildForbiddenResponse<TorosuniDTO>());
-                    }
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TorosuniDTO>());
                 }
 
-                var dto = _mapper.Map<TorosuniDTO>(repo.List);
-                Console.WriteLine($"[Ctrl] Map OK -> DTO Id={dto?.Id}");
-
-                var resp = new Respuesta<TorosuniDTO>
+                return Ok(new Respuesta<TorosuniDTO>
                 {
                     Exito = 1,
                     Mensaje = "Éxito",
-                    List = dto
-                };
-
-                Console.WriteLine("=== SALIO OK Toros/ById ===");
-                return Ok(resp);
+                    List = _mapper.Map<TorosuniDTO>(repo.List)
+                });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Ctrl] EX ById {id}: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new Respuesta<TorosuniDTO> { Exito = 0, Mensaje = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<TorosuniDTO>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message
+                });
             }
         }
+
         [HttpDelete]
         [Route("Eliminar/{id:int}")]
         public async Task<IActionResult> Eliminar(int id)
         {
-            Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
                 var accessContext = await _userSocioContextService.ResolveAsync(User);
-                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                var toro = await _torosRepositorio.Obtener(u => u.Id == id);
+                if (toro == null)
+                {
+                    return NotFound(new Respuesta<string> { Exito = 0, Mensaje = "Toro inexistente", List = string.Empty });
+                }
+
+                if (RequiresAllowedSocioScope(accessContext) && !CanAccessToro(accessContext, toro))
                 {
                     return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
                 }
 
-                Torosuni _ToroEliminar = await _torosRepositorio.Obtener(u => u.Id == id);
-                if (_ToroEliminar != null)
+                var deleted = await _torosRepositorio.Eliminar(toro);
+                return Ok(new Respuesta<string>
                 {
-                    if (RequiresActiveSocioScope(accessContext) &&
-                        !string.Equals(_ToroEliminar.Criador, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
-                    }
-
-                    bool respuesta = await _torosRepositorio.Eliminar(_ToroEliminar);
-
-                    if (respuesta)
-                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
-                    else
-                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
-                }
-
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                    Exito = deleted ? 1 : 0,
+                    Mensaje = deleted ? "ok" : "No se pudo eliminar el identificador",
+                    List = string.Empty
+                });
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<string>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message
+                });
             }
         }
 
@@ -298,34 +374,45 @@ namespace PaginaToros.Server.Controllers
         [Route("Guardar")]
         public async Task<IActionResult> Guardar([FromBody] TorosuniDTO request)
         {
-            Respuesta<TorosuniDTO> _Respuesta = new Respuesta<TorosuniDTO>();
             try
             {
                 var accessContext = await _userSocioContextService.ResolveAsync(User);
-                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                if (RequiresAllowedSocioScope(accessContext))
                 {
-                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TorosuniDTO>());
+                    return StatusCode(StatusCodes.Status403Forbidden, new Respuesta<TorosuniDTO>
+                    {
+                        Exito = 0,
+                        Mensaje = "Los usuarios socio no pueden agregar nuevos toros."
+                    });
                 }
 
-                Torosuni _Toro = _mapper.Map<Torosuni>(request);
-                if (RequiresActiveSocioScope(accessContext))
+                if (string.IsNullOrWhiteSpace(request.Criador))
                 {
-                    _Toro.Criador = accessContext.ActiveSocioCode;
+                    return BadRequest(new Respuesta<TorosuniDTO>
+                    {
+                        Exito = 0,
+                        Mensaje = "Debe seleccionar un socio propietario para crear el toro."
+                    });
                 }
 
-                Torosuni _ToroCreado = await _torosRepositorio.Crear(_Toro);
+                var toro = _mapper.Map<Torosuni>(request);
+                await SyncEstablecimientoAsync(toro, request.EstablecimientoId, request.Criador);
 
-                if (_ToroCreado.Id != 0)
-                    _Respuesta = new Respuesta<TorosuniDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TorosuniDTO>(_ToroCreado) };
-                else
-                    _Respuesta = new Respuesta<TorosuniDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
-
-                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+                var created = await _torosRepositorio.Crear(toro);
+                return Ok(new Respuesta<TorosuniDTO>
+                {
+                    Exito = created.Id != 0 ? 1 : 0,
+                    Mensaje = created.Id != 0 ? "ok" : "No se pudo crear el identificador",
+                    List = _mapper.Map<TorosuniDTO>(created)
+                });
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<TorosuniDTO>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<TorosuniDTO>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message
+                });
             }
         }
 
@@ -333,99 +420,164 @@ namespace PaginaToros.Server.Controllers
         [Route("Editar")]
         public async Task<IActionResult> Editar([FromBody] TorosuniDTO request)
         {
-            var resp = new Respuesta<TorosuniDTO>();
-
             try
             {
+                Torosuni entidad;
                 var accessContext = await _userSocioContextService.ResolveAsync(User);
-                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+
+                if (request.Id == 0)
+                {
+                    if (RequiresAllowedSocioScope(accessContext))
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, new Respuesta<TorosuniDTO>
+                        {
+                            Exito = 0,
+                            Mensaje = "Los usuarios socio no pueden agregar nuevos toros."
+                        });
+                    }
+
+                    entidad = _mapper.Map<Torosuni>(request);
+                    await SyncEstablecimientoAsync(entidad, request.EstablecimientoId, request.Criador);
+                    entidad = await _torosRepositorio.Crear(entidad);
+
+                    return Ok(new Respuesta<TorosuniDTO>
+                    {
+                        Exito = entidad.Id != 0 ? 1 : 0,
+                        Mensaje = entidad.Id != 0 ? "ok" : "No se pudo crear el identificador",
+                        List = _mapper.Map<TorosuniDTO>(entidad)
+                    });
+                }
+
+                entidad = await _torosRepositorio.Obtener(t => t.Id == request.Id);
+                if (entidad == null)
+                {
+                    return NotFound(new Respuesta<TorosuniDTO> { Exito = 0, Mensaje = "No se encontró el identificador" });
+                }
+
+                if (RequiresAllowedSocioScope(accessContext) && !CanAccessToro(accessContext, entidad))
                 {
                     return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TorosuniDTO>());
                 }
 
-                Torosuni entidad;
-
-                if (request.Id != 0)
+                var originalCriador = entidad.Criador;
+                _mapper.Map(request, entidad);
+                if (RequiresAllowedSocioScope(accessContext))
                 {
-                    entidad = await _torosRepositorio.Obtener(t => t.Id == request.Id);
-
-                    if (entidad == null)
-                    {
-                        resp = new Respuesta<TorosuniDTO> { Exito = 0, Mensaje = "No se encontró el identificador" };
-                        return StatusCode(StatusCodes.Status404NotFound, resp);
-                    }
-
-                    if (RequiresActiveSocioScope(accessContext) &&
-                        !string.Equals(entidad.Criador, accessContext.ActiveSocioCode, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<TorosuniDTO>());
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(request.Criador))
-                        request.Criador = request.Criador.Trim();
-
-                    _mapper.Map(request, entidad);
-
-                    if (RequiresActiveSocioScope(accessContext))
-                    {
-                        entidad.Criador = accessContext.ActiveSocioCode;
-                    }
-
-
-                    var ok = await _torosRepositorio.Editar(entidad);
-                    if (!ok)
-                    {
-                        resp = new Respuesta<TorosuniDTO> { Exito = 0, Mensaje = "No se pudo editar el identificador" };
-                        return StatusCode(StatusCodes.Status200OK, resp);
-                    }
-                }
-                else
-                {
-                    if (!string.IsNullOrWhiteSpace(request.Criador))
-                        request.Criador = request.Criador.Trim();
-
-                    entidad = _mapper.Map<Torosuni>(request);
-                    if (RequiresActiveSocioScope(accessContext))
-                    {
-                        entidad.Criador = accessContext.ActiveSocioCode;
-                    }
-                    entidad = await _torosRepositorio.Crear(entidad);
-
-                    if (entidad.Id == 0)
-                    {
-                        resp = new Respuesta<TorosuniDTO> { Exito = 0, Mensaje = "No se pudo crear el identificador" };
-                        return StatusCode(StatusCodes.Status200OK, resp);
-                    }
+                    entidad.Criador = originalCriador;
                 }
 
-                resp = new Respuesta<TorosuniDTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<TorosuniDTO>(entidad) };
-                return StatusCode(StatusCodes.Status200OK, resp);
+                await SyncEstablecimientoAsync(entidad, request.EstablecimientoId, entidad.Criador);
+                var ok = await _torosRepositorio.Editar(entidad);
+
+                return Ok(new Respuesta<TorosuniDTO>
+                {
+                    Exito = ok ? 1 : 0,
+                    Mensaje = ok ? "ok" : "No se pudo editar el identificador",
+                    List = _mapper.Map<TorosuniDTO>(entidad)
+                });
             }
             catch (Exception ex)
             {
-                resp = new Respuesta<TorosuniDTO> { Exito = 0, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, resp);
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<TorosuniDTO>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message
+                });
             }
         }
 
-        private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
-            => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
-
-        private static string BuildActiveSocioFilter(string activeSocioCode)
-            => $"Criador == \"{activeSocioCode}\"";
-
-        private static string AppendFilter(string? expression, string requiredFilter)
+        private IQueryable<Torosuni> BuildLegacyScopedQuery(UserSocioAccessContext accessContext, bool includeEstablecimiento = true)
         {
-            if (string.IsNullOrWhiteSpace(expression))
+            var prioritizeRecentFirst = !RequiresAllowedSocioScope(accessContext);
+
+            var query = _dbContext.Torosunis
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Include(t => t.Socio)
+                .AsQueryable();
+
+            query = prioritizeRecentFirst
+                ? query.OrderByDescending(t => t.Fechasba != null && t.Fechasba.Length >= 10
+                        ? t.Fechasba.Substring(6, 4) + t.Fechasba.Substring(3, 2) + t.Fechasba.Substring(0, 2)
+                        : string.Empty)
+                    .ThenByDescending(t => t.FchUsu ?? t.Fecha)
+                    .ThenByDescending(t => t.Id)
+                : query.OrderByDescending(t => t.Fechasba != null && t.Fechasba.Length >= 10
+                        ? t.Fechasba.Substring(6, 4) + t.Fechasba.Substring(3, 2) + t.Fechasba.Substring(0, 2)
+                        : string.Empty)
+                    .ThenBy(t => t.CodEstado == "1" ? 0 : 1)
+                    .ThenBy(t => t.NomDad)
+                    .ThenByDescending(t => t.Id);
+
+            if (includeEstablecimiento)
             {
-                return requiredFilter;
+                query = query.Include(t => t.Establecimiento);
             }
 
-            return $"({expression}) and ({requiredFilter})";
+            if (RequiresAllowedSocioScope(accessContext))
+            {
+                query = query.Where(t => t.Socio != null && accessContext.AllowedSocioIds.Contains(t.Socio.Id));
+            }
+
+            return query;
+        }
+
+        private static bool RequiresAllowedSocioScope(UserSocioAccessContext accessContext)
+            => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        private static string NormalizeDynamicFilter(string expression)
+        {
+            var normalized = expression.Trim();
+            normalized = Regex.Replace(normalized, @"(?<!=)=(?!=)", "==");
+            normalized = normalized.Replace("Socio.Id==", "Socio.Id == ")
+                .Replace("CodEstado==", "CodEstado == ")
+                .Replace("TipToro==", "TipToro == ")
+                .Replace("Variedad==", "Variedad == ");
+
+            return normalized;
+        }
+
+        private static bool CanAccessToro(UserSocioAccessContext accessContext, Torosuni toro)
+        {
+            if (!RequiresAllowedSocioScope(accessContext))
+            {
+                return true;
+            }
+
+            return toro.Socio != null && accessContext.AllowedSocioIds.Contains(toro.Socio.Id);
+        }
+
+        private async Task SyncEstablecimientoAsync(Torosuni toro, int? establecimientoId, string? criador)
+        {
+            if (!establecimientoId.HasValue)
+            {
+                toro.EstablecimientoId = null;
+                toro.Estcod = null;
+                toro.Establecimiento = null;
+                return;
+            }
+
+            var establecimiento = await _dbContext.Estables
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == establecimientoId.Value);
+
+            if (establecimiento == null)
+            {
+                throw new InvalidOperationException("El establecimiento seleccionado no existe.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(criador) &&
+                !string.Equals(establecimiento.Codsoc, criador, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("El establecimiento seleccionado no pertenece al socio del toro.");
+            }
+
+            toro.EstablecimientoId = establecimiento.Id;
+            toro.Estcod = establecimiento.Ecod;
         }
 
         private static Respuesta<T> BuildForbiddenResponse<T>()
-            => new Respuesta<T>
+            => new()
             {
                 Exito = 0,
                 Mensaje = "No tenes permisos para operar sobre otra razon social."

@@ -1,0 +1,52 @@
+<div class="filter-search">
+    <input class="form-control"
+           placeholder="@Placeholder"
+           value="@CurrentValue"
+           @oninput="HandleInput" />
+    @if (!string.IsNullOrWhiteSpace(CurrentValue))
+    {
+        <button type="button" class="btn btn-light filter-search-clear" @onclick="Clear">Limpiar</button>
+    }
+</div>
+
+@code {
+    [Parameter] public string Placeholder { get; set; } = "Buscar";
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public int DebounceMs { get; set; } = 400;
+
+    private string CurrentValue { get; set; } = string.Empty;
+    private CancellationTokenSource? _cts;
+
+    protected override void OnParametersSet()
+    {
+        CurrentValue = Value ?? string.Empty;
+    }
+
+    private async Task HandleInput(ChangeEventArgs args)
+    {
+        CurrentValue = args.Value?.ToString() ?? string.Empty;
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+
+        try
+        {
+            await Task.Delay(DebounceMs, token);
+            if (!token.IsCancellationRequested)
+            {
+                await ValueChanged.InvokeAsync(CurrentValue);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    }
+
+    private async Task Clear()
+    {
+        CurrentValue = string.Empty;
+        _cts?.Cancel();
+        await ValueChanged.InvokeAsync(string.Empty);
+    }
+}

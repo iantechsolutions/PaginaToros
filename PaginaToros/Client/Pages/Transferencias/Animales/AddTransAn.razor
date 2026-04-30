@@ -493,10 +493,10 @@ else
             });
     }
 
-    protected async Task updateComprador(SocioDTO socio)
+    protected async Task updateComprador(SocioDTO? socio)
     {
         socioComprador = socio;
-        direccionCompra = socio.Mail ?? string.Empty;
+        direccionCompra = socio?.Mail ?? string.Empty;
         await EnsurePlantelesCompradorLoadedAsync();
 
         StateHasChanged();

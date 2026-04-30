@@ -13,6 +13,8 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<Respuesta<List<TorosuniDTO>>> LimitadosFiltrados(int skip, int take, string filtro = null);
         Task<Respuesta<List<TorosuniDTO>>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null);
         Task<Respuesta<List<TorosuniDTO>>> GetBySocioId(int socioId);
+        Task<Respuesta<TorosPagedResponse>> Search(TorosFilterRequest request);
+        Task<Respuesta<TorosFilterMetadataResponse>> GetFilterMetadata(TorosFilterRequest request);
         Task<bool> Eliminar(int id);
         Task<Respuesta<TorosuniDTO>> Crear(TorosuniDTO entidad);
         Task<bool> Editar(TorosuniDTO entidad);

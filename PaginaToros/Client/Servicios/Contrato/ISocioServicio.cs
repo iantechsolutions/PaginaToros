@@ -13,6 +13,7 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<bool> Editar(SocioDTO entidad);
         Task<Respuesta<SocioDTO>> Filtrar(string descripcion);
         Task<Respuesta<List<SocioDTO>>> LimitadosFiltradoTodos(int skip, int take, string expression = null);
+        Task<Respuesta<List<SocioLookupItemDTO>>> Search(string? term, int take = 20);
         Task<Respuesta<SocioDTO>> Reserve();
         Task<Respuesta<bool>> ExistsCodpos2(string codpos2, int? excludeId = null);
         Task<Respuesta<SocioRegistrationResult>> GuardarYEnviarInscripcion(SocioRegistrationRequest request);

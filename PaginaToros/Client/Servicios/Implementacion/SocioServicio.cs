@@ -90,6 +90,18 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return dto!;
         }
 
+        public async Task<Respuesta<List<SocioLookupItemDTO>>> Search(string? term, int take = 20)
+        {
+            var url = new StringBuilder($"api/Socio/search?take={take}");
+            if (!string.IsNullOrWhiteSpace(term))
+            {
+                url.Append($"&term={Uri.EscapeDataString(term)}");
+            }
+
+            var result = await _http.GetFromJsonAsync<Respuesta<List<SocioLookupItemDTO>>>(url.ToString());
+            return result ?? new Respuesta<List<SocioLookupItemDTO>> { Exito = 0, Mensaje = "Sin respuesta" };
+        }
+
         public async Task<Respuesta<SocioDTO>> Reserve()
         {
             var response = await _http.PostAsync("api/Socio/Reserve", null);

@@ -1,0 +1,30 @@
+@using Blazored.Typeahead
+@inject ISocioServicio SocioServicio
+
+<BlazoredTypeahead TItem="SocioLookupItemDTO"
+                   TValue="SocioLookupItemDTO"
+                   SearchMethod="SearchSocios"
+                   Placeholder="@Placeholder"
+                   EnableDropDown="true"
+                   Value="Value"
+                   ValueChanged="HandleChanged"
+                   ValueExpression="ValueExpression">
+    <SelectedTemplate Context="item">@item.DisplayName</SelectedTemplate>
+    <ResultTemplate Context="item">@item.DisplayName</ResultTemplate>
+</BlazoredTypeahead>
+
+@code {
+    [Parameter] public SocioLookupItemDTO? Value { get; set; }
+    [Parameter] public EventCallback<SocioLookupItemDTO?> ValueChanged { get; set; }
+    [Parameter] public Expression<Func<SocioLookupItemDTO?>>? ValueExpression { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "Buscar socio";
+
+    private async Task<IEnumerable<SocioLookupItemDTO>> SearchSocios(string term)
+    {
+        var response = await SocioServicio.Search(term, 20);
+        return response.List ?? Enumerable.Empty<SocioLookupItemDTO>();
+    }
+
+    private Task HandleChanged(SocioLookupItemDTO? value)
+        => ValueChanged.InvokeAsync(value);
+}

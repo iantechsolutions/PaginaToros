@@ -1,28 +1,19 @@
-﻿@page "/toros"
-@using Blazored.Typeahead;
-@using PaginaToros.Shared.Models.Response
-@using PaginaToros.Shared.Models
-@using PaginaToros.Client.Servicios.Contrato;
+@page "/toros"
 @inject ITorosServicio _torosServicio
 @inject ISocioServicio _socioServicio
-@inject IJSRuntime _js
+@inject IEstableServicio _estableServicio
+
 <style>
-    @@media-print{
-        .tablacontent{
-            break-inside:avoid!important;
-        }
-        .no-print{
-            display:none;
+    @@media-print {
+        .tablacontent {
+            break-inside: avoid !important;
         }
 
-        .page {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            margin: 0px;
-            -webkit-print-color-adjust: exact;
+        .no-print {
+            display: none;
         }
     }
+
     .rz-cell-data,
     .rz-column-title-content {
         font-size: 13px !important;
@@ -41,198 +32,471 @@
         border-top: solid #E0E0E0 1px;
     }
 
-    .toros-toolbar {
-              display: flex;
-              align-items: center;
-              gap: .75rem;
-              margin: .5rem 3.33% 1rem;
-              width: 93.5%;
-            }
-            .toros-toolbar-left { display: flex; align-items: center; gap: .5rem; }
-            .toros-toolbar-right { margin-left: auto; } 
-            .btn-compact { padding: .375rem .75rem; line-height: 1.1; border-radius: .75rem; }
-            .btn-icon { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border-radius: .75rem; }
-            .toros-typeahead { min-width: 360px; max-width: 520px; }
-</style>
+    .toros-shell {
+        width: 93.5%;
+        margin: 0 auto;
+    }
 
-    
+    .toros-toolbar {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .toros-toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        margin-left: auto;
+    }
+
+    .toros-search {
+        flex: 1 1 320px;
+        min-width: 280px;
+    }
+
+    .filter-search {
+        display: flex;
+        gap: .5rem;
+        align-items: center;
+        width: 100%;
+    }
+
+    .filter-search-clear {
+        white-space: nowrap;
+    }
+
+    .filter-chip-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+        margin-bottom: 1rem;
+    }
+
+    .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .4rem .7rem;
+        border: 1px solid #d2d8e0;
+        border-radius: 999px;
+        background: #f7fafc;
+        font-size: .9rem;
+    }
+
+    .filter-chip-close {
+        font-weight: bold;
+    }
+
+    .filter-panel-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, .25);
+        z-index: 1000;
+    }
+
+    .filter-panel {
+        position: fixed;
+        top: 0;
+        right: -420px;
+        width: min(420px, 95vw);
+        height: 100vh;
+        background: white;
+        box-shadow: -8px 0 24px rgba(15, 23, 42, .14);
+        z-index: 1001;
+        transition: right .2s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .filter-panel.open {
+        right: 0;
+    }
+
+    .filter-panel-header,
+    .filter-panel-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        padding: 1rem 1.1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .filter-panel-footer {
+        border-top: 1px solid #e5e7eb;
+        border-bottom: none;
+        margin-top: auto;
+    }
+
+    .filter-panel-body {
+        padding: 1rem 1.1rem;
+        overflow: auto;
+    }
+
+    .toros-filters-grid {
+        display: grid;
+        gap: .85rem;
+    }
+
+    .toros-filters-grid label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: .3rem;
+    }
+
+    .toros-inline-select {
+        min-width: 260px;
+    }
+
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: #475569;
+        border: 1px dashed #cbd5e1;
+        border-radius: 1rem;
+        background: #f8fafc;
+    }
+</style>
 
 <h3 class="pb-3 font-bold text-xl no-print" style="position:relative;left:3.33%">Toros</h3>
 
-
-
-   
-
-
-@if (oRespuesta.List != null)
-{
-
-    <div class="toros-toolbar no-print">
+<div class="toros-shell no-print">
+    <div class="toros-toolbar">
         @if (!esSocio)
         {
-            <div class="toros-toolbar-left">
-                <button class="btn btn-light btn-compact rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent"
-                         @onclick="()=>add(0)">
-                    Agregar Toro
-                </button>
-                <BlazoredTypeahead class="toros-typeahead"
-                                   SearchMethod="BusquedaSocios"
-                                   placeholder="Buscar por socio"
-                                   EnableDropDown="true"
-                                   @bind-Value="socioSeleccionado">
-                    <SelectedTemplate Context="eleccion">@eleccion.Nombre</SelectedTemplate>
-                    <ResultTemplate Context="eleccion">@eleccion.Nombre</ResultTemplate>
-                </BlazoredTypeahead>
+            <button class="btn btn-light rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent"
+                    @onclick="() => OpenToroModal(0)">
+                Agregar Toro
+            </button>
+        }
 
-                <button class="btn btn-light btn-compact rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent"
-                        @onclick="()=>BuscarPorSocio()">
-                    Buscar
-                </button>
+        <div class="toros-search">
+            <SearchInput Value="@filters.SearchText"
+                         ValueChanged="OnSearchChanged"
+                         Placeholder="Buscar por toro, socio, HBA, tatuaje, ADN o número de orden" />
+        </div>
 
-                <button class="btn btn-light btn-compact rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent"
-                        @onclick="()=>PaginaReporte()">
-                    Reporte x socio
-                </button>
+        @if (!esSocio)
+        {
+            <div class="toros-inline-select">
+                <SocioLookup Value="adminSocioSeleccionado"
+                             ValueChanged="OnAdminSocioChanged"
+                             ValueExpression="@(() => adminSocioSeleccionado)"
+                             Placeholder="Filtrar por socio" />
+            </div>
+            @if (CanChooseEstablecimiento())
+            {
+                <div class="toros-inline-select">
+                    <RadzenDropDown TValue="int?"
+                                    Data="@GetToolbarEstablecimientos()"
+                                    TextProperty="Label"
+                                    ValueProperty="IntValue"
+                                    Value="@GetEstablecimientoSelection()"
+                                    Change="OnAdminEstablecimientoChanged"
+                                    AllowClear="true"
+                                    Placeholder="Filtrar por establecimiento"
+                                    Style="width: 100%;" />
+                </div>
+            }
+        }
+        else if (showSocioSelectorSocio)
+        {
+            <div class="toros-inline-select">
+                <RadzenDropDown TValue="int?"
+                                Data="@sociosSocioDropdown"
+                                TextProperty="DisplayName"
+                                ValueProperty="Id"
+                                @bind-Value="filters.SocioId"
+                                Change="OnSocioDropdownChanged"
+                                Placeholder="Todas mis razones sociales"
+                                AllowClear="true"
+                                Style="width: 100%;" />
             </div>
         }
 
-        <div class="toros-toolbar-right">
-                        <button class="btn btn-light btn-icon" title="Filtros" @onclick="() => CambiarModoFiltro()">
-                            <FeatherFilter Color="Black"></FeatherFilter>
-                        </button>
-                    </div>
-    </div>
-    
-    <br class="no-print" />
-    <br class="no-print" />
-    <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-        <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading=@isLoading AllowColumnResize="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-                        FilterDelay="0" Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Count="@cantidad" Data="@oRespuesta.List" LoadData="LoadData" TItem="TorosuniDTO" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-            <Columns>
-                @if (!esSocio)
-                {
-                    <RadzenDataGridColumn TItem="TorosuniDTO" Property="Estado" Title="Estado" Width="3.6%">
-                        <Template Context="data">@traductor[data.CodEstado]</Template>
-                    </RadzenDataGridColumn>
-                }
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo de toro" Width="5%">
-                    <Template Context="data">
-                        @traductor[data.TipToro]
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Socio.Nombre" Title="Propietario" Width="7.34%">
-                    <Template Context="data">
-                        <a>
-                            @data.Socio.Nombre
-                        </a>
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Variedad" Title="Variedad" Width="4%" />
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="7.34%" />
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Sbcod" Title="Nro de orden" Width="4%" />
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Fechasba" Title="Fecha S/" Width="4%" />
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="4%" />
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="4%" />
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="NrTsan" Title="Tip./ADN" Width="4%" />
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Nacido" Title="Fecha de Nacimiento" Filterable="true" Width="6%">
-                    <Template Context="data">
-                        @if(data.Nacido.HasValue){
-                        <a>
-                            @data.Nacido.Value.ToString("dd/MM/yyyy")
-                        </a>
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
-
-
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="" Filterable="false" Width="3.33%">
-                    <Template Context="data">
-                        <button class="btn" title="Editar" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
-                    </Template>
-                </RadzenDataGridColumn>
-                @if (!esSocio){
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="" Title="" Filterable="false" Width="3.33%">
-                    <Template Context="data">
-                        <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
-                    </Template>
-                </RadzenDataGridColumn>
-                }
-                
-             
-            </Columns>
-        </RadzenDataGrid>
-        
-    </div>
-    <br />
-}
-else
-{
-    <br />
-    <center>
-        <div class="mb-2">
-            <br />
-            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        <div class="toros-toolbar-actions">
+            <button class="btn btn-light rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent"
+                    @onclick="ClearFilters">
+                Limpiar
+            </button>
+            @if (!esSocio)
+            {
+                <button class="btn btn-light rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent"
+                        @onclick="PaginaReporte">
+                    Reporte x socio
+                </button>
+            }
+            <button class="btn btn-light" title="Filtros" @onclick="() => showFilterPanel = true">
+                <FeatherFilter Color="Black" />
+            </button>
         </div>
-    </center>
-}
+    </div>
 
+    <FilterChipList Items="@activeChips" OnRemove="RemoveFilterChip" />
 
+</div>
 
+<FilterPanel Visible="@showFilterPanel"
+             VisibleChanged="OnPanelVisibilityChanged"
+             ApplyClicked="ApplyFiltersFromPanel"
+             ClearClicked="ClearFilters"
+             Title="Filtros avanzados">
+    <div class="toros-filters-grid">
+        <div>
+            <label>Estado</label>
+            <RadzenDropDown TValue="string"
+                            Data="@metadata.Estados"
+                            TextProperty="Label"
+                            ValueProperty="Value"
+                            @bind-Value="filters.Estado"
+                            AllowClear="true"
+                            Style="width: 100%;" />
+        </div>
+        <div>
+            <label>Tipo de toro</label>
+            <RadzenDropDown TValue="string"
+                            Data="@metadata.TiposToro"
+                            TextProperty="Label"
+                            ValueProperty="Value"
+                            @bind-Value="filters.TipoToro"
+                            AllowClear="true"
+                            Style="width: 100%;" />
+        </div>
+        @if (!esSocio)
+        {
+            <div>
+                <label>Socio / propietario</label>
+                <SocioLookup Value="adminSocioSeleccionado"
+                             ValueChanged="OnAdminSocioChanged"
+                             ValueExpression="@(() => adminSocioSeleccionado)"
+                             Placeholder="Buscar por número o nombre" />
+            </div>
+        }
+        <div>
+            <label>Establecimiento</label>
+            <RadzenDropDown TValue="int?"
+                            Data="@metadata.Establecimientos"
+                            TextProperty="Label"
+                            ValueProperty="IntValue"
+                            Value="@GetEstablecimientoSelection()"
+                            Change="OnEstablecimientoChanged"
+                            AllowClear="true"
+                            Disabled="@(!CanChooseEstablecimiento())"
+                            Placeholder="Seleccionar establecimiento"
+                            Style="width: 100%;" />
+            @if (metadata.HasSinEstablecimientoOption)
+            {
+                <div class="mt-2">
+                    <label class="mb-0">
+                        <input type="checkbox" @bind="filters.IncluirSinEstablecimiento" />
+                        <span class="ml-1">Sin establecimiento</span>
+                    </label>
+                </div>
+            }
+        </div>
+        <div>
+            <label>Variedad</label>
+            <RadzenDropDown TValue="string"
+                            Data="@metadata.Variedades"
+                            TextProperty="Label"
+                            ValueProperty="Value"
+                            @bind-Value="filters.Variedad"
+                            AllowClear="true"
+                            Style="width: 100%;" />
+        </div>
+        <div>
+            <label>Nombre del toro</label>
+            <input class="form-control"
+                   value="@filters.NombreToro"
+                   @oninput="OnNombreToroInput" />
+        </div>
+        <div>
+            <label>Número de orden</label>
+            <input type="number"
+                   class="form-control"
+                   value="@FormatNullableInt(filters.NroOrden)"
+                   @oninput="OnNroOrdenInput" />
+        </div>
+        <div>
+            <label>HBA</label>
+            <input class="form-control"
+                   value="@filters.Hba"
+                   @oninput="OnHbaInput" />
+        </div>
+        <div>
+            <label>Tatuaje</label>
+            <input class="form-control"
+                   value="@filters.Tatuaje"
+                   @oninput="OnTatuajeInput" />
+        </div>
+        <div>
+            <label>Tipificación / ADN</label>
+            <input class="form-control"
+                   value="@filters.TipAdn"
+                   @oninput="OnTipAdnInput" />
+        </div>
+        <div>
+            <label>Fecha S/ desde</label>
+            <RadzenDatePicker TValue="DateTime?" @bind-Value="filters.FechaSDesde" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
+        </div>
+        <div>
+            <label>Fecha S/ hasta</label>
+            <RadzenDatePicker TValue="DateTime?" @bind-Value="filters.FechaSHasta" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
+        </div>
+        <div>
+            <label>Fecha nacimiento desde</label>
+            <RadzenDatePicker TValue="DateTime?" @bind-Value="filters.FechaNacimientoDesde" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
+        </div>
+        <div>
+            <label>Fecha nacimiento hasta</label>
+            <RadzenDatePicker TValue="DateTime?" @bind-Value="filters.FechaNacimientoHasta" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
+        </div>
+    </div>
+</FilterPanel>
+
+<div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+    <RadzenDataGrid Data="@items"
+                    TItem="TorosuniDTO"
+                    IsLoading="@isLoading"
+                    AllowColumnResize="true"
+                    AllowSorting="false"
+                    AllowPaging="true"
+                    ShowPagingSummary="true"
+                    Density="Density.Compact"
+                    PageSize="15"
+                    Count="@cantidad"
+                    LoadData="LoadData"
+                    @ref="grid"
+                    PagerHorizontalAlign="HorizontalAlign.Center">
+        <Columns>
+            <RadzenDataGridColumn TItem="TorosuniDTO" Title="Estado" Width="5%">
+                <Template Context="data">@TranslateEstado(data.CodEstado)</Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="TorosuniDTO" Title="Tipo de toro" Width="6%">
+                <Template Context="data">@TranslateTipo(data.TipToro)</Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Socio.Nombre" Title="Propietario" Width="8%" />
+            <RadzenDataGridColumn TItem="TorosuniDTO" Title="Establecimiento" Width="9%">
+                <Template Context="data">@GetEstablecimientoNombre(data)</Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Variedad" Title="Variedad" Width="4%" />
+            <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="8%" />
+            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Sbcod" Title="Nro de orden" Width="5%" />
+            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Fechasba" Title="Fecha S/" Width="5%" />
+            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="5%" />
+            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="5%" />
+            <RadzenDataGridColumn TItem="TorosuniDTO" Property="NrTsan" Title="Tip./ADN" Width="5%" />
+            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Nacido" Title="Fecha de nacimiento" Width="7%">
+                <Template Context="data">
+                    @if (data.Nacido.HasValue)
+                    {
+                        @data.Nacido.Value.ToString("dd/MM/yyyy")
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="TorosuniDTO" Filterable="false" Width="3%">
+                <Template Context="data">
+                    <button class="btn" title="Editar" @onclick="() => OpenToroModal(data.Id)">
+                        <FeatherEdit Size="16" Color="green" />
+                    </button>
+                </Template>
+            </RadzenDataGridColumn>
+            @if (!esSocio)
+            {
+                <RadzenDataGridColumn TItem="TorosuniDTO" Filterable="false" Width="3%">
+                    <Template Context="data">
+                        <button class="btn" title="Eliminar" @onclick="() => ConfirmDelete(data.Id)">
+                            <FeatherTrash2 Size="16" Color="red" />
+                        </button>
+                    </Template>
+                </RadzenDataGridColumn>
+            }
+        </Columns>
+    </RadzenDataGrid>
+</div>
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public RadzenDataGrid<TorosuniDTO>? grid;
-    int currentPage;
-    bool terminado = true;
-    int cantidad = 0;
 
-    public bool esSocio = true;
-    private int socioIdActual = 0;
-    SocioDTO socioSeleccionado;
-    List<SocioDTO> socios = new List<SocioDTO>();
-    Dictionary<string, string> traductor = new Dictionary<string, string>{
-        {"P","Puro Pedigree (SRA)"},
-        {"S","S/"},
-        {"GP","Ganador de prueba"},
-        {"A","Patagonico"},
+    private readonly Dictionary<string, string> estadoLabels = new()
+    {
         {"1","Activo"},
         {"2","Inactivo"},
         {"3","Inexistente"},
         {"4","Muerto"},
         {"5","Vendido"}
     };
-    public bool isLoading = false;
-    public bool allowFiltering = false;
-    public Respuesta<List<TorosuniDTO>> oRespuesta = new Respuesta<List<TorosuniDTO>>();
+
+    private readonly Dictionary<string, string> tipoToroLabels = new()
+    {
+        {"P","Puro Pedigree (SRA)"},
+        {"S","S/"},
+        {"GP","Ganador de prueba"},
+        {"A","Patagonico"}
+    };
+
+    private RadzenDataGrid<TorosuniDTO>? grid;
+    private TorosFilterState filters = new();
+    private TorosFilterMetadataResponse metadata = new();
+    private List<TorosuniDTO> items = new();
+    private List<FilterChipItem> activeChips = new();
+    private List<UserSocioOptionDTO> sociosSocioDropdown = new();
+    private SocioLookupItemDTO? adminSocioSeleccionado;
+    private UserContextDTO? userContext;
+    private bool esSocio;
+    private bool isLoading;
+    private bool showFilterPanel;
+    private bool showSocioSelectorSocio;
+    private bool initialGridLoadTriggered;
+    private int cantidad;
+
     protected override async Task OnInitializedAsync()
     {
-        await Get();
-    }
-    async Task Get()
-    {
         esSocio = await UserHasRole("Socio");
+        FilterQueryStateHelper.ApplyTorosQuery(filters, nav.Uri);
 
-        if (!esSocio)
+        if (esSocio)
         {
-            var rta = await _socioServicio.LimitadosFiltrados(0, 0);
-            socios = rta.List;
-            var cant = await _torosServicio.CantidadTotal();
-            cantidad = cant.List;
-            oRespuesta = await _torosServicio.Lista(0, 15);
+            userContext = await Http.GetFromJsonAsync<UserContextDTO>("api/Account/context");
+            sociosSocioDropdown = userContext?.AllowedSocios ?? new List<UserSocioOptionDTO>();
+            showSocioSelectorSocio = sociosSocioDropdown.Count > 1;
         }
-        else
+
+        await RefreshMetadataAsync();
+        SyncStateLabelsFromMetadata();
+        BuildActiveChips();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || initialGridLoadTriggered || grid == null)
         {
-            socioIdActual = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
+            return;
+        }
 
-            oRespuesta = await _torosServicio.GetBySocioId(socioIdActual);
+        initialGridLoadTriggered = true;
+        await grid.Reload();
+    }
 
-            oRespuesta.List = oRespuesta.List
-                .Where(x => x.CodEstado == "1")
-                .OrderBy(x => x.NomDad) 
-                .ToList();
+    private async Task LoadData(LoadDataArgs args)
+    {
+        isLoading = true;
+        StateHasChanged();
 
-            cantidad = oRespuesta.List.Count();
+        try
+        {
+            var response = await _torosServicio.Search(filters.ToRequest(args.Skip ?? 0, args.Top ?? 15, GetScopedSocioIds()));
+            items = response.List?.Items ?? new List<TorosuniDTO>();
+            cantidad = response.List?.TotalCount ?? 0;
+            BuildActiveChips();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
         }
     }
 
@@ -242,208 +506,421 @@ else
         return authenticationState.User.IsInRole(role);
     }
 
-    public void CambiarModoFiltro()
+    private async Task OnSearchChanged(string value)
     {
-        allowFiltering = !allowFiltering;
-        StateHasChanged();
+        filters.SearchText = value;
+        await ApplyFilters(persistQuery: false, refreshMetadata: false);
     }
 
-    async Task delete(int id)
+    private async Task OnAdminSocioChanged(SocioLookupItemDTO? socio)
     {
-        currentPage = grid.CurrentPage;
-        var response = await _torosServicio.Eliminar(id);
-        await grid.Reload();
-        if (response){
-            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
-
-            if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
-            {
-                await grid.GoToPage(currentPage - 1);
-            }
-            else if (grid.Count != 0)
-            {
-                await grid.GoToPage(currentPage);
-            }
-        }
-
+        adminSocioSeleccionado = socio;
+        filters.SocioId = socio?.Id;
+        filters.SocioLabel = socio?.DisplayName ?? string.Empty;
+        filters.EstablecimientoId = null;
+        filters.EstablecimientoLabel = string.Empty;
+        filters.IncluirSinEstablecimiento = false;
+        await ApplyFilters();
     }
 
-    public async Task alertaDelete(int id)
+    private async Task OnSocioDropdownChanged(object value)
     {
-        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
-            {
-                Title = "¿Está seguro?",
-                Text = "Se eliminará este toro",
-                Icon = SweetAlertIcon.Warning,
-                ShowCancelButton = true,
-                ConfirmButtonText = "Eliminar",
-                CancelButtonText = "Cancelar"
-            });
-
-        if (!string.IsNullOrEmpty(result.Value))
-        {
-            delete(id);
-
-        }
-        else if (result.Dismiss == DismissReason.Cancel)
-        {
-
-        }
+        filters.SocioId = ParseNullableInt(value);
+        filters.SocioLabel = sociosSocioDropdown.FirstOrDefault(x => x.Id == filters.SocioId)?.DisplayName ?? string.Empty;
+        filters.EstablecimientoId = null;
+        filters.EstablecimientoLabel = string.Empty;
+        filters.IncluirSinEstablecimiento = false;
+        await ApplyFilters();
     }
 
-    async Task add(int Id)
+    private async Task OnEstablecimientoChanged(object value)
     {
-        int numero = Id;
+        var selectedValue = ParseNullableInt(value);
 
-        if (Id == 0 && esSocio)
+        if (selectedValue.HasValue && selectedValue.Value == -1)
         {
-            await Swal.FireAsync(new SweetAlertOptions
-                {
-                    Title = "Acción no permitida",
-                    Text = "Como socio solo podés editar tus toros. No podés agregar nuevos.",
-                    Icon = SweetAlertIcon.Info,
-                    ConfirmButtonText = "Entendido"
-                });
-            return;
-        }
-        if (numero != 0)
-        {
-            currentPage = grid.CurrentPage;
-            try
-            {
-                var parameters = new ModalParameters();
-                parameters.Add(nameof(AddToro.Id), Id);
-                parameters.Add(nameof(AddToro.EsSocio), esSocio); 
-                var options = new ModalOptions()
-                    {
-                        Size = ModalSize.ExtraLarge
-                    };
-                var formModal = Modal.Show<AddToro>("Editar Toro", parameters, options);
-                var result = await formModal.Result;
-                if (result.Cancelled)
-                {
-                    Console.WriteLine("Modal was cancelled");
-                    await grid.GoToPage(currentPage);
-                }
-                else
-                {
-                    if(socioSeleccionado==null){
-                        await Get();
-                        await grid.GoToPage(currentPage);
-                    }
-                    else
-                    {
-                        string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                        oRespuesta = await _torosServicio.LimitadosFiltrados(0, 600, filtro);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            filters.EstablecimientoId = null;
+            filters.IncluirSinEstablecimiento = true;
+            filters.EstablecimientoLabel = "Sin establecimiento";
         }
         else
         {
-            var options = new ModalOptions()
-                {
-                    Size = ModalSize.ExtraLarge
-                };
-            var formModal = Modal.Show<AddToro>("Agregar Toro", options);
-            var result = await formModal.Result;
+            filters.EstablecimientoId = selectedValue;
+            filters.IncluirSinEstablecimiento = false;
+            filters.EstablecimientoLabel = metadata.Establecimientos
+                .FirstOrDefault(x => x.IntValue == filters.EstablecimientoId)?.Label ?? string.Empty;
+        }
 
-            if (result.Cancelled)
+        BuildActiveChips();
+    }
+
+    private async Task OnAdminEstablecimientoChanged(object value)
+    {
+        await OnEstablecimientoChanged(value);
+        await ApplyFilters();
+    }
+
+    private Task ApplyFiltersFromPanel()
+        => ApplyFilters();
+
+    private async Task ApplyFilters(bool persistQuery = true, bool refreshMetadata = true)
+    {
+        if (refreshMetadata)
+        {
+            await RefreshMetadataAsync();
+            SyncStateLabelsFromMetadata();
+        }
+
+        BuildActiveChips();
+        if (persistQuery)
+        {
+            PersistQueryState();
+        }
+
+        await ReloadGridFromStartAsync();
+    }
+
+    private async Task ClearFilters()
+    {
+        filters.Clear();
+        adminSocioSeleccionado = null;
+        await RefreshMetadataAsync();
+        BuildActiveChips();
+        PersistQueryState();
+        await ReloadGridFromStartAsync();
+    }
+
+    private async Task ReloadGridFromStartAsync()
+    {
+        if (grid != null)
+        {
+            if (grid.CurrentPage > 0)
             {
-                Console.WriteLine("Modal was cancelled");
-                await grid.GoToPage(currentPage);
+                await grid.FirstPage(true);
             }
             else
             {
-                if (socioSeleccionado == null)
-                {
-                    await Get();
-                    await grid.GoToPage(currentPage);
-                }
-                else
-                {
-                    string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                    oRespuesta = await _torosServicio.LimitadosFiltrados(0, 60, filtro);
-                }
+                await grid.Reload();
             }
         }
     }
 
-    async Task LoadData(LoadDataArgs args)
+    private async Task RefreshMetadataAsync()
     {
-        isLoading = true;
+        var request = new TorosFilterRequest
+        {
+            Skip = 0,
+            Take = 1,
+            SocioId = filters.SocioId,
+            SocioIds = GetScopedSocioIds().ToList()
+        };
 
-        var gridFilter = string.IsNullOrWhiteSpace(args?.Filter) ? null : args.Filter.Trim();
+        var response = await _torosServicio.GetFilterMetadata(request);
+        metadata = response.List ?? new TorosFilterMetadataResponse();
+    }
 
-        string? serverFilter = null;
+    private void SyncStateLabelsFromMetadata()
+    {
+        if (filters.SocioId.HasValue)
+        {
+            filters.SocioLabel = adminSocioSeleccionado?.DisplayName
+                ?? sociosSocioDropdown.FirstOrDefault(x => x.Id == filters.SocioId)?.DisplayName
+                ?? metadata.Socios.FirstOrDefault(x => x.Id == filters.SocioId)?.DisplayName
+                ?? filters.SocioLabel;
+        }
 
+        if (filters.EstablecimientoId.HasValue)
+        {
+            filters.EstablecimientoLabel = metadata.Establecimientos
+                .FirstOrDefault(x => x.IntValue == filters.EstablecimientoId)?.Label ?? filters.EstablecimientoLabel;
+        }
+    }
+
+    private IEnumerable<int> GetScopedSocioIds()
+    {
+        if (!esSocio)
+        {
+            return Enumerable.Empty<int>();
+        }
+
+        return userContext?.AllowedSocios.Select(x => x.Id) ?? Enumerable.Empty<int>();
+    }
+
+    private bool CanChooseEstablecimiento()
+    {
         if (esSocio)
         {
-            serverFilter = $"Socio.Id=={socioIdActual} and CodEstado=='1'";
-            if (!string.IsNullOrWhiteSpace(gridFilter))
-                serverFilter = $"{serverFilter} and ({gridFilter})";
-        }
-        else if (socioSeleccionado != null)
-        {
-            serverFilter = $"Socio.Id=={socioSeleccionado.Id}";
-            if (!string.IsNullOrWhiteSpace(gridFilter))
-                serverFilter = $"{serverFilter} and ({gridFilter})";
-        }
-        else
-        {
-            serverFilter = gridFilter;
+            return metadata.ShowEstablecimientoSelector;
         }
 
-        var skip = args?.Skip ?? 0;
-        var take = args?.Top ?? 15;
-
-        if (!string.IsNullOrWhiteSpace(serverFilter))
-        {
-            oRespuesta = await _torosServicio.LimitadosFiltrados(skip, take, serverFilter);
-            var cantResp = await _torosServicio.CantidadFiltrada(serverFilter);
-            cantidad = cantResp.List;
-        }
-        else
-        {
-            oRespuesta = await _torosServicio.Lista(skip, take);
-            var cantResp = await _torosServicio.CantidadFiltrada(serverFilter);
-            cantidad = cantResp.List;
-        }
-
-        isLoading = false;
+        return filters.SocioId.HasValue
+            && (metadata.Establecimientos.Count > 0 || metadata.HasSinEstablecimientoOption);
     }
 
-
-    public async Task PaginaReporte()
+    private IEnumerable<TorosFilterOptionDTO> GetToolbarEstablecimientos()
     {
-        nav.NavigateTo($"/reporteprint/1");
-    }
-
-    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
-    {
-        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-        return await Task.FromResult(result);
-    }
-
-    private async Task BuscarPorSocio(){
-        if (socioSeleccionado != null)
+        if (!metadata.HasSinEstablecimientoOption)
         {
-            var coso = new LoadDataArgs();
+            return metadata.Establecimientos;
+        }
+
+        return metadata.Establecimientos
+            .Concat(new[]
+            {
+                new TorosFilterOptionDTO
+                {
+                    IntValue = -1,
+                    Value = "-1",
+                    Label = "Sin establecimiento"
+                }
+            });
+    }
+
+    private int? GetEstablecimientoSelection()
+        => filters.IncluirSinEstablecimiento ? -1 : filters.EstablecimientoId;
+
+    private string TranslateEstado(string? value)
+        => !string.IsNullOrWhiteSpace(value) && estadoLabels.TryGetValue(value, out var label) ? label : (value ?? string.Empty);
+
+    private string TranslateTipo(string? value)
+        => !string.IsNullOrWhiteSpace(value) && tipoToroLabels.TryGetValue(value, out var label) ? label : (value ?? string.Empty);
+
+    private string GetEstablecimientoNombre(TorosuniDTO data)
+        => data.Establecimiento?.Nombre ?? "Sin establecimiento";
+
+    private async Task OpenToroModal(int id)
+    {
+        if (id == 0 && esSocio)
+        {
+            await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Acción no permitida",
+                Text = "Como socio solo podés editar tus toros. No podés agregar nuevos.",
+                Icon = SweetAlertIcon.Info,
+                ConfirmButtonText = "Entendido"
+            });
+            return;
+        }
+
+        var parameters = new ModalParameters();
+        parameters.Add(nameof(AddToro.Id), id);
+        parameters.Add(nameof(AddToro.EsSocio), esSocio);
+        var modal = Modal.Show<AddToro>(id == 0 ? "Agregar Toro" : "Editar Toro", parameters, new ModalOptions
+        {
+            Size = ModalSize.ExtraLarge
+        });
+
+        var result = await modal.Result;
+        if (!result.Cancelled && grid != null)
+        {
             await grid.Reload();
-            await LoadData(coso);
-        }
-        else
-        {
-            var coso = new LoadDataArgs();
-            coso.Skip = 0;
-            coso.Top = 15;
-            await LoadData(coso);
         }
     }
-    
 
+    private async Task ConfirmDelete(int id)
+    {
+        SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "¿Está seguro?",
+            Text = "Se eliminará este toro",
+            Icon = SweetAlertIcon.Warning,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Eliminar",
+            CancelButtonText = "Cancelar"
+        });
+
+        if (!string.IsNullOrEmpty(result.Value))
+        {
+            await Delete(id);
+        }
+    }
+
+    private async Task Delete(int id)
+    {
+        var currentPage = grid?.CurrentPage ?? 0;
+        var response = await _torosServicio.Eliminar(id);
+        if (!response || grid == null)
+        {
+            return;
+        }
+
+        if (items.Count == 1 && currentPage > 0)
+        {
+            await grid.GoToPage(currentPage - 1);
+            return;
+        }
+
+        await grid.Reload();
+    }
+
+    private async Task PaginaReporte()
+    {
+        nav.NavigateTo("/reporteprint/1");
+        await Task.CompletedTask;
+    }
+
+    private void BuildActiveChips()
+    {
+        var chips = new List<FilterChipItem>();
+        AddChip(chips, "search", "Buscar", filters.SearchText);
+        AddChip(chips, "socio", "Socio", filters.SocioLabel);
+        AddChip(chips, "establecimiento", "Establecimiento", filters.IncluirSinEstablecimiento ? "Sin establecimiento" : filters.EstablecimientoLabel);
+        AddChip(chips, "estado", "Estado", TranslateEstado(filters.Estado));
+        AddChip(chips, "tipoToro", "Tipo", TranslateTipo(filters.TipoToro));
+        AddChip(chips, "variedad", "Variedad", filters.Variedad);
+        AddChip(chips, "nombreToro", "Nombre", filters.NombreToro);
+        AddChip(chips, "nroOrden", "Orden", filters.NroOrden?.ToString());
+        AddChip(chips, "hba", "HBA", filters.Hba);
+        AddChip(chips, "tatuaje", "Tatuaje", filters.Tatuaje);
+        AddChip(chips, "tipAdn", "ADN", filters.TipAdn);
+        AddChip(chips, "fechaS", "Fecha S/", FormatRange(filters.FechaSDesde, filters.FechaSHasta));
+        AddChip(chips, "fechaNacimiento", "Nacimiento", FormatRange(filters.FechaNacimientoDesde, filters.FechaNacimientoHasta));
+        activeChips = chips;
+    }
+
+    private static void AddChip(ICollection<FilterChipItem> chips, string key, string label, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            chips.Add(new FilterChipItem { Key = key, Label = label, Value = value });
+        }
+    }
+
+    private static string FormatRange(DateTime? desde, DateTime? hasta)
+    {
+        if (!desde.HasValue && !hasta.HasValue)
+        {
+            return string.Empty;
+        }
+
+        return $"{desde?.ToString("dd/MM/yyyy") ?? "..."} - {hasta?.ToString("dd/MM/yyyy") ?? "..."}";
+    }
+
+    private async Task RemoveFilterChip(string key)
+    {
+        switch (key)
+        {
+            case "search":
+                filters.SearchText = string.Empty;
+                break;
+            case "socio":
+                filters.SocioId = null;
+                filters.SocioLabel = string.Empty;
+                adminSocioSeleccionado = null;
+                break;
+            case "establecimiento":
+                filters.EstablecimientoId = null;
+                filters.EstablecimientoLabel = string.Empty;
+                filters.IncluirSinEstablecimiento = false;
+                break;
+            case "estado":
+                filters.Estado = string.Empty;
+                break;
+            case "tipoToro":
+                filters.TipoToro = string.Empty;
+                break;
+            case "variedad":
+                filters.Variedad = string.Empty;
+                break;
+            case "nombreToro":
+                filters.NombreToro = string.Empty;
+                break;
+            case "nroOrden":
+                filters.NroOrden = null;
+                break;
+            case "hba":
+                filters.Hba = string.Empty;
+                break;
+            case "tatuaje":
+                filters.Tatuaje = string.Empty;
+                break;
+            case "tipAdn":
+                filters.TipAdn = string.Empty;
+                break;
+            case "fechaS":
+                filters.FechaSDesde = null;
+                filters.FechaSHasta = null;
+                break;
+            case "fechaNacimiento":
+                filters.FechaNacimientoDesde = null;
+                filters.FechaNacimientoHasta = null;
+                break;
+        }
+
+        await RefreshMetadataAsync();
+        BuildActiveChips();
+        await ReloadGridFromStartAsync();
+    }
+
+    private Task OnPanelVisibilityChanged(bool visible)
+    {
+        showFilterPanel = visible;
+        return Task.CompletedTask;
+    }
+
+    private void PersistQueryState()
+    {
+        var url = FilterQueryStateHelper.BuildTorosUrl("/toros", filters);
+        var current = nav.ToBaseRelativePath(nav.Uri);
+        var next = nav.ToBaseRelativePath(nav.ToAbsoluteUri(url).ToString());
+
+        if (!string.Equals(current, next, StringComparison.Ordinal))
+        {
+            nav.NavigateTo(url, replace: true);
+        }
+    }
+
+    private static int? ParseNullableInt(object? value)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        if (value is int intValue)
+        {
+            return intValue;
+        }
+
+        if (int.TryParse(value.ToString(), out var parsed))
+        {
+            return parsed;
+        }
+
+        return null;
+    }
+
+    private static string FormatNullableInt(int? value)
+        => value?.ToString() ?? string.Empty;
+
+    private Task OnNombreToroInput(ChangeEventArgs args)
+    {
+        filters.NombreToro = args.Value?.ToString() ?? string.Empty;
+        return Task.CompletedTask;
+    }
+
+    private Task OnNroOrdenInput(ChangeEventArgs args)
+    {
+        var rawValue = args.Value?.ToString();
+        filters.NroOrden = int.TryParse(rawValue, out var parsed) ? parsed : null;
+        return Task.CompletedTask;
+    }
+
+    private Task OnHbaInput(ChangeEventArgs args)
+    {
+        filters.Hba = args.Value?.ToString() ?? string.Empty;
+        return Task.CompletedTask;
+    }
+
+    private Task OnTatuajeInput(ChangeEventArgs args)
+    {
+        filters.Tatuaje = args.Value?.ToString() ?? string.Empty;
+        return Task.CompletedTask;
+    }
+
+    private Task OnTipAdnInput(ChangeEventArgs args)
+    {
+        filters.TipAdn = args.Value?.ToString() ?? string.Empty;
+        return Task.CompletedTask;
+    }
 }

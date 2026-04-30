@@ -32,6 +32,7 @@ namespace PaginaToros.Shared.Models
         //public bool? Actualizado { get; set; }
         public string? CircEscrotal { get; set; }
         public string? CodEstado { get; set; }
+        public int? EstablecimientoId { get; set; }
         //public int? IdTipo { get; set; }
         //public DateTime? FchUsu { get; set; }
         //public int? CodUsu { get; set; }
@@ -39,6 +40,7 @@ namespace PaginaToros.Shared.Models
         public int Id { get; set; }
         public string? Fechasba { get; set; }
         public Socio? Socio { get; set; }
+        public EstableDTO? Establecimiento { get; set; }
 
         //public string? Pnac { get; set; }
         //public string? Pajudest { get; set; }

@@ -1,0 +1,41 @@
+@if (Visible)
+{
+    <div class="filter-panel-backdrop" @onclick="Close"></div>
+}
+
+<aside class="filter-panel @(Visible ? "open" : string.Empty)">
+    <div class="filter-panel-header">
+        <h5>@Title</h5>
+        <button type="button" class="btn btn-light" @onclick="Close">Cerrar</button>
+    </div>
+    <div class="filter-panel-body">
+        @ChildContent
+    </div>
+    <div class="filter-panel-footer">
+        <button type="button" class="btn btn-light" @onclick="OnClear">Limpiar</button>
+        <button type="button" class="btn btn-primary" @onclick="OnApply">Aplicar</button>
+    </div>
+</aside>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public string Title { get; set; } = "Filtros";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+    [Parameter] public EventCallback ApplyClicked { get; set; }
+    [Parameter] public EventCallback ClearClicked { get; set; }
+
+    private Task Close()
+        => VisibleChanged.InvokeAsync(false);
+
+    private async Task OnApply()
+    {
+        await ApplyClicked.InvokeAsync();
+        await VisibleChanged.InvokeAsync(false);
+    }
+
+    private async Task OnClear()
+    {
+        await ClearClicked.InvokeAsync();
+    }
+}

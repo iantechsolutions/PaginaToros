@@ -427,6 +427,20 @@ namespace PaginaToros.Server.Controllers
                 throw new InvalidOperationException("El socio comprador no existe.");
             }
 
+            if (string.IsNullOrWhiteSpace(request.Ecod))
+            {
+                throw new InvalidOperationException("Debe seleccionar un establecimiento válido.");
+            }
+
+            var establecimientoValido = await _db.Estables
+                .AsNoTracking()
+                .AnyAsync(x => x.Ecod == request.Ecod && x.Codsoc == request.Scom);
+
+            if (!establecimientoValido)
+            {
+                throw new InvalidOperationException("El establecimiento seleccionado no pertenece al socio comprador.");
+            }
+
             var toro = await _db.Torosunis
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == request.Torovendido.Value);
@@ -472,7 +486,20 @@ namespace PaginaToros.Server.Controllers
                 throw new InvalidOperationException("El toro ya no pertenece al socio vendedor.");
             }
 
+            Estable? establecimiento = null;
+            if (!string.IsNullOrWhiteSpace(request.Ecod))
+            {
+                establecimiento = await _db.Estables.FirstOrDefaultAsync(x => x.Ecod == request.Ecod && x.Codsoc == request.Scom);
+
+                if (establecimiento is null)
+                {
+                    throw new InvalidOperationException("No se encontró el establecimiento seleccionado para el socio comprador.");
+                }
+            }
+
             toro.Criador = request.Scom;
+            toro.Estcod = establecimiento?.Ecod;
+            toro.EstablecimientoId = establecimiento?.Id;
             await _db.SaveChangesAsync();
         }
 
