@@ -95,6 +95,7 @@ builder.Services.AddScoped<ITorosRepositorio, TorosRepositorio>();
 builder.Services.AddScoped<ITransanRepositorio, TransanRepositorio>();
 builder.Services.AddScoped<ITranssbRepositorio, TranssbRepositorio>();
 var app = builder.Build();
+var useHttpsFeatures = builder.Configuration.GetValue("Hosting:UseHttps", false);
 
 app.Use(async (context, next) =>
 {
@@ -126,11 +127,16 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    if (useHttpsFeatures)
+    {
+        app.UseHsts();
+    }
 }
 
-app.UseHttpsRedirection();
+if (useHttpsFeatures)
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
