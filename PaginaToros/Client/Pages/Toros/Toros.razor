@@ -975,13 +975,19 @@
 
     private async Task ClearFilters()
     {
+        filtersApplying = true;
         draftFilters.Clear();
         appliedFilters.Clear();
         adminSocioSeleccionado = null;
-        await RefreshMetadataAsync(appliedFilters);
+        ResetDependentMetadata();
         BuildActiveChips();
         PersistQueryState();
-        await ReloadGridFromStartAsync();
+
+        var reloadTask = ReloadGridFromStartAsync();
+        var metadataTask = RefreshMetadataAsync(appliedFilters);
+
+        await reloadTask;
+        await metadataTask;
     }
 
     private async Task ReloadGridFromStartAsync()
@@ -1032,6 +1038,16 @@
                 StateHasChanged();
             }
         }
+    }
+
+    private void ResetDependentMetadata()
+    {
+        metadata.Socios = new List<SocioLookupItemDTO>();
+        metadata.Establecimientos = new List<TorosFilterOptionDTO>();
+        metadata.Variedades = new List<TorosFilterOptionDTO>();
+        metadata.ShowSocioSelector = false;
+        metadata.ShowEstablecimientoSelector = false;
+        metadata.HasSinEstablecimientoOption = false;
     }
 
     private void SyncStateLabelsFromMetadata(TorosFilterState state)

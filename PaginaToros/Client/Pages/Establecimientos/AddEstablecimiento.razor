@@ -273,6 +273,7 @@ else
 
     EditContext editContext;
     ValidationMessageStore messageStore;
+    private const string NoInformado = "No informado";
 
     protected override async Task OnInitializedAsync()
     {
@@ -448,20 +449,6 @@ else
             valid = false;
         }
 
-        // Encargado
-        if (string.IsNullOrWhiteSpace(oEstablecimiento.Encargado))
-        {
-            messageStore.Add(new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Encargado)), "El encargado es obligatorio.");
-            valid = false;
-        }
-
-        // Direcc
-        if (string.IsNullOrWhiteSpace(oEstablecimiento.Direcc))
-        {
-            messageStore.Add(new FieldIdentifier(oEstablecimiento, nameof(oEstablecimiento.Direcc)), "El domicilio es obligatorio.");
-            valid = false;
-        }
-
         // Tel
         if (string.IsNullOrWhiteSpace(oEstablecimiento.Tel))
         {
@@ -512,14 +499,6 @@ else
                 if (string.IsNullOrWhiteSpace(oEstablecimiento.Nombre))
                     messageStore.Add(fi, "El nombre es obligatorio.");
                 break;
-            case nameof(oEstablecimiento.Encargado):
-                if (string.IsNullOrWhiteSpace(oEstablecimiento.Encargado))
-                    messageStore.Add(fi, "El encargado es obligatorio.");
-                break;
-            case nameof(oEstablecimiento.Direcc):
-                if (string.IsNullOrWhiteSpace(oEstablecimiento.Direcc))
-                    messageStore.Add(fi, "El domicilio es obligatorio.");
-                break;
             case nameof(oEstablecimiento.Tel):
                 if (string.IsNullOrWhiteSpace(oEstablecimiento.Tel))
                     messageStore.Add(fi, "El teléfono es obligatorio.");
@@ -543,11 +522,25 @@ else
         editContext.NotifyValidationStateChanged();
     }
 
+    private void CompletarCamposOpcionalesNoInformados()
+    {
+        if (string.IsNullOrWhiteSpace(oEstablecimiento.Encargado))
+        {
+            oEstablecimiento.Encargado = NoInformado;
+        }
+
+        if (string.IsNullOrWhiteSpace(oEstablecimiento.Direcc))
+        {
+            oEstablecimiento.Direcc = NoInformado;
+        }
+    }
+
     async Task Guardar()
     {
         if (!ValidateModel())
             return;
 
+        CompletarCamposOpcionalesNoInformados();
         oEstablecimiento.Codsoc = socioSeleccionado?.Scod;
         oEstablecimiento.Fecing = (socioSeleccionado?.Fecing ?? DateTime.Now).ToString("yyyy/MM/dd");
         oEstablecimiento.Fechacreacion = FechaTemp.ToString("yyyy");

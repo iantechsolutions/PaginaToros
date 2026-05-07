@@ -231,6 +231,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             bool restrictToAllowedSocios = false)
         {
             request ??= new TorosFilterRequest();
+            request.SocioIds ??= new List<int>();
 
             var response = new TorosFilterMetadataResponse
             {
@@ -238,29 +239,45 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 TiposToro = BuildTipoToroOptions()
             };
 
-            var scopedQuery = ApplySecurityScope(
-                BaseQuery(includeSocio: true, includeEstablecimiento: true),
-                allowedSocioIds,
-                restrictToAllowedSocios);
+            var hasSocioScope = request.SocioId.HasValue
+                || request.SocioIds.Count > 0
+                || restrictToAllowedSocios;
 
-            response.Socios = await scopedQuery
-                .Where(t => t.Socio != null)
-                .Select(t => t.Socio!)
-                .Distinct()
-                .OrderBy(s => s.Nombre)
-                .Select(s => new SocioLookupItemDTO
+            if (hasSocioScope)
+            {
+                var scopedQuery = ApplySecurityScope(
+                    BaseQuery(includeSocio: true, includeEstablecimiento: false),
+                    allowedSocioIds,
+                    restrictToAllowedSocios);
+
+                if (request.SocioId.HasValue)
                 {
-                    Id = s.Id,
-                    Scod = s.Scod ?? string.Empty,
-                    NumeroSocio = s.Codpos2 ?? string.Empty,
-                    Nombre = s.Nombre ?? string.Empty,
-                    DisplayName = string.IsNullOrWhiteSpace(s.Codpos2)
-                        ? (s.Nombre ?? string.Empty)
-                        : $"{s.Codpos2} - {s.Nombre}"
-                })
-                .ToListAsync();
+                    scopedQuery = scopedQuery.Where(t => t.Socio != null && t.Socio.Id == request.SocioId.Value);
+                }
+                else if (request.SocioIds.Count > 0)
+                {
+                    scopedQuery = scopedQuery.Where(t => t.Socio != null && request.SocioIds.Contains(t.Socio.Id));
+                }
 
-            response.ShowSocioSelector = response.Socios.Count > 1;
+                response.Socios = await scopedQuery
+                    .Where(t => t.Socio != null)
+                    .Select(t => t.Socio!)
+                    .Distinct()
+                    .OrderBy(s => s.Nombre)
+                    .Select(s => new SocioLookupItemDTO
+                    {
+                        Id = s.Id,
+                        Scod = s.Scod ?? string.Empty,
+                        NumeroSocio = s.Codpos2 ?? string.Empty,
+                        Nombre = s.Nombre ?? string.Empty,
+                        DisplayName = string.IsNullOrWhiteSpace(s.Codpos2)
+                            ? (s.Nombre ?? string.Empty)
+                            : $"{s.Codpos2} - {s.Nombre}"
+                    })
+                    .ToListAsync();
+
+                response.ShowSocioSelector = response.Socios.Count > 1;
+            }
 
             var variedadQuery = ApplySecurityScope(
                 _dbContext.Torosunis.AsNoTracking().Include(t => t.Socio),
@@ -276,13 +293,21 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 variedadQuery = variedadQuery.Where(t => t.Socio != null && request.SocioIds.Contains(t.Socio.Id));
             }
 
-            response.Variedades = await variedadQuery
-                .Where(t => !string.IsNullOrWhiteSpace(t.Variedad))
-                .Select(t => t.Variedad!)
-                .Distinct()
-                .OrderBy(v => v)
-                .Select(v => new TorosFilterOptionDTO { Value = v, Label = v })
-                .ToListAsync();
+            if (hasSocioScope)
+            {
+                response.Variedades = await variedadQuery
+                    .Where(t => !string.IsNullOrWhiteSpace(t.Variedad))
+                    .Select(t => t.Variedad!)
+                    .Distinct()
+                    .OrderBy(v => v)
+                    .Select(v => new TorosFilterOptionDTO { Value = v, Label = v })
+                    .ToListAsync();
+            }
+
+            if (!hasSocioScope)
+            {
+                return response;
+            }
 
             var establishmentQuery = ApplySecurityScope(
                 _dbContext.Torosunis
@@ -296,14 +321,13 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
                 establishmentQuery = establishmentQuery.Where(t => t.Socio != null && t.Socio.Id == request.SocioId.Value);
             }
-            else if (request.SocioIds?.Count > 0)
+            else if (request.SocioIds.Count > 0)
             {
                 establishmentQuery = establishmentQuery.Where(t => t.Socio != null && request.SocioIds.Contains(t.Socio.Id));
             }
 
-            var establishmentItems = await establishmentQuery.ToListAsync();
-            response.HasSinEstablecimientoOption = establishmentItems.Any(t => !t.EstablecimientoId.HasValue);
-            response.Establecimientos = establishmentItems
+            response.HasSinEstablecimientoOption = await establishmentQuery.AnyAsync(t => !t.EstablecimientoId.HasValue);
+            response.Establecimientos = await establishmentQuery
                 .Where(t => t.EstablecimientoId.HasValue && t.Establecimiento != null)
                 .GroupBy(t => new { t.EstablecimientoId, t.Establecimiento!.Nombre, t.Establecimiento.Ecod })
                 .OrderBy(g => g.Key.Nombre)
@@ -315,7 +339,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                         ? (g.Key.Nombre ?? string.Empty)
                         : $"{g.Key.Ecod} - {g.Key.Nombre}"
                 })
-                .ToList();
+                .ToListAsync();
 
             response.ShowEstablecimientoSelector = response.Establecimientos.Count > 1
                 || response.HasSinEstablecimientoOption;

@@ -110,6 +110,20 @@ public class TorosRepositorioTests
     }
 
     [Fact]
+    public async Task GetFilterMetadataAsync_DoesNotLoadGlobalEstablecimientosWithoutSocioScope()
+    {
+        using var context = CreateContext();
+        Seed(context);
+        var repo = new TorosRepositorio(context);
+
+        var metadata = await repo.GetFilterMetadataAsync(new TorosFilterRequest());
+
+        Assert.Empty(metadata.Establecimientos);
+        Assert.False(metadata.ShowEstablecimientoSelector);
+        Assert.False(metadata.HasSinEstablecimientoOption);
+    }
+
+    [Fact]
     public async Task SearchAsync_ReturnsEmptyPage_WhenNoResultsMatch()
     {
         using var context = CreateContext();
