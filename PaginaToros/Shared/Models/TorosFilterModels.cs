@@ -21,6 +21,8 @@ namespace PaginaToros.Shared.Models
         public DateTime? FechaSHasta { get; set; }
         public DateTime? FechaNacimientoDesde { get; set; }
         public DateTime? FechaNacimientoHasta { get; set; }
+        public string? SortBy { get; set; }
+        public string? SortDirection { get; set; }
     }
 
     public class TorosPagedResponse

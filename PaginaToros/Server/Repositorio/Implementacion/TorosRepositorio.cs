@@ -39,8 +39,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
         private IQueryable<Torosuni> BaseQuery(
             bool includeSocio = true,
-            bool includeEstablecimiento = false,
-            bool prioritizeRecentFirst = false)
+            bool includeEstablecimiento = false)
         {
             var query = _dbContext.Torosunis
                 .AsNoTracking()
@@ -56,26 +55,49 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 query = query.Include(t => t.Establecimiento);
             }
 
-            return ApplyDefaultOrdering(query, prioritizeRecentFirst);
+            return query;
         }
 
-        private static IQueryable<Torosuni> ApplyDefaultOrdering(
+        private static IQueryable<Torosuni> ApplyOrdering(
             IQueryable<Torosuni> query,
-            bool prioritizeRecentFirst)
+            TorosFilterRequest request)
         {
-            if (prioritizeRecentFirst)
+            var sortBy = request.SortBy?.Trim();
+            var descending = string.Equals(request.SortDirection, "desc", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(request.SortDirection, "descending", StringComparison.OrdinalIgnoreCase);
+
+            if (string.IsNullOrWhiteSpace(sortBy))
             {
                 return query
-                    .OrderByDescending(BuildFechaSSortKey())
-                    .ThenByDescending(t => t.FchUsu ?? t.Fecha)
+                    .OrderBy(t => t.CodEstado == "1" ? 0 : 1)
+                    .ThenByDescending(t => t.CreatedAt)
                     .ThenByDescending(t => t.Id);
             }
 
-            return query
-                .OrderByDescending(BuildFechaSSortKey())
-                .ThenBy(t => t.CodEstado == "1" ? 0 : 1)
-                .ThenBy(t => t.NomDad)
-                .ThenByDescending(t => t.Id);
+            return sortBy.ToLowerInvariant() switch
+            {
+                "estado" => ApplyDirection(query, t => t.CodEstado, descending).ThenByDescending(t => t.CreatedAt),
+                "propietario" => ApplyDirection(query, t => t.Socio != null ? t.Socio.Nombre : string.Empty, descending).ThenByDescending(t => t.CreatedAt),
+                "establecimiento" => ApplyDirection(query, t => t.Establecimiento != null ? t.Establecimiento.Nombre : string.Empty, descending).ThenByDescending(t => t.CreatedAt),
+                "nombretoro" => ApplyDirection(query, t => t.NomDad, descending).ThenByDescending(t => t.CreatedAt),
+                "fechas" => ApplyDirection(query, BuildFechaSSortKey(), descending).ThenByDescending(t => t.CreatedAt),
+                "hba" => ApplyDirection(query, t => t.Hba, descending).ThenByDescending(t => t.CreatedAt),
+                "tatuaje" => ApplyDirection(query, t => t.Tatpart, descending).ThenByDescending(t => t.CreatedAt),
+                "fechanacimiento" => ApplyDirection(query, t => t.Nacido, descending).ThenByDescending(t => t.CreatedAt),
+                "createdat" => ApplyDirection(query, t => t.CreatedAt, descending).ThenByDescending(t => t.Id),
+                _ => query
+                    .OrderBy(t => t.CodEstado == "1" ? 0 : 1)
+                    .ThenByDescending(t => t.CreatedAt)
+                    .ThenByDescending(t => t.Id)
+            };
+        }
+
+        private static IOrderedQueryable<Torosuni> ApplyDirection<TKey>(
+            IQueryable<Torosuni> query,
+            Expression<Func<Torosuni, TKey>> keySelector,
+            bool descending)
+        {
+            return descending ? query.OrderByDescending(keySelector) : query.OrderBy(keySelector);
         }
 
         private static Expression<Func<Torosuni, string>> BuildFechaSSortKey()
@@ -93,6 +115,9 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             }
 
             return await BaseQuery(includeSocio: true, includeEstablecimiento: true)
+                .OrderBy(t => t.CodEstado == "1" ? 0 : 1)
+                .ThenByDescending(t => t.CreatedAt)
+                .ThenByDescending(t => t.Id)
                 .Skip(skip)
                 .Take(take)
                 .ToListAsync();
@@ -130,7 +155,13 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 query = query.Where(NormalizeDynamicFilter(filtro));
             }
 
-            return await query.Skip(skip).Take(take).ToListAsync();
+            return await query
+                .OrderBy(t => t.CodEstado == "1" ? 0 : 1)
+                .ThenByDescending(t => t.CreatedAt)
+                .ThenByDescending(t => t.Id)
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
         }
 
         public async Task<List<Torosuni>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null!)
@@ -146,7 +177,13 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 query = query.Where(NormalizeDynamicFilter(filtro));
             }
 
-            return await query.Skip(skip).Take(take).ToListAsync();
+            return await query
+                .OrderBy(t => t.CodEstado == "1" ? 0 : 1)
+                .ThenByDescending(t => t.CreatedAt)
+                .ThenByDescending(t => t.Id)
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
         }
 
         public async Task<(List<Torosuni> Items, int TotalCount)> SearchAsync(
@@ -160,13 +197,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             var normalizedSkip = request.Skip < 0 ? 0 : request.Skip;
 
             var query = ApplyServerFilters(
-                BaseQuery(
-                    includeSocio: true,
-                    includeEstablecimiento: true,
-                    prioritizeRecentFirst: !restrictToAllowedSocios),
+                BaseQuery(includeSocio: true, includeEstablecimiento: true),
                 request,
                 allowedSocioIds,
                 restrictToAllowedSocios);
+            query = ApplyOrdering(query, request);
 
             var needsClientDateFilter = request.FechaSDesde.HasValue || request.FechaSHasta.HasValue;
             if (!needsClientDateFilter)
@@ -447,16 +482,17 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         private IQueryable<Torosuni> ApplySearchFilter(IQueryable<Torosuni> query, string searchText)
         {
             var normalized = searchText.Trim();
+            var normalizedLower = normalized.ToLower();
             var isNumber = int.TryParse(normalized, out var numericValue);
 
             query = query.Where(t =>
-                (t.NomDad != null && t.NomDad.Contains(normalized)) ||
-                (t.Hba != null && t.Hba.Contains(normalized)) ||
-                (t.Tatpart != null && t.Tatpart.Contains(normalized)) ||
-                (t.NrTsan != null && t.NrTsan.Contains(normalized)) ||
-                (t.Socio != null && t.Socio.Nombre != null && t.Socio.Nombre.Contains(normalized)) ||
-                (t.Socio != null && t.Socio.Codpos2 != null && t.Socio.Codpos2.Contains(normalized)) ||
-                (t.Socio != null && t.Socio.Scod != null && t.Socio.Scod.Contains(normalized)) ||
+                (t.NomDad != null && t.NomDad.ToLower().Contains(normalizedLower)) ||
+                (t.Hba != null && t.Hba.ToLower().Contains(normalizedLower)) ||
+                (t.Tatpart != null && t.Tatpart.ToLower().Contains(normalizedLower)) ||
+                (t.NrTsan != null && t.NrTsan.ToLower().Contains(normalizedLower)) ||
+                (t.Socio != null && t.Socio.Nombre != null && t.Socio.Nombre.ToLower().Contains(normalizedLower)) ||
+                (t.Socio != null && t.Socio.Codpos2 != null && t.Socio.Codpos2.ToLower().Contains(normalizedLower)) ||
+                (t.Socio != null && t.Socio.Scod != null && t.Socio.Scod.ToLower().Contains(normalizedLower)) ||
                 (isNumber && t.Sbcod == numericValue));
 
             return query;

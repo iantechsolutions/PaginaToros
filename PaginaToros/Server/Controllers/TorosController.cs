@@ -396,6 +396,11 @@ namespace PaginaToros.Server.Controllers
                 }
 
                 var toro = _mapper.Map<Torosuni>(request);
+                if (toro.CreatedAt == default)
+                {
+                    toro.CreatedAt = DateTime.Now;
+                }
+
                 await SyncEstablecimientoAsync(toro, request.EstablecimientoId, request.Criador);
 
                 var created = await _torosRepositorio.Crear(toro);
@@ -437,6 +442,11 @@ namespace PaginaToros.Server.Controllers
                     }
 
                     entidad = _mapper.Map<Torosuni>(request);
+                    if (entidad.CreatedAt == default)
+                    {
+                        entidad.CreatedAt = DateTime.Now;
+                    }
+
                     await SyncEstablecimientoAsync(entidad, request.EstablecimientoId, request.Criador);
                     entidad = await _torosRepositorio.Crear(entidad);
 
@@ -460,7 +470,9 @@ namespace PaginaToros.Server.Controllers
                 }
 
                 var originalCriador = entidad.Criador;
+                var originalCreatedAt = entidad.CreatedAt;
                 _mapper.Map(request, entidad);
+                entidad.CreatedAt = originalCreatedAt == default ? DateTime.Now : originalCreatedAt;
                 if (RequiresAllowedSocioScope(accessContext))
                 {
                     entidad.Criador = originalCriador;
@@ -488,26 +500,16 @@ namespace PaginaToros.Server.Controllers
 
         private IQueryable<Torosuni> BuildLegacyScopedQuery(UserSocioAccessContext accessContext, bool includeEstablecimiento = true)
         {
-            var prioritizeRecentFirst = !RequiresAllowedSocioScope(accessContext);
-
             var query = _dbContext.Torosunis
                 .AsNoTracking()
                 .AsSplitQuery()
                 .Include(t => t.Socio)
                 .AsQueryable();
 
-            query = prioritizeRecentFirst
-                ? query.OrderByDescending(t => t.Fechasba != null && t.Fechasba.Length >= 10
-                        ? t.Fechasba.Substring(6, 4) + t.Fechasba.Substring(3, 2) + t.Fechasba.Substring(0, 2)
-                        : string.Empty)
-                    .ThenByDescending(t => t.FchUsu ?? t.Fecha)
-                    .ThenByDescending(t => t.Id)
-                : query.OrderByDescending(t => t.Fechasba != null && t.Fechasba.Length >= 10
-                        ? t.Fechasba.Substring(6, 4) + t.Fechasba.Substring(3, 2) + t.Fechasba.Substring(0, 2)
-                        : string.Empty)
-                    .ThenBy(t => t.CodEstado == "1" ? 0 : 1)
-                    .ThenBy(t => t.NomDad)
-                    .ThenByDescending(t => t.Id);
+            query = query
+                .OrderBy(t => t.CodEstado == "1" ? 0 : 1)
+                .ThenByDescending(t => t.CreatedAt)
+                .ThenByDescending(t => t.Id);
 
             if (includeEstablecimiento)
             {

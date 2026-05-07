@@ -37,6 +37,7 @@ namespace PaginaToros.Shared.Models
         public DateTime? FchUsu { get; set; }
         public int? CodUsu { get; set; }
         public string? Fecing { get; set; } = null!;
+        public DateTime CreatedAt { get; set; }
         public int Id { get; set; }
         public string? Fechasba { get; set; }
         public string? Pnac { get; set; }

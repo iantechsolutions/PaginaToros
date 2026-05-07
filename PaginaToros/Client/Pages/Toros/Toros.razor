@@ -1,7 +1,5 @@
 @page "/toros"
 @inject ITorosServicio _torosServicio
-@inject ISocioServicio _socioServicio
-@inject IEstableServicio _estableServicio
 
 <style>
     @@media-print {
@@ -14,76 +12,254 @@
         }
     }
 
-    .rz-cell-data,
-    .rz-column-title-content {
-        font-size: 13px !important;
+    .toros-page {
+        width: 100%;
+        margin: 0 auto 2rem;
+        color: #172033;
     }
 
-    .rz-cell-data {
-        overflow: visible !important;
-        white-space: normal !important;
+    .toros-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin: 1rem 0;
     }
 
-    .tablacontent th.rz-unselectable-text.rz-text-align-left {
-        background-color: #82D682;
+    .toros-title {
+        margin: 0;
+        font-size: 1.55rem;
+        font-weight: 700;
     }
 
-    .rz-paginator {
-        border-top: solid #E0E0E0 1px;
+    .toros-description {
+        margin: .25rem 0 0;
+        color: #64748b;
     }
 
-    .toros-shell {
-        width: 93.5%;
-        margin: 0 auto;
+    .toros-card {
+        border: 1px solid #dbe3cf;
+        border-radius: 8px;
+        background: #fffdf8;
+        box-shadow: 0 8px 18px rgba(76, 59, 32, .06);
+    }
+
+    .toros-filter-card {
+        padding: .75rem;
+        margin-bottom: .85rem;
     }
 
     .toros-toolbar {
-        display: flex;
+        display: grid;
+        grid-template-columns: minmax(260px, 1fr) minmax(190px, 250px) minmax(190px, 250px) max-content;
         align-items: center;
-        gap: .75rem;
-        flex-wrap: wrap;
-        margin-bottom: 1rem;
+        gap: .5rem;
     }
 
     .toros-toolbar-actions {
         display: flex;
         align-items: center;
-        gap: .5rem;
-        margin-left: auto;
+        justify-content: flex-end;
+        gap: .4rem;
+        flex-wrap: wrap;
     }
 
-    .toros-search {
-        flex: 1 1 320px;
-        min-width: 280px;
+    .toros-inline-select {
+        min-width: 0;
+    }
+
+    .toros-status-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: .55rem;
+    }
+
+    .toros-loading-message {
+        color: #2563eb;
+        font-size: .92rem;
+        font-weight: 600;
     }
 
     .filter-search {
         display: flex;
-        gap: .5rem;
+        gap: .4rem;
         align-items: center;
         width: 100%;
     }
 
-    .filter-search-clear {
+    .filter-search-clear,
+    .filter-search-status {
         white-space: nowrap;
+    }
+
+    .filter-search-status {
+        color: #2563eb;
+        font-size: .8rem;
+        font-weight: 600;
+    }
+
+    .toros-filter-card .form-control,
+    .toros-filter-card .rz-dropdown,
+    .toros-filter-card .blazored-typeahead {
+        min-height: 32px !important;
+        height: 32px !important;
+        border-color: #cfd8c2 !important;
+        border-radius: 5px !important;
+        background: #fff !important;
+        color: #334155 !important;
+        font-size: .84rem !important;
+        box-shadow: none !important;
+    }
+
+    .toros-filter-card .form-control {
+        padding: .28rem .55rem !important;
+    }
+
+    .toros-filter-card .form-control:focus,
+    .toros-filter-card .rz-dropdown:not(.rz-state-disabled):focus,
+    .toros-filter-card .rz-dropdown:not(.rz-state-disabled):focus-within,
+    .toros-filter-card .blazored-typeahead:focus-within {
+        border-color: #78985a !important;
+        box-shadow: 0 0 0 .12rem rgba(120, 152, 90, .18) !important;
+    }
+
+    .toros-filter-card .rz-dropdown-label {
+        min-height: 30px !important;
+        height: 30px !important;
+        line-height: 1.2 !important;
+        padding: 0 1.8rem 0 .55rem !important;
+        font-size: .84rem !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .toros-filter-card .rz-dropdown-trigger {
+        width: 1.75rem !important;
+        min-width: 1.75rem !important;
+        height: 30px !important;
+        border-left: 0 !important;
+        background: transparent !important;
+        color: #78985a !important;
+        box-shadow: none !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .toros-filter-card .rz-dropdown-trigger-icon,
+    .toros-filter-card .rz-dropdown-trigger .rzi,
+    .toros-filter-card .rz-dropdown-trigger .rz-icon {
+        color: #78985a !important;
+        font-size: 1rem !important;
+    }
+
+    .toros-filter-card .blazored-typeahead__controls,
+    .toros-filter-card .blazored-typeahead__input-mask-wrapper {
+        min-height: 30px !important;
+        height: 30px !important;
+        overflow: hidden !important;
+        min-width: 0 !important;
+    }
+
+    .toros-filter-card .blazored-typeahead__input,
+    .toros-filter-card .blazored-typeahead__input-mask {
+        height: 30px !important;
+        padding: .25rem .45rem !important;
+        font-size: .84rem !important;
+        line-height: 1.25 !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    .toros-filter-card .blazored-typeahead__input-icon {
+        width: 1.75rem !important;
+        min-width: 1.75rem !important;
+        height: 30px !important;
+        background: transparent !important;
+        border-left: 0 !important;
+        padding: 0 !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: 0 0 1.75rem !important;
+    }
+
+    .toros-filter-card .blazored-typeahead__clear {
+        width: 1.45rem !important;
+        min-width: 1.45rem !important;
+        height: 30px !important;
+        padding: 0 !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: 0 0 1.45rem !important;
+        color: #b8c0ae !important;
+    }
+
+    .toros-filter-card .blazored-typeahead__clear:hover {
+        color: #52683d !important;
+        background: transparent !important;
+    }
+
+    .toros-filter-card .blazored-typeahead__input-mask > *,
+    .toros-filter-card .blazored-typeahead__selected-item {
+        min-width: 0 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        line-height: 1.25 !important;
+    }
+
+    .toros-filter-card .blazored-typeahead__down-arrow path {
+        fill: #78985a !important;
+    }
+
+    .toros-filter-card .btn {
+        min-height: 32px;
+        height: 32px;
+        padding: .25rem .65rem;
+        border-radius: 5px;
+        font-size: .84rem;
+        line-height: 1.1;
+        white-space: nowrap;
+    }
+
+    .toros-filter-card .btn-outline-secondary {
+        border-color: #78985a;
+        color: #52683d;
+        background: #fff;
+    }
+
+    .toros-filter-card .btn-outline-secondary:hover {
+        background: #edf4e5;
+        color: #3f562c;
+    }
+
+    .toros-filter-card .btn-light {
+        background: #f2f5ee;
+        border-color: #e1e7d9;
+        color: #24321b;
     }
 
     .filter-chip-list {
         display: flex;
         flex-wrap: wrap;
-        gap: .5rem;
-        margin-bottom: 1rem;
+        gap: .4rem;
+        margin: 0;
     }
 
     .filter-chip {
         display: inline-flex;
         align-items: center;
         gap: .35rem;
-        padding: .4rem .7rem;
-        border: 1px solid #d2d8e0;
+        padding: .25rem .55rem;
+        border: 1px solid #c8d9b6;
         border-radius: 999px;
-        background: #f7fafc;
-        font-size: .9rem;
+        background: #edf4e5;
+        color: #445f2f;
+        font-size: .8rem;
     }
 
     .filter-chip-close {
@@ -100,8 +276,8 @@
     .filter-panel {
         position: fixed;
         top: 0;
-        right: -420px;
-        width: min(420px, 95vw);
+        right: -440px;
+        width: min(440px, 95vw);
         height: 100vh;
         background: white;
         box-shadow: -8px 0 24px rgba(15, 23, 42, .14);
@@ -147,8 +323,84 @@
         margin-bottom: .3rem;
     }
 
-    .toros-inline-select {
-        min-width: 260px;
+    .toros-help-text {
+        margin-top: .35rem;
+        color: #64748b;
+        font-size: .84rem;
+    }
+
+    .tablacontent {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+
+    .tablacontent .rz-datatable-tablewrapper,
+    .tablacontent.rz-data-grid .rz-datatable-tablewrapper {
+        border-radius: 8px 8px 0 0 !important;
+    }
+
+    .tablacontent .rz-cell-data,
+    .tablacontent .rz-column-title-content {
+        font-size: 11.2px !important;
+    }
+
+    .tablacontent .rz-cell-data {
+        overflow: hidden !important;
+        text-overflow: ellipsis;
+        white-space: nowrap !important;
+    }
+
+    .tablacontent th.rz-unselectable-text.rz-text-align-left {
+        background-color: #f1f5f9;
+        color: #334155;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    .tablacontent .rz-grid-table td,
+    .tablacontent .rz-grid-table th {
+        padding-left: .42rem !important;
+        padding-right: .42rem !important;
+    }
+
+    .tablacontent .rz-grid-table thead th,
+    .tablacontent th.rz-unselectable-text.rz-text-align-left {
+        padding-top: .75rem !important;
+        padding-bottom: .75rem !important;
+    }
+
+    .rz-paginator {
+        border-top: solid #e2e8f0 1px;
+    }
+
+    .estado-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: .18rem .5rem;
+        font-size: .72rem;
+        font-weight: 700;
+        background: #e2e8f0;
+        color: #334155;
+    }
+
+    .estado-badge.activo {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .table-action {
+        width: 2rem;
+        height: 1.75rem;
+        width: 1.75rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        background: #fff;
     }
 
     .empty-state {
@@ -156,266 +408,391 @@
         text-align: center;
         color: #475569;
         border: 1px dashed #cbd5e1;
-        border-radius: 1rem;
+        border-radius: 8px;
         background: #f8fafc;
+    }
+
+    .table-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, .68);
+        color: #1d4ed8;
+        font-weight: 700;
+    }
+
+    @@media (min-width: 1200px) {
+        .toros-page {
+            width: calc(100vw - 20.75rem);
+            max-width: none;
+            margin-left: calc((100% - (100vw - 20.75rem)) / 2);
+            margin-right: 0;
+        }
+    }
+
+    @@media (max-width: 1320px) {
+        .toros-toolbar {
+            grid-template-columns: minmax(240px, 1fr) minmax(180px, 230px) minmax(180px, 230px);
+        }
+
+        .toros-toolbar-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-start;
+        }
+    }
+
+    @@media (max-width: 980px) {
+        .toros-header,
+        .toros-status-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .toros-toolbar {
+            grid-template-columns: 1fr;
+        }
+
+        .toros-toolbar-actions {
+            justify-content: flex-start;
+        }
+
+        .toros-filter-card .btn {
+            flex: 1 1 auto;
+        }
     }
 </style>
 
-<h3 class="pb-3 font-bold text-xl no-print" style="position:relative;left:3.33%">Toros</h3>
-
-<div class="toros-shell no-print">
-    <div class="toros-toolbar">
+<div class="toros-page">
+    <div class="toros-header no-print">
+        <div>
+            <h3 class="toros-title">Toros</h3>
+            <p class="toros-description">Consulta, filtrá y ordená el padrón de toros sin perder contexto mientras se actualizan los resultados.</p>
+        </div>
         @if (!esSocio)
         {
-            <button class="btn btn-light rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent"
-                    @onclick="() => OpenToroModal(0)">
-                Agregar Toro
+            <button class="btn btn-primary" @onclick="() => OpenToroModal(0)" disabled="@tableLoading">
+                Agregar toro
             </button>
         }
+    </div>
 
-        <div class="toros-search">
-            <SearchInput Value="@filters.SearchText"
+    <div class="toros-card toros-filter-card no-print">
+        <div class="toros-toolbar">
+            <SearchInput Value="@draftFilters.SearchText"
                          ValueChanged="OnSearchChanged"
+                         IsLoading="@searchLoading"
+                         Disabled="@metadataLoading"
                          Placeholder="Buscar por toro, socio, HBA, tatuaje, ADN o número de orden" />
-        </div>
 
-        @if (!esSocio)
-        {
-            <div class="toros-inline-select">
-                <SocioLookup Value="adminSocioSeleccionado"
-                             ValueChanged="OnAdminSocioChanged"
-                             ValueExpression="@(() => adminSocioSeleccionado)"
-                             Placeholder="Filtrar por socio" />
-            </div>
-            @if (CanChooseEstablecimiento())
+            @if (!esSocio)
             {
+                <div class="toros-inline-select">
+                    <SocioLookup Value="adminSocioSeleccionado"
+                                 ValueChanged="OnToolbarAdminSocioChanged"
+                                 ValueExpression="@(() => adminSocioSeleccionado)"
+                                 Placeholder="Filtrar por socio" />
+                </div>
                 <div class="toros-inline-select">
                     <RadzenDropDown TValue="int?"
                                     Data="@GetToolbarEstablecimientos()"
                                     TextProperty="Label"
                                     ValueProperty="IntValue"
-                                    Value="@GetEstablecimientoSelection()"
-                                    Change="OnAdminEstablecimientoChanged"
+                                    Value="@GetEstablecimientoSelection(appliedFilters)"
+                                    Change="OnToolbarEstablecimientoChanged"
                                     AllowClear="true"
-                                    Placeholder="Filtrar por establecimiento"
+                                    Disabled="@(!CanChooseEstablecimiento(appliedFilters) || metadataLoading)"
+                                    Placeholder="@GetEstablecimientoPlaceholder()"
                                     Style="width: 100%;" />
                 </div>
             }
-        }
-        else if (showSocioSelectorSocio)
-        {
-            <div class="toros-inline-select">
-                <RadzenDropDown TValue="int?"
-                                Data="@sociosSocioDropdown"
-                                TextProperty="DisplayName"
-                                ValueProperty="Id"
-                                @bind-Value="filters.SocioId"
-                                Change="OnSocioDropdownChanged"
-                                Placeholder="Todas mis razones sociales"
-                                AllowClear="true"
-                                Style="width: 100%;" />
-            </div>
-        }
-
-        <div class="toros-toolbar-actions">
-            <button class="btn btn-light rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent"
-                    @onclick="ClearFilters">
-                Limpiar
-            </button>
-            @if (!esSocio)
+            else if (showSocioSelectorSocio)
             {
-                <button class="btn btn-light rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent"
-                        @onclick="PaginaReporte">
-                    Reporte x socio
-                </button>
-            }
-            <button class="btn btn-light" title="Filtros" @onclick="() => showFilterPanel = true">
-                <FeatherFilter Color="Black" />
-            </button>
-        </div>
-    </div>
-
-    <FilterChipList Items="@activeChips" OnRemove="RemoveFilterChip" />
-
-</div>
-
-<FilterPanel Visible="@showFilterPanel"
-             VisibleChanged="OnPanelVisibilityChanged"
-             ApplyClicked="ApplyFiltersFromPanel"
-             ClearClicked="ClearFilters"
-             Title="Filtros avanzados">
-    <div class="toros-filters-grid">
-        <div>
-            <label>Estado</label>
-            <RadzenDropDown TValue="string"
-                            Data="@metadata.Estados"
-                            TextProperty="Label"
-                            ValueProperty="Value"
-                            @bind-Value="filters.Estado"
-                            AllowClear="true"
-                            Style="width: 100%;" />
-        </div>
-        <div>
-            <label>Tipo de toro</label>
-            <RadzenDropDown TValue="string"
-                            Data="@metadata.TiposToro"
-                            TextProperty="Label"
-                            ValueProperty="Value"
-                            @bind-Value="filters.TipoToro"
-                            AllowClear="true"
-                            Style="width: 100%;" />
-        </div>
-        @if (!esSocio)
-        {
-            <div>
-                <label>Socio / propietario</label>
-                <SocioLookup Value="adminSocioSeleccionado"
-                             ValueChanged="OnAdminSocioChanged"
-                             ValueExpression="@(() => adminSocioSeleccionado)"
-                             Placeholder="Buscar por número o nombre" />
-            </div>
-        }
-        <div>
-            <label>Establecimiento</label>
-            <RadzenDropDown TValue="int?"
-                            Data="@metadata.Establecimientos"
-                            TextProperty="Label"
-                            ValueProperty="IntValue"
-                            Value="@GetEstablecimientoSelection()"
-                            Change="OnEstablecimientoChanged"
-                            AllowClear="true"
-                            Disabled="@(!CanChooseEstablecimiento())"
-                            Placeholder="Seleccionar establecimiento"
-                            Style="width: 100%;" />
-            @if (metadata.HasSinEstablecimientoOption)
-            {
-                <div class="mt-2">
-                    <label class="mb-0">
-                        <input type="checkbox" @bind="filters.IncluirSinEstablecimiento" />
-                        <span class="ml-1">Sin establecimiento</span>
-                    </label>
+                <div class="toros-inline-select">
+                    <RadzenDropDown TValue="int?"
+                                    Data="@sociosSocioDropdown"
+                                    TextProperty="DisplayName"
+                                    ValueProperty="Id"
+                                    Value="@draftFilters.SocioId"
+                                    Change="OnSocioDropdownChanged"
+                                    Placeholder="Todas mis razones sociales"
+                                    AllowClear="true"
+                                    Disabled="@metadataLoading"
+                                    Style="width: 100%;" />
+                </div>
+                <div class="toros-inline-select">
+                    <RadzenDropDown TValue="int?"
+                                    Data="@GetToolbarEstablecimientos()"
+                                    TextProperty="Label"
+                                    ValueProperty="IntValue"
+                                    Value="@GetEstablecimientoSelection(appliedFilters)"
+                                    Change="OnToolbarEstablecimientoChanged"
+                                    AllowClear="true"
+                                    Disabled="@(!CanChooseEstablecimiento(appliedFilters) || metadataLoading)"
+                                    Placeholder="@GetEstablecimientoPlaceholder()"
+                                    Style="width: 100%;" />
                 </div>
             }
-        </div>
-        <div>
-            <label>Variedad</label>
-            <RadzenDropDown TValue="string"
-                            Data="@metadata.Variedades"
-                            TextProperty="Label"
-                            ValueProperty="Value"
-                            @bind-Value="filters.Variedad"
-                            AllowClear="true"
-                            Style="width: 100%;" />
-        </div>
-        <div>
-            <label>Nombre del toro</label>
-            <input class="form-control"
-                   value="@filters.NombreToro"
-                   @oninput="OnNombreToroInput" />
-        </div>
-        <div>
-            <label>Número de orden</label>
-            <input type="number"
-                   class="form-control"
-                   value="@FormatNullableInt(filters.NroOrden)"
-                   @oninput="OnNroOrdenInput" />
-        </div>
-        <div>
-            <label>HBA</label>
-            <input class="form-control"
-                   value="@filters.Hba"
-                   @oninput="OnHbaInput" />
-        </div>
-        <div>
-            <label>Tatuaje</label>
-            <input class="form-control"
-                   value="@filters.Tatuaje"
-                   @oninput="OnTatuajeInput" />
-        </div>
-        <div>
-            <label>Tipificación / ADN</label>
-            <input class="form-control"
-                   value="@filters.TipAdn"
-                   @oninput="OnTipAdnInput" />
-        </div>
-        <div>
-            <label>Fecha S/ desde</label>
-            <RadzenDatePicker TValue="DateTime?" @bind-Value="filters.FechaSDesde" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
-        </div>
-        <div>
-            <label>Fecha S/ hasta</label>
-            <RadzenDatePicker TValue="DateTime?" @bind-Value="filters.FechaSHasta" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
-        </div>
-        <div>
-            <label>Fecha nacimiento desde</label>
-            <RadzenDatePicker TValue="DateTime?" @bind-Value="filters.FechaNacimientoDesde" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
-        </div>
-        <div>
-            <label>Fecha nacimiento hasta</label>
-            <RadzenDatePicker TValue="DateTime?" @bind-Value="filters.FechaNacimientoHasta" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
-        </div>
-    </div>
-</FilterPanel>
+            else
+            {
+                <div></div>
+                <div class="toros-inline-select">
+                    <RadzenDropDown TValue="int?"
+                                    Data="@GetToolbarEstablecimientos()"
+                                    TextProperty="Label"
+                                    ValueProperty="IntValue"
+                                    Value="@GetEstablecimientoSelection(appliedFilters)"
+                                    Change="OnToolbarEstablecimientoChanged"
+                                    AllowClear="true"
+                                    Disabled="@(!CanChooseEstablecimiento(appliedFilters) || metadataLoading)"
+                                    Placeholder="@GetEstablecimientoPlaceholder()"
+                                    Style="width: 100%;" />
+                </div>
+            }
 
-<div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-    <RadzenDataGrid Data="@items"
-                    TItem="TorosuniDTO"
-                    IsLoading="@isLoading"
-                    AllowColumnResize="true"
-                    AllowSorting="false"
-                    AllowPaging="true"
-                    ShowPagingSummary="true"
-                    Density="Density.Compact"
-                    PageSize="15"
-                    Count="@cantidad"
-                    LoadData="LoadData"
-                    @ref="grid"
-                    PagerHorizontalAlign="HorizontalAlign.Center">
-        <Columns>
-            <RadzenDataGridColumn TItem="TorosuniDTO" Title="Estado" Width="5%">
-                <Template Context="data">@TranslateEstado(data.CodEstado)</Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="TorosuniDTO" Title="Tipo de toro" Width="6%">
-                <Template Context="data">@TranslateTipo(data.TipToro)</Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Socio.Nombre" Title="Propietario" Width="8%" />
-            <RadzenDataGridColumn TItem="TorosuniDTO" Title="Establecimiento" Width="9%">
-                <Template Context="data">@GetEstablecimientoNombre(data)</Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Variedad" Title="Variedad" Width="4%" />
-            <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="8%" />
-            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Sbcod" Title="Nro de orden" Width="5%" />
-            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Fechasba" Title="Fecha S/" Width="5%" />
-            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="5%" />
-            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="5%" />
-            <RadzenDataGridColumn TItem="TorosuniDTO" Property="NrTsan" Title="Tip./ADN" Width="5%" />
-            <RadzenDataGridColumn TItem="TorosuniDTO" Property="Nacido" Title="Fecha de nacimiento" Width="7%">
-                <Template Context="data">
-                    @if (data.Nacido.HasValue)
-                    {
-                        @data.Nacido.Value.ToString("dd/MM/yyyy")
-                    }
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="TorosuniDTO" Filterable="false" Width="3%">
-                <Template Context="data">
-                    <button class="btn" title="Editar" @onclick="() => OpenToroModal(data.Id)">
-                        <FeatherEdit Size="16" Color="green" />
+            <div class="toros-toolbar-actions">
+                <button class="btn btn-outline-secondary" @onclick="ClearFilters" disabled="@(filtersApplying || metadataLoading)">
+                    Limpiar filtros
+                </button>
+                @if (!esSocio)
+                {
+                    <button class="btn btn-light" @onclick="PaginaReporte">
+                        Reporte x socio
                     </button>
-                </Template>
-            </RadzenDataGridColumn>
+                }
+                <button class="btn btn-light" title="Filtros avanzados" @onclick="OpenFilterPanel">
+                    <FeatherFilter Color="Black" />
+                </button>
+            </div>
+        </div>
+
+        @if (activeChips.Any() || metadataLoading || filtersApplying || tableLoading)
+        {
+            <div class="toros-status-row">
+                <FilterChipList Items="@activeChips" OnRemove="RemoveFilterChip" />
+                @if (metadataLoading)
+                {
+                    <span class="toros-loading-message">Cargando filtros...</span>
+                }
+                else if (filtersApplying || tableLoading)
+                {
+                    <span class="toros-loading-message">Aplicando filtros...</span>
+                }
+            </div>
+        }
+    </div>
+
+    <FilterPanel Visible="@showFilterPanel"
+                 VisibleChanged="OnPanelVisibilityChanged"
+                 ApplyClicked="ApplyFiltersFromPanel"
+                 ClearClicked="ClearFilters"
+                 Title="Filtros avanzados">
+        <div class="toros-filters-grid">
+            <div>
+                <label>Estado</label>
+                <RadzenDropDown TValue="string"
+                                Data="@metadata.Estados"
+                                TextProperty="Label"
+                                ValueProperty="Value"
+                                @bind-Value="draftFilters.Estado"
+                                AllowClear="true"
+                                Disabled="@metadataLoading"
+                                Style="width: 100%;" />
+            </div>
+            <div>
+                <label>Tipo de toro</label>
+                <RadzenDropDown TValue="string"
+                                Data="@metadata.TiposToro"
+                                TextProperty="Label"
+                                ValueProperty="Value"
+                                @bind-Value="draftFilters.TipoToro"
+                                AllowClear="true"
+                                Disabled="@metadataLoading"
+                                Style="width: 100%;" />
+            </div>
             @if (!esSocio)
             {
-                <RadzenDataGridColumn TItem="TorosuniDTO" Filterable="false" Width="3%">
+                <div>
+                    <label>Socio / propietario</label>
+                    <SocioLookup Value="adminSocioSeleccionado"
+                                 ValueChanged="OnDraftAdminSocioChanged"
+                                 ValueExpression="@(() => adminSocioSeleccionado)"
+                                 Placeholder="Buscar por número o nombre" />
+                </div>
+            }
+            <div>
+                <label>Establecimiento</label>
+                <RadzenDropDown TValue="int?"
+                                Data="@metadata.Establecimientos"
+                                TextProperty="Label"
+                                ValueProperty="IntValue"
+                                Value="@GetEstablecimientoSelection(draftFilters)"
+                                Change="OnDraftEstablecimientoChanged"
+                                AllowClear="true"
+                                Disabled="@(!CanChooseEstablecimiento(draftFilters) || metadataLoading)"
+                                Placeholder="@GetEstablecimientoPlaceholder()"
+                                Style="width: 100%;" />
+                @if (metadataLoading)
+                {
+                    <div class="toros-help-text">Cargando establecimientos...</div>
+                }
+                else if (draftFilters.SocioId.HasValue && !CanChooseEstablecimiento(draftFilters))
+                {
+                    <div class="toros-help-text">Sin establecimientos disponibles</div>
+                }
+                @if (metadata.HasSinEstablecimientoOption)
+                {
+                    <div class="mt-2">
+                        <label class="mb-0">
+                            <input type="checkbox" @bind="draftFilters.IncluirSinEstablecimiento" />
+                            <span class="ml-1">Sin establecimiento</span>
+                        </label>
+                    </div>
+                }
+            </div>
+            <div>
+                <label>Variedad</label>
+                <RadzenDropDown TValue="string"
+                                Data="@metadata.Variedades"
+                                TextProperty="Label"
+                                ValueProperty="Value"
+                                @bind-Value="draftFilters.Variedad"
+                                AllowClear="true"
+                                Disabled="@metadataLoading"
+                                Style="width: 100%;" />
+            </div>
+            <div>
+                <label>Nombre del toro</label>
+                <input class="form-control" value="@draftFilters.NombreToro" @oninput="OnNombreToroInput" />
+            </div>
+            <div>
+                <label>Número de orden</label>
+                <input type="number" class="form-control" value="@FormatNullableInt(draftFilters.NroOrden)" @oninput="OnNroOrdenInput" />
+            </div>
+            <div>
+                <label>HBA</label>
+                <input class="form-control" value="@draftFilters.Hba" @oninput="OnHbaInput" />
+            </div>
+            <div>
+                <label>Tatuaje</label>
+                <input class="form-control" value="@draftFilters.Tatuaje" @oninput="OnTatuajeInput" />
+            </div>
+            <div>
+                <label>Tipificación / ADN</label>
+                <input class="form-control" value="@draftFilters.TipAdn" @oninput="OnTipAdnInput" />
+            </div>
+            <div>
+                <label>Fecha S/ desde</label>
+                <RadzenDatePicker TValue="DateTime?" @bind-Value="draftFilters.FechaSDesde" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
+            </div>
+            <div>
+                <label>Fecha S/ hasta</label>
+                <RadzenDatePicker TValue="DateTime?" @bind-Value="draftFilters.FechaSHasta" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
+            </div>
+            <div>
+                <label>Fecha nacimiento desde</label>
+                <RadzenDatePicker TValue="DateTime?" @bind-Value="draftFilters.FechaNacimientoDesde" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
+            </div>
+            <div>
+                <label>Fecha nacimiento hasta</label>
+                <RadzenDatePicker TValue="DateTime?" @bind-Value="draftFilters.FechaNacimientoHasta" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
+            </div>
+        </div>
+    </FilterPanel>
+
+    <div class="toros-card tablacontent">
+        @if (tableLoading && items.Count > 0)
+        {
+            <div class="table-overlay">Actualizando resultados...</div>
+        }
+        <RadzenDataGrid Data="@items"
+                        TItem="TorosuniDTO"
+                        IsLoading="@tableLoading"
+                        AllowColumnResize="true"
+                        AllowSorting="true"
+                        AllowPaging="true"
+                        ShowPagingSummary="true"
+                        Density="Density.Compact"
+                        PageSize="15"
+                        Count="@cantidad"
+                        LoadData="LoadData"
+                        @ref="grid"
+                        PagerHorizontalAlign="HorizontalAlign.Center">
+            <EmptyTemplate>
+                <div class="empty-state">
+                    No hay toros para los filtros seleccionados.
+                </div>
+            </EmptyTemplate>
+            <Columns>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="CodEstado" Title="Estado" Width="74px">
                     <Template Context="data">
-                        <button class="btn" title="Eliminar" @onclick="() => ConfirmDelete(data.Id)">
-                            <FeatherTrash2 Size="16" Color="red" />
+                        <span class="estado-badge @(data.CodEstado == "1" ? "activo" : string.Empty)" title="@TranslateEstado(data.CodEstado)">
+                            @TranslateEstado(data.CodEstado)
+                        </span>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo" Width="92px">
+                    <Template Context="data"><span title="@TranslateTipo(data.TipToro)">@TranslateTipo(data.TipToro)</span></Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Socio.Nombre" Title="Propietario" Width="132px">
+                    <Template Context="data"><span title="@data.Socio?.Nombre">@data.Socio?.Nombre</span></Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="138px">
+                    <Template Context="data"><span title="@GetEstablecimientoNombre(data)">@GetEstablecimientoNombre(data)</span></Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Variedad" Title="Var." Width="52px" />
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="156px">
+                    <Template Context="data"><span title="@data.NomDad">@data.NomDad</span></Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Sbcod" Title="Orden" Width="68px" />
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Fechasba" Title="Fecha S/" Width="84px" />
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="72px">
+                    <Template Context="data"><span title="@data.Hba">@data.Hba</span></Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="72px">
+                    <Template Context="data"><span title="@data.Tatpart">@data.Tatpart</span></Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="NrTsan" Title="Tip./ADN" Width="78px">
+                    <Template Context="data"><span title="@data.NrTsan">@data.NrTsan</span></Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Nacido" Title="Nacimiento" Width="88px">
+                    <Template Context="data">
+                        @if (data.Nacido.HasValue)
+                        {
+                            @data.Nacido.Value.ToString("dd/MM/yyyy")
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="CreatedAt" Title="Alta" Width="82px">
+                    <Template Context="data">
+                        @if (data.CreatedAt != default)
+                        {
+                            @data.CreatedAt.ToString("dd/MM/yyyy")
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TorosuniDTO" Filterable="false" Sortable="false" Width="38px">
+                    <Template Context="data">
+                        <button class="table-action" title="Editar" @onclick="() => OpenToroModal(data.Id)">
+                            <FeatherEdit Size="16" Color="green" />
                         </button>
                     </Template>
                 </RadzenDataGridColumn>
-            }
-        </Columns>
-    </RadzenDataGrid>
+                @if (!esSocio)
+                {
+                    <RadzenDataGridColumn TItem="TorosuniDTO" Filterable="false" Sortable="false" Width="38px">
+                        <Template Context="data">
+                            <button class="table-action" title="Eliminar" @onclick="() => ConfirmDelete(data.Id)">
+                                <FeatherTrash2 Size="16" Color="red" />
+                            </button>
+                        </Template>
+                    </RadzenDataGridColumn>
+                }
+            </Columns>
+        </RadzenDataGrid>
+    </div>
 </div>
 
 @code {
@@ -439,7 +816,8 @@
     };
 
     private RadzenDataGrid<TorosuniDTO>? grid;
-    private TorosFilterState filters = new();
+    private TorosFilterState draftFilters = new();
+    private TorosFilterState appliedFilters = new();
     private TorosFilterMetadataResponse metadata = new();
     private List<TorosuniDTO> items = new();
     private List<FilterChipItem> activeChips = new();
@@ -447,16 +825,22 @@
     private SocioLookupItemDTO? adminSocioSeleccionado;
     private UserContextDTO? userContext;
     private bool esSocio;
-    private bool isLoading;
+    private bool tableLoading;
+    private bool metadataLoading;
+    private bool filtersApplying;
+    private bool searchLoading;
     private bool showFilterPanel;
     private bool showSocioSelectorSocio;
     private bool initialGridLoadTriggered;
     private int cantidad;
+    private int metadataRequestVersion;
+    private int tableRequestVersion;
 
     protected override async Task OnInitializedAsync()
     {
         esSocio = await UserHasRole("Socio");
-        FilterQueryStateHelper.ApplyTorosQuery(filters, nav.Uri);
+        FilterQueryStateHelper.ApplyTorosQuery(draftFilters, nav.Uri);
+        appliedFilters.CopyFrom(draftFilters);
 
         if (esSocio)
         {
@@ -465,8 +849,9 @@
             showSocioSelectorSocio = sociosSocioDropdown.Count > 1;
         }
 
-        await RefreshMetadataAsync();
-        SyncStateLabelsFromMetadata();
+        await RefreshMetadataAsync(appliedFilters);
+        SyncStateLabelsFromMetadata(appliedFilters);
+        draftFilters.CopyFrom(appliedFilters);
         BuildActiveChips();
     }
 
@@ -483,20 +868,32 @@
 
     private async Task LoadData(LoadDataArgs args)
     {
-        isLoading = true;
+        var requestId = ++tableRequestVersion;
+        tableLoading = true;
         StateHasChanged();
 
         try
         {
-            var response = await _torosServicio.Search(filters.ToRequest(args.Skip ?? 0, args.Top ?? 15, GetScopedSocioIds()));
+            ApplySortFromArgs(args);
+            var response = await _torosServicio.Search(appliedFilters.ToRequest(args.Skip ?? 0, args.Top ?? 15, GetScopedSocioIds()));
+            if (requestId != tableRequestVersion)
+            {
+                return;
+            }
+
             items = response.List?.Items ?? new List<TorosuniDTO>();
             cantidad = response.List?.TotalCount ?? 0;
             BuildActiveChips();
         }
         finally
         {
-            isLoading = false;
-            StateHasChanged();
+            if (requestId == tableRequestVersion)
+            {
+                tableLoading = false;
+                filtersApplying = false;
+                searchLoading = false;
+                StateHasChanged();
+            }
         }
     }
 
@@ -508,67 +905,63 @@
 
     private async Task OnSearchChanged(string value)
     {
-        filters.SearchText = value;
-        await ApplyFilters(persistQuery: false, refreshMetadata: false);
+        searchLoading = true;
+        draftFilters.SearchText = value;
+        appliedFilters.SearchText = value;
+        await ApplyAppliedFiltersAsync(persistQuery: false, refreshMetadata: false);
     }
 
-    private async Task OnAdminSocioChanged(SocioLookupItemDTO? socio)
+    private async Task OnToolbarAdminSocioChanged(SocioLookupItemDTO? socio)
     {
-        adminSocioSeleccionado = socio;
-        filters.SocioId = socio?.Id;
-        filters.SocioLabel = socio?.DisplayName ?? string.Empty;
-        filters.EstablecimientoId = null;
-        filters.EstablecimientoLabel = string.Empty;
-        filters.IncluirSinEstablecimiento = false;
-        await ApplyFilters();
+        SetSocio(draftFilters, socio);
+        appliedFilters.CopyFrom(draftFilters);
+        await ApplyAppliedFiltersAsync();
+    }
+
+    private async Task OnDraftAdminSocioChanged(SocioLookupItemDTO? socio)
+    {
+        SetSocio(draftFilters, socio);
+        await RefreshMetadataAsync(draftFilters);
+        SyncStateLabelsFromMetadata(draftFilters);
     }
 
     private async Task OnSocioDropdownChanged(object value)
     {
-        filters.SocioId = ParseNullableInt(value);
-        filters.SocioLabel = sociosSocioDropdown.FirstOrDefault(x => x.Id == filters.SocioId)?.DisplayName ?? string.Empty;
-        filters.EstablecimientoId = null;
-        filters.EstablecimientoLabel = string.Empty;
-        filters.IncluirSinEstablecimiento = false;
-        await ApplyFilters();
+        var selectedId = ParseNullableInt(value);
+        draftFilters.SocioId = selectedId;
+        draftFilters.SocioLabel = sociosSocioDropdown.FirstOrDefault(x => x.Id == selectedId)?.DisplayName ?? string.Empty;
+        ClearEstablecimiento(draftFilters);
+        appliedFilters.CopyFrom(draftFilters);
+        await ApplyAppliedFiltersAsync();
     }
 
-    private async Task OnEstablecimientoChanged(object value)
+    private async Task OnDraftEstablecimientoChanged(object value)
     {
-        var selectedValue = ParseNullableInt(value);
-
-        if (selectedValue.HasValue && selectedValue.Value == -1)
-        {
-            filters.EstablecimientoId = null;
-            filters.IncluirSinEstablecimiento = true;
-            filters.EstablecimientoLabel = "Sin establecimiento";
-        }
-        else
-        {
-            filters.EstablecimientoId = selectedValue;
-            filters.IncluirSinEstablecimiento = false;
-            filters.EstablecimientoLabel = metadata.Establecimientos
-                .FirstOrDefault(x => x.IntValue == filters.EstablecimientoId)?.Label ?? string.Empty;
-        }
-
-        BuildActiveChips();
+        SetEstablecimiento(draftFilters, value);
+        await Task.CompletedTask;
     }
 
-    private async Task OnAdminEstablecimientoChanged(object value)
+    private async Task OnToolbarEstablecimientoChanged(object value)
     {
-        await OnEstablecimientoChanged(value);
-        await ApplyFilters();
+        SetEstablecimiento(draftFilters, value);
+        appliedFilters.CopyFrom(draftFilters);
+        await ApplyAppliedFiltersAsync(refreshMetadata: false);
     }
 
     private Task ApplyFiltersFromPanel()
-        => ApplyFilters();
-
-    private async Task ApplyFilters(bool persistQuery = true, bool refreshMetadata = true)
     {
+        appliedFilters.CopyFrom(draftFilters);
+        return ApplyAppliedFiltersAsync();
+    }
+
+    private async Task ApplyAppliedFiltersAsync(bool persistQuery = true, bool refreshMetadata = true)
+    {
+        filtersApplying = true;
         if (refreshMetadata)
         {
-            await RefreshMetadataAsync();
-            SyncStateLabelsFromMetadata();
+            await RefreshMetadataAsync(appliedFilters);
+            SyncStateLabelsFromMetadata(appliedFilters);
+            draftFilters.CopyFrom(appliedFilters);
         }
 
         BuildActiveChips();
@@ -582,9 +975,10 @@
 
     private async Task ClearFilters()
     {
-        filters.Clear();
+        draftFilters.Clear();
+        appliedFilters.Clear();
         adminSocioSeleccionado = null;
-        await RefreshMetadataAsync();
+        await RefreshMetadataAsync(appliedFilters);
         BuildActiveChips();
         PersistQueryState();
         await ReloadGridFromStartAsync();
@@ -605,34 +999,55 @@
         }
     }
 
-    private async Task RefreshMetadataAsync()
+    private async Task RefreshMetadataAsync(TorosFilterState state)
     {
-        var request = new TorosFilterRequest
-        {
-            Skip = 0,
-            Take = 1,
-            SocioId = filters.SocioId,
-            SocioIds = GetScopedSocioIds().ToList()
-        };
+        var requestId = ++metadataRequestVersion;
+        metadataLoading = true;
+        StateHasChanged();
 
-        var response = await _torosServicio.GetFilterMetadata(request);
-        metadata = response.List ?? new TorosFilterMetadataResponse();
+        try
+        {
+            var request = new TorosFilterRequest
+            {
+                Skip = 0,
+                Take = 1,
+                SocioId = state.SocioId,
+                SocioIds = GetScopedSocioIds().ToList()
+            };
+
+            var response = await _torosServicio.GetFilterMetadata(request);
+            if (requestId != metadataRequestVersion)
+            {
+                return;
+            }
+
+            metadata = response.List ?? new TorosFilterMetadataResponse();
+            EnsureValidEstablecimiento(state);
+        }
+        finally
+        {
+            if (requestId == metadataRequestVersion)
+            {
+                metadataLoading = false;
+                StateHasChanged();
+            }
+        }
     }
 
-    private void SyncStateLabelsFromMetadata()
+    private void SyncStateLabelsFromMetadata(TorosFilterState state)
     {
-        if (filters.SocioId.HasValue)
+        if (state.SocioId.HasValue)
         {
-            filters.SocioLabel = adminSocioSeleccionado?.DisplayName
-                ?? sociosSocioDropdown.FirstOrDefault(x => x.Id == filters.SocioId)?.DisplayName
-                ?? metadata.Socios.FirstOrDefault(x => x.Id == filters.SocioId)?.DisplayName
-                ?? filters.SocioLabel;
+            state.SocioLabel = adminSocioSeleccionado?.DisplayName
+                ?? sociosSocioDropdown.FirstOrDefault(x => x.Id == state.SocioId)?.DisplayName
+                ?? metadata.Socios.FirstOrDefault(x => x.Id == state.SocioId)?.DisplayName
+                ?? state.SocioLabel;
         }
 
-        if (filters.EstablecimientoId.HasValue)
+        if (state.EstablecimientoId.HasValue)
         {
-            filters.EstablecimientoLabel = metadata.Establecimientos
-                .FirstOrDefault(x => x.IntValue == filters.EstablecimientoId)?.Label ?? filters.EstablecimientoLabel;
+            state.EstablecimientoLabel = metadata.Establecimientos
+                .FirstOrDefault(x => x.IntValue == state.EstablecimientoId)?.Label ?? state.EstablecimientoLabel;
         }
     }
 
@@ -646,15 +1061,35 @@
         return userContext?.AllowedSocios.Select(x => x.Id) ?? Enumerable.Empty<int>();
     }
 
-    private bool CanChooseEstablecimiento()
+    private bool CanChooseEstablecimiento(TorosFilterState state)
     {
+        if (metadataLoading)
+        {
+            return false;
+        }
+
         if (esSocio)
         {
             return metadata.ShowEstablecimientoSelector;
         }
 
-        return filters.SocioId.HasValue
+        return state.SocioId.HasValue
             && (metadata.Establecimientos.Count > 0 || metadata.HasSinEstablecimientoOption);
+    }
+
+    private string GetEstablecimientoPlaceholder()
+    {
+        if (metadataLoading)
+        {
+            return "Cargando establecimientos...";
+        }
+
+        if (!metadata.ShowEstablecimientoSelector)
+        {
+            return "Sin establecimientos disponibles";
+        }
+
+        return "Filtrar por establecimiento";
     }
 
     private IEnumerable<TorosFilterOptionDTO> GetToolbarEstablecimientos()
@@ -676,8 +1111,8 @@
             });
     }
 
-    private int? GetEstablecimientoSelection()
-        => filters.IncluirSinEstablecimiento ? -1 : filters.EstablecimientoId;
+    private int? GetEstablecimientoSelection(TorosFilterState state)
+        => state.IncluirSinEstablecimiento ? -1 : state.EstablecimientoId;
 
     private string TranslateEstado(string? value)
         => !string.IsNullOrWhiteSpace(value) && estadoLabels.TryGetValue(value, out var label) ? label : (value ?? string.Empty);
@@ -762,19 +1197,19 @@
     private void BuildActiveChips()
     {
         var chips = new List<FilterChipItem>();
-        AddChip(chips, "search", "Buscar", filters.SearchText);
-        AddChip(chips, "socio", "Socio", filters.SocioLabel);
-        AddChip(chips, "establecimiento", "Establecimiento", filters.IncluirSinEstablecimiento ? "Sin establecimiento" : filters.EstablecimientoLabel);
-        AddChip(chips, "estado", "Estado", TranslateEstado(filters.Estado));
-        AddChip(chips, "tipoToro", "Tipo", TranslateTipo(filters.TipoToro));
-        AddChip(chips, "variedad", "Variedad", filters.Variedad);
-        AddChip(chips, "nombreToro", "Nombre", filters.NombreToro);
-        AddChip(chips, "nroOrden", "Orden", filters.NroOrden?.ToString());
-        AddChip(chips, "hba", "HBA", filters.Hba);
-        AddChip(chips, "tatuaje", "Tatuaje", filters.Tatuaje);
-        AddChip(chips, "tipAdn", "ADN", filters.TipAdn);
-        AddChip(chips, "fechaS", "Fecha S/", FormatRange(filters.FechaSDesde, filters.FechaSHasta));
-        AddChip(chips, "fechaNacimiento", "Nacimiento", FormatRange(filters.FechaNacimientoDesde, filters.FechaNacimientoHasta));
+        AddChip(chips, "search", "Buscar", appliedFilters.SearchText);
+        AddChip(chips, "socio", "Socio", appliedFilters.SocioLabel);
+        AddChip(chips, "establecimiento", "Establecimiento", appliedFilters.IncluirSinEstablecimiento ? "Sin establecimiento" : appliedFilters.EstablecimientoLabel);
+        AddChip(chips, "estado", "Estado", TranslateEstado(appliedFilters.Estado));
+        AddChip(chips, "tipoToro", "Tipo", TranslateTipo(appliedFilters.TipoToro));
+        AddChip(chips, "variedad", "Variedad", appliedFilters.Variedad);
+        AddChip(chips, "nombreToro", "Nombre", appliedFilters.NombreToro);
+        AddChip(chips, "nroOrden", "Orden", appliedFilters.NroOrden?.ToString());
+        AddChip(chips, "hba", "HBA", appliedFilters.Hba);
+        AddChip(chips, "tatuaje", "Tatuaje", appliedFilters.Tatuaje);
+        AddChip(chips, "tipAdn", "ADN", appliedFilters.TipAdn);
+        AddChip(chips, "fechaS", "Fecha S/", FormatRange(appliedFilters.FechaSDesde, appliedFilters.FechaSHasta));
+        AddChip(chips, "fechaNacimiento", "Nacimiento", FormatRange(appliedFilters.FechaNacimientoDesde, appliedFilters.FechaNacimientoHasta));
         activeChips = chips;
     }
 
@@ -798,75 +1233,169 @@
 
     private async Task RemoveFilterChip(string key)
     {
-        switch (key)
-        {
-            case "search":
-                filters.SearchText = string.Empty;
-                break;
-            case "socio":
-                filters.SocioId = null;
-                filters.SocioLabel = string.Empty;
-                adminSocioSeleccionado = null;
-                break;
-            case "establecimiento":
-                filters.EstablecimientoId = null;
-                filters.EstablecimientoLabel = string.Empty;
-                filters.IncluirSinEstablecimiento = false;
-                break;
-            case "estado":
-                filters.Estado = string.Empty;
-                break;
-            case "tipoToro":
-                filters.TipoToro = string.Empty;
-                break;
-            case "variedad":
-                filters.Variedad = string.Empty;
-                break;
-            case "nombreToro":
-                filters.NombreToro = string.Empty;
-                break;
-            case "nroOrden":
-                filters.NroOrden = null;
-                break;
-            case "hba":
-                filters.Hba = string.Empty;
-                break;
-            case "tatuaje":
-                filters.Tatuaje = string.Empty;
-                break;
-            case "tipAdn":
-                filters.TipAdn = string.Empty;
-                break;
-            case "fechaS":
-                filters.FechaSDesde = null;
-                filters.FechaSHasta = null;
-                break;
-            case "fechaNacimiento":
-                filters.FechaNacimientoDesde = null;
-                filters.FechaNacimientoHasta = null;
-                break;
-        }
-
-        await RefreshMetadataAsync();
-        BuildActiveChips();
-        await ReloadGridFromStartAsync();
+        ClearFilterKey(draftFilters, key);
+        appliedFilters.CopyFrom(draftFilters);
+        await ApplyAppliedFiltersAsync();
     }
 
     private Task OnPanelVisibilityChanged(bool visible)
     {
         showFilterPanel = visible;
+        if (!visible)
+        {
+            draftFilters.CopyFrom(appliedFilters);
+        }
+
         return Task.CompletedTask;
+    }
+
+    private void OpenFilterPanel()
+    {
+        draftFilters.CopyFrom(appliedFilters);
+        showFilterPanel = true;
     }
 
     private void PersistQueryState()
     {
-        var url = FilterQueryStateHelper.BuildTorosUrl("/toros", filters);
+        var url = FilterQueryStateHelper.BuildTorosUrl("/toros", appliedFilters);
         var current = nav.ToBaseRelativePath(nav.Uri);
         var next = nav.ToBaseRelativePath(nav.ToAbsoluteUri(url).ToString());
 
         if (!string.Equals(current, next, StringComparison.Ordinal))
         {
             nav.NavigateTo(url, replace: true);
+        }
+    }
+
+    private void ApplySortFromArgs(LoadDataArgs args)
+    {
+        var orderBy = args.OrderBy ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(orderBy))
+        {
+            return;
+        }
+
+        var parts = orderBy.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var property = parts.FirstOrDefault() ?? string.Empty;
+        var direction = parts.Length > 1 ? parts[1] : "asc";
+        var sortBy = MapSortProperty(property);
+
+        appliedFilters.SortBy = sortBy;
+        appliedFilters.SortDirection = direction.Equals("desc", StringComparison.OrdinalIgnoreCase) ? "desc" : "asc";
+        draftFilters.SortBy = appliedFilters.SortBy;
+        draftFilters.SortDirection = appliedFilters.SortDirection;
+    }
+
+    private static string MapSortProperty(string property)
+    {
+        return property.ToLowerInvariant() switch
+        {
+            "codestado" => "estado",
+            "socio.nombre" => "propietario",
+            "establecimiento.nombre" => "establecimiento",
+            "nomdad" => "nombreToro",
+            "fechasba" => "fechaS",
+            "hba" => "hba",
+            "tatpart" => "tatuaje",
+            "nacido" => "fechaNacimiento",
+            "createdat" => "createdAt",
+            _ => string.Empty
+        };
+    }
+
+    private void SetSocio(TorosFilterState state, SocioLookupItemDTO? socio)
+    {
+        adminSocioSeleccionado = socio;
+        state.SocioId = socio?.Id;
+        state.SocioLabel = socio?.DisplayName ?? string.Empty;
+        ClearEstablecimiento(state);
+    }
+
+    private void SetEstablecimiento(TorosFilterState state, object value)
+    {
+        var selectedValue = ParseNullableInt(value);
+
+        if (selectedValue.HasValue && selectedValue.Value == -1)
+        {
+            state.EstablecimientoId = null;
+            state.IncluirSinEstablecimiento = true;
+            state.EstablecimientoLabel = "Sin establecimiento";
+            return;
+        }
+
+        state.EstablecimientoId = selectedValue;
+        state.IncluirSinEstablecimiento = false;
+        state.EstablecimientoLabel = metadata.Establecimientos
+            .FirstOrDefault(x => x.IntValue == state.EstablecimientoId)?.Label ?? string.Empty;
+    }
+
+    private void EnsureValidEstablecimiento(TorosFilterState state)
+    {
+        if (state.EstablecimientoId.HasValue && metadata.Establecimientos.All(x => x.IntValue != state.EstablecimientoId))
+        {
+            ClearEstablecimiento(state);
+        }
+
+        if (state.IncluirSinEstablecimiento && !metadata.HasSinEstablecimientoOption)
+        {
+            ClearEstablecimiento(state);
+        }
+    }
+
+    private static void ClearEstablecimiento(TorosFilterState state)
+    {
+        state.EstablecimientoId = null;
+        state.EstablecimientoLabel = string.Empty;
+        state.IncluirSinEstablecimiento = false;
+    }
+
+    private static void ClearFilterKey(TorosFilterState state, string key)
+    {
+        switch (key)
+        {
+            case "search":
+                state.SearchText = string.Empty;
+                break;
+            case "socio":
+                state.SocioId = null;
+                state.SocioLabel = string.Empty;
+                ClearEstablecimiento(state);
+                break;
+            case "establecimiento":
+                ClearEstablecimiento(state);
+                break;
+            case "estado":
+                state.Estado = string.Empty;
+                break;
+            case "tipoToro":
+                state.TipoToro = string.Empty;
+                break;
+            case "variedad":
+                state.Variedad = string.Empty;
+                break;
+            case "nombreToro":
+                state.NombreToro = string.Empty;
+                break;
+            case "nroOrden":
+                state.NroOrden = null;
+                break;
+            case "hba":
+                state.Hba = string.Empty;
+                break;
+            case "tatuaje":
+                state.Tatuaje = string.Empty;
+                break;
+            case "tipAdn":
+                state.TipAdn = string.Empty;
+                break;
+            case "fechaS":
+                state.FechaSDesde = null;
+                state.FechaSHasta = null;
+                break;
+            case "fechaNacimiento":
+                state.FechaNacimientoDesde = null;
+                state.FechaNacimientoHasta = null;
+                break;
         }
     }
 
@@ -895,32 +1424,32 @@
 
     private Task OnNombreToroInput(ChangeEventArgs args)
     {
-        filters.NombreToro = args.Value?.ToString() ?? string.Empty;
+        draftFilters.NombreToro = args.Value?.ToString() ?? string.Empty;
         return Task.CompletedTask;
     }
 
     private Task OnNroOrdenInput(ChangeEventArgs args)
     {
         var rawValue = args.Value?.ToString();
-        filters.NroOrden = int.TryParse(rawValue, out var parsed) ? parsed : null;
+        draftFilters.NroOrden = int.TryParse(rawValue, out var parsed) ? parsed : null;
         return Task.CompletedTask;
     }
 
     private Task OnHbaInput(ChangeEventArgs args)
     {
-        filters.Hba = args.Value?.ToString() ?? string.Empty;
+        draftFilters.Hba = args.Value?.ToString() ?? string.Empty;
         return Task.CompletedTask;
     }
 
     private Task OnTatuajeInput(ChangeEventArgs args)
     {
-        filters.Tatuaje = args.Value?.ToString() ?? string.Empty;
+        draftFilters.Tatuaje = args.Value?.ToString() ?? string.Empty;
         return Task.CompletedTask;
     }
 
     private Task OnTipAdnInput(ChangeEventArgs args)
     {
-        filters.TipAdn = args.Value?.ToString() ?? string.Empty;
+        draftFilters.TipAdn = args.Value?.ToString() ?? string.Empty;
         return Task.CompletedTask;
     }
 }

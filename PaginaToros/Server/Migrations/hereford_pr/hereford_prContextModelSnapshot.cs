@@ -3095,6 +3095,12 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnType("varchar(10)")
                         .HasColumnName("FECING");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasColumnName("createdAt")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
                     b.Property<string>("Frame")
                         .HasMaxLength(4)
                         .HasColumnType("varchar(4)")
@@ -3236,10 +3242,26 @@ namespace PaginaToros.Server.Migrations.hereford_pr
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Criador");
+                    b.HasIndex("Criador")
+                        .HasDatabaseName("IX_TOROSUNI_CRIADOR");
+
+                    b.HasIndex("Hba")
+                        .HasDatabaseName("IX_TOROSUNI_HBA");
+
+                    b.HasIndex("NomDad")
+                        .HasDatabaseName("IX_TOROSUNI_NOM_DAD");
+
+                    b.HasIndex("Tatpart")
+                        .HasDatabaseName("IX_TOROSUNI_TATPART");
 
                     b.HasIndex("EstablecimientoId")
                         .HasDatabaseName("IX_TOROSUNI_establecimientoId");
+
+                    b.HasIndex("CodEstado", "CreatedAt")
+                        .HasDatabaseName("IX_TOROSUNI_estado_createdAt");
+
+                    b.HasIndex("Criador", "EstablecimientoId", "CodEstado")
+                        .HasDatabaseName("IX_TOROSUNI_criador_establecimiento_estado");
 
                     b.ToTable("TOROSUNI", (string)null);
 

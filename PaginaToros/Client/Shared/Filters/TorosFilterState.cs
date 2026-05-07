@@ -22,6 +22,8 @@ namespace PaginaToros.Client.Shared.Filters
         public DateTime? FechaSHasta { get; set; }
         public DateTime? FechaNacimientoDesde { get; set; }
         public DateTime? FechaNacimientoHasta { get; set; }
+        public string SortBy { get; set; } = string.Empty;
+        public string SortDirection { get; set; } = string.Empty;
 
         public TorosFilterRequest ToRequest(int skip, int take, IEnumerable<int>? socioIds = null)
         {
@@ -45,7 +47,9 @@ namespace PaginaToros.Client.Shared.Filters
                 FechaSDesde = FechaSDesde,
                 FechaSHasta = FechaSHasta,
                 FechaNacimientoDesde = FechaNacimientoDesde,
-                FechaNacimientoHasta = FechaNacimientoHasta
+                FechaNacimientoHasta = FechaNacimientoHasta,
+                SortBy = EmptyToNull(SortBy),
+                SortDirection = EmptyToNull(SortDirection)
             };
         }
 
@@ -89,6 +93,39 @@ namespace PaginaToros.Client.Shared.Filters
             FechaSHasta = null;
             FechaNacimientoDesde = null;
             FechaNacimientoHasta = null;
+            SortBy = string.Empty;
+            SortDirection = string.Empty;
+        }
+
+        public TorosFilterState Clone()
+        {
+            var copy = new TorosFilterState();
+            copy.CopyFrom(this);
+            return copy;
+        }
+
+        public void CopyFrom(TorosFilterState source)
+        {
+            SearchText = source.SearchText;
+            SocioId = source.SocioId;
+            SocioLabel = source.SocioLabel;
+            EstablecimientoId = source.EstablecimientoId;
+            EstablecimientoLabel = source.EstablecimientoLabel;
+            IncluirSinEstablecimiento = source.IncluirSinEstablecimiento;
+            Estado = source.Estado;
+            TipoToro = source.TipoToro;
+            Variedad = source.Variedad;
+            NombreToro = source.NombreToro;
+            NroOrden = source.NroOrden;
+            Hba = source.Hba;
+            Tatuaje = source.Tatuaje;
+            TipAdn = source.TipAdn;
+            FechaSDesde = source.FechaSDesde;
+            FechaSHasta = source.FechaSHasta;
+            FechaNacimientoDesde = source.FechaNacimientoDesde;
+            FechaNacimientoHasta = source.FechaNacimientoHasta;
+            SortBy = source.SortBy;
+            SortDirection = source.SortDirection;
         }
 
         private static string? EmptyToNull(string? value)

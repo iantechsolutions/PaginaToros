@@ -8,5 +8,7 @@ home julindo IanTech Solutions.txt
 PaginaToros/Client/obj/
 PaginaToros/Server/obj/
 PaginaToros/Shared/obj/
+PaginaToros/PaginaToros.Tests/obj/
 PaginaToros/Server/bin/
 PaginaToros/Shared/bin/
+PaginaToros/PaginaToros.Tests/bin/

@@ -2441,6 +2441,11 @@ namespace PaginaToros.Server.Context
                     .HasMaxLength(10)
                     .HasColumnName("FECING");
 
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime")
+                    .HasColumnName("createdAt")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
                 entity.Property(e => e.Frame)
                     .HasMaxLength(4)
                     .HasColumnName("frame");
@@ -2558,6 +2563,30 @@ namespace PaginaToros.Server.Context
             modelBuilder.Entity<Torosuni>()
                .HasIndex(t => t.EstablecimientoId)
                .HasDatabaseName("IX_TOROSUNI_establecimientoId");
+
+            modelBuilder.Entity<Torosuni>()
+               .HasIndex(t => new { t.CodEstado, t.CreatedAt })
+               .HasDatabaseName("IX_TOROSUNI_estado_createdAt");
+
+            modelBuilder.Entity<Torosuni>()
+               .HasIndex(t => t.Criador)
+               .HasDatabaseName("IX_TOROSUNI_CRIADOR");
+
+            modelBuilder.Entity<Torosuni>()
+               .HasIndex(t => t.Hba)
+               .HasDatabaseName("IX_TOROSUNI_HBA");
+
+            modelBuilder.Entity<Torosuni>()
+               .HasIndex(t => t.Tatpart)
+               .HasDatabaseName("IX_TOROSUNI_TATPART");
+
+            modelBuilder.Entity<Torosuni>()
+               .HasIndex(t => t.NomDad)
+               .HasDatabaseName("IX_TOROSUNI_NOM_DAD");
+
+            modelBuilder.Entity<Torosuni>()
+               .HasIndex(t => new { t.Criador, t.EstablecimientoId, t.CodEstado })
+               .HasDatabaseName("IX_TOROSUNI_criador_establecimiento_estado");
 
             modelBuilder.Entity<Torosuni>()
                .HasOne(t => t.Socio)

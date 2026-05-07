@@ -25,6 +25,8 @@ namespace PaginaToros.Client.Helpers
             Add(query, "fechaSHasta", FormatDate(state.FechaSHasta));
             Add(query, "fechaNacimientoDesde", FormatDate(state.FechaNacimientoDesde));
             Add(query, "fechaNacimientoHasta", FormatDate(state.FechaNacimientoHasta));
+            Add(query, "sortBy", state.SortBy);
+            Add(query, "sortDirection", state.SortDirection);
 
             return QueryHelpers.AddQueryString(basePath, query!);
         }
@@ -50,6 +52,8 @@ namespace PaginaToros.Client.Helpers
             state.FechaSHasta = ParseDate(Get(query, "fechaSHasta"));
             state.FechaNacimientoDesde = ParseDate(Get(query, "fechaNacimientoDesde"));
             state.FechaNacimientoHasta = ParseDate(Get(query, "fechaNacimientoHasta"));
+            state.SortBy = Get(query, "sortBy");
+            state.SortDirection = Get(query, "sortDirection");
         }
 
         private static void Add(IDictionary<string, string?> query, string key, string? value)
