@@ -885,12 +885,13 @@ else
                     var planResp = await _plantelServicio.LimitadosFiltradosNoInclude(0, 1, filtroPlan);
                     Plantelseleccionado = planResp?.List?.FirstOrDefault();
                     Log($"Plantel fallback por API | encontrado={(Plantelseleccionado != null)} | filtro={filtroPlan}");
-                    if (Plantelseleccionado != null && !Planteles.Any(p => p.Id == Plantelseleccionado.Id))
-                    {
-                        Planteles.Add(Plantelseleccionado);
-                        Log($"Plantel fallback agregado a lista local | plantelesTotal={Planteles.Count}");
-                    }
+                if (Plantelseleccionado != null && !Planteles.Any(p => p.Id == Plantelseleccionado.Id))
+                {
+                    Planteles.Add(Plantelseleccionado);
+                    Planteles = OrderPlantelesByDisplay(Planteles);
+                    Log($"Plantel fallback agregado a lista local | plantelesTotal={Planteles.Count}");
                 }
+            }
                 tipoTemp = ToLabel(oDeclaracion.Tipse);
                 previousTipoTemp = tipoTemp;
                 Log($"Tipo reconstruido | tipseDB={Q(oDeclaracion.Tipse)} -> tipoUI={Q(tipoTemp)}");
@@ -1594,7 +1595,7 @@ else
     private async Task<IEnumerable<PlantelDTO>> BusquedaPlanteles(string searchText)
     {
         var socioScod = socioSeleccionado?.Scod;
-        var result = Planteles
+        var result = OrderPlantelesByDisplay(Planteles)
             .Where(x => T(x.Nrocri).Equals(T(socioScod), StringComparison.OrdinalIgnoreCase)
                 && (x.Placod ?? string.Empty).ToLower().Contains((searchText ?? string.Empty).ToLower()))
             .ToList();
@@ -1642,6 +1643,49 @@ else
         }
 
         return await Task.FromResult(baseQuery.Take(30).ToList());
+    }
+
+    private static List<PlantelDTO> OrderPlantelesByDisplay(IEnumerable<PlantelDTO>? items)
+        => (items ?? Enumerable.Empty<PlantelDTO>())
+            .OrderByDescending(x => TryGetPlantelYear(x).HasValue)
+            .ThenByDescending(x => TryGetPlantelYear(x))
+            .ThenByDescending(x => GetPlantelCreationDate(x).HasValue)
+            .ThenByDescending(x => GetPlantelCreationDate(x))
+            .ThenByDescending(x => x.Id)
+            .ToList();
+
+    private static int? TryGetPlantelYear(PlantelDTO? plantel)
+    {
+        if (plantel == null || string.IsNullOrWhiteSpace(plantel.Anioex))
+        {
+            return null;
+        }
+
+        return int.TryParse(plantel.Anioex, out var year) ? year : null;
+    }
+
+    private static DateTime? GetPlantelCreationDate(PlantelDTO? plantel)
+    {
+        if (plantel == null)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(plantel.Fecing))
+        {
+            var formatos = new[] { "yyyy/MM/dd", "yyyy-MM-dd", "dd/MM/yyyy", "MM/dd/yyyy" };
+            if (DateTime.TryParseExact(plantel.Fecing, formatos, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var fechaCreacion))
+            {
+                return fechaCreacion;
+            }
+
+            if (DateTime.TryParse(plantel.Fecing, out fechaCreacion))
+            {
+                return fechaCreacion;
+            }
+        }
+
+        return plantel.FchUsu;
     }
 
     private async Task OnToroSeleccionado(TorosuniDTO? toro)
@@ -1830,13 +1874,13 @@ else
         await Task.WhenAll(plantelesTask, torosTask, certificadosTask);
 
         var rt = await plantelesTask;
-        Planteles = rt.List ?? new List<PlantelDTO>();
+        Planteles = OrderPlantelesByDisplay(rt.List);
         Log($"Planteles cargados: {Planteles?.Count ?? 0}");
         if ((Planteles?.Count ?? 0) == 0 && !string.IsNullOrWhiteSpace(socioScodTrim))
         {
             var filtroDiag = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{EscapeForFilter(socioScodTrim.ToLower())}\")";
             var rtDiag = await _plantelServicio.LimitadosFiltradosNoInclude(0, 20, filtroDiag);
-            Planteles = (rtDiag?.List ?? new List<PlantelDTO>())
+            Planteles = OrderPlantelesByDisplay(rtDiag?.List)
                 .Where(x => T(x.Nrocri).Equals(socioScodTrim, StringComparison.OrdinalIgnoreCase))
                 .ToList();
             Log($"Diag Planteles (contains scod trim) -> {rtDiag?.List?.Count ?? 0} resultados crudos | filtradosExactos={Planteles.Count} | filtro={filtroDiag}");
