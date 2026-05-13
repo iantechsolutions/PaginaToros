@@ -21,13 +21,10 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
             try
             {
-
-                // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Inspects.Include(x => x.Provincia)
-                                                 .OrderByDescending(t => t.Id)
-                                                 .Skip(skip)
-                                                 .Take(take)
-                                                 .ToListAsync();
+                return await ApplyCreationOrder(_dbContext.Inspects.Include(x => x.Provincia))
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
             }
             catch
             {
@@ -51,25 +48,28 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Inspect> a;
-                if(filtro is not null)
+                IQueryable<Inspect> query = _dbContext.Inspects
+                    .AsNoTracking()
+                    .Include(x => x.Provincia)
+                    .Include(x => x.Zonas);
+
+                if (!string.IsNullOrWhiteSpace(filtro))
                 {
-                    a = await _dbContext.Inspects.Include(x => x.Provincia).Include(x=>x.Zonas).Where(filtro).Skip(skip).ToListAsync();
+                    query = query.Where(filtro);
                 }
-                else
+
+                query = ApplyCreationOrder(query)
+                    .Skip(skip);
+
+                if (take > 0)
                 {
-                    a = await _dbContext.Inspects.Include(x => x.Provincia).Include(x => x.Zonas).Skip(skip).ToListAsync();
+                    query = query.Take(take);
                 }
-                if (take == 0)
-                {
-                    Console.WriteLine("INSPECTS");
-                    Console.WriteLine(JsonSerializer.Serialize(a));
-                    return a.OrderByDescending(t => t.Id).ToList();
-                }
-                else
-                {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
-                }
+
+                var a = await query.ToListAsync();
+                Console.WriteLine("INSPECTS");
+                Console.WriteLine(JsonSerializer.Serialize(a));
+                return a;
             }
             catch
             {
@@ -79,23 +79,24 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Inspect> a;
-                if(filtro is not null)
+                IQueryable<Inspect> query = _dbContext.Inspects
+                    .AsNoTracking()
+                    .Include(x => x.Provincia);
+
+                if (!string.IsNullOrWhiteSpace(filtro))
                 {
-                    a = await _dbContext.Inspects.Include(x => x.Provincia).Where(filtro).Skip(skip).ToListAsync();
+                    query = query.Where(filtro);
                 }
-                else
+
+                query = ApplyCreationOrder(query)
+                    .Skip(skip);
+
+                if (take > 0)
                 {
-                    a = await _dbContext.Inspects.Include(x => x.Provincia).Skip(skip).ToListAsync();
+                    query = query.Take(take);
                 }
-                if (take == 0)
-                {
-                    return a.OrderByDescending(t => t.Id).ToList();
-                }
-                else
-                {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
-                }
+
+                return await query.ToListAsync();
             }
             catch
             {
@@ -164,5 +165,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
+        private static IOrderedQueryable<Inspect> ApplyCreationOrder(IQueryable<Inspect> query)
+            => query
+                .OrderByDescending(x => x.FchUsu.HasValue)
+                .ThenByDescending(x => x.FchUsu)
+                .ThenByDescending(x => x.Id);
     }
 }

@@ -21,13 +21,10 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
             try
             {
-
-                // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Transans
-                                                 .OrderByDescending(t => t.Id)
-                                                 .Skip(skip)
-                                                 .Take(take)
-                                                 .ToListAsync();
+                return await ApplyCreationOrder(_dbContext.Transans)
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
             }
             catch
             {
@@ -51,22 +48,22 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Transan> a;
-                if (filtro is not null) { 
-                a = await _dbContext.Transans.Where(filtro).Skip(skip).ToListAsync();
-                }
-                else
+                IQueryable<Transan> query = _dbContext.Transans;
+
+                if (!string.IsNullOrWhiteSpace(filtro))
                 {
-                    a = await _dbContext.Transans.Skip(skip).ToListAsync();
+                    query = query.Where(filtro);
                 }
-                if (take == 0)
+
+                query = ApplyCreationOrder(query)
+                    .Skip(skip);
+
+                if (take > 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    query = query.Take(take);
                 }
-                else
-                {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
-                }
+
+                return await query.ToListAsync();
             }
             catch
             {
@@ -141,5 +138,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
+        private static IOrderedQueryable<Transan> ApplyCreationOrder(IQueryable<Transan> query)
+            => query
+                .OrderByDescending(x => x.FchUsu.HasValue)
+                .ThenByDescending(x => x.FchUsu)
+                .ThenByDescending(x => x.Id);
     }
 }

@@ -666,10 +666,10 @@ else
     {
         try{
             var rtaaa = await _inspectServicio.LimitadosFiltrados(0, 0);
-            Inspects = rtaaa.List;
+            Inspects = OrderInspectsByCreation(rtaaa.List);
             esSocio = opcion == 1;
             var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
-            Planteles = plan.List;
+            Planteles = OrderPlantelesByCreation(plan.List);
             if (Id != 0)
             {
                 string filtro = $"Id = {Id}";
@@ -702,7 +702,7 @@ else
                 var estable = await _estableServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
                 establecimientoSeleccionado = estable.List.Where(x=>x.Ecod==oResin1.Estcod).FirstOrDefault();
 
-                inspectorSeleccionado = Inspects.Where(x => x.Icod == oResin1.Icod).FirstOrDefault();
+                inspectorSeleccionado = Inspects.FirstOrDefault(x => x.Icod == oResin1.Icod);
 
                 loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
                 confirmado = true;
@@ -746,13 +746,13 @@ else
             }
             else{
                 var rta = await _socioServicio.LimitadosFiltrados(0, 0);
-                socios = rta.List;
+                socios = OrderSociosByCreation(rta.List);
 
                 var rtaa = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 0);
-                solicitudes = rtaa.List;
+                solicitudes = OrderSolicitudesByCreation(rtaa.List);
 
                 var rt = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
-                resultados = rt.List;
+                resultados = OrderResultadosByCreation(rt.List);
 
                 var respuesta = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
                 establecimientos = respuesta.List;
@@ -766,6 +766,95 @@ else
         cargando = false;
 
     }
+
+    DateTime? GetPlantelCreationDate(PlantelDTO? plantel)
+    {
+        if (plantel == null)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(plantel.Fecing))
+        {
+            var formatos = new[] { "yyyy/MM/dd", "yyyy-MM-dd", "dd/MM/yyyy", "MM/dd/yyyy" };
+            if (DateTime.TryParseExact(plantel.Fecing, formatos, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var fechaCreacion))
+            {
+                return fechaCreacion;
+            }
+
+            if (DateTime.TryParse(plantel.Fecing, out fechaCreacion))
+            {
+                return fechaCreacion;
+            }
+        }
+
+        return plantel.FchUsu;
+    }
+
+    DateTime? GetSocioCreationDate(SocioDTO? socio)
+    {
+        if (socio == null)
+        {
+            return null;
+        }
+
+        return socio.Fecing ?? socio.FchUsu;
+    }
+
+    DateTime? GetSolicitudCreationDate(Solici1DTO? solicitud)
+    {
+        return solicitud?.FchUsu;
+    }
+
+    DateTime? GetInspectCreationDate(InspectDTO? inspect)
+    {
+        return inspect?.FchUsu;
+    }
+
+    DateTime? GetResinCreationDate(Resin1DTO? resin)
+    {
+        if (resin == null)
+        {
+            return null;
+        }
+
+        return resin.FchUsu ?? resin.Freali;
+    }
+
+    List<PlantelDTO> OrderPlantelesByCreation(IEnumerable<PlantelDTO>? items)
+        => (items ?? Enumerable.Empty<PlantelDTO>())
+            .OrderByDescending(x => GetPlantelCreationDate(x).HasValue)
+            .ThenByDescending(x => GetPlantelCreationDate(x))
+            .ThenByDescending(x => x.Id)
+            .ToList();
+
+    List<SocioDTO> OrderSociosByCreation(IEnumerable<SocioDTO>? items)
+        => (items ?? Enumerable.Empty<SocioDTO>())
+            .OrderByDescending(x => GetSocioCreationDate(x).HasValue)
+            .ThenByDescending(x => GetSocioCreationDate(x))
+            .ThenByDescending(x => x.Id)
+            .ToList();
+
+    List<Solici1DTO> OrderSolicitudesByCreation(IEnumerable<Solici1DTO>? items)
+        => (items ?? Enumerable.Empty<Solici1DTO>())
+            .OrderByDescending(x => GetSolicitudCreationDate(x).HasValue)
+            .ThenByDescending(x => GetSolicitudCreationDate(x))
+            .ThenByDescending(x => x.Id)
+            .ToList();
+
+    List<InspectDTO> OrderInspectsByCreation(IEnumerable<InspectDTO>? items)
+        => (items ?? Enumerable.Empty<InspectDTO>())
+            .OrderByDescending(x => GetInspectCreationDate(x).HasValue)
+            .ThenByDescending(x => GetInspectCreationDate(x))
+            .ThenByDescending(x => x.Id)
+            .ToList();
+
+    List<Resin1DTO> OrderResultadosByCreation(IEnumerable<Resin1DTO>? items)
+        => (items ?? Enumerable.Empty<Resin1DTO>())
+            .OrderByDescending(x => GetResinCreationDate(x).HasValue)
+            .ThenByDescending(x => GetResinCreationDate(x))
+            .ThenByDescending(x => x.Id)
+            .ToList();
 
     async Task guardarReporte()
     {
@@ -994,10 +1083,9 @@ else
                 {
                     // como último recurso, intentá recuperar el plantel del socio (ya lo hacés en otros lados)
                     var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
-                    Planteles = plan.List;
+                    Planteles = OrderPlantelesByCreation(plan.List);
                     Plantelseleccionado = Planteles
                         .Where(x => x.Nrocri == socioSeleccionado?.Scod)
-                        .OrderByDescending(x => x.Id)
                         .FirstOrDefault();
                 }
 
@@ -1026,7 +1114,6 @@ else
         solicitudSeleccionada = lista;
         var plantel = Planteles
         .Where(x => x.Nrocri == socioSeleccionado?.Scod)
-        .OrderByDescending(x => x.Id)
         .FirstOrDefault();
 
         if (plantel != null)
@@ -1041,7 +1128,6 @@ else
         // oResinAnterior = repor
         var oResinAnterior = resultados
     .Where(x => x.Establecimiento != null && x.Establecimiento.Ecod == establecimientoSeleccionado?.Ecod && x.Scod == socioSeleccionado?.Scod)
-    .OrderByDescending(x => x.Id)
     .FirstOrDefault();
 
         if (oResinAnterior != null)
@@ -1534,11 +1620,9 @@ async Task ResultWithoutSolicitud()
             var anio = fechaTemp.Year.ToString();
             plantel = Planteles
                 .Where(x => x.Nrocri == socioSeleccionado.Scod && x.Anioex == anio)
-                .OrderByDescending(x => x.Id)
                 .FirstOrDefault()
                 ?? Planteles
                     .Where(x => x.Nrocri == socioSeleccionado.Scod)
-                    .OrderByDescending(x => x.Id)
                     .FirstOrDefault();
         }
 

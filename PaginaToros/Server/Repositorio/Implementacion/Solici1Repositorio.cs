@@ -39,11 +39,19 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
             try
             {
-                return await QuerySolicitudesValidas(includeRelations: true)
-                    .OrderByDescending(t => t.Id)
-                    .Skip(skip)
-                    .Take(take)
-                    .ToListAsync();
+                IQueryable<Solici1> query = ApplyCreationOrder(QuerySolicitudesValidas(includeRelations: true));
+
+                if (skip > 0)
+                {
+                    query = query.Skip(skip);
+                }
+
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
+
+                return await query.ToListAsync();
             }
             catch
             {
@@ -74,9 +82,14 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = query.Where(filtro);
                 }
 
-                query = query.OrderByDescending(t => t.Id).Skip(skip);
+                query = ApplyCreationOrder(query);
 
-                if (take != 0)
+                if (skip > 0)
+                {
+                    query = query.Skip(skip);
+                }
+
+                if (take > 0)
                 {
                     query = query.Take(take);
                 }
@@ -93,23 +106,25 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Solici1> a;
+                IQueryable<Solici1> query = _dbContext.Solici1s.AsNoTracking();
                 if (filtro is not null)
                 {
-                    a = await _dbContext.Solici1s.Where(filtro).Skip(skip).ToListAsync();
+                    query = query.Where(filtro);
                 }
-                else
+
+                query = ApplyCreationOrder(query);
+
+                if (skip > 0)
                 {
-                    a = await _dbContext.Solici1s.Skip(skip).ToListAsync();
+                    query = query.Skip(skip);
                 }
-                if (take == 0)
+
+                if (take > 0)
                 {
-                    return a.OrderByDescending(t => t.Id).ToList();
+                    query = query.Take(take);
                 }
-                else
-                {
-                    return a.Take(take).OrderByDescending(t => t.Id).ToList();
-                }
+
+                return await query.ToListAsync();
             }
             catch
             {
@@ -185,6 +200,12 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
+        private static IOrderedQueryable<Solici1> ApplyCreationOrder(IQueryable<Solici1> query)
+            => query
+                .OrderByDescending(x => x.FchUsu.HasValue)
+                .ThenByDescending(x => x.FchUsu)
+                .ThenByDescending(x => x.Id);
 
     }
 }

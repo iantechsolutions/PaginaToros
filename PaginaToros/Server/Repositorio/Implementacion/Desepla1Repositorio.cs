@@ -19,27 +19,26 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                var ids = await _dbContext.Desepla1s
-                    .AsNoTracking()
-                    .OrderByDescending(t => t.Nrodec)
-                    .Select(x => x.Id)
-                    .Skip(skip)
-                    .Take(take)
-                    .Distinct()           
+                var items = await ApplyCreationOrder(
+                        _dbContext.Desepla1s
+                            .AsNoTracking()
+                            .Include(x => x.Plantel)
+                            .Include(x => x.Socio))
                     .ToListAsync();
 
-                var result = await _dbContext.Desepla1s
-                    .AsNoTracking()
-                    .Where(x => ids.Contains(x.Id))
-                    .Include(x => x.Plantel)
-                    .Include(x => x.Socio)
-                    .ToListAsync();
+                var deduped = DeduplicateByNrodec(items);
 
-                return result
-                    .GroupBy(e => e.Id)
-                    .Select(g => g.First())
-                    .OrderByDescending(e => e.Nrodec)
-                    .ToList();
+                if (skip > 0)
+                {
+                    deduped = deduped.Skip(skip).ToList();
+                }
+
+                if (take > 0)
+                {
+                    deduped = deduped.Take(take).ToList();
+                }
+
+                return deduped;
             }
             catch
             {
@@ -64,33 +63,30 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                IQueryable<Desepla1> baseQ = _dbContext.Desepla1s
+                IQueryable<Desepla1> query = _dbContext.Desepla1s
                     .AsNoTracking()
                     .Include(x => x.Socio)
                     .Include(x => x.Plantel);
 
                 if (!string.IsNullOrWhiteSpace(filtro))
                 {
-                    baseQ = baseQ.Where(filtro); 
+                    query = query.Where(filtro);
                 }
 
-                var idsDedup = await baseQ
-                    .GroupBy(d => d.Nrodec)
-                    .Select(g => g.Max(x => x.Id))
-                    .ToListAsync();
+                var items = await ApplyCreationOrder(query).ToListAsync();
+                var deduped = DeduplicateByNrodec(items);
 
-                IQueryable<Desepla1> dedupQ = _dbContext.Desepla1s
-                    .AsNoTracking()
-                    .Where(d => idsDedup.Contains(d.Id))
-                    .Include(x => x.Socio)
-                    .Include(x => x.Plantel);
+                if (skip > 0)
+                {
+                    deduped = deduped.Skip(skip).ToList();
+                }
 
-                dedupQ = dedupQ.OrderByDescending(x => x.Nrodec);
+                if (take > 0)
+                {
+                    deduped = deduped.Take(take).ToList();
+                }
 
-                if (skip > 0) dedupQ = dedupQ.Skip(skip);
-                if (take > 0) dedupQ = dedupQ.Take(take);
-
-                return await dedupQ.ToListAsync();
+                return deduped;
             }
             catch
             {
@@ -102,24 +98,26 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                DbSet<Desepla1> a;
-                List<Desepla1> b;
-                if (filtro is not null)
+                IQueryable<Desepla1> query = _dbContext.Desepla1s.AsNoTracking();
+                if (!string.IsNullOrWhiteSpace(filtro))
                 {
-                    b = await _dbContext.Desepla1s.Where(filtro).Skip(skip).ToListAsync();
+                    query = query.Where(filtro);
                 }
-                else
+
+                var items = await ApplyCreationOrder(query).ToListAsync();
+                var deduped = DeduplicateByNrodec(items);
+
+                if (skip > 0)
                 {
-                    b = await _dbContext.Desepla1s.Skip(skip).ToListAsync();
+                    deduped = deduped.Skip(skip).ToList();
                 }
-                if (take == 0)
+
+                if (take > 0)
                 {
-                    return b.OrderByDescending(t => t.Nrodec).ToList();
+                    deduped = deduped.Take(take).ToList();
                 }
-                else
-                {
-                    return b.Take(take).OrderByDescending(t => t.Nrodec).ToList();
-                }
+
+                return deduped;
             }
             catch
             {
@@ -187,6 +185,31 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
                 throw;
             }
+        }
+
+        private static IOrderedQueryable<Desepla1> ApplyCreationOrder(IQueryable<Desepla1> query)
+            => query
+                .OrderByDescending(x => x.Fecdecl.HasValue)
+                .ThenByDescending(x => x.Fecdecl)
+                .ThenByDescending(x => x.FchUsu.HasValue)
+                .ThenByDescending(x => x.FchUsu)
+                .ThenByDescending(x => x.Id);
+
+        private static List<Desepla1> DeduplicateByNrodec(List<Desepla1> items)
+        {
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var result = new List<Desepla1>();
+
+            foreach (var item in items)
+            {
+                var key = item.Nrodec?.Trim() ?? string.Empty;
+                if (seen.Add(key))
+                {
+                    result.Add(item);
+                }
+            }
+
+            return result;
         }
     }
 }

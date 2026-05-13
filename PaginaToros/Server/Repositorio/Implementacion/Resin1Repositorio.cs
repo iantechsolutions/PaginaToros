@@ -20,12 +20,23 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
             try
             {
+                IQueryable<Resin1> query = ApplyCreationOrder(
+                    _dbContext.Resin1s
+                        .AsNoTracking()
+                        .Include(t => t.Socio)
+                        .Include(x => x.Establecimiento));
 
-                // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Resin1s.Include(t=>t.Socio).OrderByDescending(x=>x.Id).Include(x=>x.Establecimiento)
-                                                 .Skip(skip)
-                                                 .Take(take)
-                                                 .ToListAsync();
+                if (skip > 0)
+                {
+                    query = query.Skip(skip);
+                }
+
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
+
+                return await query.ToListAsync();
             }
             catch
             {
@@ -49,23 +60,29 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Resin1> a;
-                if (filtro is not null)
+                IQueryable<Resin1> query = _dbContext.Resin1s
+                    .AsNoTracking()
+                    .Include(t => t.Socio)
+                    .Include(x => x.Establecimiento);
+
+                if (!string.IsNullOrWhiteSpace(filtro))
                 {
-                    a = await _dbContext.Resin1s.Include(t => t.Socio).OrderByDescending(x => x.Id).Include(x=>x.Establecimiento).Where(filtro).Skip(skip).ToListAsync();
+                    query = query.Where(filtro);
                 }
-                else
+
+                query = ApplyCreationOrder(query);
+
+                if (skip > 0)
                 {
-                    a = await _dbContext.Resin1s.Include(t => t.Socio).OrderByDescending(x => x.Id).Include(x => x.Establecimiento).Skip(skip).ToListAsync();
+                    query = query.Skip(skip);
                 }
-                if (take == 0)
+
+                if (take > 0)
                 {
-                    a = a.OrderByDescending(t => t.Id).ToList();
+                    query = query.Take(take);
                 }
-                else
-                {
-                    a = a.Take(take).OrderByDescending(t => t.Id).ToList();
-                }
+
+                var a = await query.ToListAsync();
                 a = RemoveDuplicates(a);
                 return a;
             }
@@ -79,23 +96,26 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Resin1> a;
-                if (filtro is not null)
+                IQueryable<Resin1> query = _dbContext.Resin1s.AsNoTracking();
+
+                if (!string.IsNullOrWhiteSpace(filtro))
                 {
-                a = await _dbContext.Resin1s.Where(filtro).Skip(skip).ToListAsync();
+                    query = query.Where(filtro);
                 }
-                else
+
+                query = ApplyCreationOrder(query);
+
+                if (skip > 0)
                 {
-                    a = await _dbContext.Resin1s.Skip(skip).ToListAsync();
+                    query = query.Skip(skip);
                 }
-                if (take == 0)
+
+                if (take > 0)
                 {
-                    a = a.OrderByDescending(t => t.Id).ToList();
+                    query = query.Take(take);
                 }
-                else
-                {
-                    a = a.Take(take).OrderByDescending(t => t.Id).ToList();
-                }
+
+                var a = await query.ToListAsync();
                 a = RemoveDuplicates(a);
                 return a;
             }
@@ -224,5 +244,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             Console.WriteLine(uniqueItems.Count());
             return uniqueItems;
         }
+
+        private static IOrderedQueryable<Resin1> ApplyCreationOrder(IQueryable<Resin1> query)
+            => query
+                .OrderByDescending(x => x.FchUsu.HasValue)
+                .ThenByDescending(x => x.FchUsu)
+                .ThenByDescending(x => x.Id);
     }
 }

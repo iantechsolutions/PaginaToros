@@ -22,14 +22,23 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
             try
             {
+                IQueryable<Certifseman> query = ApplyCreationOrder(
+                    _dbContext.Certifsemen
+                        .AsNoTracking()
+                        .Include(t => t.Socio)
+                        .Include(e => e.Centro));
 
-                // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Certifsemen.Include(t => t.Socio)
-                                                 .Include(e=>e.Centro)
-                                                 .OrderByDescending(t => t.Id)
-                                                 .Skip(skip)
-                                                 .Take(take)
-                                                 .ToListAsync();
+                if (skip > 0)
+                {
+                    query = query.Skip(skip);
+                }
+
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
+
+                return await query.ToListAsync();
             }
             catch
             {
@@ -54,41 +63,26 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             try
             {
                 IQueryable<Certifseman> query = _dbContext.Certifsemen
-                    .AsNoTracking();
+                    .AsNoTracking()
+                    .Include(x => x.Socio)
+                    .Include(x => x.Centro);
 
                 if (!string.IsNullOrWhiteSpace(filtro))
                     query = query.Where(filtro); 
 
-                var ordered = query.OrderByDescending(x => x.Id); 
+                query = ApplyCreationOrder(query);
 
-                if (take == 0)
+                if (skip > 0)
                 {
-                    return await ordered
-                        .Skip(skip)
-                        .Include(x => x.Socio)
-                        .Include(x => x.Centro)
-                        .ToListAsync();
+                    query = query.Skip(skip);
                 }
 
-                var pageIds = await ordered
-                    .Select(x => x.Id)
-                    .Skip(skip)
-                    .Take(take)
-                    .ToListAsync();
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
 
-                if (pageIds.Count == 0)
-                    return new List<Certifseman>();
-
-                var page = await _dbContext.Certifsemen
-                    .AsNoTracking()
-                    .Where(x => pageIds.Contains(x.Id))
-                    .Include(x => x.Socio)
-                    .Include(x => x.Centro)
-                    .ToListAsync();
-
-                return page
-                    .OrderByDescending(x => x.Id)
-                    .ToList();
+                return await query.ToListAsync();
             }
             catch
             {
@@ -101,23 +95,26 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Certifseman> a;
-                if (filtro is not null)
+                IQueryable<Certifseman> query = _dbContext.Certifsemen.AsNoTracking();
+
+                if (!string.IsNullOrWhiteSpace(filtro))
                 {
-                    a = await _dbContext.Certifsemen.OrderByDescending(x => x.Id).Where(filtro).Skip(skip).ToListAsync();
+                    query = query.Where(filtro);
                 }
-                else
+
+                query = ApplyCreationOrder(query);
+
+                if (skip > 0)
                 {
-                    a = await _dbContext.Certifsemen.OrderByDescending(x => x.Id).Skip(skip).ToListAsync();
+                    query = query.Skip(skip);
                 }
-                if (take == 0)
+
+                if (take > 0)
                 {
-                    a = a.ToList();
+                    query = query.Take(take);
                 }
-                else
-                {
-                    a = a.Take(take).ToList();
-                }
+
+                var a = await query.ToListAsync();
                 a = RemoveDuplicates(a);
                 return a;
             }
@@ -229,5 +226,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             Console.WriteLine(uniqueItems.Count());
             return uniqueItems;
         }
+
+        private static IOrderedQueryable<Certifseman> ApplyCreationOrder(IQueryable<Certifseman> query)
+            => query
+                .OrderByDescending(x => x.FchUsu.HasValue)
+                .ThenByDescending(x => x.FchUsu)
+                .ThenByDescending(x => x.Id);
     }
 }

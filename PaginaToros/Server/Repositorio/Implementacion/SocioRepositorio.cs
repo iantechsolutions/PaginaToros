@@ -23,13 +23,22 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
             try
             {
+                IQueryable<Socio> query = ApplyCreationOrder(
+                    _dbContext.Socios
+                        .Where(x => x.Criador == "S")
+                        .Include(x => x.Provincia));
 
-                // Use Skip and Take for paging, and include Socio
-                return await _dbContext.Socios.Where(x=>x.Criador=="S").Include(x => x.Provincia)
-                                                 .OrderByDescending(t => t.Id)
-                                                 .Skip(skip)
-                                                 .Take(take)
-                                                 .ToListAsync();
+                if (skip > 0)
+                {
+                    query = query.Skip(skip);
+                }
+
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
+
+                return await query.ToListAsync();
             }
             catch
             {
@@ -54,7 +63,9 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                return await _dbContext.Socios.Where(x => x.Criador == "S").Where(filtro).FirstOrDefaultAsync();
+                return await _dbContext.Socios
+                    .Where(filtro)
+                    .FirstOrDefaultAsync();
             }
             catch
             {
@@ -67,24 +78,26 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
                 IQueryable<Socio> query = _dbContext.Socios
                     .Where(x => x.Criador == "S")
-                    .Include(x => x.Provincia)
-                    .OrderByDescending(t => t.Id);
+                    .Include(x => x.Provincia);
 
                 if (filtro is not null)
                 {
                     query = query.Where(filtro);
                 }
 
-                List<Socio> a = await query
-                    .Skip(skip)
-                    .ToListAsync();
+                query = ApplyCreationOrder(query);
 
-                if (take == 0)
+                if (skip > 0)
                 {
-                    return a;
+                    query = query.Skip(skip);
                 }
 
-                return a.Take(take).ToList();
+                if (take > 0)
+                {
+                    query = query.Take(take);
+                }
+
+                return await query.ToListAsync();
             }
             catch
             {
@@ -350,42 +363,42 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                List<Socio> a;
+                IQueryable<Socio> query = _dbContext.Socios
+                    .AsNoTracking()
+                    .Include(x => x.Provincia);
 
                 if (expression is not null)
                 {
-                    a = await _dbContext.Socios
-                        .Include(x => x.Provincia)
-                        .Where(expression)
-                        .OrderByDescending(s => s.Criador == "S") 
-                        .ThenByDescending(t => t.Id)     
-                        .Skip(skip)
-                        .ToListAsync();
-                }
-                else
-                {
-                    a = await _dbContext.Socios
-                        .Include(x => x.Provincia)
-                        .OrderByDescending(s => s.Criador == "S")
-                        .ThenByDescending(t => t.Id)
-                        .Skip(skip)
-                        .ToListAsync();
+                    query = query.Where(expression);
                 }
 
-                if (take == 0)
+                query = ApplyCreationOrder(query);
+
+                if (skip > 0)
                 {
-                    return a; 
+                    query = query.Skip(skip);
                 }
-                else
+
+                if (take > 0)
                 {
-                    return a.Take(take).ToList(); 
+                    query = query.Take(take);
                 }
+
+                return await query.ToListAsync();
             }
             catch
             {
                 throw;
             }
         }
+
+        private static IOrderedQueryable<Socio> ApplyCreationOrder(IQueryable<Socio> query)
+            => query
+                .OrderByDescending(x => x.Fecing.HasValue)
+                .ThenByDescending(x => x.Fecing)
+                .ThenByDescending(x => x.FchUsu.HasValue)
+                .ThenByDescending(x => x.FchUsu)
+                .ThenByDescending(x => x.Id);
 
 
     }

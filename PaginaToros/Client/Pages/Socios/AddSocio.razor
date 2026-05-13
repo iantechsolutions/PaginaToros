@@ -219,7 +219,7 @@
 
         if (Id != 0)
         {
-            var c = await _socioServicio.LimitadosFiltrados(0, 1, $"Id = {Id}");
+            var c = await _socioServicio.LimitadosFiltradoTodos(0, 1, $"Id = {Id}");
             oSocio = c.List?.FirstOrDefault() ?? new SocioDTO();
             activo = oSocio.Criador == "S";
             FechaTemp = oSocio.Fecing ?? DateTime.Now.Date;
