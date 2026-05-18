@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using PaginaToros.Server.Context;
@@ -473,66 +472,30 @@ namespace PaginaToros.Server.Controllers
                     DeclaracionesConPlantel = headers.Count(x => !string.IsNullOrWhiteSpace(x.Nroplan))
                 };
 
-                var useTransaction = _dbContext.Database.IsRelational();
-                IDbContextTransaction? transaction = null;
-                if (useTransaction)
+                var executionStrategy = _dbContext.Database.CreateExecutionStrategy();
+                await executionStrategy.ExecuteAsync(async () =>
                 {
-                    transaction = await _dbContext.Database.BeginTransactionAsync();
-                }
-
-                foreach (var header in headers.Where(x => !string.IsNullOrWhiteSpace(x.Nroplan)))
-                {
-                    var fechaDeclaracion = header.Fchrecepcion ?? header.Fecdecl ?? header.FchUsu;
-                    var resolved = DeclaracionServicioHelper.ResolvePlantelHistorico(planteles, header.Nroplan, fechaDeclaracion, out var warning);
-
-                    if (resolved == null)
+                    if (_dbContext.Database.IsRelational())
                     {
-                        result.DeclaracionesPendientes++;
-                        result.Pendientes.Add(new Desepla1PlantelAmbiguityPendingItem
+                        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+                        await ExecuteRepairAsync(headers, planteles, result);
+
+                        if (result.DeclaracionesCorregidas > 0)
                         {
-                            Id = header.Id,
-                            Nrodec = header.Nrodec,
-                            Nroplan = header.Nroplan,
-                            FechaDeclaracion = fechaDeclaracion,
-                            Nrocri = header.Nrocri,
-                            Motivo = string.IsNullOrWhiteSpace(warning)
-                                ? $"No se pudo resolver un plantel para {header.Nroplan}."
-                                : warning
-                        });
-                        continue;
+                            await _dbContext.SaveChangesAsync();
+                        }
+
+                        await transaction.CommitAsync();
+                        return;
                     }
 
-                    if (!string.IsNullOrWhiteSpace(warning))
+                    await ExecuteRepairAsync(headers, planteles, result);
+
+                    if (result.DeclaracionesCorregidas > 0)
                     {
-                        result.DeclaracionesPendientes++;
-                        result.Pendientes.Add(new Desepla1PlantelAmbiguityPendingItem
-                        {
-                            Id = header.Id,
-                            Nrodec = header.Nrodec,
-                            Nroplan = header.Nroplan,
-                            FechaDeclaracion = fechaDeclaracion,
-                            Nrocri = header.Nrocri,
-                            Motivo = warning
-                        });
-                        continue;
+                        await _dbContext.SaveChangesAsync();
                     }
-
-                    if (!string.Equals(header.Nroplan, resolved.Placod, StringComparison.OrdinalIgnoreCase))
-                    {
-                        header.Nroplan = resolved.Placod;
-                        result.DeclaracionesCorregidas++;
-                    }
-                }
-
-                if (result.DeclaracionesCorregidas > 0)
-                {
-                    await _dbContext.SaveChangesAsync();
-                }
-
-                if (transaction is not null)
-                {
-                    await transaction.CommitAsync();
-                }
+                });
 
                 if (result.DeclaracionesPendientes > 0)
                 {
@@ -624,6 +587,58 @@ namespace PaginaToros.Server.Controllers
 
         private static bool IsAdminUser(ClaimsPrincipal principal)
             => principal?.IsInRole("ADMINISTRADOR") == true;
+
+        private static Task ExecuteRepairAsync(
+            IEnumerable<Desepla1> headers,
+            IReadOnlyCollection<PlantelDTO> planteles,
+            Desepla1PlantelAmbiguityRepairResult result)
+        {
+            foreach (var header in headers.Where(x => !string.IsNullOrWhiteSpace(x.Nroplan)))
+            {
+                var fechaDeclaracion = header.Fchrecepcion ?? header.Fecdecl ?? header.FchUsu;
+                var resolved = DeclaracionServicioHelper.ResolvePlantelHistorico(planteles, header.Nroplan, fechaDeclaracion, out var warning);
+
+                if (resolved == null)
+                {
+                    result.DeclaracionesPendientes++;
+                    result.Pendientes.Add(new Desepla1PlantelAmbiguityPendingItem
+                    {
+                        Id = header.Id,
+                        Nrodec = header.Nrodec,
+                        Nroplan = header.Nroplan,
+                        FechaDeclaracion = fechaDeclaracion,
+                        Nrocri = header.Nrocri,
+                        Motivo = string.IsNullOrWhiteSpace(warning)
+                            ? $"No se pudo resolver un plantel para {header.Nroplan}."
+                            : warning
+                    });
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(warning))
+                {
+                    result.DeclaracionesPendientes++;
+                    result.Pendientes.Add(new Desepla1PlantelAmbiguityPendingItem
+                    {
+                        Id = header.Id,
+                        Nrodec = header.Nrodec,
+                        Nroplan = header.Nroplan,
+                        FechaDeclaracion = fechaDeclaracion,
+                        Nrocri = header.Nrocri,
+                        Motivo = warning
+                    });
+                    continue;
+                }
+
+                if (!string.Equals(header.Nroplan, resolved.Placod, StringComparison.OrdinalIgnoreCase))
+                {
+                    header.Nroplan = resolved.Placod;
+                    result.DeclaracionesCorregidas++;
+                }
+            }
+
+            return Task.CompletedTask;
+        }
 
         private static DateTime? TryParseDetalleDate(string? value)
         {

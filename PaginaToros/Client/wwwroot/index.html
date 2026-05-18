@@ -67,7 +67,8 @@
     </script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
     <script src="_content/CurrieTechnologies.Razor.SweetAlert2/sweetAlert2.min.js"></script>
-    <script src="_content/Blazored.Typeahead/blazored-typeahead.js"></script>
+    <!-- Cache-buster to avoid stale PWA/service-worker copies after deployment -->
+    <script src="_content/Blazored.Typeahead/blazored-typeahead.js?v=20260518"></script>
 </body>
 
 </html>
