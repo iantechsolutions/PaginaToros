@@ -506,17 +506,16 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         private IQueryable<Torosuni> ApplySearchFilter(IQueryable<Torosuni> query, string searchText)
         {
             var normalized = searchText.Trim();
-            var normalizedLower = normalized.ToLower();
             var isNumber = int.TryParse(normalized, out var numericValue);
 
             query = query.Where(t =>
-                (t.NomDad != null && t.NomDad.ToLower().Contains(normalizedLower)) ||
-                (t.Hba != null && t.Hba.ToLower().Contains(normalizedLower)) ||
-                (t.Tatpart != null && t.Tatpart.ToLower().Contains(normalizedLower)) ||
-                (t.NrTsan != null && t.NrTsan.ToLower().Contains(normalizedLower)) ||
-                (t.Socio != null && t.Socio.Nombre != null && t.Socio.Nombre.ToLower().Contains(normalizedLower)) ||
-                (t.Socio != null && t.Socio.Codpos2 != null && t.Socio.Codpos2.ToLower().Contains(normalizedLower)) ||
-                (t.Socio != null && t.Socio.Scod != null && t.Socio.Scod.ToLower().Contains(normalizedLower)) ||
+                (t.NomDad != null && EF.Functions.Like(t.NomDad, $"%{normalized}%")) ||
+                (t.Hba != null && EF.Functions.Like(t.Hba, $"%{normalized}%")) ||
+                (t.Tatpart != null && EF.Functions.Like(t.Tatpart, $"%{normalized}%")) ||
+                (t.NrTsan != null && EF.Functions.Like(t.NrTsan, $"%{normalized}%")) ||
+                (t.Socio != null && t.Socio.Nombre != null && EF.Functions.Like(t.Socio.Nombre, $"%{normalized}%")) ||
+                (t.Socio != null && t.Socio.Codpos2 != null && EF.Functions.Like(t.Socio.Codpos2, $"%{normalized}%")) ||
+                (t.Socio != null && t.Socio.Scod != null && EF.Functions.Like(t.Socio.Scod, $"%{normalized}%")) ||
                 (isNumber && t.Sbcod == numericValue));
 
             return query;

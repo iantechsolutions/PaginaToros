@@ -395,6 +395,7 @@ namespace PaginaToros.Server.Controllers
                     });
                 }
 
+                NormalizeToroRequest(request);
                 var toro = _mapper.Map<Torosuni>(request);
                 if (toro.CreatedAt == default)
                 {
@@ -471,6 +472,7 @@ namespace PaginaToros.Server.Controllers
 
                 var originalCriador = entidad.Criador;
                 var originalCreatedAt = entidad.CreatedAt;
+                NormalizeToroRequest(request);
                 _mapper.Map(request, entidad);
                 entidad.CreatedAt = originalCreatedAt == default ? DateTime.Now : originalCreatedAt;
                 if (RequiresAllowedSocioScope(accessContext))
@@ -576,6 +578,11 @@ namespace PaginaToros.Server.Controllers
 
             toro.EstablecimientoId = establecimiento.Id;
             toro.Estcod = establecimiento.Ecod;
+        }
+
+        private static void NormalizeToroRequest(TorosuniDTO request)
+        {
+            request.Socio = null;
         }
 
         private static Respuesta<T> BuildForbiddenResponse<T>()

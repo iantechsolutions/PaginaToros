@@ -1,5 +1,6 @@
 @page "/toros"
 @inject ITorosServicio _torosServicio
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <style>
     @@media-print {
@@ -471,7 +472,7 @@
             <h3 class="toros-title">Toros</h3>
             <p class="toros-description">Consulta, filtrá y ordená el padrón de toros sin perder contexto mientras se actualizan los resultados.</p>
         </div>
-        @if (!esSocio)
+        @if (CanUseAdminControls)
         {
             <button class="btn btn-primary" @onclick="() => OpenToroModal(0)" disabled="@tableLoading">
                 Agregar toro
@@ -487,7 +488,7 @@
                          Disabled="@metadataLoading"
                          Placeholder="Buscar por toro, socio, HBA, tatuaje, ADN o número de orden" />
 
-            @if (!esSocio)
+            @if (CanUseAdminControls)
             {
                 <div class="toros-inline-select">
                     <SocioLookup Value="adminSocioSeleccionado"
@@ -556,7 +557,7 @@
                 <button class="btn btn-outline-secondary" @onclick="ClearFilters" disabled="@(filtersApplying || metadataLoading)">
                     Limpiar filtros
                 </button>
-                @if (!esSocio)
+                @if (CanUseAdminControls)
                 {
                     <button class="btn btn-light" @onclick="PaginaReporte">
                         Reporte x socio
@@ -612,7 +613,7 @@
                                 Disabled="@metadataLoading"
                                 Style="width: 100%;" />
             </div>
-            @if (!esSocio)
+            @if (CanUseAdminControls)
             {
                 <div>
                     <label>Socio / propietario</label>
@@ -746,18 +747,13 @@
                 <RadzenDataGridColumn TItem="TorosuniDTO" Property="NomDad" Title="Nombre del toro" Width="156px">
                     <Template Context="data"><span title="@data.NomDad">@data.NomDad</span></Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Sbcod" Title="Orden" Width="68px" />
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Fechasba" Title="Fecha S/" Width="84px" />
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Hba" Title="HBA" Width="72px">
-                    <Template Context="data"><span title="@data.Hba">@data.Hba</span></Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="72px">
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Tatpart" Title="Tatuaje" Width="84px">
                     <Template Context="data"><span title="@data.Tatpart">@data.Tatpart</span></Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="NrTsan" Title="Tip./ADN" Width="78px">
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="NrTsan" Title="Tip./ADN" Width="92px">
                     <Template Context="data"><span title="@data.NrTsan">@data.NrTsan</span></Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Nacido" Title="Nacimiento" Width="88px">
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Nacido" Title="Nacimiento" Width="92px">
                     <Template Context="data">
                         @if (data.Nacido.HasValue)
                         {
@@ -765,7 +761,7 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="CreatedAt" Title="Alta" Width="82px">
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="CreatedAt" Title="Alta" Width="92px">
                     <Template Context="data">
                         @if (data.CreatedAt != default)
                         {
@@ -773,16 +769,16 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="TorosuniDTO" Filterable="false" Sortable="false" Width="38px">
+                <RadzenDataGridColumn TItem="TorosuniDTO" Filterable="false" Sortable="false" Width="40px">
                     <Template Context="data">
                         <button class="table-action" title="Editar" @onclick="() => OpenToroModal(data.Id)">
                             <FeatherEdit Size="16" Color="green" />
                         </button>
                     </Template>
                 </RadzenDataGridColumn>
-                @if (!esSocio)
+                @if (CanUseAdminControls)
                 {
-                    <RadzenDataGridColumn TItem="TorosuniDTO" Filterable="false" Sortable="false" Width="38px">
+                    <RadzenDataGridColumn TItem="TorosuniDTO" Filterable="false" Sortable="false" Width="40px">
                         <Template Context="data">
                             <button class="table-action" title="Eliminar" @onclick="() => ConfirmDelete(data.Id)">
                                 <FeatherTrash2 Size="16" Color="red" />
@@ -825,6 +821,7 @@
     private SocioLookupItemDTO? adminSocioSeleccionado;
     private UserContextDTO? userContext;
     private bool esSocio;
+    private bool isAdminOrMaster;
     private bool tableLoading;
     private bool metadataLoading;
     private bool filtersApplying;
@@ -838,11 +835,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        isAdminOrMaster = await UserHasAnyRoleAsync("ADMINISTRADOR", "USUARIOMAESTRO");
         esSocio = await UserHasRole("Socio");
         FilterQueryStateHelper.ApplyTorosQuery(draftFilters, nav.Uri);
         appliedFilters.CopyFrom(draftFilters);
 
-        if (esSocio)
+        if (esSocio && !isAdminOrMaster)
         {
             userContext = await Http.GetFromJsonAsync<UserContextDTO>("api/Account/context");
             sociosSocioDropdown = userContext?.AllowedSocios ?? new List<UserSocioOptionDTO>();
@@ -901,6 +899,12 @@
     {
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         return authenticationState.User.IsInRole(role);
+    }
+
+    private async Task<bool> UserHasAnyRoleAsync(params string[] roles)
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return roles.Any(authenticationState.User.IsInRole);
     }
 
     private async Task OnSearchChanged(string value)
@@ -1069,7 +1073,7 @@
 
     private IEnumerable<int> GetScopedSocioIds()
     {
-        if (!esSocio)
+        if (!esSocio || isAdminOrMaster)
         {
             return Enumerable.Empty<int>();
         }
@@ -1084,7 +1088,7 @@
             return false;
         }
 
-        if (esSocio)
+        if (esSocio && !isAdminOrMaster)
         {
             return metadata.ShowEstablecimientoSelector;
         }
@@ -1092,6 +1096,8 @@
         return state.SocioId.HasValue
             && (metadata.Establecimientos.Count > 0 || metadata.HasSinEstablecimientoOption);
     }
+
+    private bool CanUseAdminControls => !esSocio || isAdminOrMaster;
 
     private string GetEstablecimientoPlaceholder()
     {
@@ -1141,7 +1147,7 @@
 
     private async Task OpenToroModal(int id)
     {
-        if (id == 0 && esSocio)
+        if (id == 0 && esSocio && !isAdminOrMaster)
         {
             await Swal.FireAsync(new SweetAlertOptions
             {
@@ -1155,7 +1161,7 @@
 
         var parameters = new ModalParameters();
         parameters.Add(nameof(AddToro.Id), id);
-        parameters.Add(nameof(AddToro.EsSocio), esSocio);
+        parameters.Add(nameof(AddToro.EsSocio), esSocio && !isAdminOrMaster);
         var modal = Modal.Show<AddToro>(id == 0 ? "Agregar Toro" : "Editar Toro", parameters, new ModalOptions
         {
             Size = ModalSize.ExtraLarge

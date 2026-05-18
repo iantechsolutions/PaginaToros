@@ -22,6 +22,7 @@ public class TorosRepositorioTests
 
     [Theory]
     [InlineData("bravo", 1)]
+    [InlineData("Bra", 1)]
     [InlineData("HBA-222", 2)]
     [InlineData("TAT-333", 3)]
     [InlineData("ADN-444", 4)]

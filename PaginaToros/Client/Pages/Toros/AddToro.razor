@@ -206,6 +206,8 @@ else
                         ? (oTorosuni.Socio.Nombre ?? string.Empty)
                         : $"{oTorosuni.Socio.Codpos2} - {oTorosuni.Socio.Nombre}"
                 };
+
+                oTorosuni.Criador = oTorosuni.Socio.Scod;
             }
         }
 
@@ -231,6 +233,8 @@ else
 
             oTorosuni.Criador = socioSeleccionado?.Scod;
         }
+
+        oTorosuni.Socio = null;
 
         if (traductor.TryGetValue(estadoTemp, out var estado))
         {
@@ -263,6 +267,8 @@ else
     private async Task HandleSocioSeleccion(SocioLookupItemDTO? socio)
     {
         socioSeleccionado = socio;
+        oTorosuni.Criador = socioSeleccionado?.Scod;
+        oTorosuni.Socio = null;
         if (socioSeleccionado == null)
         {
             establecimientoSelection = null;
