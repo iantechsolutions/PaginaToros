@@ -482,12 +482,6 @@
 
     <div class="toros-card toros-filter-card no-print">
         <div class="toros-toolbar">
-            <SearchInput Value="@draftFilters.SearchText"
-                         ValueChanged="OnSearchChanged"
-                         IsLoading="@searchLoading"
-                         Disabled="@metadataLoading"
-                         Placeholder="Buscar por toro, socio, HBA, tatuaje, ADN o número de orden" />
-
             @if (CanUseAdminControls)
             {
                 <div class="toros-inline-select">
@@ -495,18 +489,6 @@
                                  ValueChanged="OnToolbarAdminSocioChanged"
                                  ValueExpression="@(() => adminSocioSeleccionado)"
                                  Placeholder="Filtrar por socio" />
-                </div>
-                <div class="toros-inline-select">
-                    <RadzenDropDown TValue="int?"
-                                    Data="@GetToolbarEstablecimientos()"
-                                    TextProperty="Label"
-                                    ValueProperty="IntValue"
-                                    Value="@GetEstablecimientoSelection(appliedFilters)"
-                                    Change="OnToolbarEstablecimientoChanged"
-                                    AllowClear="true"
-                                    Disabled="@(!CanChooseEstablecimiento(appliedFilters) || metadataLoading)"
-                                    Placeholder="@GetEstablecimientoPlaceholder()"
-                                    Style="width: 100%;" />
                 </div>
             }
             else if (showSocioSelectorSocio)
@@ -523,35 +505,24 @@
                                     Disabled="@metadataLoading"
                                     Style="width: 100%;" />
                 </div>
-                <div class="toros-inline-select">
-                    <RadzenDropDown TValue="int?"
-                                    Data="@GetToolbarEstablecimientos()"
-                                    TextProperty="Label"
-                                    ValueProperty="IntValue"
-                                    Value="@GetEstablecimientoSelection(appliedFilters)"
-                                    Change="OnToolbarEstablecimientoChanged"
-                                    AllowClear="true"
-                                    Disabled="@(!CanChooseEstablecimiento(appliedFilters) || metadataLoading)"
-                                    Placeholder="@GetEstablecimientoPlaceholder()"
-                                    Style="width: 100%;" />
-                </div>
             }
-            else
-            {
-                <div></div>
-                <div class="toros-inline-select">
-                    <RadzenDropDown TValue="int?"
-                                    Data="@GetToolbarEstablecimientos()"
-                                    TextProperty="Label"
-                                    ValueProperty="IntValue"
-                                    Value="@GetEstablecimientoSelection(appliedFilters)"
-                                    Change="OnToolbarEstablecimientoChanged"
-                                    AllowClear="true"
-                                    Disabled="@(!CanChooseEstablecimiento(appliedFilters) || metadataLoading)"
-                                    Placeholder="@GetEstablecimientoPlaceholder()"
-                                    Style="width: 100%;" />
-                </div>
-            }
+            <SearchInput Value="@draftFilters.SearchText"
+                         ValueChanged="OnSearchChanged"
+                         IsLoading="@searchLoading"
+                         Disabled="@metadataLoading"
+                         Placeholder="Buscar por toro, socio, HBA, tatuaje, ADN o número de orden" />
+            <div class="toros-inline-select">
+                <RadzenDropDown TValue="int?"
+                                Data="@GetToolbarEstablecimientos()"
+                                TextProperty="Label"
+                                ValueProperty="IntValue"
+                                Value="@GetEstablecimientoSelection(appliedFilters)"
+                                Change="OnToolbarEstablecimientoChanged"
+                                AllowClear="true"
+                                Disabled="@(!CanChooseEstablecimiento(appliedFilters) || metadataLoading)"
+                                Placeholder="@GetEstablecimientoPlaceholder()"
+                                Style="width: 100%;" />
+            </div>
 
             <div class="toros-toolbar-actions">
                 <button class="btn btn-outline-secondary" @onclick="ClearFilters" disabled="@(filtersApplying || metadataLoading)">
