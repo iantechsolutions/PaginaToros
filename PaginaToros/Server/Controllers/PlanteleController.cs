@@ -76,7 +76,7 @@ namespace PaginaPlantels.Server.Cont{
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 0, Mensaje = ex.Message, List = null };
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
@@ -115,7 +115,7 @@ namespace PaginaPlantels.Server.Cont{
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                _ResponseDTO = new Respuesta<int>() { Exito = 0, Mensaje = ex.Message, List = 0 };
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
@@ -159,7 +159,7 @@ namespace PaginaPlantels.Server.Cont{
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 0, Mensaje = ex.Message, List = null };
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
@@ -203,7 +203,7 @@ namespace PaginaPlantels.Server.Cont{
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                _ResponseDTO = new Respuesta<List<PlantelDTO>>() { Exito = 0, Mensaje = ex.Message, List = null };
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
@@ -360,7 +360,7 @@ namespace PaginaPlantels.Server.Cont{
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                _Respuesta = new Respuesta<string>() { Exito = 0, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }

@@ -275,11 +275,26 @@ else if (socios.Count > 0)
                         </div>
                         <div class="col-sm">
                             <label class="col-sm">Fecha de declaracion</label>
-                            <RadzenDatePicker TValue="DateTime?" @bind-Value="@oDeclaracion.Fchrecepcion" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                            <RadzenDatePicker TValue="DateTime?"
+                                              @bind-Value="@oDeclaracion.Fchrecepcion"
+                                              ShowTime="false"
+                                              ShowSeconds="false"
+                                              DateFormat="dd/MM/yyyy"
+                                              Class="w-75"
+                                              InitialViewDate="@GetDatePickerInitialViewDate(oDeclaracion.Fchrecepcion)"
+                                              YearRange="@CalendarYearRange" />
                         </div>
                         <div class="col-sm">
                             <label class="col-sm">Plantel</label>
-                            <BlazoredTypeahead @bind-Value="@Plantelseleccionado" SearchMethod="BusquedaPlanteles" placeholder="Plantel - Año" EnableDropDown="true" Disabled="@(Id != 0)">
+                            <BlazoredTypeahead Value="Plantelseleccionado"
+                                               ValueChanged="OnPlantelSeleccionado"
+                                               ValueExpression="@(() => Plantelseleccionado)"
+                                               TItem="PlantelDTO"
+                                               TValue="PlantelDTO"
+                                               SearchMethod="BusquedaPlanteles"
+                                               placeholder="Plantel - Año"
+                                               EnableDropDown="true"
+                                               Disabled="@(Id != 0)">
                                 <SelectedTemplate Context="eleccion">
                                     @(@eleccion.Placod + " - " + @eleccion.Anioex)
                                 </SelectedTemplate>
@@ -287,6 +302,10 @@ else if (socios.Count > 0)
                                     @(@eleccion.Placod + " - " + @eleccion.Anioex)
                                 </ResultTemplate>
                             </BlazoredTypeahead>
+                            @if (!string.IsNullOrWhiteSpace(plantelLoadWarning))
+                            {
+                                <div class="text-danger small mt-1">@plantelLoadWarning</div>
+                            }
                         </div>
                     </div>
                     <br />
@@ -369,12 +388,26 @@ else if (socios.Count > 0)
                             <div class="col-sm">
                                 <label>Desde</label>
                                 <br />
-                                <RadzenDatePicker TValue="DateTime?" @bind-Value="@oDeclaracion.Desde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                <RadzenDatePicker TValue="DateTime?"
+                                                  @bind-Value="@oDeclaracion.Desde"
+                                                  ShowTime="false"
+                                                  ShowSeconds="false"
+                                                  DateFormat="dd/MM/yyyy"
+                                                  Class="w-75"
+                                                  InitialViewDate="@GetDatePickerInitialViewDate(oDeclaracion.Desde)"
+                                                  YearRange="@CalendarYearRange" />
                             </div>
                             <div class="col-sm">
                                 <label>Hasta</label>
                                 <br />
-                                <RadzenDatePicker TValue="DateTime?" @bind-Value="@oDeclaracion.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                <RadzenDatePicker TValue="DateTime?"
+                                                  @bind-Value="@oDeclaracion.Hasta"
+                                                  ShowTime="false"
+                                                  ShowSeconds="false"
+                                                  DateFormat="dd/MM/yyyy"
+                                                  Class="w-75"
+                                                  InitialViewDate="@GetDatePickerInitialViewDate(oDeclaracion.Hasta)"
+                                                  YearRange="@CalendarYearRange" />
                             </div>
                         </div>
                         <br />
@@ -497,12 +530,28 @@ else if (socios.Count > 0)
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="7%">
                                     <Template Context="data">
-                                        <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Desde" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                        <RadzenDatePicker TValue="DateTime"
+                                                          Style="color:white"
+                                                          @bind-Value="@data.Desde"
+                                                          ShowTime="false"
+                                                          ShowSeconds="false"
+                                                          DateFormat="dd/MM/yyyy"
+                                                          Class="w-75"
+                                                          InitialViewDate="@GetDatePickerInitialViewDate(data.Desde)"
+                                                          YearRange="@CalendarYearRange" />
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="7%">
                                     <Template Context="data">
-                                        <RadzenDatePicker TValue="DateTime" Style="color:white" @bind-Value="@data.Hasta" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                                        <RadzenDatePicker TValue="DateTime"
+                                                          Style="color:white"
+                                                          @bind-Value="@data.Hasta"
+                                                          ShowTime="false"
+                                                          ShowSeconds="false"
+                                                          DateFormat="dd/MM/yyyy"
+                                                          Class="w-75"
+                                                          InitialViewDate="@GetDatePickerInitialViewDate(data.Hasta)"
+                                                          YearRange="@CalendarYearRange" />
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cant Vientres" Width="5%">
@@ -606,10 +655,12 @@ else if (socios.Count > 0)
                                 <RadzenDataGridColumn TItem="Desepla3Data" Title="Desde" Width="9%">
                                     <Template Context="data">
                                         <div style="min-width:100px">
-                                            <RadzenDatePicker TValue="DateTime"
-                                                              @bind-Value="data.Desde"
-                                                              DateFormat="dd/MM/yyyy"
-                                                              Class="w-100" />
+                                          <RadzenDatePicker TValue="DateTime"
+                                                            @bind-Value="data.Desde"
+                                                            DateFormat="dd/MM/yyyy"
+                                                            Class="w-100"
+                                                            InitialViewDate="@GetDatePickerInitialViewDate(data.Desde)"
+                                                            YearRange="@CalendarYearRange" />
                                         </div>
                                     </Template>
                                 </RadzenDataGridColumn>
@@ -617,10 +668,12 @@ else if (socios.Count > 0)
                                 <RadzenDataGridColumn TItem="Desepla3Data" Title="Hasta" Width="9%">
                                     <Template Context="data">
                                         <div style="min-width:100px">
-                                            <RadzenDatePicker TValue="DateTime"
-                                                              @bind-Value="data.Hasta"
-                                                              DateFormat="dd/MM/yyyy"
-                                                              Class="w-100" />
+                                          <RadzenDatePicker TValue="DateTime"
+                                                            @bind-Value="data.Hasta"
+                                                            DateFormat="dd/MM/yyyy"
+                                                            Class="w-100"
+                                                            InitialViewDate="@GetDatePickerInitialViewDate(data.Hasta)"
+                                                            YearRange="@CalendarYearRange" />
                                         </div>
                                     </Template>
                                 </RadzenDataGridColumn>
@@ -694,7 +747,7 @@ else
     TorosuniDTO? toroSeleccionado = null;
     CertifsemanDTO? certifSeleccionado = null;
     List<string> tipos = new List<string> { "Natural", "Natural a Corral", "Inseminacion c/celo", "Inseminacion c/celo y rep", "Inseminacion c/p y rep", "IATF c/rep" };
-    DateTime FechaTemp = DateTime.Now;
+    DateTime FechaTemp = DateTime.Today;
     List<TorosuniDTO> toros = new();
     List<Desepla3Data> torosSeleccionados = new();
     List<CertifsemanDTO> certificados = new();
@@ -702,6 +755,7 @@ else
     List<Desepla3DTO> deseplasViejos = new();
     string tipoTemp = "";
     string previousTipoTemp = "";
+    string? plantelLoadWarning = null;
 
     Dictionary<string, string> traductor = new Dictionary<string, string>
     {
@@ -722,6 +776,38 @@ else
         {"ANUAL", "Inseminacion c/celo y rep"}
     };
 
+    private static readonly Dictionary<string, string> TipoLabelPorCodigo = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["NA"] = "Natural",
+        ["NC"] = "Natural a Corral",
+        ["IA"] = "Inseminacion c/celo",
+        ["IAC"] = "Inseminacion c/celo y rep",
+        ["IACR"] = "Inseminacion c/celo y rep",
+        ["IR"] = "Inseminacion c/celo y rep",
+        ["ANUAL"] = "Inseminacion c/celo y rep",
+        ["IAPR"] = "Inseminacion c/p y rep",
+        ["IATFR"] = "IATF c/rep"
+    };
+
+    private static readonly Dictionary<string, string> TipoCodigoPorLabel = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Natural"] = "NA",
+        ["Natural a Corral"] = "NC",
+        ["Inseminacion c/celo"] = "IA",
+        ["Inseminacion c/celo y rep"] = "IACR",
+        ["Inseminacion c/p y rep"] = "IAPR",
+        ["IATF c/rep"] = "IATFR",
+        ["Santa Fe"] = "IATFR"
+    };
+
+    private static readonly HashSet<string> TiposInseminacion = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Inseminacion c/celo",
+        "Inseminacion c/celo y rep",
+        "Inseminacion c/p y rep",
+        "IATF c/rep"
+    };
+
     Dictionary<string, string> traductorToros = new Dictionary<string, string>{
         {"P","Puro Pedigree (SRA)"},
         {"S","S/"},
@@ -734,12 +820,15 @@ else
         {"5","Vendido"}
     };
     private ClaimsPrincipal? user;
+    private const string CalendarYearRange = "1900:2100";
 
     private const string LogPrefix = "[AddDeclaracion]";
     private void Log(string message) => Console.WriteLine($"{LogPrefix} {DateTime.Now:HH:mm:ss.fff} {message}");
     private static string Q(string? value) => value is null ? "<null>" : $"'{value}' (len={value.Length})";
     private static string T(string? value) => (value ?? string.Empty).Trim();
     private static string EscapeForFilter(string? value) => (value ?? string.Empty).Replace("\"", "\\\"");
+    private static DateTime GetDatePickerInitialViewDate(DateTime? value)
+        => (value ?? DateTime.Today).Date;
     private void LogDetalleSnapshot(string title, IEnumerable<Desepla3DTO>? detalles)
     {
         var list = detalles?.ToList() ?? new List<Desepla3DTO>();
@@ -869,29 +958,15 @@ else
                     Log("No se pudieron cargar listas dependientes (socioSeleccionado == null).");
                 }
 
-                Plantelseleccionado = Planteles.FirstOrDefault(p => p.Placod == oDeclaracion.Nroplan);
-                Log($"Plantel seleccionado por Placod exacto | encontrado={(Plantelseleccionado != null)} | totalPlanteles={Planteles?.Count ?? 0}");
-                if (Plantelseleccionado is null)
-                {
-                    var nroplanTrim = T(oDeclaracion.Nroplan);
-                    var plantelTrim = Planteles.FirstOrDefault(p => T(p.Placod).Equals(nroplanTrim, StringComparison.OrdinalIgnoreCase));
-                    Log($"Plantel por trim/case-insensitive | encontrado={(plantelTrim != null)} | nroplan={Q(oDeclaracion.Nroplan)}");
-                    Plantelseleccionado = plantelTrim;
-                }
-                if (Plantelseleccionado is null && !string.IsNullOrWhiteSpace(oDeclaracion.Nroplan))
-                {
-                    var nroplanLower = EscapeForFilter(T(oDeclaracion.Nroplan).ToLower());
-                    var filtroPlan = $"(Placod == null ? \"\" : Placod).ToLower() == \"{nroplanLower}\"";
-                    var planResp = await _plantelServicio.LimitadosFiltradosNoInclude(0, 1, filtroPlan);
-                    Plantelseleccionado = planResp?.List?.FirstOrDefault();
-                    Log($"Plantel fallback por API | encontrado={(Plantelseleccionado != null)} | filtro={filtroPlan}");
+                Plantelseleccionado = ResolvePlantelForDeclaracion(oDeclaracion.Nroplan, out var plantelWarning);
+                plantelLoadWarning = plantelWarning;
+                Log($"Plantel reconstruido | encontrado={(Plantelseleccionado != null)} | warning={Q(plantelLoadWarning)} | totalPlanteles={Planteles?.Count ?? 0}");
                 if (Plantelseleccionado != null && !Planteles.Any(p => p.Id == Plantelseleccionado.Id))
                 {
                     Planteles.Add(Plantelseleccionado);
                     Planteles = OrderPlantelesByDisplay(Planteles);
-                    Log($"Plantel fallback agregado a lista local | plantelesTotal={Planteles.Count}");
+                    Log($"Plantel reconstruido agregado a lista local | plantelesTotal={Planteles.Count}");
                 }
-            }
                 tipoTemp = ToLabel(oDeclaracion.Tipse);
                 previousTipoTemp = tipoTemp;
                 Log($"Tipo reconstruido | tipseDB={Q(oDeclaracion.Tipse)} -> tipoUI={Q(tipoTemp)}");
@@ -942,11 +1017,11 @@ else
             }
             else
             {
-                oDeclaracion.Fecdecl = DateTime.Now;
+                oDeclaracion.Fecdecl = DateTime.Today;
                 nrodec = "0";
                 oDeclaracion.Nrodec = nrodec;
-                oDeclaracion.Desde = DateTime.Now;
-                oDeclaracion.Hasta = DateTime.Now;
+                oDeclaracion.Desde = DateTime.Today;
+                oDeclaracion.Hasta = DateTime.Today;
                 oDeclaracion.Tipse = "NA";
                 Log($"Alta nueva | nrodecTemporal={Q(nrodec)} | el servidor asignara el nrodec definitivo al guardar");
 
@@ -986,7 +1061,7 @@ else
 
 
 
-    double GetMultiplicador(string tipo) => tipo switch
+    double GetMultiplicador(string tipo) => NormalizeTipoLabel(tipo) switch
     {
         "Inseminacion c/celo" => 1.5,
         "Inseminacion c/celo y rep" => 1.0,
@@ -1010,8 +1085,8 @@ else
     Dictionary<string, int> BuildUsoPorCert(IEnumerable<Desepla3DTO> items, double multiplicador)
     {
         return items
-            .Where(x => x.Tipo == "insem")  
-            .GroupBy(x => x.Hardb)
+            .Where(x => IsDetalleInseminacion(x.Tipo))
+            .GroupBy(x => (x.Hardb ?? string.Empty).Trim())
             .ToDictionary(
                 g => g.Key,
                 g => g.Sum(d => DosisNecesarias(d.Cantv, multiplicador))
@@ -1021,8 +1096,8 @@ else
     Dictionary<string, int> BuildUsoPorCertFromSelected(IEnumerable<Desepla3Data> items, double multiplicador)
     {
         return items
-            .Where(x => x.original != null && x.original.Tipo == "insem" && !string.IsNullOrWhiteSpace(x.original.Hardb))
-            .GroupBy(x => x.original.Hardb)
+            .Where(x => x.original != null && IsDetalleInseminacion(x.original.Tipo) && !string.IsNullOrWhiteSpace(x.original.Hardb))
+            .GroupBy(x => (x.original.Hardb ?? string.Empty).Trim())
             .ToDictionary(
                 g => g.Key,
                 g => g.Sum(d => DosisNecesarias(d.original.Cantv, multiplicador))
@@ -1080,33 +1155,45 @@ else
     private string ToCode(string label)
     {
         var normalized = NormalizeTipoLabel(label);
-        if (traductor.TryGetValue(normalized, out var code)) return code;
+        if (TipoCodigoPorLabel.TryGetValue(normalized, out var code)) return code;
         // Fallback: si ya es código o es un label desconocido
         return normalized;
     }
 
     private string ToLabel(string code)
     {
-        if (string.IsNullOrWhiteSpace(code)) return code;
+        var normalizedCode = T(code);
+        if (string.IsNullOrWhiteSpace(normalizedCode)) return normalizedCode;
 
-        // Normalización de códigos legacy para que la UI siempre trabaje con labels actuales.
-        if (string.Equals(code, "ANUAL", StringComparison.OrdinalIgnoreCase))
-            return "Inseminacion c/celo y rep";
-        if (string.Equals(code, "IATFR", StringComparison.OrdinalIgnoreCase))
-            return "IATF c/rep";
+        if (TipoLabelPorCodigo.TryGetValue(normalizedCode, out var label))
+            return label;
 
         // Invertimos el diccionario en caliente (o creá otro diccionario inverso fijo)
-        var pair = traductor.FirstOrDefault(kv => kv.Value == code);
-        return string.IsNullOrWhiteSpace(pair.Key) ? code : NormalizeTipoLabel(pair.Key);
+        var pair = traductor.FirstOrDefault(kv => string.Equals(kv.Value, normalizedCode, StringComparison.OrdinalIgnoreCase));
+        return string.IsNullOrWhiteSpace(pair.Key) ? normalizedCode : NormalizeTipoLabel(pair.Key);
     }
 
     private string NormalizeTipoLabel(string? label)
     {
         var v = (label ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(v))
+            return string.Empty;
+
+        if (TipoLabelPorCodigo.TryGetValue(v, out var mappedLabel))
+            return mappedLabel;
+
         if (string.Equals(v, "ANUAL", StringComparison.OrdinalIgnoreCase))
+            return "Inseminacion c/celo y rep";
+        if (string.Equals(v, "IAC", StringComparison.OrdinalIgnoreCase))
+            return "Inseminacion c/celo y rep";
+        if (string.Equals(v, "IACR", StringComparison.OrdinalIgnoreCase))
+            return "Inseminacion c/celo y rep";
+        if (string.Equals(v, "IR", StringComparison.OrdinalIgnoreCase))
             return "Inseminacion c/celo y rep";
         if (string.Equals(v, "Santa Fe", StringComparison.OrdinalIgnoreCase))
             return "IATF c/rep";
+        if (TipoCodigoPorLabel.ContainsKey(v))
+            return v;
         return v;
     }
 
@@ -1114,11 +1201,7 @@ else
     private bool IsNaturalCorralTipo(string? tipo) => string.Equals(NormalizeTipoLabel(tipo), "Natural a Corral", StringComparison.Ordinal);
     private bool IsTipoInseminacion(string? tipo)
     {
-        var t = NormalizeTipoLabel(tipo);
-        return t == "Inseminacion c/celo"
-               || t == "Inseminacion c/celo y rep"
-               || t == "Inseminacion c/p y rep"
-               || t == "IATF c/rep";
+        return TiposInseminacion.Contains(NormalizeTipoLabel(tipo));
     }
     private bool IsTipoConToros(string? tipo)
     {
@@ -1279,8 +1362,8 @@ else
 
         if (IsNaturalTipo(tipoTemp))
         {
-            var d = oDeclaracion.Desde ?? DateTime.Now;
-            var h = oDeclaracion.Hasta ?? DateTime.Now;
+            var d = oDeclaracion.Desde ?? DateTime.Today;
+            var h = oDeclaracion.Hasta ?? DateTime.Today;
 
             foreach (var t in torosSeleccionados)
             {
@@ -1306,8 +1389,8 @@ else
 
         if (IsNaturalTipo(tipoTemp))
         {
-            oDeclaracion.Desde ??= DateTime.Now;
-            oDeclaracion.Hasta ??= DateTime.Now;
+            oDeclaracion.Desde ??= DateTime.Today;
+            oDeclaracion.Hasta ??= DateTime.Today;
         }
         else
         {
@@ -1688,6 +1771,69 @@ else
         return plantel.FchUsu;
     }
 
+    private static bool IsDetalleInseminacion(string? tipo)
+        => string.Equals((tipo ?? string.Empty).Trim(), "insem", StringComparison.OrdinalIgnoreCase);
+
+    private PlantelDTO? ResolvePlantelForDeclaracion(string? nroplan, out string warning)
+    {
+        warning = string.Empty;
+        var requested = T(nroplan);
+        if (string.IsNullOrWhiteSpace(requested) || Planteles == null || Planteles.Count == 0)
+        {
+            return null;
+        }
+
+        var exactMatches = Planteles
+            .Where(p => string.Equals(T(p.Placod), requested, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (exactMatches.Count == 1)
+        {
+            return exactMatches[0];
+        }
+
+        if (exactMatches.Count > 1)
+        {
+            warning = $"El plantel {requested} coincide con varios registros exactos. Seleccioná uno manualmente.";
+            return exactMatches
+                .OrderByDescending(x => TryGetPlantelYear(x).HasValue)
+                .ThenByDescending(x => TryGetPlantelYear(x))
+                .ThenByDescending(x => x.Id)
+                .FirstOrDefault();
+        }
+
+        var suffixMatches = Planteles
+            .Where(p => !string.IsNullOrWhiteSpace(p.Placod) && T(p.Placod).EndsWith(requested, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (suffixMatches.Count == 1)
+        {
+            return suffixMatches[0];
+        }
+
+        if (suffixMatches.Count > 1)
+        {
+            warning = $"El plantel {requested} coincide con varios códigos históricos ({string.Join(", ", suffixMatches.Take(5).Select(x => x.Placod))}). Seleccioná uno manualmente.";
+            return null;
+        }
+
+        var containsMatches = Planteles
+            .Where(p => !string.IsNullOrWhiteSpace(p.Placod) && T(p.Placod).Contains(requested, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (containsMatches.Count == 1)
+        {
+            return containsMatches[0];
+        }
+
+        if (containsMatches.Count > 1)
+        {
+            warning = $"No se pudo identificar un único plantel para {requested}. Coincidencias parciales: {string.Join(", ", containsMatches.Take(5).Select(x => x.Placod))}.";
+        }
+
+        return null;
+    }
+
     private async Task OnToroSeleccionado(TorosuniDTO? toro)
     {
         if (toro == null) return;
@@ -1701,6 +1847,13 @@ else
         if (certif == null) return;
         await ToggleCertif(certif);
         certifSeleccionado = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnPlantelSeleccionado(PlantelDTO? plantel)
+    {
+        Plantelseleccionado = plantel;
+        plantelLoadWarning = string.Empty;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -1740,8 +1893,8 @@ else
                     Tipo = "toro"
                 },
                 TipToro = toro.TipToro,
-                Desde = DateTime.Now,
-                Hasta = DateTime.Now
+                Desde = DateTime.Today,
+                Hasta = DateTime.Today
             }
         );
         Log($"ToggleToro ADD | HBA={Q(toro.Hba)} | TipToro={Q(toro.TipToro)} | totalTorosSel={torosSeleccionados.Count}");
@@ -1815,8 +1968,8 @@ else
                     Tipo = "insem",
                     Cantv = 0
                 },
-                Desde = DateTime.Now,
-                Hasta = DateTime.Now
+                Desde = DateTime.Today,
+                Hasta = DateTime.Today
             }
         );
         Log($"ToggleCertif ADD | HBA={Q(certif.Hba)} | Nrocri={Q(certif.Nrocri)} | totalCertSel={certificadosSeleccionados.Count}");
@@ -1940,6 +2093,7 @@ else
         certificadosSeleccionados.Clear();
         seleccionFinal.Clear();
         deseplasViejos.Clear();
+        plantelLoadWarning = null;
 
         Plantelseleccionado = null;
 
@@ -1948,8 +2102,8 @@ else
             tipoTemp = string.Empty;
             oDeclaracion.Cantv = 0;
             oDeclaracion.Cantb = 0;
-            oDeclaracion.Desde = DateTime.Now;
-            oDeclaracion.Hasta = DateTime.Now;
+            oDeclaracion.Desde = DateTime.Today;
+            oDeclaracion.Hasta = DateTime.Today;
         }
 
         if (reloadGrids)
@@ -1977,22 +2131,19 @@ else
     {
         public Guid LineKey { get; set; } = Guid.NewGuid();
         public Desepla3DTO original { get; set; }
-        public DateTime Desde { get; set; } = DateTime.Now;
-        public DateTime Hasta { get; set; } = DateTime.Now;
+        public DateTime Desde { get; set; } = DateTime.Today;
+        public DateTime Hasta { get; set; } = DateTime.Today;
         public string? TipToro { get; set; } = "";
         public int Id { get; set; }
     }
 
 
-    double GetMultiplicadorForCode(string tipse) => tipse switch
+    double GetMultiplicadorForCode(string tipse) => NormalizeTipoLabel(tipse) switch
     {
-        // Códigos que usás en DB (oDeclaracion.Tipse)
-        "IA" => 1.5, // Inseminacion c/celo
-        "IACR" => 1.0, // Inseminacion c/celo y rep
-        "IR" => 1.0, // (si lo usás como “IA con rep”)
-        "ANUAL" => 1.0, // mapeado a insem con rep
-        "IAPR" => 0.8, // Inseminacion c/p y rep
-        "IATFR" => 1.0, // Santa Fe / IATF con rep
+        "Inseminacion c/celo" => 1.5,
+        "Inseminacion c/celo y rep" => 1.0,
+        "IATF c/rep" => 1.0,
+        "Inseminacion c/p y rep" => 0.8,
         _ => 0.0  // Natural/NC no consumen dosis
     };
 
@@ -2034,10 +2185,12 @@ else
             var mult = GetMultiplicadorForCode(oDeclaracion.Tipse ?? "");
             var devolverPorHba = detalles
                 .Where(d => (d.Tipo ?? "").Equals("insem", StringComparison.OrdinalIgnoreCase))
-                .GroupBy(d => d.Hardb)
+                .Select(d => new { Detail = d, Hba = (d.Hardb ?? string.Empty).Trim() })
+                .Where(x => !string.IsNullOrWhiteSpace(x.Hba))
+                .GroupBy(x => x.Hba)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Sum(d => DosisNecesarias(d.Cantv, mult))
+                    g => g.Sum(x => DosisNecesarias(x.Detail.Cantv, mult))
                 );
             Log($"EliminarDeclaracion | HBAs a devolver={devolverPorHba.Count}");
 
@@ -2067,7 +2220,7 @@ else
 
                 if (string.IsNullOrWhiteSpace(hba) || cantidadADevolver <= 0) continue;
 
-                var cert = certificados.FirstOrDefault(c => c.Hba == hba);
+                var cert = certificados.FirstOrDefault(c => string.Equals(T(c.Hba), hba, StringComparison.OrdinalIgnoreCase));
                 if (cert == null)
                 {
                     var f = $"(Hba == null ? \"\" : Hba).ToLower() == \"{hba.ToLower()}\"";

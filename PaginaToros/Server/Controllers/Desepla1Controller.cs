@@ -107,7 +107,7 @@ namespace PaginaToros.Server.Controllers
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
+                _ResponseDTO = new Respuesta<int>() { Exito = 0, Mensaje = ex.Message, List = 0 };
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
@@ -176,7 +176,7 @@ namespace PaginaToros.Server.Controllers
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<Desepla1DTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
+                _ResponseDTO = new Respuesta<List<Desepla1DTO>>() { Exito = 0, Mensaje = ex.Message, List = null };
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
@@ -215,7 +215,7 @@ namespace PaginaToros.Server.Controllers
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                _Respuesta = new Respuesta<string>() { Exito = 0, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
@@ -355,7 +355,7 @@ namespace PaginaToros.Server.Controllers
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = ex.Message };
+                _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 0, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
