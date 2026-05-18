@@ -757,57 +757,6 @@ else
     string previousTipoTemp = "";
     string? plantelLoadWarning = null;
 
-    Dictionary<string, string> traductor = new Dictionary<string, string>
-    {
-        {"Natural","NA"},
-        {"Natural a Corral","NC"},
-        {"Santa Fe","IATFR"},
-        {"IATF c/rep","IATFR"},
-        {"Inseminacion c/p y rep","IAPR"},
-        {"Inseminacion c/celo y rep","IACR"},
-        {"Inseminacion c/celo","IA"},
-        {"NA", "Natural"},
-        {"NC", "Natural a Corral"},
-        {"IR", "Inseminacion c/celo y rep"},
-        {"IATFR", "Santa Fe"},
-        {"IAPR", "Inseminacion c/p y rep"},
-        {"IACR", "Inseminacion c/celo y rep"},
-        {"IA", "Inseminacion c/celo"},
-        {"ANUAL", "Inseminacion c/celo y rep"}
-    };
-
-    private static readonly Dictionary<string, string> TipoLabelPorCodigo = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["NA"] = "Natural",
-        ["NC"] = "Natural a Corral",
-        ["IA"] = "Inseminacion c/celo",
-        ["IAC"] = "Inseminacion c/celo y rep",
-        ["IACR"] = "Inseminacion c/celo y rep",
-        ["IR"] = "Inseminacion c/celo y rep",
-        ["ANUAL"] = "Inseminacion c/celo y rep",
-        ["IAPR"] = "Inseminacion c/p y rep",
-        ["IATFR"] = "IATF c/rep"
-    };
-
-    private static readonly Dictionary<string, string> TipoCodigoPorLabel = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["Natural"] = "NA",
-        ["Natural a Corral"] = "NC",
-        ["Inseminacion c/celo"] = "IA",
-        ["Inseminacion c/celo y rep"] = "IACR",
-        ["Inseminacion c/p y rep"] = "IAPR",
-        ["IATF c/rep"] = "IATFR",
-        ["Santa Fe"] = "IATFR"
-    };
-
-    private static readonly HashSet<string> TiposInseminacion = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "Inseminacion c/celo",
-        "Inseminacion c/celo y rep",
-        "Inseminacion c/p y rep",
-        "IATF c/rep"
-    };
-
     Dictionary<string, string> traductorToros = new Dictionary<string, string>{
         {"P","Puro Pedigree (SRA)"},
         {"S","S/"},
@@ -1061,16 +1010,7 @@ else
 
 
 
-    double GetMultiplicador(string tipo) => NormalizeTipoLabel(tipo) switch
-    {
-        "Inseminacion c/celo" => 1.5,
-        "Inseminacion c/celo y rep" => 1.0,
-        "IATF c/rep" => 1.0,
-        "ANUAL" => 1.0,
-        "Santa Fe" => 1.0,
-        "Inseminacion c/p y rep" => 0.8,
-        _ => 0.0 // Natural no consume dosis
-    };
+    double GetMultiplicador(string tipo) => DeclaracionServicioHelper.GetMultiplicador(tipo);
 
     int DosisNecesarias(double? cantVientres, double multiplicador)
     {
@@ -1152,62 +1092,16 @@ else
     };
 
 
-    private string ToCode(string label)
-    {
-        var normalized = NormalizeTipoLabel(label);
-        if (TipoCodigoPorLabel.TryGetValue(normalized, out var code)) return code;
-        // Fallback: si ya es código o es un label desconocido
-        return normalized;
-    }
+    private string ToCode(string label) => DeclaracionServicioHelper.ToCode(label);
 
-    private string ToLabel(string code)
-    {
-        var normalizedCode = T(code);
-        if (string.IsNullOrWhiteSpace(normalizedCode)) return normalizedCode;
+    private string ToLabel(string code) => DeclaracionServicioHelper.ToLabel(code);
 
-        if (TipoLabelPorCodigo.TryGetValue(normalizedCode, out var label))
-            return label;
+    private string NormalizeTipoLabel(string? label) => DeclaracionServicioHelper.NormalizeTipoLabel(label);
 
-        // Invertimos el diccionario en caliente (o creá otro diccionario inverso fijo)
-        var pair = traductor.FirstOrDefault(kv => string.Equals(kv.Value, normalizedCode, StringComparison.OrdinalIgnoreCase));
-        return string.IsNullOrWhiteSpace(pair.Key) ? normalizedCode : NormalizeTipoLabel(pair.Key);
-    }
-
-    private string NormalizeTipoLabel(string? label)
-    {
-        var v = (label ?? string.Empty).Trim();
-        if (string.IsNullOrWhiteSpace(v))
-            return string.Empty;
-
-        if (TipoLabelPorCodigo.TryGetValue(v, out var mappedLabel))
-            return mappedLabel;
-
-        if (string.Equals(v, "ANUAL", StringComparison.OrdinalIgnoreCase))
-            return "Inseminacion c/celo y rep";
-        if (string.Equals(v, "IAC", StringComparison.OrdinalIgnoreCase))
-            return "Inseminacion c/celo y rep";
-        if (string.Equals(v, "IACR", StringComparison.OrdinalIgnoreCase))
-            return "Inseminacion c/celo y rep";
-        if (string.Equals(v, "IR", StringComparison.OrdinalIgnoreCase))
-            return "Inseminacion c/celo y rep";
-        if (string.Equals(v, "Santa Fe", StringComparison.OrdinalIgnoreCase))
-            return "IATF c/rep";
-        if (TipoCodigoPorLabel.ContainsKey(v))
-            return v;
-        return v;
-    }
-
-    private bool IsNaturalTipo(string? tipo) => string.Equals(NormalizeTipoLabel(tipo), "Natural", StringComparison.Ordinal);
-    private bool IsNaturalCorralTipo(string? tipo) => string.Equals(NormalizeTipoLabel(tipo), "Natural a Corral", StringComparison.Ordinal);
-    private bool IsTipoInseminacion(string? tipo)
-    {
-        return TiposInseminacion.Contains(NormalizeTipoLabel(tipo));
-    }
-    private bool IsTipoConToros(string? tipo)
-    {
-        var t = NormalizeTipoLabel(tipo);
-        return t == "Natural a Corral" || t == "Inseminacion c/celo y rep" || t == "Inseminacion c/p y rep" || t == "IATF c/rep";
-    }
+    private bool IsNaturalTipo(string? tipo) => DeclaracionServicioHelper.IsNaturalTipo(tipo);
+    private bool IsNaturalCorralTipo(string? tipo) => DeclaracionServicioHelper.IsNaturalCorralTipo(tipo);
+    private bool IsTipoInseminacion(string? tipo) => DeclaracionServicioHelper.IsTipoInseminacion(tipo);
+    private bool IsTipoConToros(string? tipo) => DeclaracionServicioHelper.IsTipoConToros(tipo);
 
 
 
@@ -1772,67 +1666,10 @@ else
     }
 
     private static bool IsDetalleInseminacion(string? tipo)
-        => string.Equals((tipo ?? string.Empty).Trim(), "insem", StringComparison.OrdinalIgnoreCase);
+        => DeclaracionServicioHelper.IsDetalleInseminacion(tipo);
 
     private PlantelDTO? ResolvePlantelForDeclaracion(string? nroplan, out string warning)
-    {
-        warning = string.Empty;
-        var requested = T(nroplan);
-        if (string.IsNullOrWhiteSpace(requested) || Planteles == null || Planteles.Count == 0)
-        {
-            return null;
-        }
-
-        var exactMatches = Planteles
-            .Where(p => string.Equals(T(p.Placod), requested, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        if (exactMatches.Count == 1)
-        {
-            return exactMatches[0];
-        }
-
-        if (exactMatches.Count > 1)
-        {
-            warning = $"El plantel {requested} coincide con varios registros exactos. Seleccioná uno manualmente.";
-            return exactMatches
-                .OrderByDescending(x => TryGetPlantelYear(x).HasValue)
-                .ThenByDescending(x => TryGetPlantelYear(x))
-                .ThenByDescending(x => x.Id)
-                .FirstOrDefault();
-        }
-
-        var suffixMatches = Planteles
-            .Where(p => !string.IsNullOrWhiteSpace(p.Placod) && T(p.Placod).EndsWith(requested, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        if (suffixMatches.Count == 1)
-        {
-            return suffixMatches[0];
-        }
-
-        if (suffixMatches.Count > 1)
-        {
-            warning = $"El plantel {requested} coincide con varios códigos históricos ({string.Join(", ", suffixMatches.Take(5).Select(x => x.Placod))}). Seleccioná uno manualmente.";
-            return null;
-        }
-
-        var containsMatches = Planteles
-            .Where(p => !string.IsNullOrWhiteSpace(p.Placod) && T(p.Placod).Contains(requested, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        if (containsMatches.Count == 1)
-        {
-            return containsMatches[0];
-        }
-
-        if (containsMatches.Count > 1)
-        {
-            warning = $"No se pudo identificar un único plantel para {requested}. Coincidencias parciales: {string.Join(", ", containsMatches.Take(5).Select(x => x.Placod))}.";
-        }
-
-        return null;
-    }
+        => DeclaracionServicioHelper.ResolvePlantelHistorico(Planteles, nroplan, out warning);
 
     private async Task OnToroSeleccionado(TorosuniDTO? toro)
     {
@@ -2138,14 +1975,7 @@ else
     }
 
 
-    double GetMultiplicadorForCode(string tipse) => NormalizeTipoLabel(tipse) switch
-    {
-        "Inseminacion c/celo" => 1.5,
-        "Inseminacion c/celo y rep" => 1.0,
-        "IATF c/rep" => 1.0,
-        "Inseminacion c/p y rep" => 0.8,
-        _ => 0.0  // Natural/NC no consumen dosis
-    };
+    double GetMultiplicadorForCode(string tipse) => DeclaracionServicioHelper.GetMultiplicadorForCode(tipse);
 
     
 
