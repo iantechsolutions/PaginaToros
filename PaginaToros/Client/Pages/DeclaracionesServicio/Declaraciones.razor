@@ -256,11 +256,20 @@
             else
             {
                 <center>
-                    <div class="mb-2 pt-4">
-                        <RadzenProgressBar style="width:100%" Value="100" ShowValue="false"
-                                           ProgressBarStyle="ProgressBarStyle.Primary"
-                                           Mode="ProgressBarMode.Indeterminate" />
-                    </div>
+                    @if (!string.IsNullOrWhiteSpace(loadError))
+                    {
+                        <div class="alert alert-danger mt-4" style="max-width: 720px;">
+                            @loadError
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-2 pt-4">
+                            <RadzenProgressBar style="width:100%" Value="100" ShowValue="false"
+                                               ProgressBarStyle="ProgressBarStyle.Primary"
+                                               Mode="ProgressBarMode.Indeterminate" />
+                        </div>
+                    }
                 </center>
             }
         </section>
@@ -275,6 +284,7 @@
     int currentPage;
     bool isLoading = false;
     bool isRepairingDates = false;
+    string? loadError;
     public bool allowFiltering = false;
     public Respuesta<List<Desepla1DTO>> oRespuesta = new Respuesta<List<Desepla1DTO>>();
     private const bool ShowRecalcularFechasButton = false;
@@ -286,9 +296,23 @@
     }
     async Task Get()
     {
-        esSocio = await UserHasRole("Socio");
-        await LoadPageAsync(0, 15, null);
-        NormalizeList();
+        loadError = null;
+        try
+        {
+            esSocio = await UserHasRole("Socio");
+            await LoadPageAsync(0, 15, null);
+            NormalizeList();
+        }
+        catch (Exception ex)
+        {
+            loadError = $"No se pudo cargar el listado de declaraciones. {ex.Message}";
+            oRespuesta.List = new List<Desepla1DTO>();
+            cantidad = 0;
+        }
+        finally
+        {
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task<bool> UserHasRole(string role)
@@ -359,9 +383,21 @@
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
-        await LoadPageAsync(args.Skip ?? 0, args.Top ?? 15, args.Filter);
-        NormalizeList();
-        isLoading = false;
+        loadError = null;
+        try
+        {
+            await LoadPageAsync(args.Skip ?? 0, args.Top ?? 15, args.Filter);
+            NormalizeList();
+        }
+        catch (Exception ex)
+        {
+            loadError = $"No se pudo cargar el listado de declaraciones. {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task LoadPageAsync(int skip, int take, string? filterExpression)

@@ -19,26 +19,20 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                var items = await ApplyCreationOrder(
-                        _dbContext.Desepla1s
-                            .AsNoTracking()
-                            .Include(x => x.Plantel)
-                            .Include(x => x.Socio))
+                var pageKeys = await GetPagedDeclarationKeysAsync(skip, take, null);
+                if (pageKeys.Count == 0)
+                {
+                    return new List<Desepla1>();
+                }
+
+                var items = await _dbContext.Desepla1s
+                    .AsNoTracking()
+                    .Include(x => x.Plantel)
+                    .Include(x => x.Socio)
+                    .Where(x => pageKeys.Contains(x.Nrodec))
                     .ToListAsync();
 
-                var deduped = DeduplicateByNrodec(items);
-
-                if (skip > 0)
-                {
-                    deduped = deduped.Skip(skip).ToList();
-                }
-
-                if (take > 0)
-                {
-                    deduped = deduped.Take(take).ToList();
-                }
-
-                return deduped;
+                return OrderAndDeduplicateByKeys(items, pageKeys);
             }
             catch
             {
@@ -63,30 +57,20 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                IQueryable<Desepla1> query = _dbContext.Desepla1s
+                var pageKeys = await GetPagedDeclarationKeysAsync(skip, take, filtro);
+                if (pageKeys.Count == 0)
+                {
+                    return new List<Desepla1>();
+                }
+
+                var query = _dbContext.Desepla1s
                     .AsNoTracking()
                     .Include(x => x.Socio)
-                    .Include(x => x.Plantel);
+                    .Include(x => x.Plantel)
+                    .Where(x => pageKeys.Contains(x.Nrodec));
 
-                if (!string.IsNullOrWhiteSpace(filtro))
-                {
-                    query = query.Where(filtro);
-                }
-
-                var items = await ApplyCreationOrder(query).ToListAsync();
-                var deduped = DeduplicateByNrodec(items);
-
-                if (skip > 0)
-                {
-                    deduped = deduped.Skip(skip).ToList();
-                }
-
-                if (take > 0)
-                {
-                    deduped = deduped.Take(take).ToList();
-                }
-
-                return deduped;
+                var items = await query.ToListAsync();
+                return OrderAndDeduplicateByKeys(items, pageKeys);
             }
             catch
             {
@@ -98,26 +82,18 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                IQueryable<Desepla1> query = _dbContext.Desepla1s.AsNoTracking();
-                if (!string.IsNullOrWhiteSpace(filtro))
+                var pageKeys = await GetPagedDeclarationKeysAsync(skip, take, filtro);
+                if (pageKeys.Count == 0)
                 {
-                    query = query.Where(filtro);
+                    return new List<Desepla1>();
                 }
 
-                var items = await ApplyCreationOrder(query).ToListAsync();
-                var deduped = DeduplicateByNrodec(items);
+                var items = await _dbContext.Desepla1s
+                    .AsNoTracking()
+                    .Where(x => pageKeys.Contains(x.Nrodec))
+                    .ToListAsync();
 
-                if (skip > 0)
-                {
-                    deduped = deduped.Skip(skip).ToList();
-                }
-
-                if (take > 0)
-                {
-                    deduped = deduped.Take(take).ToList();
-                }
-
-                return deduped;
+                return OrderAndDeduplicateByKeys(items, pageKeys);
             }
             catch
             {
@@ -194,6 +170,67 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 .ThenByDescending(x => x.FchUsu.HasValue)
                 .ThenByDescending(x => x.FchUsu)
                 .ThenByDescending(x => x.Id);
+
+        private async Task<List<string>> GetPagedDeclarationKeysAsync(int skip, int take, string? filtro)
+        {
+            IQueryable<Desepla1> query = _dbContext.Desepla1s.AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(filtro))
+            {
+                query = query.Where(filtro);
+            }
+
+            var orderedQuery = query
+                .Where(x => !string.IsNullOrWhiteSpace(x.Nrodec))
+                .GroupBy(x => x.Nrodec)
+                .Select(g => new
+                {
+                    Nrodec = g.Key,
+                    HasFecdecl = g.Max(x => x.Fecdecl.HasValue),
+                    Fecdecl = g.Max(x => x.Fecdecl),
+                    HasFchUsu = g.Max(x => x.FchUsu.HasValue),
+                    FchUsu = g.Max(x => x.FchUsu),
+                    Id = g.Max(x => x.Id)
+                })
+                .OrderByDescending(x => x.HasFecdecl)
+                .ThenByDescending(x => x.Fecdecl)
+                .ThenByDescending(x => x.HasFchUsu)
+                .ThenByDescending(x => x.FchUsu)
+                .ThenByDescending(x => x.Id);
+
+            IQueryable<string> keyQuery = orderedQuery.Select(x => x.Nrodec);
+
+            if (skip > 0)
+            {
+                keyQuery = keyQuery.Skip(skip);
+            }
+
+            if (take > 0)
+            {
+                keyQuery = keyQuery.Take(take);
+            }
+
+            return await keyQuery.ToListAsync();
+        }
+
+        private static List<Desepla1> OrderAndDeduplicateByKeys(List<Desepla1> items, IReadOnlyList<string> pageKeys)
+        {
+            var deduped = DeduplicateByNrodec(items);
+            var lookup = deduped
+                .Where(x => !string.IsNullOrWhiteSpace(x.Nrodec))
+                .GroupBy(x => x.Nrodec, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+            var ordered = new List<Desepla1>(pageKeys.Count);
+            foreach (var key in pageKeys)
+            {
+                if (lookup.TryGetValue(key, out var item))
+                {
+                    ordered.Add(item);
+                }
+            }
+
+            return ordered;
+        }
 
         private static List<Desepla1> DeduplicateByNrodec(List<Desepla1> items)
         {

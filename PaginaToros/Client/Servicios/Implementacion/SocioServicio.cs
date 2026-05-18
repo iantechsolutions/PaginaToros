@@ -152,5 +152,23 @@ namespace PaginaToros.Client.Servicios.Implementacion
                 }
             };
         }
+
+        public async Task<Respuesta<SocioRepairResult>> RepairMissingScod()
+        {
+            var response = await _http.PostAsync("api/Socio/RepairMissingScod", null);
+            if (!response.IsSuccessStatusCode)
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"RepairMissingScod failed: {(int)response.StatusCode}: {text}");
+            }
+
+            var dto = await response.Content.ReadFromJsonAsync<Respuesta<SocioRepairResult>>();
+            return dto ?? new Respuesta<SocioRepairResult>
+            {
+                Exito = 0,
+                Mensaje = "No se pudo interpretar la respuesta del servidor.",
+                List = new SocioRepairResult()
+            };
+        }
     }
 }

@@ -16,6 +16,7 @@ using System.Net.Mail;
 using System.Net.Mime;
 using System.Text;
 using PaginaToros.Server.Services;
+using System.Security.Claims;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -692,6 +693,90 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpPost]
+        [Route("RepairMissingScod")]
+        public async Task<IActionResult> RepairMissingScod()
+        {
+            try
+            {
+                if (!IsAdminUser(User))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<SocioRepairResult>());
+                }
+
+                var socios = await _db.Socios
+                    .AsNoTracking()
+                    .OrderBy(s => s.Id)
+                    .ToListAsync();
+
+                var existingScods = new HashSet<string>(
+                    socios.Where(s => !string.IsNullOrWhiteSpace(s.Scod))
+                          .Select(s => s.Scod!.Trim()),
+                    StringComparer.OrdinalIgnoreCase);
+
+                var result = new SocioRepairResult
+                {
+                    TotalSocios = socios.Count,
+                    SociosConScodFaltante = socios.Count(s => string.IsNullOrWhiteSpace(s.Scod))
+                };
+
+                foreach (var socio in socios.Where(s => string.IsNullOrWhiteSpace(s.Scod)))
+                {
+                    var codpos2 = socio.Codpos2?.Trim();
+
+                    if (!string.IsNullOrWhiteSpace(codpos2) &&
+                        codpos2.Length <= 6 &&
+                        existingScods.Add(codpos2))
+                    {
+                        socio.Scod = codpos2;
+                        await _db.Database.ExecuteSqlInterpolatedAsync(
+                            $"UPDATE SOCIOS SET SCOD = {codpos2} WHERE id = {socio.Id}");
+                        result.SociosReparados++;
+                        result.SociosReparadosConCodpos2++;
+                        continue;
+                    }
+
+                    var generatedScod = GetNextAvailableScod(existingScods);
+                    socio.Scod = generatedScod;
+                    existingScods.Add(generatedScod);
+                    await _db.Database.ExecuteSqlInterpolatedAsync(
+                        $"UPDATE SOCIOS SET SCOD = {generatedScod} WHERE id = {socio.Id}");
+                    result.SociosReparados++;
+                    result.SociosReparadosConScodGenerado++;
+
+                    if (!string.IsNullOrWhiteSpace(codpos2))
+                    {
+                        result.Observaciones.Add(
+                            $"Socio Id={socio.Id}: CODPOS2 '{codpos2}' no se pudo usar como SCOD, se generó '{generatedScod}'.");
+                    }
+                    else
+                    {
+                        result.Observaciones.Add(
+                            $"Socio Id={socio.Id}: no tenía CODPOS2, se generó '{generatedScod}'.");
+                    }
+                }
+
+                result.SociosSinResolver = 0;
+                await _db.SaveChangesAsync();
+
+                return Ok(new Respuesta<SocioRepairResult>
+                {
+                    Exito = 1,
+                    Mensaje = "OK",
+                    List = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<SocioRepairResult>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = new SocioRepairResult()
+                });
+            }
+        }
+
+        [HttpPost]
         [Route("Reserve")]
         public async Task<IActionResult> Reserve()
         {
@@ -844,6 +929,30 @@ namespace PaginaToros.Server.Controllers
         private static bool IsSocioRole(string? role)
             => string.Equals(role, "SOCIO", StringComparison.OrdinalIgnoreCase)
                || string.Equals(role, "Socio", StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsAdminUser(ClaimsPrincipal principal)
+            => principal?.IsInRole("ADMINISTRADOR") == true;
+
+        private static string GetNextAvailableScod(HashSet<string> existingScods)
+        {
+            var maxNumeric = existingScods
+                .Select(scod => int.TryParse(scod, out var value) ? value : 0)
+                .DefaultIfEmpty(0)
+                .Max();
+
+            var candidate = Math.Max(1, maxNumeric + 1);
+
+            while (true)
+            {
+                var scod = candidate.ToString("D4");
+                if (scod.Length <= 6 && existingScods.Add(scod))
+                {
+                    return scod;
+                }
+
+                candidate++;
+            }
+        }
 
         private async Task<User?> FindDomainUserBySocioIdAsync(int socioId)
         {
