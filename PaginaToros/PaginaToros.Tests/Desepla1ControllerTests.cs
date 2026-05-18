@@ -17,7 +17,7 @@ namespace PaginaToros.Tests;
 public class Desepla1ControllerTests
 {
     [Fact]
-    public async Task RepairAmbiguousPlantels_AutoCorrectsUniqueHistoricalMatch_AndKeepsAmbiguousPending()
+    public async Task RepairAmbiguousPlantels_PrefersClosestHistoricalYear_AndKeepsUnmatchedPending()
     {
         using var scope = CreateContext();
         Seed(scope.Context);
@@ -32,17 +32,19 @@ public class Desepla1ControllerTests
         Assert.Equal(1, response.Exito);
         Assert.NotNull(response.List);
         Assert.Equal(3, response.List!.TotalDeclaraciones);
-        Assert.Equal(2, response.List.DeclaracionesConPlantel);
-        Assert.Equal(1, response.List.DeclaracionesCorregidas);
+        Assert.Equal(3, response.List.DeclaracionesConPlantel);
+        Assert.Equal(2, response.List.DeclaracionesCorregidas);
         Assert.Equal(1, response.List.DeclaracionesPendientes);
         Assert.Single(response.List.Pendientes);
 
         var corregida = await scope.Context.Desepla1s.FirstAsync(x => x.Id == 1);
         var pendiente = await scope.Context.Desepla1s.FirstAsync(x => x.Id == 2);
+        var noResuelta = await scope.Context.Desepla1s.FirstAsync(x => x.Id == 3);
 
-        Assert.Equal("9R976", corregida.Nroplan);
-        Assert.Equal("R976", pendiente.Nroplan);
-        Assert.Equal(2, response.List.Pendientes[0].Id);
+        Assert.Equal("4RE06", corregida.Nroplan);
+        Assert.Equal("1RE06", pendiente.Nroplan);
+        Assert.Equal("R999", noResuelta.Nroplan);
+        Assert.Equal(3, response.List.Pendientes[0].Id);
     }
 
     private static Desepla1Controller CreateController(hereford_prContext context)
@@ -96,18 +98,36 @@ public class Desepla1ControllerTests
             new Plantel
             {
                 Id = 1,
-                Placod = "8R976",
-                Anioex = "2018",
-                Fecing = "2018/01/01",
+                Placod = "0RE06",
+                Anioex = "2004",
+                Fecing = "2004/01/01",
                 Nrocri = "004476",
                 Estado = "A"
             },
             new Plantel
             {
                 Id = 2,
-                Placod = "9R976",
-                Anioex = "2019",
-                Fecing = "2019/01/01",
+                Placod = "1RE06",
+                Anioex = "2014",
+                Fecing = "2014/01/01",
+                Nrocri = "004476",
+                Estado = "A"
+            },
+            new Plantel
+            {
+                Id = 3,
+                Placod = "4RE06",
+                Anioex = "2024",
+                Fecing = "2024/01/01",
+                Nrocri = "004476",
+                Estado = "A"
+            },
+            new Plantel
+            {
+                Id = 4,
+                Placod = "5RE06",
+                Anioex = "2025",
+                Fecing = "2025/12/31",
                 Nrocri = "004476",
                 Estado = "A"
             });
@@ -117,15 +137,15 @@ public class Desepla1ControllerTests
             {
                 Id = 1,
                 Nrodec = "10001",
-                Nroplan = "R976",
-                Fecdecl = new DateTime(2019, 4, 12),
+                Nroplan = "RE06",
+                Fecdecl = new DateTime(2025, 4, 12),
                 Nrocri = "004476"
             },
             new Desepla1
             {
                 Id = 2,
                 Nrodec = "10002",
-                Nroplan = "R976",
+                Nroplan = "RE06",
                 Fecdecl = new DateTime(2017, 4, 12),
                 Nrocri = "004476"
             },
@@ -133,7 +153,7 @@ public class Desepla1ControllerTests
             {
                 Id = 3,
                 Nrodec = "10003",
-                Nroplan = null,
+                Nroplan = "R999",
                 Fecdecl = new DateTime(2020, 1, 1),
                 Nrocri = "004476"
             });

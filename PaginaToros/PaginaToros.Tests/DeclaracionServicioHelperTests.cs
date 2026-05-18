@@ -6,24 +6,25 @@ namespace PaginaToros.Tests;
 public class DeclaracionServicioHelperTests
 {
     [Fact]
-    public void ResolvePlantelHistorico_UsesDeclarationYearPrefixWhenAvailable()
+    public void ResolvePlantelHistorico_UsesClosestHistoricalYearWhenAvailable()
     {
         var planteles = new[]
         {
-            new PlantelDTO { Placod = "8R976", Anioex = "2018", Fecing = "2018/01/01", Id = 1 },
-            new PlantelDTO { Placod = "9R976", Anioex = "2019", Fecing = "2019/01/01", Id = 2 },
-            new PlantelDTO { Placod = "7R976", Anioex = "2017", Fecing = "2017/01/01", Id = 3 }
+            new PlantelDTO { Placod = "4RE06", Anioex = "2014", Fecing = "2014/01/01", Id = 1 },
+            new PlantelDTO { Placod = "4RE06", Anioex = "2004", Fecing = "2004/01/01", Id = 2 },
+            new PlantelDTO { Placod = "4RE06", Anioex = "2024", Fecing = "2024/01/01", Id = 3 },
+            new PlantelDTO { Placod = "5RE06", Anioex = "2025", Fecing = "2025/12/31", Id = 4 }
         };
 
-        var resolved = DeclaracionServicioHelper.ResolvePlantelHistorico(planteles, "R976", new DateTime(2019, 8, 1), out var warning);
+        var resolved = DeclaracionServicioHelper.ResolvePlantelHistorico(planteles, "RE06", new DateTime(2025, 8, 1), out var warning);
 
         Assert.NotNull(resolved);
-        Assert.Equal("9R976", resolved!.Placod);
+        Assert.Equal("4RE06", resolved!.Placod);
         Assert.True(string.IsNullOrWhiteSpace(warning));
     }
 
     [Fact]
-    public void ResolvePlantelHistorico_FallsBackToAnioexAndCreationDateWhenYearPrefixDoesNotMatch()
+    public void ResolvePlantelHistorico_PrefersNearestYearEvenWhenHistoricPrefixDoesNotMatch()
     {
         var planteles = new[]
         {
@@ -35,7 +36,7 @@ public class DeclaracionServicioHelperTests
         var resolved = DeclaracionServicioHelper.ResolvePlantelHistorico(planteles, "R976", new DateTime(2019, 8, 1), out var warning);
 
         Assert.NotNull(resolved);
-        Assert.Equal("5R976", resolved!.Placod);
-        Assert.False(string.IsNullOrWhiteSpace(warning));
+        Assert.Equal("6R976", resolved!.Placod);
+        Assert.True(string.IsNullOrWhiteSpace(warning));
     }
 }

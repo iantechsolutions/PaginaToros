@@ -152,8 +152,7 @@ namespace PaginaToros.Shared.Helpers
 
             if (exactMatches.Count > 1)
             {
-                warning = BuildAmbiguityWarning(requested, exactMatches, fechaDeclaracion, "registros exactos");
-                return OrderCandidates(exactMatches, fechaDeclaracion).FirstOrDefault();
+                return ResolveBestCandidate(exactMatches, requested, fechaDeclaracion, out warning, "registros exactos");
             }
 
             var suffixMatches = list
@@ -166,29 +165,9 @@ namespace PaginaToros.Shared.Helpers
                 return suffixMatches[0];
             }
 
-            var yearPrefix = GetDeclarationYearPrefix(fechaDeclaracion);
-            if (!string.IsNullOrWhiteSpace(yearPrefix))
-            {
-                var yearMatches = suffixMatches
-                    .Where(p => StartsWithHistoricalYearPrefix(p.Placod, requested, yearPrefix))
-                    .ToList();
-
-                if (yearMatches.Count == 1)
-                {
-                    return yearMatches[0];
-                }
-
-                if (yearMatches.Count > 1)
-                {
-                    warning = BuildAmbiguityWarning(requested, yearMatches, fechaDeclaracion, $"códigos históricos para {fechaDeclaracion:yyyy}");
-                    return OrderCandidates(yearMatches, fechaDeclaracion).FirstOrDefault();
-                }
-            }
-
             if (suffixMatches.Count > 1)
             {
-                warning = BuildAmbiguityWarning(requested, suffixMatches, fechaDeclaracion, "códigos históricos");
-                return OrderCandidates(suffixMatches, fechaDeclaracion).FirstOrDefault();
+                return ResolveBestCandidate(suffixMatches, requested, fechaDeclaracion, out warning, "códigos históricos");
             }
 
             var containsMatches = list
@@ -203,67 +182,76 @@ namespace PaginaToros.Shared.Helpers
 
             if (containsMatches.Count > 1)
             {
-                warning = BuildAmbiguityWarning(requested, containsMatches, fechaDeclaracion, "coincidencias parciales");
-                return OrderCandidates(containsMatches, fechaDeclaracion).FirstOrDefault();
+                return ResolveBestCandidate(containsMatches, requested, fechaDeclaracion, out warning, "coincidencias parciales");
             }
 
             return null;
         }
 
-        private static string BuildAmbiguityWarning(string requested, IReadOnlyCollection<PlantelDTO> matches, DateTime? fechaDeclaracion, string reason)
+        private static PlantelDTO? ResolveBestCandidate(
+            IReadOnlyCollection<PlantelDTO> matches,
+            string requested,
+            DateTime? fechaDeclaracion,
+            out string warning,
+            string reason)
         {
-            var preview = string.Join(", ", matches.Take(5).Select(x => x.Placod).Where(x => !string.IsNullOrWhiteSpace(x)));
-            if (fechaDeclaracion.HasValue)
-            {
-                return $"El plantel {requested} coincide con varios {reason} para la declaración {fechaDeclaracion:yyyy}. Coincidencias: {preview}. Seleccioná uno manualmente.";
-            }
+            warning = string.Empty;
 
-            return $"El plantel {requested} coincide con varios {reason}. Coincidencias: {preview}. Seleccioná uno manualmente.";
-        }
+            var scored = matches
+                .Select(candidate => new CandidateScore(candidate, BuildScore(candidate, fechaDeclaracion)))
+                .ToList();
 
-        private static IEnumerable<PlantelDTO> OrderCandidates(IEnumerable<PlantelDTO> matches, DateTime? fechaDeclaracion)
-        {
-            var yearPrefix = GetDeclarationYearPrefix(fechaDeclaracion);
-            return matches
-                .OrderByDescending(x => MatchesDeclarationYearPrefix(x.Placod, yearPrefix))
-                .ThenByDescending(x => TryGetPlantelYear(x).HasValue)
-                .ThenByDescending(x => TryGetPlantelYear(x))
-                .ThenByDescending(x => GetPlantelCreationDate(x))
-                .ThenByDescending(x => x?.Id ?? 0);
-        }
-
-        private static bool StartsWithHistoricalYearPrefix(string? placod, string requested, string yearPrefix)
-        {
-            var value = (placod ?? string.Empty).Trim();
-            if (value.Length <= requested.Length)
-            {
-                return false;
-            }
-
-            return value.EndsWith(requested, StringComparison.OrdinalIgnoreCase)
-                && value.StartsWith(yearPrefix, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool MatchesDeclarationYearPrefix(string? placod, string? yearPrefix)
-        {
-            if (string.IsNullOrWhiteSpace(yearPrefix))
-            {
-                return false;
-            }
-
-            var value = (placod ?? string.Empty).Trim();
-            return value.Length > 0
-                && value.StartsWith(yearPrefix, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static string? GetDeclarationYearPrefix(DateTime? fechaDeclaracion)
-        {
-            if (!fechaDeclaracion.HasValue)
+            if (scored.Count == 0)
             {
                 return null;
             }
 
-            return (fechaDeclaracion.Value.Year % 10).ToString();
+            var best = scored
+                .OrderByDescending(x => x.Score.IsOnOrBeforeDeclaration)
+                .ThenBy(x => x.Score.YearDistance)
+                .ThenByDescending(x => x.Score.HasYear)
+                .ThenByDescending(x => x.Score.CandidateYear)
+                .ThenByDescending(x => x.Score.CreationDate)
+                .ThenByDescending(x => x.Score.Id)
+                .ToList();
+
+            var winner = best[0];
+            var tied = best
+                .Where(x => x.Score.Equals(winner.Score))
+                .ToList();
+
+            if (tied.Count > 1)
+            {
+                var preview = string.Join(", ", tied.Take(5).Select(x => x.Candidate.Placod).Where(x => !string.IsNullOrWhiteSpace(x)));
+                warning = fechaDeclaracion.HasValue
+                    ? $"El plantel {requested} coincide con varios {reason} para la declaración {fechaDeclaracion:yyyy}. Coincidencias: {preview}. Se seleccionó el más cercano al año, pero conviene revisarlo."
+                    : $"El plantel {requested} coincide con varios {reason}. Coincidencias: {preview}. Se seleccionó el más cercano al año, pero conviene revisarlo.";
+            }
+
+            return winner.Candidate;
+        }
+
+        private static CandidateScoreDetails BuildScore(PlantelDTO candidate, DateTime? fechaDeclaracion)
+        {
+            var creationDate = GetPlantelCreationDate(candidate);
+            var candidateYear = TryGetPlantelYear(candidate) ?? creationDate?.Year;
+            var declarationYear = fechaDeclaracion?.Year;
+            var yearDistance = candidateYear.HasValue && declarationYear.HasValue
+                ? Math.Abs(candidateYear.Value - declarationYear.Value)
+                : int.MaxValue;
+            var effectiveCreationDate = creationDate
+                ?? (candidateYear.HasValue ? new DateTime(candidateYear.Value, 1, 1) : (DateTime?)null);
+            var isOnOrBeforeDeclaration = !fechaDeclaracion.HasValue
+                || !effectiveCreationDate.HasValue
+                || effectiveCreationDate.Value <= fechaDeclaracion.Value;
+
+            return new CandidateScoreDetails(
+                HasYear: candidateYear.HasValue,
+                CandidateYear: candidateYear ?? int.MinValue,
+                YearDistance: yearDistance,
+                IsOnOrBeforeDeclaration: isOnOrBeforeDeclaration,
+                CreationDate: creationDate ?? DateTime.MinValue,
+                Id: candidate?.Id ?? 0);
         }
 
         private static int? TryGetPlantelYear(PlantelDTO? plantel)
@@ -299,5 +287,15 @@ namespace PaginaToros.Shared.Helpers
 
             return plantel.FchUsu;
         }
+
+        private sealed record CandidateScore(PlantelDTO Candidate, CandidateScoreDetails Score);
+
+        private sealed record CandidateScoreDetails(
+            bool HasYear,
+            int CandidateYear,
+            int YearDistance,
+            bool IsOnOrBeforeDeclaration,
+            DateTime CreationDate,
+            int Id);
     }
 }
