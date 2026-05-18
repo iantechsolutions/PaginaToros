@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using PaginaToros.Server.Context;
@@ -9,6 +10,8 @@ using PaginaToros.Server.Repositorio.Contrato;
 using Newtonsoft.Json;
 using PaginaToros.Server.Services;
 using System.Globalization;
+using PaginaToros.Shared.Helpers;
+using System.Security.Claims;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -64,7 +67,7 @@ namespace PaginaToros.Server.Controllers
             {
                 _ResponseDTO = new Respuesta<List<Desepla1DTO>>()
                 {
-                    Exito = 1,
+                    Exito = 0,
                     Mensaje = ex.Message,
                     List = null
                 };
@@ -208,7 +211,7 @@ namespace PaginaToros.Server.Controllers
                     if (respuesta)
                         _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
                     else
-                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                        _Respuesta = new Respuesta<string>() { Exito = 0, Mensaje = "No se pudo eliminar el identificador", List = "" };
                 }
 
                 return StatusCode(StatusCodes.Status200OK, _Respuesta);
@@ -262,7 +265,7 @@ namespace PaginaToros.Server.Controllers
                 if (_Desepla1Creado.Id != 0)
                     _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Desepla1DTO>(_Desepla1Creado) };
                 else
-                    _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+                    _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 0, Mensaje = "No se pudo crear el identificador" };
 
                 return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
@@ -344,11 +347,11 @@ namespace PaginaToros.Server.Controllers
                     if (respuesta)
                         _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<Desepla1DTO>(_Desepla1ParaEditar) };
                     else
-                        _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
+                        _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 0, Mensaje = "No se pudo editar el identificador" };
                 }
                 else
                 {
-                    _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                    _Respuesta = new Respuesta<Desepla1DTO>() { Exito = 0, Mensaje = "No se encontró el identificador" };
                 }
 
                 return StatusCode(StatusCodes.Status200OK, _Respuesta);
@@ -437,6 +440,123 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
+        [HttpPost("RepairAmbiguousPlantels")]
+        public async Task<IActionResult> RepairAmbiguousPlantels()
+        {
+            try
+            {
+                if (!IsAdminUser(User))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Desepla1PlantelAmbiguityRepairResult>());
+                }
+
+                var planteles = await _dbContext.Planteles
+                    .AsNoTracking()
+                    .Select(p => new PlantelDTO
+                    {
+                        Id = p.Id,
+                        Placod = p.Placod,
+                        Anioex = p.Anioex,
+                        Fecing = p.Fecing,
+                        FchUsu = p.FchUsu,
+                        Nrocri = p.Nrocri
+                    })
+                    .ToListAsync();
+
+                var headers = await _dbContext.Desepla1s
+                    .OrderBy(x => x.Id)
+                    .ToListAsync();
+
+                var result = new Desepla1PlantelAmbiguityRepairResult
+                {
+                    TotalDeclaraciones = headers.Count,
+                    DeclaracionesConPlantel = headers.Count(x => !string.IsNullOrWhiteSpace(x.Nroplan))
+                };
+
+                var useTransaction = _dbContext.Database.IsRelational();
+                IDbContextTransaction? transaction = null;
+                if (useTransaction)
+                {
+                    transaction = await _dbContext.Database.BeginTransactionAsync();
+                }
+
+                foreach (var header in headers.Where(x => !string.IsNullOrWhiteSpace(x.Nroplan)))
+                {
+                    var fechaDeclaracion = header.Fchrecepcion ?? header.Fecdecl ?? header.FchUsu;
+                    var resolved = DeclaracionServicioHelper.ResolvePlantelHistorico(planteles, header.Nroplan, fechaDeclaracion, out var warning);
+
+                    if (resolved == null)
+                    {
+                        result.DeclaracionesPendientes++;
+                        result.Pendientes.Add(new Desepla1PlantelAmbiguityPendingItem
+                        {
+                            Id = header.Id,
+                            Nrodec = header.Nrodec,
+                            Nroplan = header.Nroplan,
+                            FechaDeclaracion = fechaDeclaracion,
+                            Nrocri = header.Nrocri,
+                            Motivo = string.IsNullOrWhiteSpace(warning)
+                                ? $"No se pudo resolver un plantel para {header.Nroplan}."
+                                : warning
+                        });
+                        continue;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(warning))
+                    {
+                        result.DeclaracionesPendientes++;
+                        result.Pendientes.Add(new Desepla1PlantelAmbiguityPendingItem
+                        {
+                            Id = header.Id,
+                            Nrodec = header.Nrodec,
+                            Nroplan = header.Nroplan,
+                            FechaDeclaracion = fechaDeclaracion,
+                            Nrocri = header.Nrocri,
+                            Motivo = warning
+                        });
+                        continue;
+                    }
+
+                    if (!string.Equals(header.Nroplan, resolved.Placod, StringComparison.OrdinalIgnoreCase))
+                    {
+                        header.Nroplan = resolved.Placod;
+                        result.DeclaracionesCorregidas++;
+                    }
+                }
+
+                if (result.DeclaracionesCorregidas > 0)
+                {
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                if (transaction is not null)
+                {
+                    await transaction.CommitAsync();
+                }
+
+                if (result.DeclaracionesPendientes > 0)
+                {
+                    result.Observaciones.Add($"Quedaron {result.DeclaracionesPendientes} declaraciones para revisión manual.");
+                }
+
+                return Ok(new Respuesta<Desepla1PlantelAmbiguityRepairResult>
+                {
+                    Exito = 1,
+                    Mensaje = "OK",
+                    List = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<Desepla1PlantelAmbiguityRepairResult>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = new Desepla1PlantelAmbiguityRepairResult()
+                });
+            }
+        }
+
         private async Task<string> GenerateNextNrodecAsync(CancellationToken cancellationToken = default)
         {
             var nrodecs = await _dbContext.Desepla1s
@@ -501,6 +621,9 @@ namespace PaginaToros.Server.Controllers
                 Exito = 0,
                 Mensaje = "No tenes permisos para operar sobre otra razon social."
             };
+
+        private static bool IsAdminUser(ClaimsPrincipal principal)
+            => principal?.IsInRole("ADMINISTRADOR") == true;
 
         private static DateTime? TryParseDetalleDate(string? value)
         {

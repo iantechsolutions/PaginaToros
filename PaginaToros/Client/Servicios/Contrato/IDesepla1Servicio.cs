@@ -15,5 +15,6 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<bool> Editar(Desepla1DTO entidad);
         Task<Respuesta<Desepla1DTO>> Filtrar(string descripcion);
         Task<Respuesta<int>> RecalcularPeriodosCabecera();
+        Task<Respuesta<Desepla1PlantelAmbiguityRepairResult>> RepairAmbiguousPlantels();
     }
 }

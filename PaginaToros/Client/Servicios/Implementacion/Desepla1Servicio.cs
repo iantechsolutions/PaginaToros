@@ -76,5 +76,12 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var response = await result.Content.ReadFromJsonAsync<Respuesta<int>>();
             return response!;
         }
+
+        public async Task<Respuesta<Desepla1PlantelAmbiguityRepairResult>> RepairAmbiguousPlantels()
+        {
+            var result = await _http.PostAsync("api/Desepla1/RepairAmbiguousPlantels", null);
+            var response = await result.Content.ReadFromJsonAsync<Respuesta<Desepla1PlantelAmbiguityRepairResult>>();
+            return response!;
+        }
     }
 }

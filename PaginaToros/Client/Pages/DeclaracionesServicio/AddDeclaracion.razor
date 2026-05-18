@@ -302,10 +302,6 @@ else if (socios.Count > 0)
                                     @(@eleccion.Placod + " - " + @eleccion.Anioex)
                                 </ResultTemplate>
                             </BlazoredTypeahead>
-                            @if (!string.IsNullOrWhiteSpace(plantelLoadWarning))
-                            {
-                                <div class="text-danger small mt-1">@plantelLoadWarning</div>
-                            }
                         </div>
                     </div>
                     <br />
@@ -907,11 +903,12 @@ else
                     Log("No se pudieron cargar listas dependientes (socioSeleccionado == null).");
                 }
 
-                Plantelseleccionado = ResolvePlantelForDeclaracion(
+                var plantelResuelto = ResolvePlantelForDeclaracion(
                     oDeclaracion.Nroplan,
                     oDeclaracion.Fchrecepcion ?? oDeclaracion.Fecdecl,
                     out var plantelWarning);
                 plantelLoadWarning = plantelWarning;
+                Plantelseleccionado = string.IsNullOrWhiteSpace(plantelLoadWarning) ? plantelResuelto : null;
                 Log($"Plantel reconstruido | encontrado={(Plantelseleccionado != null)} | warning={Q(plantelLoadWarning)} | totalPlanteles={Planteles?.Count ?? 0}");
                 if (Plantelseleccionado != null && !Planteles.Any(p => p.Id == Plantelseleccionado.Id))
                 {
@@ -1167,11 +1164,7 @@ else
             errors["socio"] = "Debe seleccionar un socio.";
 
         if (Plantelseleccionado is null)
-            errors["plantel"] = string.IsNullOrWhiteSpace(plantelLoadWarning)
-                ? "Debe seleccionar un plantel."
-                : plantelLoadWarning;
-        else if (!string.IsNullOrWhiteSpace(plantelLoadWarning))
-            errors["plantel"] = plantelLoadWarning;
+            errors["plantel"] = "Debe seleccionar un plantel.";
         else if (!string.IsNullOrWhiteSpace(Plantelseleccionado.Placod) && Plantelseleccionado.Placod.Length > 6)
             errors["plantelCodigo"] = "El código de plantel supera 6 caracteres y no puede guardarse.";
 

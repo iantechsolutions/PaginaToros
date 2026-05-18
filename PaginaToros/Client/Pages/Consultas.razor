@@ -3,6 +3,7 @@
 
 <PageTitle>Consultas</PageTitle>
 @inject ISocioServicio _socioServicio
+@inject IDesepla1Servicio _desepla1Servicio
 
 <AuthorizeView Roles="ADMINISTRADOR">
     <Authorized>
@@ -18,6 +19,12 @@
                                         @onclick="RepararSociosAsync"
                                         disabled="@isRepairing">
                                     @(isRepairing ? "Reparando socios..." : "Reparar datos de socios")
+                                </button>
+                                <button type="button"
+                                        class="btn btn-primary"
+                                        @onclick="CorregirPlantelesAmbiguosAsync"
+                                        disabled="@isRepairingPlanteles">
+                                    @(isRepairingPlanteles ? "Corrigiendo planteles..." : "Corregir planteles ambiguos")
                                 </button>
                             </div>
 
@@ -38,6 +45,63 @@
                                             </ul>
                                         </div>
                                     }
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(plantelRepairSummary))
+                            {
+                                <div class="@plantelRepairSummaryClass mb-3" role="alert">
+                                    @plantelRepairSummary
+                                    @if (plantelRepairObservations.Count > 0)
+                                    {
+                                        <hr />
+                                        <div class="small mb-0">
+                                            <strong>Observaciones:</strong>
+                                            <ul class="mb-0 mt-2">
+                                                @foreach (var obs in plantelRepairObservations)
+                                                {
+                                                    <li>@obs</li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            @if (plantelRepairPending.Count > 0)
+                            {
+                                <div class="table-responsive mb-4">
+                                    <table class="table table-sm table-striped align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Id</th>
+                                                <th>Nrodec</th>
+                                                <th>Plantel</th>
+                                                <th>Fecha</th>
+                                                <th>Motivo</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in plantelRepairPending)
+                                            {
+                                                <tr>
+                                                    <td>@item.Id</td>
+                                                    <td>@item.Nrodec</td>
+                                                    <td>@item.Nroplan</td>
+                                                    <td>@FormatDate(item.FechaDeclaracion)</td>
+                                                    <td class="text-break">@item.Motivo</td>
+                                                    <td class="text-end">
+                                                        <button type="button"
+                                                                class="btn btn-outline-secondary btn-sm"
+                                                                @onclick="@(() => OpenDeclaracion(item.Id))">
+                                                            Abrir
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
                                 </div>
                             }
 
@@ -87,11 +151,16 @@
 @code {
     private const string FrontendVersion = "1.0.0";
     private bool isRepairing;
+    private bool isRepairingPlanteles;
     private ConsultaInfo? info;
     private string? errorMessage;
     private string? repairSummary;
     private string repairSummaryClass = "alert alert-info";
     private readonly List<string> repairObservations = new();
+    private string? plantelRepairSummary;
+    private string plantelRepairSummaryClass = "alert alert-info";
+    private readonly List<string> plantelRepairObservations = new();
+    private readonly List<Desepla1PlantelAmbiguityPendingItem> plantelRepairPending = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -173,10 +242,75 @@
         }
     }
 
+    private async Task CorregirPlantelesAmbiguosAsync()
+    {
+        if (isRepairingPlanteles)
+        {
+            return;
+        }
+
+        var confirm = await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Corregir planteles ambiguos",
+            Text = "Se revisarán todas las declaraciones y se corregirán automáticamente solo los casos resolubles. Los dudosos quedarán listados para revisar manualmente.",
+            Icon = SweetAlertIcon.Warning,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí, corregir",
+            CancelButtonText = "Cancelar"
+        });
+
+        if (!confirm.IsConfirmed)
+        {
+            return;
+        }
+
+        isRepairingPlanteles = true;
+        plantelRepairSummary = null;
+        plantelRepairObservations.Clear();
+        plantelRepairPending.Clear();
+
+        try
+        {
+            var response = await _desepla1Servicio.RepairAmbiguousPlantels();
+            if (response.Exito != 1 || response.List is null)
+            {
+                plantelRepairSummaryClass = "alert alert-danger";
+                plantelRepairSummary = response.Mensaje ?? "No se pudo corregir la información de planteles.";
+                await Swal.FireAsync("Error", plantelRepairSummary, SweetAlertIcon.Error);
+                return;
+            }
+
+            var result = response.List;
+            plantelRepairObservations.AddRange(result.Observaciones ?? new List<string>());
+            plantelRepairPending.AddRange(result.Pendientes ?? new List<Desepla1PlantelAmbiguityPendingItem>());
+
+            plantelRepairSummaryClass = plantelRepairPending.Count > 0 ? "alert alert-warning" : "alert alert-success";
+            plantelRepairSummary =
+                $"Se revisaron {result.TotalDeclaraciones} declaraciones. " +
+                $"Con plantel cargado: {result.DeclaracionesConPlantel}. " +
+                $"Se corrigieron {result.DeclaracionesCorregidas}. " +
+                $"Quedaron pendientes {result.DeclaracionesPendientes}.";
+
+            await Swal.FireAsync("Listo", plantelRepairSummary, SweetAlertIcon.Success);
+        }
+        catch (Exception ex)
+        {
+            plantelRepairSummaryClass = "alert alert-danger";
+            plantelRepairSummary = $"No se pudo completar la corrección de planteles. Detalle: {ex.Message}";
+            await Swal.FireAsync("Error", plantelRepairSummary, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            isRepairingPlanteles = false;
+        }
+    }
+
     private static string FormatDate(DateTime? value)
     {
         return value.HasValue ? value.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss") : "No disponible";
     }
+
+    private void OpenDeclaracion(int id) => nav.NavigateTo($"/declaraciones/{id}");
 
     private sealed class ConsultaInfo
     {
