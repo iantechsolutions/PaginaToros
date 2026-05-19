@@ -269,20 +269,14 @@ else if (socios.Count > 0)
                 {
                     <div class="row" style="width=100%;">
                         <div class="col-sm">
-                            <label>Numero de Folio</label>
+                            <label>Numero de Folio (opcional)</label>
                             <InputNumber class="form-control" @bind-Value="@oDeclaracion.NrFolio" placeholder="Folio" step="1" min="0" inputmode="numeric" pattern="[0-9]*" autocomplete="off" name="folio" autocapitalize="off" spellcheck="false"></InputNumber>
-                            <ValidationMessage For="(()=> oDeclaracion.NrFolio)" style="color:red;" />
                         </div>
                         <div class="col-sm">
                             <label class="col-sm">Fecha de declaracion</label>
-                            <RadzenDatePicker TValue="DateTime?"
-                                              @bind-Value="@oDeclaracion.Fchrecepcion"
-                                              ShowTime="false"
-                                              ShowSeconds="false"
-                                              DateFormat="dd/MM/yyyy"
-                                              Class="w-75"
-                                              InitialViewDate="@GetDatePickerInitialViewDate(oDeclaracion.Fchrecepcion)"
-                                              YearRange="@CalendarYearRange" />
+                            <InputDate TValue="DateTime?"
+                                       @bind-Value="@oDeclaracion.Fchrecepcion"
+                                       class="form-control w-75" />
                         </div>
                         <div class="col-sm">
                             <label class="col-sm">Plantel</label>
@@ -384,26 +378,16 @@ else if (socios.Count > 0)
                             <div class="col-sm">
                                 <label>Desde</label>
                                 <br />
-                                <RadzenDatePicker TValue="DateTime?"
-                                                  @bind-Value="@oDeclaracion.Desde"
-                                                  ShowTime="false"
-                                                  ShowSeconds="false"
-                                                  DateFormat="dd/MM/yyyy"
-                                                  Class="w-75"
-                                                  InitialViewDate="@GetDatePickerInitialViewDate(oDeclaracion.Desde)"
-                                                  YearRange="@CalendarYearRange" />
+                                <InputDate TValue="DateTime?"
+                                           @bind-Value="@oDeclaracion.Desde"
+                                           class="form-control w-75" />
                             </div>
                             <div class="col-sm">
                                 <label>Hasta</label>
                                 <br />
-                                <RadzenDatePicker TValue="DateTime?"
-                                                  @bind-Value="@oDeclaracion.Hasta"
-                                                  ShowTime="false"
-                                                  ShowSeconds="false"
-                                                  DateFormat="dd/MM/yyyy"
-                                                  Class="w-75"
-                                                  InitialViewDate="@GetDatePickerInitialViewDate(oDeclaracion.Hasta)"
-                                                  YearRange="@CalendarYearRange" />
+                                <InputDate TValue="DateTime?"
+                                           @bind-Value="@oDeclaracion.Hasta"
+                                           class="form-control w-75" />
                             </div>
                         </div>
                         <br />
@@ -527,27 +511,23 @@ else if (socios.Count > 0)
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="7%">
                                     <Template Context="data">
                                         <RadzenDatePicker TValue="DateTime"
-                                                          Style="color:white"
                                                           @bind-Value="@data.Desde"
-                                                          ShowTime="false"
-                                                          ShowSeconds="false"
                                                           DateFormat="dd/MM/yyyy"
-                                                          Class="w-75"
-                                                          InitialViewDate="@GetDatePickerInitialViewDate(data.Desde)"
-                                                          YearRange="@CalendarYearRange" />
+                                                          InitialViewDate="@data.Desde"
+                                                          YearRange="@CalendarYearRange"
+                                                          CurrentDateChanged="@(currentDate => UpdateToroDesdeCurrentDate(data, currentDate))"
+                                                          Style="width: 100%; min-width: 110px;" />
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Hasta" Width="7%">
                                     <Template Context="data">
                                         <RadzenDatePicker TValue="DateTime"
-                                                          Style="color:white"
                                                           @bind-Value="@data.Hasta"
-                                                          ShowTime="false"
-                                                          ShowSeconds="false"
                                                           DateFormat="dd/MM/yyyy"
-                                                          Class="w-75"
-                                                          InitialViewDate="@GetDatePickerInitialViewDate(data.Hasta)"
-                                                          YearRange="@CalendarYearRange" />
+                                                          InitialViewDate="@data.Hasta"
+                                                          YearRange="@CalendarYearRange"
+                                                          CurrentDateChanged="@(currentDate => UpdateToroHastaCurrentDate(data, currentDate))"
+                                                          Style="width: 100%; min-width: 110px;" />
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Cant Vientres" Width="5%">
@@ -650,27 +630,25 @@ else if (socios.Count > 0)
 
                                 <RadzenDataGridColumn TItem="Desepla3Data" Title="Desde" Width="9%">
                                     <Template Context="data">
-                                        <div style="min-width:100px">
-                                          <RadzenDatePicker TValue="DateTime"
-                                                            @bind-Value="data.Desde"
-                                                            DateFormat="dd/MM/yyyy"
-                                                            Class="w-100"
-                                                            InitialViewDate="@GetDatePickerInitialViewDate(data.Desde)"
-                                                            YearRange="@CalendarYearRange" />
-                                        </div>
+                                        <RadzenDatePicker TValue="DateTime"
+                                                          @bind-Value="data.Desde"
+                                                          DateFormat="dd/MM/yyyy"
+                                                          InitialViewDate="@data.Desde"
+                                                          YearRange="@CalendarYearRange"
+                                                          CurrentDateChanged="@(currentDate => UpdateCertifDesdeCurrentDate(data, currentDate))"
+                                                          Style="width: 100%; min-width: 110px;" />
                                     </Template>
                                 </RadzenDataGridColumn>
 
                                 <RadzenDataGridColumn TItem="Desepla3Data" Title="Hasta" Width="9%">
                                     <Template Context="data">
-                                        <div style="min-width:100px">
-                                          <RadzenDatePicker TValue="DateTime"
-                                                            @bind-Value="data.Hasta"
-                                                            DateFormat="dd/MM/yyyy"
-                                                            Class="w-100"
-                                                            InitialViewDate="@GetDatePickerInitialViewDate(data.Hasta)"
-                                                            YearRange="@CalendarYearRange" />
-                                        </div>
+                                        <RadzenDatePicker TValue="DateTime"
+                                                          @bind-Value="data.Hasta"
+                                                          DateFormat="dd/MM/yyyy"
+                                                          InitialViewDate="@data.Hasta"
+                                                          YearRange="@CalendarYearRange"
+                                                          CurrentDateChanged="@(currentDate => UpdateCertifHastaCurrentDate(data, currentDate))"
+                                                          Style="width: 100%; min-width: 110px;" />
                                     </Template>
                                 </RadzenDataGridColumn>
 
@@ -743,7 +721,6 @@ else
     TorosuniDTO? toroSeleccionado = null;
     CertifsemanDTO? certifSeleccionado = null;
     List<string> tipos = new List<string> { "Natural", "Natural a Corral", "Inseminacion c/celo", "Inseminacion c/celo y rep", "Inseminacion c/p y rep", "IATF c/rep" };
-    DateTime FechaTemp = DateTime.Today;
     List<TorosuniDTO> toros = new();
     List<Desepla3Data> torosSeleccionados = new();
     List<CertifsemanDTO> certificados = new();
@@ -772,8 +749,18 @@ else
     private static string Q(string? value) => value is null ? "<null>" : $"'{value}' (len={value.Length})";
     private static string T(string? value) => (value ?? string.Empty).Trim();
     private static string EscapeForFilter(string? value) => (value ?? string.Empty).Replace("\"", "\\\"");
-    private static DateTime GetDatePickerInitialViewDate(DateTime? value)
-        => (value ?? DateTime.Today).Date;
+    private static DateTime KeepDayWithinMonth(DateTime current, DateTime selected)
+    {
+        var year = selected.Year;
+        var month = selected.Month;
+        var day = Math.Min(current.Day, DateTime.DaysInMonth(year, month));
+        return new DateTime(year, month, day, current.Hour, current.Minute, current.Second, current.Kind);
+    }
+
+    private void UpdateToroDesdeCurrentDate(Desepla3Data data, DateTime currentDate) => data.Desde = KeepDayWithinMonth(data.Desde, currentDate);
+    private void UpdateToroHastaCurrentDate(Desepla3Data data, DateTime currentDate) => data.Hasta = KeepDayWithinMonth(data.Hasta, currentDate);
+    private void UpdateCertifDesdeCurrentDate(Desepla3Data data, DateTime currentDate) => data.Desde = KeepDayWithinMonth(data.Desde, currentDate);
+    private void UpdateCertifHastaCurrentDate(Desepla3Data data, DateTime currentDate) => data.Hasta = KeepDayWithinMonth(data.Hasta, currentDate);
     private void LogDetalleSnapshot(string title, IEnumerable<Desepla3DTO>? detalles)
     {
         var list = detalles?.ToList() ?? new List<Desepla3DTO>();
@@ -1176,9 +1163,6 @@ else
             if (!string.IsNullOrWhiteSpace(tipseCode) && tipseCode.Length > 5)
                 errors["tipoCodigo"] = "Tipo de servicio inválido para guardar. Intente re-seleccionarlo.";
         }
-
-        if (oDeclaracion.NrFolio is null || (oDeclaracion.NrFolio ?? 0) <= 0)
-            errors["NrFolio"] = "Ingrese un número de folio válido.";
 
         if (oDeclaracion.Fchrecepcion is null)
             errors["Fchrecepcion"] = "Ingrese la fecha de declaración.";
