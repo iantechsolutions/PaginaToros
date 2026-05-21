@@ -1592,6 +1592,7 @@ else
 
         var baseQuery = certificados
             .Where(x => T(x.Nrocri).Equals(socioScod, StringComparison.OrdinalIgnoreCase))
+            .Where(x => x.FchUsu.HasValue)
             .Where(x => (x.NrDosi ?? 0) > 0)
             .Where(x => !IsCertifSelected(x));
 
@@ -1604,6 +1605,22 @@ else
         }
 
         return await Task.FromResult(baseQuery.Take(30).ToList());
+    }
+
+    private static string BuildCertificadoFilter(string? socioScod, bool useContains = false)
+    {
+        var value = EscapeForFilter((socioScod ?? string.Empty).Trim());
+        var nrocriFilter = useContains
+            ? $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{value.ToLower()}\")"
+            : $"Nrocri == \"{value}\"";
+
+        return $"({nrocriFilter}) && (FchUsu != null)";
+    }
+
+    private static string BuildCertificadoHbaFilter(string hba)
+    {
+        var value = EscapeForFilter((hba ?? string.Empty).Trim().ToLower());
+        return $"(Hba == null ? \"\" : Hba).ToLower() == \"{value}\" && (FchUsu != null)";
     }
 
     private static List<PlantelDTO> OrderPlantelesByDisplay(IEnumerable<PlantelDTO>? items)
@@ -1841,7 +1858,7 @@ else
         Log($"UpdateValores -> Toros filtro: {filtro}");
         var torosTask = _torosServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
 
-        filtro = $"Nrocri == \"{EscapeForFilter(socioScodRaw)}\"";
+        filtro = BuildCertificadoFilter(socioScodRaw);
         Log($"UpdateValores -> Certificados filtro: {filtro}");
         var certificadosTask = _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
 
@@ -1883,10 +1900,11 @@ else
         Log($"Certificados cargados: {certificados?.Count ?? 0}");
         if ((certificados?.Count ?? 0) == 0 && !string.IsNullOrWhiteSpace(socioScodTrim))
         {
-            var filtroDiag = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{EscapeForFilter(socioScodTrim.ToLower())}\")";
+            var filtroDiag = BuildCertificadoFilter(socioScodTrim, useContains: true);
             var rtDiag = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 20, filtroDiag);
             certificados = (rtDiag?.List ?? new List<CertifsemanDTO>())
                 .Where(x => T(x.Nrocri).Equals(socioScodTrim, StringComparison.OrdinalIgnoreCase))
+                .Where(x => x.FchUsu.HasValue)
                 .ToList();
             Log($"Diag Certificados (contains scod trim) -> {rtDiag?.List?.Count ?? 0} resultados crudos | filtradosExactos={certificados.Count} | filtro={filtroDiag}");
         }
@@ -2020,9 +2038,11 @@ else
 
                 if (!string.IsNullOrWhiteSpace(oDeclaracion.Nrocri))
                 {
-                    var certFiltro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{(oDeclaracion.Nrocri ?? "").ToLower()}\")";
+                    var certFiltro = BuildCertificadoFilter(oDeclaracion.Nrocri, useContains: true);
                     var certrta = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, certFiltro);
-                    certificados = certrta.List?.ToList() ?? new List<CertifsemanDTO>();
+                    certificados = (certrta.List?.ToList() ?? new List<CertifsemanDTO>())
+                        .Where(x => x.FchUsu.HasValue)
+                        .ToList();
                 }
             }
 
@@ -2037,7 +2057,7 @@ else
                 var cert = certificados.FirstOrDefault(c => string.Equals(T(c.Hba), hba, StringComparison.OrdinalIgnoreCase));
                 if (cert == null)
                 {
-                    var f = $"(Hba == null ? \"\" : Hba).ToLower() == \"{hba.ToLower()}\"";
+                    var f = BuildCertificadoHbaFilter(hba);
                     var uno = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 1, f);
                     cert = uno.List?.FirstOrDefault();
                     if (cert != null) certificados.Add(cert);

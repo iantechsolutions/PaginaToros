@@ -144,6 +144,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             {
                 Console.WriteLine("SE CREA CERTIFICADO");
                 Console.WriteLine(entidad);
+                entidad.FchUsu ??= DateTime.Now;
                 _dbContext.Set<Certifseman>().Add(entidad);
                 await _dbContext.SaveChangesAsync();
                 return entidad;

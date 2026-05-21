@@ -252,6 +252,9 @@ namespace PaginaToros.Server.Controllers
                     entity.Nrocri = accessContext.ActiveSocioCode!;
                 }
 
+                // La fecha de creación del certificado debe quedar fijada en el alta.
+                entity.FchUsu = DateTime.Now;
+
                 var created = await _certifsemanRepositorio.Crear(entity);
 
                 response = created.Id != 0
@@ -326,7 +329,7 @@ namespace PaginaToros.Server.Controllers
                     entityToEdit.NrDosiOr = entity.NrDosiOr;
                     entityToEdit.TipEnv = entity.TipEnv;
                     entityToEdit.Variedad = entity.Variedad;
-                    entityToEdit.FchUsu = entity.FchUsu;
+                    // No se modifica la fecha de creación; el orden del listado depende de este dato.
                     entityToEdit.CodUsu = entity.CodUsu;
                     entityToEdit.Id = entity.Id;
                     entityToEdit.Apodo = entity.Apodo;
