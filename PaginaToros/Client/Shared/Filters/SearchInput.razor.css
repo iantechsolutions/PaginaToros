@@ -1,0 +1,22 @@
+.filter-search {
+    display: flex;
+    gap: .4rem;
+    align-items: center;
+    width: 100%;
+}
+
+.filter-search > .form-control {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.filter-search-clear,
+.filter-search-status {
+    white-space: nowrap;
+}
+
+.filter-search-status {
+    color: #2563eb;
+    font-size: .8rem;
+    font-weight: 600;
+}

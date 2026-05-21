@@ -1,5 +1,7 @@
 ﻿@page "/Usuarios"
 @using PaginaToros.Client.Servicios.Contrato
+@using PaginaToros.Client.Shared.Filters
+@using PaginaToros.Shared.Models
 @inject HttpClient http
 @inject NavigationManager uriHelper
 @inject ISocioServicio _socioServicio
@@ -9,96 +11,256 @@
 @using System.Linq
 
 <style>
-    .rz-cell-data,
-    .rz-column-title-content {
-        font-size: 13px !important;
+    .users-page {
+        width: 100%;
+        margin: 0 auto 2rem;
+        color: #172033;
     }
 
-    .rz-cell-data {
-        overflow: visible !important;
-        white-space: normal !important;
+    .users-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin: 1rem 0;
+        width: 93.5%;
+        margin-left: 3.33%;
+    }
+
+    .users-title {
+        margin: 0;
+        font-size: 1.55rem;
+        font-weight: 700;
+    }
+
+    .users-description {
+        margin: .25rem 0 0;
+        color: #64748b;
+    }
+
+    .users-card {
+        width: 93.5%;
+        margin-left: 3.33%;
+        border: 1px solid #dbe3cf;
+        border-radius: 8px;
+        background: #fffdf8;
+        box-shadow: 0 8px 18px rgba(76, 59, 32, .06);
+    }
+
+    .users-filter-card {
+        padding: .75rem;
+        margin-bottom: .85rem;
+    }
+
+    .users-toolbar {
+        display: flex;
+        gap: .75rem;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+    }
+
+    .users-toolbar-search {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .users-status-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: .55rem;
+        flex-wrap: wrap;
+    }
+
+    .users-loading-message {
+        color: #2563eb;
+        font-size: .92rem;
+        font-weight: 600;
+    }
+
+    .tablacontent {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+
+    .tablacontent .rz-datatable-tablewrapper,
+    .tablacontent.rz-data-grid .rz-datatable-tablewrapper {
+        border-radius: 8px 8px 0 0 !important;
+    }
+
+    .tablacontent .rz-cell-data,
+    .tablacontent .rz-column-title-content {
+        font-size: 11.2px !important;
+    }
+
+    .tablacontent .rz-cell-data {
+        overflow: hidden !important;
+        text-overflow: ellipsis;
+        white-space: nowrap !important;
     }
 
     .tablacontent th.rz-unselectable-text.rz-text-align-left {
-        background-color: #82D682;
+        background-color: #f1f5f9;
+        color: #334155;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    .tablacontent .rz-grid-table td,
+    .tablacontent .rz-grid-table th {
+        padding-left: .42rem !important;
+        padding-right: .42rem !important;
+    }
+
+    .tablacontent .rz-grid-table thead th,
+    .tablacontent th.rz-unselectable-text.rz-text-align-left {
+        padding-top: .75rem !important;
+        padding-bottom: .75rem !important;
     }
 
     .rz-paginator {
-        border-top: solid #E0E0E0 1px;
+        border-top: solid #e2e8f0 1px;
+    }
+
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: #475569;
+        border: 1px dashed #cbd5e1;
+        border-radius: 8px;
+        background: #f8fafc;
+    }
+
+    .table-action {
+        width: 1.75rem;
+        height: 1.75rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        background: #fff;
+    }
+
+    @@media (min-width: 1200px) {
+        .users-page {
+            width: calc(100vw - 20.75rem);
+            max-width: none;
+            margin-left: calc((100% - (100vw - 20.75rem)) / 2);
+            margin-right: 0;
+        }
+    }
+
+    @@media (max-width: 980px) {
+        .users-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .users-toolbar {
+            flex-wrap: wrap;
+            flex-direction: column;
+        }
+
+        .users-toolbar-search {
+            min-width: 0;
+        }
     }
 </style>
 
-<br />
-<center>
+<div class="users-page">
     <AuthorizeView>
-        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Usuarios</h3>
-        <br />
+        <Authorized>
+            <div class="users-header">
+                <div>
+                    <h3 class="users-title">Usuarios</h3>
+                    <p class="users-description">Buscá por nombre, apellido, socio asociado o correo del socio.</p>
+                </div>
+            </div>
 
-        <div class="tablacontent" style="position:relative;width:80%;">
-            <button style="outline:none; float: right;height:100%;" class="btn btn-outline" @onclick="CambiarModoFiltro">
-                <FeatherFilter Color="Black"></FeatherFilter>
-            </button>
-            <br />
+            <div class="users-card users-filter-card">
+                <div class="users-toolbar">
+                    <div class="users-toolbar-search">
+                        <SearchInput Value="@searchText"
+                                     ValueChanged="OnSearchChanged"
+                                     IsLoading="@searchLoading"
+                                     Placeholder="Buscar por nombre, apellido, mail o socio" />
+                    </div>
+                </div>
+            </div>
 
-            <RadzenDataGrid TItem="User"
-                            Data="@Usuarios"
-                            Count="@count"
-                            FilterDelay="500"
-                            LoadData="@LoadUsers"
-                            @ref="grid"
-                            AllowFiltering="@allowFiltering"
-                            FilterMode="FilterMode.Simple"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            LogicalFilterOperator="LogicalFilterOperator.Or"
-                            AllowSorting="true"
-                            AllowColumnResize="true"
-                            AllowAlternatingRows="true"
-                            AllowPaging="true"
-                            PageSize="5"
-                            ShowPagingSummary="true"
-                            ColumnWidth="3.33%">
-                <Columns>
-                    <RadzenDataGridColumn TItem="User" Property="Names" Title="Nombre/s" Width="15%" Filterable="true" />
-                    <RadzenDataGridColumn TItem="User" Property="LastNames" Title="Apellido/s" Width="15%" Filterable="true" />
-                    <RadzenDataGridColumn TItem="User" Property="Dni" Title="DNI" Width="12%" Filterable="true" />
-                    <RadzenDataGridColumn TItem="User" Property="Phone" Title="Número" Width="12%" Filterable="true" />
-                    <RadzenDataGridColumn TItem="User" Title="Socio asociado" Width="16%" Filterable="false" Sortable="false">
-                        <Template Context="data">
-                            @GetSocioDisplay(data)
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="User" Property="Rol" Title="Rol" Width="12%" Filterable="true" />
-                    <RadzenDataGridColumn TItem="User" Property="Status" Title="Estado" Width="12%" Filterable="true" />
-                    <RadzenDataGridColumn TItem="User" Property="Email" Title="Email" Width="20%" Filterable="true" />
-                    <RadzenDataGridColumn TItem="User" Title="" Width="7%">
-                        <Template Context="data">
-                            <button class="btn" title="Eliminar" @onclick="@(()=>uriHelper.NavigateTo($"/EliminarUsuario/{data.Id}"))">
-                                <FeatherTrash2 Color="red" />
-                            </button>
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="User" Title="" Width="7%">
-                        <Template Context="data">
-                            <button class="btn" title="Info" @onclick="@(()=> ShowDetails(data))">
-                                <FeatherInfo Color="blue" />
-                            </button>
-                        </Template>
-                    </RadzenDataGridColumn>
-                </Columns>
-            </RadzenDataGrid>
-        </div>
+            <div class="tablacontent" style="position:relative;width:80%;margin-left:10%;">
+                <RadzenDataGrid TItem="User"
+                                Data="@Usuarios"
+                                Count="@count"
+                                LoadData="@LoadUsers"
+                                @ref="grid"
+                                AllowFiltering="false"
+                                AllowSorting="true"
+                                AllowColumnResize="true"
+                                AllowAlternatingRows="true"
+                                AllowPaging="true"
+                                PageSize="5"
+                                ShowPagingSummary="true"
+                                ColumnWidth="3.33%">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="User" Property="Names" Title="Nombre/s" Width="15%" />
+                        <RadzenDataGridColumn TItem="User" Property="LastNames" Title="Apellido/s" Width="15%" />
+                        <RadzenDataGridColumn TItem="User" Property="Dni" Title="DNI" Width="12%" />
+                        <RadzenDataGridColumn TItem="User" Property="Phone" Title="Número" Width="12%" />
+                        <RadzenDataGridColumn TItem="User" Title="Socio asociado" Width="16%" Sortable="false">
+                            <Template Context="data">
+                                @GetSocioDisplay(data)
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="User" Property="Rol" Title="Rol" Width="12%" />
+                        <RadzenDataGridColumn TItem="User" Property="Status" Title="Estado" Width="12%" />
+                        <RadzenDataGridColumn TItem="User" Property="Email" Title="Email" Width="20%" />
+                        <RadzenDataGridColumn TItem="User" Title="" Width="7%">
+                            <Template Context="data">
+                                <button class="btn" title="Eliminar" @onclick="@(()=>uriHelper.NavigateTo($"/EliminarUsuario/{data.Id}"))">
+                                    <FeatherTrash2 Color="red" />
+                                </button>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="User" Title="" Width="7%">
+                            <Template Context="data">
+                                <button class="btn" title="Info" @onclick="@(()=> ShowDetails(data))">
+                                    <FeatherInfo Color="blue" />
+                                </button>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+
+                @if (!isLoading && count == 0)
+                {
+                    <div class="empty-state">
+                        No hay usuarios para mostrar con los filtros actuales.
+                    </div>
+                }
+            </div>
+        </Authorized>
     </AuthorizeView>
-</center>
+</div>
 
 @code {
-    [CascadingParameter] public IModalService Modal { get; set; }
+    [CascadingParameter] public IModalService Modal { get; set; } = default!;
 
     private IList<User> Usuarios = new List<User>();
     private List<SocioDTO> Socios = new();
-    private int count = 0;
-    private RadzenDataGrid<User>? grid;
 
-    private bool allowFiltering = false;
+    private int count;
+    private RadzenDataGrid<User>? grid;
+    private bool initialGridLoadTriggered;
+    private bool isLoading;
+    private bool searchLoading;
+    private string searchText = string.Empty;
+    private int loadRequestVersion;
 
     protected override async Task OnInitializedAsync()
     {
@@ -111,104 +273,119 @@
         {
             Socios = new List<SocioDTO>();
         }
+
     }
 
-    public void CambiarModoFiltro()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        allowFiltering = !allowFiltering;
-        StateHasChanged();
-    }
-    private static string FirstNonEmpty(params string?[] values)
-    => values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? string.Empty;
-
-    private async Task LoadUsers(LoadDataArgs args)
-    {
-        
-        // --- FIX CS0266: args.Top/Skip son int? ---
-        var top = args.Top ?? 5;  // debe coincidir con PageSize
-        var skip = args.Skip ?? 0;
-
-        int pageLocal = (skip > 0 && top > 0) ? (skip / top) + 1 : 1;
-
-        // --- FIX CS8121: no usamos CompositeFilterDescriptor, leemos desde args.Columns ---
-        var emailFilter = GetColumnFilter(args, "Email") ?? string.Empty;
-        var namesFilter = GetColumnFilter(args, "Names") ?? string.Empty;
-        var lastFilter = GetColumnFilter(args, "LastNames") ?? string.Empty;
-        var dniFilter = GetColumnFilter(args, "Dni") ?? string.Empty;
-        var statusFilter = GetColumnFilter(args, "Status") ?? string.Empty;
-        var globalFilter = args.Filter ?? string.Empty;
-
-        string search = FirstNonEmpty(emailFilter, namesFilter, lastFilter, dniFilter, globalFilter);
-
-        string searchParam = string.IsNullOrWhiteSpace(search) ? "TODO" : search;
-        string statusParam = string.IsNullOrWhiteSpace(statusFilter) ? "TODO" : statusFilter;
-
-        // El filtro global (si lo usás) lo consideramos como 'search' solo si no hay email específico
-
-        if (!string.IsNullOrWhiteSpace(search) && search.Length < 2)
+        if (!firstRender || initialGridLoadTriggered || grid == null)
         {
             return;
         }
 
+        initialGridLoadTriggered = true;
+        await grid.Reload();
+    }
+
+    private async Task LoadUsers(LoadDataArgs args)
+    {
+        var requestId = ++loadRequestVersion;
+        isLoading = true;
+        StateHasChanged();
+
         try
         {
-            var resp = await http.GetAsync($"api/Account/GetUsers/{Uri.EscapeDataString(searchParam)}/{Uri.EscapeDataString(statusParam)}/{pageLocal}");
-            var payload = await resp.Content.ReadAsStringAsync();
+            var response = await SearchUsersPageAsync(args.Skip ?? 0, args.Top ?? 5);
 
-            if (resp.IsSuccessStatusCode)
+            if (requestId != loadRequestVersion)
             {
-                var wrapper = JsonSerializer.Deserialize<ResponseForList>(payload);
-                if (wrapper is null)
-                {
-                    Usuarios = new List<User>();
-                    count = 0;
-                }
-                else
-                {
-                    Usuarios = JsonSerializer.Deserialize<IList<User>>(wrapper.EntitiesPricipal) ?? new List<User>();
-                    count = wrapper.AllRegisters;
-                }
+                return;
             }
-            else if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+
+            if (response is not null)
             {
-                Usuarios = new List<User>();
-                count = 0;
-            }
-            else if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                uriHelper.NavigateTo("/Logout");
-            }
-            else
-            {
-                Modal.Show<ModalInfo>("Error",
-                    SharedModalOptions.SetParameterModalInfo(payload, "alert alert-danger"),
-                    SharedModalOptions.modalOptionsInfo);
+                Usuarios = JsonSerializer.Deserialize<IList<User>>(response.EntitiesPricipal ?? "[]") ?? new List<User>();
+                count = response.AllRegisters;
             }
         }
         catch (Exception ex)
         {
+            Usuarios = new List<User>();
+            count = 0;
             Modal.Show<ModalInfo>("Error",
                 SharedModalOptions.SetParameterModalInfo(ex.Message, "alert alert-danger"),
                 SharedModalOptions.modalOptionsInfo);
         }
         finally
         {
-
-            StateHasChanged();
+            if (requestId == loadRequestVersion)
+            {
+                isLoading = false;
+                searchLoading = false;
+                StateHasChanged();
+            }
         }
     }
 
-    private static string? GetColumnFilter(LoadDataArgs args, string propertyName)
+    private async Task<ResponseForList?> SearchUsersPageAsync(int skip, int take)
     {
-        if (args.Filters == null) return null;
+        var url = new System.Text.StringBuilder("api/Account/SearchUsersPaged");
+        url.Append($"?skip={Math.Max(skip, 0)}");
+        url.Append($"&take={Math.Max(take, 1)}");
 
-        foreach (var fd in args.Filters.OfType<FilterDescriptor>())
+        if (!string.IsNullOrWhiteSpace(searchText))
         {
-            if (string.Equals(fd.Property, propertyName, StringComparison.OrdinalIgnoreCase))
-                return fd.FilterValue?.ToString();
+            url.Append($"&searchText={Uri.EscapeDataString(searchText)}");
         }
 
+        var resp = await http.GetAsync(url.ToString());
+        var payload = await resp.Content.ReadAsStringAsync();
+
+        if (resp.IsSuccessStatusCode)
+        {
+            return JsonSerializer.Deserialize<ResponseForList>(payload);
+        }
+
+        if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            Usuarios = new List<User>();
+            count = 0;
+            return null;
+        }
+
+        if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            uriHelper.NavigateTo("/Logout");
+            return null;
+        }
+
+        Modal.Show<ModalInfo>("Error",
+            SharedModalOptions.SetParameterModalInfo(payload, "alert alert-danger"),
+            SharedModalOptions.modalOptionsInfo);
+
         return null;
+    }
+
+    private async Task OnSearchChanged(string value)
+    {
+        searchLoading = true;
+        searchText = value ?? string.Empty;
+        await ReloadGridFromStartAsync();
+    }
+
+    private async Task ReloadGridFromStartAsync()
+    {
+        if (grid != null)
+        {
+            if (grid.CurrentPage > 0)
+            {
+                await grid.FirstPage(true);
+            }
+            else
+            {
+                await grid.Reload();
+            }
+        }
     }
 
     private async Task ShowDetails(User usuario)
@@ -217,7 +394,7 @@
         parameters.Add(nameof(DetailsUsuario.Usuario), usuario);
         var options = new ModalOptions
         {
-            Size = ModalSize.Large
+            Size = ModalSize.ExtraLarge
         };
 
         var modalRef = Modal.Show<DetailsUsuario>("Detalles Del Usuario", parameters, options);
@@ -273,10 +450,4 @@
             : label;
     }
 
-    private class ResponseForList
-    {
-        public string EntitiesPricipal { get; set; } = "[]";
-        public int AllRegisters { get; set; }
-        public int ActualPage { get; set; }
-    }
 }

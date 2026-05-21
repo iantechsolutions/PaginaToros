@@ -4,7 +4,7 @@
         @foreach (var item in Items)
         {
             <button type="button" class="filter-chip" @onclick="() => Remove(item.Key)">
-                <span>@item.Label: @item.Value</span>
+                <span>@GetText(item)</span>
                 <span class="filter-chip-close">x</span>
             </button>
         }
@@ -17,4 +17,11 @@
 
     private Task Remove(string key)
         => OnRemove.InvokeAsync(key);
+
+    private static string GetText(FilterChipItem item)
+        => string.IsNullOrWhiteSpace(item.Label)
+            ? item.Value
+            : string.IsNullOrWhiteSpace(item.Value)
+                ? item.Label
+                : $"{item.Label}: {item.Value}";
 }

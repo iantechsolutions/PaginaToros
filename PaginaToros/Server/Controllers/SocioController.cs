@@ -264,6 +264,64 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("SearchPaged")]
+        public async Task<IActionResult> SearchPaged(int skip, int take, string? searchText = null)
+        {
+            Respuesta<SocioPagedResponse> _ResponseDTO = new Respuesta<SocioPagedResponse>();
+
+            try
+            {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext))
+                {
+                    if (!accessContext.ActiveSocioId.HasValue)
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<SocioPagedResponse>());
+                    }
+
+                    var scoped = await _SocioRepositorio.SearchPagedAsync(
+                        skip,
+                        take,
+                        searchText,
+                        new[] { accessContext.ActiveSocioId.Value });
+
+                    _ResponseDTO = new Respuesta<SocioPagedResponse>
+                    {
+                        Exito = 1,
+                        Mensaje = "Exito",
+                        List = new SocioPagedResponse
+                        {
+                            Items = _mapper.Map<List<SocioDTO>>(scoped.Items),
+                            TotalCount = scoped.TotalCount
+                        }
+                    };
+
+                    return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+                }
+
+                var result = await _SocioRepositorio.SearchPagedAsync(skip, take, searchText);
+
+                _ResponseDTO = new Respuesta<SocioPagedResponse>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = new SocioPagedResponse
+                    {
+                        Items = _mapper.Map<List<SocioDTO>>(result.Items),
+                        TotalCount = result.TotalCount
+                    }
+                };
+
+                return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
+            }
+            catch (Exception ex)
+            {
+                _ResponseDTO = new Respuesta<SocioPagedResponse> { Exito = 0, Mensaje = ex.Message, List = null };
+                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+            }
+        }
+
 
 
         [HttpDelete]

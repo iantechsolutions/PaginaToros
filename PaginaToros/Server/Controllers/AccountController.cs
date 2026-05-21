@@ -1016,43 +1016,99 @@ namespace PaginaToros.Server.Controllers
                 if (search == "TODO") search = "";
                 if (status == "TODO") status = "";
 
-                search = (search ?? "").ToUpper();
-                status = (status ?? "");
-
-                var query = db.User
-                    .Where(x =>
-                       (((x.Names ?? "").ToUpper().Contains(search)) ||
-                        ((x.LastNames ?? "").ToUpper().Contains(search)) ||
-                        ((x.Dni ?? "").Contains(search)) ||
-                        ((x.Email ?? "").ToUpper().Contains(search))) &&
-                       ((x.Status ?? "").Contains(status)) &&
-                       x.Rol != "USUARIOMAESTRO");
-
-                int allRegisters = query.Count();
-                if (allRegisters <= 0)
-                    return NotFound(Utilities.MSGNODATA);
-
-                IList<User> entities = query
-                    .OrderByDescending(x => x.Id)
-                    .Skip((actualPage - 1) * Utilities.REGISTERSPERPAGE)
-                    .Take(Utilities.REGISTERSPERPAGE)
-                    .ToList();
-
-                await PopulateSocioIdsAsync(entities);
-
-                ResponseForList response = new ResponseForList()
-                {
-                    EntitiesPricipal = JsonSerializer.Serialize(entities),
-                    AllRegisters = allRegisters,
-                    ActualPage = actualPage
-                };
-
-                return Ok(JsonSerializer.Serialize(response));
+                var skip = Math.Max(actualPage - 1, 0) * Utilities.REGISTERSPERPAGE;
+                return await SearchUsersPagedInternal(skip, Utilities.REGISTERSPERPAGE, search, status, actualPage);
             }
             catch (Exception e)
             {
                 return BadRequest(e.Message);
             }
+        }
+
+        [HttpGet("SearchUsersPaged")]
+        public async Task<ActionResult> SearchUsersPaged(int skip, int take, string? searchText = null, string? status = null)
+        {
+            try
+            {
+                var page = take > 0 ? (skip / take) + 1 : 1;
+                return await SearchUsersPagedInternal(skip, take, searchText, status, page);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        private async Task<ActionResult> SearchUsersPagedInternal(int skip, int take, string? searchText, string? status, int actualPage)
+        {
+            var normalizedSearch = searchText?.Trim() ?? string.Empty;
+            var normalizedStatus = status?.Trim() ?? string.Empty;
+
+            var query = BuildUsersSearchQuery(normalizedSearch, normalizedStatus);
+
+            var allRegisters = await query.CountAsync();
+            if (allRegisters <= 0)
+                return NotFound(Utilities.MSGNODATA);
+
+            var entities = await query
+                .OrderByDescending(x => x.Id)
+                .Skip(Math.Max(skip, 0))
+                .Take(Math.Max(take, 1))
+                .ToListAsync();
+
+            await PopulateSocioIdsAsync(entities);
+
+            ResponseForList response = new ResponseForList()
+            {
+                EntitiesPricipal = JsonSerializer.Serialize(entities),
+                AllRegisters = allRegisters,
+                ActualPage = actualPage
+            };
+
+            return Ok(JsonSerializer.Serialize(response));
+        }
+
+        private IQueryable<User> BuildUsersSearchQuery(string searchText, string status)
+        {
+            var query = _hfdb.User
+                .AsNoTracking()
+                .Where(x => x.Rol != "USUARIOMAESTRO");
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                var statusTerm = status.ToUpperInvariant();
+                query = query.Where(x => (x.Status ?? string.Empty).ToUpper().Contains(statusTerm));
+            }
+
+            var terms = searchText
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (var term in terms)
+            {
+                var normalized = term.ToUpperInvariant();
+                query = query.Where(x =>
+                    (x.Names ?? string.Empty).ToUpper().Contains(normalized) ||
+                    (x.LastNames ?? string.Empty).ToUpper().Contains(normalized) ||
+                    ((x.Names ?? string.Empty) + " " + (x.LastNames ?? string.Empty)).ToUpper().Contains(normalized) ||
+                    ((x.LastNames ?? string.Empty) + " " + (x.Names ?? string.Empty)).ToUpper().Contains(normalized) ||
+                    (x.Dni ?? string.Empty).ToUpper().Contains(normalized) ||
+                    (x.Email ?? string.Empty).ToUpper().Contains(normalized) ||
+                    (x.SocioId.HasValue && _hfdb.Socios.Any(s =>
+                        s.Id == x.SocioId.Value &&
+                        ((s.Nombre ?? string.Empty).ToUpper().Contains(normalized) ||
+                         (s.Mail ?? string.Empty).ToUpper().Contains(normalized)))) ||
+                    _hfdb.UserSocios.Any(us =>
+                        us.UserId == x.Id &&
+                        _hfdb.Socios.Any(s =>
+                            s.Id == us.SocioId &&
+                            ((s.Nombre ?? string.Empty).ToUpper().Contains(normalized) ||
+                             (s.Mail ?? string.Empty).ToUpper().Contains(normalized))))
+                );
+            }
+
+            return query;
         }
 
         [HttpGet("GetUserById/{id}")]

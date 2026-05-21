@@ -392,6 +392,50 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             }
         }
 
+        public async Task<(List<Socio> Items, int TotalCount)> SearchPagedAsync(
+            int skip,
+            int take,
+            string? searchText = null,
+            IReadOnlyCollection<int>? allowedSocioIds = null)
+        {
+            try
+            {
+                if (take <= 0)
+                {
+                    take = 15;
+                }
+
+                IQueryable<Socio> query = _dbContext.Socios
+                    .AsNoTracking()
+                    .Where(x => x.Criador == "S")
+                    .Include(x => x.Provincia);
+
+                if (allowedSocioIds != null && allowedSocioIds.Count > 0)
+                {
+                    query = query.Where(x => allowedSocioIds.Contains(x.Id));
+                }
+
+                if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    query = ApplySearchFilter(query, searchText);
+                }
+
+                query = ApplyCreationOrder(query);
+
+                var totalCount = await query.CountAsync();
+                var items = await query
+                    .Skip(Math.Max(0, skip))
+                    .Take(take)
+                    .ToListAsync();
+
+                return (items, totalCount);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
         private static IOrderedQueryable<Socio> ApplyCreationOrder(IQueryable<Socio> query)
             => query
                 .OrderByDescending(x => x.Fecing.HasValue)
@@ -399,6 +443,32 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 .ThenByDescending(x => x.FchUsu.HasValue)
                 .ThenByDescending(x => x.FchUsu)
                 .ThenByDescending(x => x.Id);
+
+        private static IQueryable<Socio> ApplySearchFilter(IQueryable<Socio> query, string searchText)
+        {
+            var terms = searchText
+                .Trim()
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            foreach (var term in terms)
+            {
+                var currentTerm = term;
+                query = query.Where(s =>
+                    (s.Prenom != null && EF.Functions.Like(s.Prenom, $"%{currentTerm}%")) ||
+                    (s.Nombre != null && EF.Functions.Like(s.Nombre, $"%{currentTerm}%")) ||
+                    (s.Posnom != null && EF.Functions.Like(s.Posnom, $"%{currentTerm}%")) ||
+                    (s.Mail != null && EF.Functions.Like(s.Mail, $"%{currentTerm}%")) ||
+                    (s.Scod != null && EF.Functions.Like(s.Scod, $"%{currentTerm}%")) ||
+                    (s.Codpos2 != null && EF.Functions.Like(s.Codpos2, $"%{currentTerm}%")) ||
+                    (s.Users != null && s.Users.Any(u =>
+                        (u.Names != null && EF.Functions.Like(u.Names, $"%{currentTerm}%")) ||
+                        (u.LastNames != null && EF.Functions.Like(u.LastNames, $"%{currentTerm}%")))));
+            }
+
+            return query;
+        }
 
 
     }

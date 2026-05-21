@@ -84,7 +84,8 @@
         display: flex;
         gap: 0.75rem;
         flex-wrap: wrap;
-        align-items: stretch;
+        align-items: center;
+        justify-content: flex-end;
     }
 
     .user-actions .btn {
@@ -93,12 +94,22 @@
         align-items: center;
         justify-content: center;
     }
+
+    .user-submit {
+        margin-left: auto;
+    }
+
+    .user-edit-body {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
 </style>
 
 <EditForm EditContext="_editContext" OnValidSubmit="HandleSubmit">
     <ValidationSummary />
 
-    <div style="overflow-y:auto;height:600px">
+    <div class="user-edit-body">
         <div class="row" style="margin-left:0; margin-right:0;">
 
             <div class="col-md-6">
@@ -238,17 +249,17 @@
                 <div class="user-actions">
                     @if (ShowBackButton)
                     {
-                        <a class="btn btn-info" href="usuarios">
+                        <a class="btn btn-info" href="usuarios" title="Volver al listado de usuarios">
                             <span class="oi oi-arrow-left" aria-hidden="true"></span> Volver
                         </a>
                     }
-                    <button class="btn btn-primary" type="submit" disabled="@(!_canSubmit)">
-                        <span class="oi oi-check" aria-hidden="true"></span> @SubmitLabel
-                    </button>
                     @if (ExtraActions is not null)
                     {
                         @ExtraActions
                     }
+                    <button class="btn btn-primary user-submit" type="submit" title="@SubmitTitle" disabled="@(!_canSubmit)">
+                        <span class="oi oi-check" aria-hidden="true"></span> @SubmitLabel
+                    </button>
                 </div>
             </div>
         </div>
@@ -260,6 +271,7 @@
     [Parameter] public EventCallback EventCallback { get; set; }
     [Parameter] public bool ShowBackButton { get; set; } = true;
     [Parameter] public string SubmitLabel { get; set; } = "Guardar";
+    [Parameter] public string SubmitTitle { get; set; } = "Guardar cambios";
     [Parameter] public RenderFragment? ExtraActions { get; set; }
 
     Respuesta<List<AspNetRole>>? oRespuestaRoles = new();

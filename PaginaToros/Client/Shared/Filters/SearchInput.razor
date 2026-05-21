@@ -8,10 +8,12 @@
     {
         <span class="filter-search-status">Buscando...</span>
     }
-    @if (!string.IsNullOrWhiteSpace(CurrentValue))
-    {
-        <button type="button" class="btn btn-light filter-search-clear" disabled="@Disabled" @onclick="Clear">Limpiar</button>
-    }
+    <button type="button"
+            class="btn btn-light filter-search-clear"
+            disabled="@IsClearDisabled"
+            @onclick="Clear">
+        Limpiar
+    </button>
 </div>
 
 @code {
@@ -24,6 +26,7 @@
 
     private string CurrentValue { get; set; } = string.Empty;
     private CancellationTokenSource? _cts;
+    private bool IsClearDisabled => Disabled || string.IsNullOrWhiteSpace(CurrentValue);
 
     protected override void OnParametersSet()
     {

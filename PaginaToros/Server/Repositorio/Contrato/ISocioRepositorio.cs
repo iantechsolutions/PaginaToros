@@ -11,6 +11,11 @@ namespace PaginaToros.Server.Repositorio.Contrato
         Task<Socio> Obtener(Expression<Func<Socio, bool>> filtro = null);
         Task<Socio> ObtenerPorId(int id);
         Task<List<Socio>> LimitadosFiltrados(int skip, int take, string filtro = null);
+        Task<(List<Socio> Items, int TotalCount)> SearchPagedAsync(
+            int skip,
+            int take,
+            string? searchText = null,
+            IReadOnlyCollection<int>? allowedSocioIds = null);
         Task<bool> Eliminar(Socio entidad);
         Task<Socio> Crear(Socio entidad);
         Task<bool> Editar(Socio entidad);

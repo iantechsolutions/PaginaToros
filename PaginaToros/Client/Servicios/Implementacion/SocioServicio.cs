@@ -90,6 +90,26 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return dto!;
         }
 
+        public async Task<Respuesta<SocioPagedResponse>> SearchPaged(int skip, int take, string? searchText = null)
+        {
+            var url = new StringBuilder($"api/Socio/SearchPaged?skip={skip}&take={take}");
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                url.Append($"&searchText={Uri.EscapeDataString(searchText)}");
+            }
+
+            var response = await _http.GetAsync(url.ToString());
+            if (!response.IsSuccessStatusCode)
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException(
+                    $"Llamada a {url} devolvió {(int)response.StatusCode}:\n{text}");
+            }
+
+            var dto = await response.Content.ReadFromJsonAsync<Respuesta<SocioPagedResponse>>();
+            return dto!;
+        }
+
         public async Task<Respuesta<List<SocioLookupItemDTO>>> Search(string? term, int take = 20)
         {
             var url = new StringBuilder($"api/Socio/search?take={take}");

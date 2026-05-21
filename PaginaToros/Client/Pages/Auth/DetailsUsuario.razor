@@ -8,12 +8,13 @@
     <UserEditForm User="Usuario"
                   EventCallback="Guardar"
                   ShowBackButton="false"
-                  SubmitLabel="Guardar">
+                  SubmitLabel="Guardar"
+                  SubmitTitle="Guardar cambios sin cerrar el formulario">
         <ExtraActions>
-            <button type="button" class="btn btn-outline-secondary" disabled="@disabled" @onclick="ChangeEmail">
-                Cambiar mail
+            <button type="button" class="btn btn-outline-secondary" title="Actualiza el mail y envía mail de inscripción" disabled="@disabled" @onclick="ChangeEmail">
+                Cambiar mail/ Reenviar inscripción
             </button>
-            <button type="button" class="btn btn-outline-secondary" @onclick="ResetPass">
+            <button type="button" class="btn btn-outline-secondary" title="Reinicia la contraseña y envía un correo de cambio de contraseña" @onclick="ResetPass">
                 Reiniciar contraseña
             </button>
         </ExtraActions>
@@ -22,7 +23,6 @@
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; } = default!;
     [Parameter] public User Usuario { get; set; } = new();
 
     bool guardando = false;
@@ -54,8 +54,6 @@
             Modal.Show<ModalInfo>("Operación Exitosa",
                 SharedModalOptions.SetParameterModalInfo("Datos actualizados", "alert alert-success"),
                 SharedModalOptions.modalOptionsInfo);
-
-            await ModalInstance.CloseAsync(); // cerrá el popup
         }
         else
         {
