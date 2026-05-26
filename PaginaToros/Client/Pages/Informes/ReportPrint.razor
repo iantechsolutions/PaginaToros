@@ -264,7 +264,7 @@ else if (seleccion && !terminado)
             {
                 string filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
                 var rtaa = await _certifsemanServicio.LimitadosFiltrados(0, 0,filtro);
-                certificados = rtaa.List;
+                certificados = RemoveDuplicatesByBusinessKey(rtaa.List);
             }
             terminado = true;
         }
@@ -275,5 +275,27 @@ else if (seleccion && !terminado)
     }
     private async Task Print()
         => await js.InvokeVoidAsync("window.print");
+
+    private static List<CertifsemanDTO> RemoveDuplicatesByBusinessKey(List<CertifsemanDTO>? items)
+    {
+        if (items == null || items.Count == 0)
+        {
+            return new List<CertifsemanDTO>();
+        }
+
+        var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var uniqueItems = new List<CertifsemanDTO>();
+
+        foreach (var item in items)
+        {
+            var key = $"{(item.NroCert ?? string.Empty).Trim()}|{(item.Hba ?? string.Empty).Trim()}";
+            if (seenKeys.Add(key))
+            {
+                uniqueItems.Add(item);
+            }
+        }
+
+        return uniqueItems;
+    }
 
 }

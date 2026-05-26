@@ -188,28 +188,34 @@ else
             var rt = await _certifsemanServicio.CantidadTotal();
             cantotal = rt.List;
             oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 15);
-            oRespuesta.List = RemoveDuplicates(oRespuesta.List);
+            oRespuesta.List = RemoveDuplicatesByBusinessKey(oRespuesta.List);
             string s = JsonConvert.SerializeObject(oRespuesta);
             StateHasChanged();
         }
         else
         {
             oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 0, string.Empty);
+            oRespuesta.List = RemoveDuplicatesByBusinessKey(oRespuesta.List);
             cantotal = oRespuesta.List.Count();
         }
 
     }
 
 
-    public static List<CertifsemanDTO> RemoveDuplicates(List<CertifsemanDTO> items)
+    public static List<CertifsemanDTO> RemoveDuplicatesByBusinessKey(List<CertifsemanDTO>? items)
     {
-        var seenIds = new HashSet<int>();
+        if (items == null || items.Count == 0)
+        {
+            return new List<CertifsemanDTO>();
+        }
+
+        var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var uniqueItems = new List<CertifsemanDTO>();
 
         foreach (var item in items)
         {
-            var boole = seenIds.Add(item.Id);
-            if (boole)  
+            var key = BuildBusinessKey(item);
+            if (seenKeys.Add(key))
             {
                 uniqueItems.Add(item);
             }
@@ -307,6 +313,7 @@ else
                     {
                         string filtro = $"Socio.Id={socioSeleccionado.Id}";
                         oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 60, filtro);
+                        oRespuesta.List = RemoveDuplicatesByBusinessKey(oRespuesta.List);
                         await grid.Reload();
                     }
                 }
@@ -342,6 +349,7 @@ else
                 {
                     string filtro = $"Socio.Id={socioSeleccionado.Id}";
                     oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 60, filtro);
+                    oRespuesta.List = RemoveDuplicatesByBusinessKey(oRespuesta.List);
                     await grid.Reload();
                 }
             }
@@ -369,6 +377,7 @@ else
         }
 
         oRespuesta = await _certifsemanServicio.LimitadosFiltrados(skip, take, filtro);
+        oRespuesta.List = RemoveDuplicatesByBusinessKey(oRespuesta.List);
 
         isLoading = false;
     }
@@ -408,17 +417,24 @@ else
         {
             string filtro = $"Socio.Id={socioSeleccionado.Id}";
             oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 60, filtro);
+            oRespuesta.List = RemoveDuplicatesByBusinessKey(oRespuesta.List);
         }
         else
         {
             oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 15);
+            oRespuesta.List = RemoveDuplicatesByBusinessKey(oRespuesta.List);
             var rt = await _certifsemanServicio.CantidadTotal();
             cantotal = rt.List;
         }
 
-        oRespuesta.List = RemoveDuplicates(oRespuesta.List);
         isLoading = false;
         await grid.Reload();
     }
+
+    private static string BuildBusinessKey(CertifsemanDTO item)
+        => $"{NormalizeKeyPart(item.NroCert)}|{NormalizeKeyPart(item.Hba)}";
+
+    private static string NormalizeKeyPart(string? value)
+        => (value ?? string.Empty).Trim();
 
 }

@@ -1527,6 +1527,10 @@ namespace PaginaToros.Server.Migrations.hereford_pr
 
                     b.HasKey("Id");
 
+                    b.HasIndex("NroCert", "Hba")
+                        .HasDatabaseName("UX_CERTIFSEMEN_NRO_CERT_HBA")
+                        .IsUnique();
+
                     b.HasIndex("Nrocen");
 
                     b.HasIndex("Nrocri");

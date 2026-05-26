@@ -498,6 +498,10 @@ namespace PaginaToros.Server.Context
                 entity.Property(e => e.Variedad)
                     .HasMaxLength(2)
                     .HasColumnName("VARIEDAD");
+
+                entity.HasIndex(e => new { e.NroCert, e.Hba })
+                    .HasDatabaseName("UX_CERTIFSEMEN_NRO_CERT_HBA")
+                    .IsUnique();
             });
 
             modelBuilder.Entity<Certifseman>()

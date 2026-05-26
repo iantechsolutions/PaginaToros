@@ -246,6 +246,20 @@ namespace PaginaToros.Server.Controllers
                     return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<CertifsemanDTO>());
                 }
 
+                var nroCert = NormalizeKeyPart(request.NroCert);
+                var hba = NormalizeKeyPart(request.Hba);
+                request.NroCert = nroCert;
+                request.Hba = hba;
+                var duplicate = await _certifsemanRepositorio.ObtenerPorClave(nroCert, hba);
+                if (duplicate != null)
+                {
+                    return Conflict(new Respuesta<CertifsemanDTO>
+                    {
+                        Exito = 0,
+                        Mensaje = $"Ya existe un certificado con Nro. certificado '{nroCert}' y HBA '{hba}'."
+                    });
+                }
+
                 var entity = _mapper.Map<Certifseman>(request);
                 if (RequiresActiveSocioScope(accessContext))
                 {
@@ -294,6 +308,20 @@ namespace PaginaToros.Server.Controllers
                 if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
                 {
                     return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<CertifsemanDTO>());
+                }
+
+                var nroCert = NormalizeKeyPart(request.NroCert);
+                var hba = NormalizeKeyPart(request.Hba);
+                request.NroCert = nroCert;
+                request.Hba = hba;
+                var duplicate = await _certifsemanRepositorio.ObtenerPorClave(nroCert, hba, request.Id);
+                if (duplicate != null)
+                {
+                    return Conflict(new Respuesta<CertifsemanDTO>
+                    {
+                        Exito = 0,
+                        Mensaje = $"Ya existe otro certificado con Nro. certificado '{nroCert}' y HBA '{hba}'."
+                    });
                 }
 
                 var entity = _mapper.Map<Certifseman>(request);
@@ -430,5 +458,8 @@ namespace PaginaToros.Server.Controllers
                 Exito = 0,
                 Mensaje = "No tenes permisos para operar sobre otra razon social."
             };
+
+        private static string NormalizeKeyPart(string? value)
+            => (value ?? string.Empty).Trim();
     }
 }

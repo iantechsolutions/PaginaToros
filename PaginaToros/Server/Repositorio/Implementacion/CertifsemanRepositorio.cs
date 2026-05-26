@@ -19,26 +19,12 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         }
         public async Task<List<Certifseman>> Lista(int skip, int take)
         {
-
             try
             {
-                IQueryable<Certifseman> query = ApplyCreationOrder(
-                    _dbContext.Certifsemen
-                        .AsNoTracking()
-                        .Include(t => t.Socio)
-                        .Include(e => e.Centro));
+                var items = await GetOrderedItems(includeNavigation: true);
+                var uniqueItems = RemoveDuplicatesByBusinessKey(items);
 
-                if (skip > 0)
-                {
-                    query = query.Skip(skip);
-                }
-
-                if (take > 0)
-                {
-                    query = query.Take(take);
-                }
-
-                return await query.ToListAsync();
+                return ApplyPaging(uniqueItems, skip, take);
             }
             catch
             {
@@ -58,6 +44,34 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
+        public async Task<Certifseman?> ObtenerPorClave(string nroCert, string hba, int? excludeId = null)
+        {
+            try
+            {
+                var normalizedNroCert = NormalizeKeyPart(nroCert);
+                var normalizedHba = NormalizeKeyPart(hba);
+
+                var query = _dbContext.Certifsemen
+                    .AsNoTracking()
+                    .Include(x => x.Socio)
+                    .Include(x => x.Centro)
+                    .Where(x => (x.NroCert ?? string.Empty).Trim() == normalizedNroCert
+                             && (x.Hba ?? string.Empty).Trim() == normalizedHba);
+
+                if (excludeId.HasValue)
+                {
+                    query = query.Where(x => x.Id != excludeId.Value);
+                }
+
+                return await ApplyCreationOrder(query).FirstOrDefaultAsync();
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
         public async Task<List<Certifseman>> LimitadosFiltrados(int skip, int take, string filtro = null)
         {
             try
@@ -82,7 +96,9 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = query.Take(take);
                 }
 
-                return await query.ToListAsync();
+                var items = await query.ToListAsync();
+                var uniqueItems = RemoveDuplicatesByBusinessKey(items);
+                return uniqueItems;
             }
             catch
             {
@@ -114,9 +130,9 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = query.Take(take);
                 }
 
-                var a = await query.ToListAsync();
-                a = RemoveDuplicates(a);
-                return a;
+                var items = await query.ToListAsync();
+                var uniqueItems = RemoveDuplicatesByBusinessKey(items);
+                return uniqueItems;
             }
             catch
             {
@@ -202,31 +218,69 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                return _dbContext.Certifsemen.Count();
+                var items = await _dbContext.Certifsemen
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return RemoveDuplicatesByBusinessKey(items).Count;
             }
             catch
             {
                 throw;
             }
         }
-        public static List<Certifseman> RemoveDuplicates(List<Certifseman> items)
+
+        public static List<Certifseman> RemoveDuplicatesByBusinessKey(IEnumerable<Certifseman> items)
         {
-            var seenIds = new HashSet<int>();
             var uniqueItems = new List<Certifseman>();
+            var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var item in items)
             {
-                Console.WriteLine(item.Id);
-                var boole = seenIds.Add(item.Id);
-                Console.WriteLine(boole);
-                if (boole)  // HashSet.Add returns false if the item was already in the set
+                var key = BuildBusinessKey(item);
+                if (seenKeys.Add(key))
                 {
                     uniqueItems.Add(item);
                 }
             }
-            Console.WriteLine(uniqueItems.Count());
+
             return uniqueItems;
         }
+
+        private async Task<List<Certifseman>> GetOrderedItems(bool includeNavigation)
+        {
+            IQueryable<Certifseman> query = _dbContext.Certifsemen.AsNoTracking();
+
+            if (includeNavigation)
+            {
+                query = query.Include(x => x.Socio)
+                             .Include(x => x.Centro);
+            }
+
+            var ordered = ApplyCreationOrder(query);
+            return await ordered.ToListAsync();
+        }
+
+        private static List<Certifseman> ApplyPaging(List<Certifseman> items, int skip, int take)
+        {
+            if (skip < 0)
+            {
+                skip = 0;
+            }
+
+            if (take <= 0)
+            {
+                return items.Skip(skip).ToList();
+            }
+
+            return items.Skip(skip).Take(take).ToList();
+        }
+
+        private static string BuildBusinessKey(Certifseman item)
+            => $"{NormalizeKeyPart(item.NroCert)}|{NormalizeKeyPart(item.Hba)}";
+
+        private static string NormalizeKeyPart(string? value)
+            => (value ?? string.Empty).Trim();
 
         private static IOrderedQueryable<Certifseman> ApplyCreationOrder(IQueryable<Certifseman> query)
             => query
