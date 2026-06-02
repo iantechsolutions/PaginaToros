@@ -112,10 +112,10 @@
                     <label>Plantel Origen</label>
                     <BlazoredTypeahead class="plantel-typeahead" SearchMethod="BusquedaPlantelesVendedor" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelOrigen">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.Placod
+                            @FormatoPlantel(eleccion)
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.Placod
+                            @FormatoPlantel(eleccion)
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -123,10 +123,10 @@
                     <label>Plantel Destino</label>
                     <BlazoredTypeahead class="plantel-typeahead" SearchMethod="BusquedaPlantelesComprador" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelDestino">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.Placod
+                            @FormatoPlantel(eleccion)
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.Placod
+                            @FormatoPlantel(eleccion)
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -520,7 +520,8 @@ else
         if (socioComprador != null && !string.IsNullOrWhiteSpace(socioComprador.Scod))
         {
             return await Task.FromResult(
-                plantelesComprador.Where(x => x.Placod.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList()
+                OrderPlantelesByYear(plantelesComprador)
+                    .Where(x => x.Placod.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList()
             );
         }
 
@@ -532,7 +533,48 @@ else
         await EnsurePlantelesVendedorLoadedAsync();
 
         return await Task.FromResult(
-            plantelesVendedor.Where(x => x.Placod.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList());
+            OrderPlantelesByYear(plantelesVendedor)
+                .Where(x => x.Placod.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList());
+    }
+
+    private static List<PlantelDTO> OrderPlantelesByYear(IEnumerable<PlantelDTO>? items)
+        => (items ?? Enumerable.Empty<PlantelDTO>())
+            .OrderByDescending(x => TryGetPlantelYear(x).HasValue)
+            .ThenByDescending(x => TryGetPlantelYear(x))
+            .ThenByDescending(x => x.Id)
+            .ToList();
+
+    private static int? TryGetPlantelYear(PlantelDTO? plantel)
+    {
+        if (plantel == null || string.IsNullOrWhiteSpace(plantel.Anioex))
+        {
+            return null;
+        }
+
+        return int.TryParse(plantel.Anioex, out var year) ? year : null;
+    }
+
+    private static string FormatoPlantel(PlantelDTO? plantel)
+    {
+        if (plantel is null)
+        {
+            return string.Empty;
+        }
+
+        var placod = plantel.Placod?.Trim() ?? string.Empty;
+        var anio = plantel.Anioex?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(anio))
+        {
+            return placod;
+        }
+
+        if (string.IsNullOrWhiteSpace(placod))
+        {
+            return anio;
+        }
+
+        return $"{placod} - {anio}";
     }
 
     private async Task EnsurePlantelesVendedorLoadedAsync()

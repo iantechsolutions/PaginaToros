@@ -195,10 +195,10 @@
                                            EnableDropDown="true"
                                            @bind-Value="Plantelseleccionado">
                             <SelectedTemplate Context="eleccion">
-                                @eleccion.Placod
+                                @FormatoPlantel(eleccion)
                             </SelectedTemplate>
                             <ResultTemplate Context="eleccion">
-                                @eleccion.Placod
+                                @FormatoPlantel(eleccion)
                             </ResultTemplate>
                         </BlazoredTypeahead>
                     </div>
@@ -669,7 +669,7 @@ else
             Inspects = OrderInspectsByCreation(rtaaa.List);
             esSocio = opcion == 1;
             var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
-            Planteles = OrderPlantelesByCreation(plan.List);
+            Planteles = OrderPlantelesByYear(plan.List);
             if (Id != 0)
             {
                 string filtro = $"Id = {Id}";
@@ -767,30 +767,6 @@ else
 
     }
 
-    DateTime? GetPlantelCreationDate(PlantelDTO? plantel)
-    {
-        if (plantel == null)
-        {
-            return null;
-        }
-
-        if (!string.IsNullOrWhiteSpace(plantel.Fecing))
-        {
-            var formatos = new[] { "yyyy/MM/dd", "yyyy-MM-dd", "dd/MM/yyyy", "MM/dd/yyyy" };
-            if (DateTime.TryParseExact(plantel.Fecing, formatos, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var fechaCreacion))
-            {
-                return fechaCreacion;
-            }
-
-            if (DateTime.TryParse(plantel.Fecing, out fechaCreacion))
-            {
-                return fechaCreacion;
-            }
-        }
-
-        return plantel.FchUsu;
-    }
-
     DateTime? GetSocioCreationDate(SocioDTO? socio)
     {
         if (socio == null)
@@ -821,12 +797,22 @@ else
         return resin.FchUsu ?? resin.Freali;
     }
 
-    List<PlantelDTO> OrderPlantelesByCreation(IEnumerable<PlantelDTO>? items)
+    List<PlantelDTO> OrderPlantelesByYear(IEnumerable<PlantelDTO>? items)
         => (items ?? Enumerable.Empty<PlantelDTO>())
-            .OrderByDescending(x => GetPlantelCreationDate(x).HasValue)
-            .ThenByDescending(x => GetPlantelCreationDate(x))
+            .OrderByDescending(x => TryGetPlantelYear(x).HasValue)
+            .ThenByDescending(x => TryGetPlantelYear(x))
             .ThenByDescending(x => x.Id)
             .ToList();
+
+    private static int? TryGetPlantelYear(PlantelDTO? plantel)
+    {
+        if (plantel == null || string.IsNullOrWhiteSpace(plantel.Anioex))
+        {
+            return null;
+        }
+
+        return int.TryParse(plantel.Anioex, out var year) ? year : null;
+    }
 
     List<SocioDTO> OrderSociosByCreation(IEnumerable<SocioDTO>? items)
         => (items ?? Enumerable.Empty<SocioDTO>())
@@ -1083,7 +1069,7 @@ else
                 {
                     // como último recurso, intentá recuperar el plantel del socio (ya lo hacés en otros lados)
                     var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
-                    Planteles = OrderPlantelesByCreation(plan.List);
+                    Planteles = OrderPlantelesByYear(plan.List);
                     Plantelseleccionado = Planteles
                         .Where(x => x.Nrocri == socioSeleccionado?.Scod)
                         .FirstOrDefault();
@@ -1976,10 +1962,33 @@ async Task ResultWithoutSolicitud()
         {
             var term = (searchText ?? string.Empty).Trim();
             var scod = socioSeleccionado?.Scod;
-            var result = Planteles
+            var result = OrderPlantelesByYear(Planteles)
                 .Where(x => !string.IsNullOrEmpty(x.Placod) && x.Placod.Contains(term, StringComparison.OrdinalIgnoreCase) && x.Nrocri == scod)
                 .ToList();
             return await Task.FromResult(result);
+        }
+
+        private static string FormatoPlantel(PlantelDTO? plantel)
+        {
+            if (plantel is null)
+            {
+                return string.Empty;
+            }
+
+            var placod = plantel.Placod?.Trim() ?? string.Empty;
+            var anio = plantel.Anioex?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(anio))
+            {
+                return placod;
+            }
+
+            if (string.IsNullOrWhiteSpace(placod))
+            {
+                return anio;
+            }
+
+            return $"{placod} - {anio}";
         }
 
     }

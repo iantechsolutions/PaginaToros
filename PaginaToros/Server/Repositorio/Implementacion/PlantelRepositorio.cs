@@ -27,7 +27,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     .Include(t => t.Socio)
                     .ToListAsync();
 
-                return ApplyCreationOrder(items, skip, take);
+                return ApplyOrdering(items, skip, take, preferYearOrdering: false);
             }
             catch
             {
@@ -80,7 +80,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 }
 
                 var items = await query.ToListAsync();
-                return ApplyCreationOrder(items, skip, take);
+                return ApplyOrdering(items, skip, take, preferYearOrdering: ShouldPreferYearOrdering(filtro));
             }
             catch
             {
@@ -99,7 +99,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 }
 
                 var items = await query.ToListAsync();
-                return ApplyCreationOrder(items, skip, take);
+                return ApplyOrdering(items, skip, take, preferYearOrdering: ShouldPreferYearOrdering(filtro));
             }
             catch
             {
@@ -195,20 +195,35 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             }
         }
 
-        private static List<Plantel> ApplyCreationOrder(IEnumerable<Plantel> items, int skip, int take)
+        private static List<Plantel> ApplyOrdering(IEnumerable<Plantel> items, int skip, int take, bool preferYearOrdering)
         {
-            var ordered = items
-                .OrderByDescending(GetPlantelCreationDate)
-                .ThenByDescending(GetPlantelCreationYear)
-                .ThenByDescending(t => t.Id)
-                .ToList();
+            IOrderedEnumerable<Plantel> ordered = preferYearOrdering
+                ? items
+                    .OrderByDescending(GetPlantelCreationYear)
+                    .ThenByDescending(GetPlantelCreationDate)
+                    .ThenByDescending(t => t.Id)
+                : items
+                    .OrderByDescending(GetPlantelCreationDate)
+                    .ThenByDescending(GetPlantelCreationYear)
+                    .ThenByDescending(t => t.Id);
 
             if (take == 0)
             {
-                return ordered;
+                return ordered.ToList();
             }
 
             return ordered.Skip(skip).Take(take).ToList();
+        }
+
+        private static bool ShouldPreferYearOrdering(string? filtro)
+        {
+            if (string.IsNullOrWhiteSpace(filtro))
+            {
+                return false;
+            }
+
+            return filtro.Contains("Socio.Id", StringComparison.OrdinalIgnoreCase)
+                || filtro.Contains("Nrocri", StringComparison.OrdinalIgnoreCase);
         }
 
         private static DateTime? GetPlantelCreationDate(Plantel plantel)

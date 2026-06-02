@@ -33,6 +33,19 @@ public class PlantelRepositorioTests
         Assert.Equal(new[] { 1, 3 }, result.Select(x => x.Id));
     }
 
+    [Fact]
+    public async Task LimitadosFiltrados_WhenFilteringBySocio_UsesYearOrdering()
+    {
+        using var scope = CreateContext();
+        Seed(scope.Context);
+
+        var repo = new PlantelRepositorio(scope.Context);
+
+        var result = await repo.LimitadosFiltrados(0, 0, "Socio.Id == 1");
+
+        Assert.Equal(new[] { 3, 2, 1, 4 }, result.Select(x => x.Id));
+    }
+
     private static TestContextScope CreateContext()
     {
         var options = new DbContextOptionsBuilder<hereford_prContext>()
