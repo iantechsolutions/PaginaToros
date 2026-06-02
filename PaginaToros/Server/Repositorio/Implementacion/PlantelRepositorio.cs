@@ -22,14 +22,12 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
             try
             {
-
-                return await ApplyCreationOrder(
-                        _dbContext.Planteles
-                            .AsNoTracking()
-                            .Include(t => t.Socio))
-                    .Skip(skip)
-                    .Take(take)
+                var items = await _dbContext.Planteles
+                    .AsNoTracking()
+                    .Include(t => t.Socio)
                     .ToListAsync();
+
+                return ApplyCreationOrder(items, skip, take);
             }
             catch
             {
@@ -81,16 +79,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = query.Where(filtro);
                 }
 
-                query = ApplyCreationOrder(query);
-
-                if (take == 0)
-                {
-                    return await query.ToListAsync();
-                }
-                else
-                {
-                    return await query.Skip(skip).Take(take).ToListAsync();
-                }
+                var items = await query.ToListAsync();
+                return ApplyCreationOrder(items, skip, take);
             }
             catch
             {
@@ -108,16 +98,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = query.Where(filtro);
                 }
 
-                query = ApplyCreationOrder(query);
-
-                if (take == 0)
-                {
-                    return await query.ToListAsync();
-                }
-                else
-                {
-                    return await query.Skip(skip).Take(take).ToListAsync();
-                }
+                var items = await query.ToListAsync();
+                return ApplyCreationOrder(items, skip, take);
             }
             catch
             {
@@ -213,13 +195,55 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             }
         }
 
-        private static IOrderedQueryable<Plantel> ApplyCreationOrder(IQueryable<Plantel> query)
-            => query
-                .OrderByDescending(t => !string.IsNullOrWhiteSpace(t.Fecing))
-                .ThenByDescending(t => t.Fecing)
-                .ThenByDescending(t => t.Anioex)
-                .ThenByDescending(t => t.FchUsu)
-                .ThenByDescending(t => t.Id);
+        private static List<Plantel> ApplyCreationOrder(IEnumerable<Plantel> items, int skip, int take)
+        {
+            var ordered = items
+                .OrderByDescending(GetPlantelCreationDate)
+                .ThenByDescending(GetPlantelCreationYear)
+                .ThenByDescending(t => t.Id)
+                .ToList();
+
+            if (take == 0)
+            {
+                return ordered;
+            }
+
+            return ordered.Skip(skip).Take(take).ToList();
+        }
+
+        private static DateTime? GetPlantelCreationDate(Plantel plantel)
+        {
+            if (plantel == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(plantel.Fecing))
+            {
+                var formatos = new[] { "yyyy/MM/dd", "yyyy-MM-dd", "dd/MM/yyyy", "MM/dd/yyyy" };
+                if (DateTime.TryParseExact(plantel.Fecing, formatos, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var fechaCreacion))
+                {
+                    return fechaCreacion;
+                }
+
+                if (DateTime.TryParse(plantel.Fecing, out fechaCreacion))
+                {
+                    return fechaCreacion;
+                }
+            }
+
+            return plantel.FchUsu;
+        }
+
+        private static int? GetPlantelCreationYear(Plantel plantel)
+        {
+            if (!string.IsNullOrWhiteSpace(plantel?.Anioex) && int.TryParse(plantel.Anioex, out var year))
+            {
+                return year;
+            }
+
+            return null;
+        }
 
 
     }
