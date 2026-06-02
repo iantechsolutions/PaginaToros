@@ -1007,6 +1007,7 @@ else
         return (int)Math.Round(v * multiplicador, MidpointRounding.AwayFromZero);
     }
     Dictionary<string, string> errors = new();
+    Dictionary<string, string> warnings = new();
 
     // Construye un mapa HBA -> dosis totales usadas en la declaración
     Dictionary<string, int> BuildUsoPorCert(IEnumerable<Desepla3DTO> items, double multiplicador)
@@ -1099,6 +1100,22 @@ else
         return $"<ul style='text-align:left;margin-left:1rem'>{string.Join("", items)}</ul>";
     }
 
+    private string BuildWarningsHtml()
+    {
+        var items = warnings
+            .Select(kv => $"<li><b>{CampoLegible(kv.Key)}:</b> {System.Net.WebUtility.HtmlEncode(kv.Value)}</li>");
+        return $"<div style='margin-top:.5rem'><b>Advertencias:</b><ul style='text-align:left;margin-left:1rem'>{string.Join("", items)}</ul></div>";
+    }
+
+    private string FormatQty(double value) => Math.Abs(value - Math.Round(value)) < 0.0001
+        ? Math.Round(value).ToString()
+        : value.ToString("0.##");
+
+    private string BuildPlantelCapacityDetail(string label, double vacas, double conServicio, double sinServicio, double total, double declarado)
+    {
+        return $"{label}: ingresaste {FormatQty(declarado)} y la capacidad del plantel es {FormatQty(total)} ({FormatQty(vacas)} + {FormatQty(conServicio)} + {FormatQty(sinServicio)}).";
+    }
+
     private string BuildSaveHintsHtml()
     {
         var hints = new List<string>();
@@ -1135,16 +1152,30 @@ else
             return;
         }
 
+        if (warnings.Count > 0)
+        {
+            Log($"ValidateManual WARN | advertencias={string.Join(" | ", warnings.Select(e => $"{e.Key}:{e.Value}"))}");
+            await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Atención",
+                Html = BuildWarningsHtml() + "<div style='margin-top:.75rem'>La declaración se guardará igual.</div>",
+                Icon = SweetAlertIcon.Warning,
+                ConfirmButtonText = "Continuar"
+            });
+        }
+
         Log("ValidateManual OK. Ejecutando Guardar...");
         await Guardar();
     }
 
     private void ClearErrors() => errors.Clear();
+    private void ClearWarnings() => warnings.Clear();
 
 
     private bool ValidateManual()
     {
         ClearErrors();
+        ClearWarnings();
 
         // 1) Requeridos básicos
         if (socioSeleccionado is null)
@@ -1176,11 +1207,27 @@ else
                      + (Plantelseleccionado?.Vqssrp ?? 0)
                      + (Plantelseleccionado?.Vqcsrp ?? 0);
 
-        if ((oDeclaracion.Cantv ?? 0) < 0 || (oDeclaracion.Cantv ?? 0) > prTotal)
-            errors["cantv"] = $"La cantidad PR no puede superar {prTotal}.";
+        if ((oDeclaracion.Cantv ?? 0) < 0)
+            errors["cantv"] = "La cantidad de vientres de servicio PR no puede ser negativa.";
+        else if ((oDeclaracion.Cantv ?? 0) > prTotal)
+            warnings["cantv"] = BuildPlantelCapacityDetail(
+                "Vientres de Servicio PR",
+                Plantelseleccionado?.Varede ?? 0,
+                Plantelseleccionado?.Vqcsrd ?? 0,
+                Plantelseleccionado?.Vqssrd ?? 0,
+                prTotal,
+                oDeclaracion.Cantv ?? 0) + " Se guardará igual.";
 
-        if ((oDeclaracion.Cantb ?? 0) < 0 || (oDeclaracion.Cantb ?? 0) > vipTotal)
-            errors["cantb"] = $"La cantidad VIP no puede superar {vipTotal}.";
+        if ((oDeclaracion.Cantb ?? 0) < 0)
+            errors["cantb"] = "La cantidad de vientres de servicio VIP no puede ser negativa.";
+        else if ((oDeclaracion.Cantb ?? 0) > vipTotal)
+            warnings["cantb"] = BuildPlantelCapacityDetail(
+                "Vientres de Servicio VIP",
+                Plantelseleccionado?.Varepr ?? 0,
+                Plantelseleccionado?.Vqcsrp ?? 0,
+                Plantelseleccionado?.Vqssrp ?? 0,
+                vipTotal,
+                oDeclaracion.Cantb ?? 0) + " Se guardará igual.";
 
         // 3) Reglas por tipo
         bool esNatural = IsNaturalTipo(tipoTemp);
