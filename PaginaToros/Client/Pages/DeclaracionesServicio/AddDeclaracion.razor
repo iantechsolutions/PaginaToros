@@ -1155,13 +1155,20 @@ else
         if (warnings.Count > 0)
         {
             Log($"ValidateManual WARN | advertencias={string.Join(" | ", warnings.Select(e => $"{e.Key}:{e.Value}"))}");
-            await Swal.FireAsync(new SweetAlertOptions
+            var confirmContinue = await Swal.FireAsync(new SweetAlertOptions
             {
-                Title = "Atención",
-                Html = BuildWarningsHtml() + "<div style='margin-top:.75rem'>La declaración se guardará igual.</div>",
+                Title = "¿Desea continuar?",
+                Html = BuildWarningsHtml() + "<div style='margin-top:.75rem'>La cantidad de vientres en servicio es mayor a la declarada en el plantel.</div>",
                 Icon = SweetAlertIcon.Warning,
-                ConfirmButtonText = "Continuar"
+                ShowCancelButton = true,
+                ConfirmButtonText = "Sí, continuar",
+                CancelButtonText = "Cancelar"
             });
+
+            if (confirmContinue.Dismiss == DismissReason.Cancel)
+            {
+                return;
+            }
         }
 
         Log("ValidateManual OK. Ejecutando Guardar...");
