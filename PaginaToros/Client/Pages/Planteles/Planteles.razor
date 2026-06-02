@@ -219,7 +219,6 @@ else
               EnsureNoDuplicates(oRespuesta);
              // Diagnostics: log duplicates if any
              LogDuplicatesIfAny(oRespuesta, "Get - Lista(0,15)");
-             OrderPlantelesByFchUsu(oRespuesta);
               StateHasChanged();
          }
          else
@@ -229,7 +228,6 @@ else
             oRespuesta = await _plantelServicio.GetBySocioId(usuarioId);
             EnsureNoDuplicates(oRespuesta);
             LogDuplicatesIfAny(oRespuesta, "Get - GetBySocioId");
-            OrderPlantelesByFchUsu(oRespuesta);
              cantidad = oRespuesta.List.Count;
          }
      }
@@ -396,7 +394,6 @@ else
                     string filtro = $"Socio.Id={socioSeleccionado.Id}";
                     oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
                     EnsureNoDuplicates(oRespuesta);
-                    OrderPlantelesByFchUsu(oRespuesta);
                 }
             }
         }
@@ -442,16 +439,12 @@ else
                 oRespuesta = await _plantelServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
                 EnsureNoDuplicates(oRespuesta);
                 LogDuplicatesIfAny(oRespuesta, $"LoadData - LimitadosFiltrados skip={args.Skip} top={args.Top}");
-                // Do not re-order here; server returns the correct ordering/pagination.
-                // Still ensure client-side dedupe and optional ordering if needed.
-                OrderPlantelesByFchUsu(oRespuesta);
             }
             else
             {
                 oRespuesta = await _plantelServicio.Lista(args.Skip.Value, args.Top.Value);
                 EnsureNoDuplicates(oRespuesta);
                 LogDuplicatesIfAny(oRespuesta, $"LoadData - Lista skip={args.Skip} top={args.Top}");
-                OrderPlantelesByFchUsu(oRespuesta);
             }
         }
         else
@@ -463,7 +456,6 @@ else
                 var top = args.Top ?? 15;
                 oRespuesta = await _plantelServicio.LimitadosFiltrados(skip, top, args.Filter);
                  // oRespuesta.List = oRespuesta.List.Where(args.Filter)
-                 OrderPlantelesByFchUsu(oRespuesta);
             }
             else
             {
@@ -472,7 +464,6 @@ else
                 oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
                  EnsureNoDuplicates(oRespuesta);
                  LogDuplicatesIfAny(oRespuesta, "LoadData - LimitadosFiltrados for socio");
-                 OrderPlantelesByFchUsu(oRespuesta);
             }
         }
 
@@ -534,39 +525,4 @@ else
         }
     }
 
-    DateTime? GetPlantelCreationDate(PlantelDTO plantel)
-    {
-        if (plantel == null)
-        {
-            return null;
-        }
-
-        if (!string.IsNullOrWhiteSpace(plantel.Fecing))
-        {
-            var formatos = new[] { "yyyy/MM/dd", "yyyy-MM-dd", "dd/MM/yyyy", "MM/dd/yyyy" };
-            if (DateTime.TryParseExact(plantel.Fecing, formatos, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var fechaCreacion))
-            {
-                return fechaCreacion;
-            }
-
-            if (DateTime.TryParse(plantel.Fecing, out fechaCreacion))
-            {
-                return fechaCreacion;
-            }
-        }
-
-        return plantel.FchUsu;
-    }
-
-    // Order planteles by creation date descending (most recent first)
-    void OrderPlantelesByFchUsu(Respuesta<List<PlantelDTO>> respuesta)
-    {
-        if (respuesta == null || respuesta.List == null) return;
-
-        respuesta.List = respuesta.List
-            .OrderByDescending(x => GetPlantelCreationDate(x).HasValue)
-            .ThenByDescending(x => GetPlantelCreationDate(x))
-            .ThenByDescending(x => x.Id)
-            .ToList();
-    }
 }

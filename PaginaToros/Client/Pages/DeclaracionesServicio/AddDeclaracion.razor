@@ -420,7 +420,7 @@ else if (socios.Count > 0)
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Nombre" Width="9%">
                                     <Template Context="data">
                                         @{
-                                            var toro = toros.FirstOrDefault(x => x.Hba == data.original.Hardb);
+                                            var toro = toros.FirstOrDefault(x => string.Equals(T(x.Hba), T(data.original.Hardb), StringComparison.OrdinalIgnoreCase));
                                         }
                                         @(toro?.NomDad ?? "-")
                                     </Template>
@@ -488,7 +488,7 @@ else if (socios.Count > 0)
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Nombre" Width="9%">
                                     <Template Context="data">
                                         @{
-                                            var toro = toros.FirstOrDefault(x => x.Hba == data.original.Hardb);
+                                            var toro = toros.FirstOrDefault(x => string.Equals(T(x.Hba), T(data.original.Hardb), StringComparison.OrdinalIgnoreCase));
                                         }
                                         @(toro?.NomDad ?? "-")
                                     </Template>
@@ -575,7 +575,7 @@ else if (socios.Count > 0)
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Nombre" Width="9%">
                                     <Template Context="data">
                                         @{
-                                            var cert = certificados.FirstOrDefault(x => x.Hba == data.original.Hardb);
+                                            var cert = certificados.FirstOrDefault(x => string.Equals(T(x.Hba), T(data.original.Hardb), StringComparison.OrdinalIgnoreCase));
                                         }
                                         @(cert?.NomDad ?? "-")
                                     </Template>
@@ -1035,7 +1035,7 @@ else
     {
         if (string.IsNullOrWhiteSpace(hba)) return 0;
 
-        var cert = certificados.FirstOrDefault(x => x.Hba == hba);
+        var cert = certificados.FirstOrDefault(x => string.Equals(T(x.Hba), T(hba), StringComparison.OrdinalIgnoreCase));
         var baseStock = cert?.NrDosi ?? 0;
 
         // Si estamos editando, devolvemos al stock lo usado originalmente por la declaración
@@ -1306,7 +1306,7 @@ else
 
             if (delta == 0) continue;
 
-            var cert = certificados.FirstOrDefault(x => x.Hba == hba);
+            var cert = certificados.FirstOrDefault(x => string.Equals(T(x.Hba), T(hba), StringComparison.OrdinalIgnoreCase));
             if (cert == null)
             {
                 Log($"No se encontró certificado en memoria para HBA={Q(hba)}");
@@ -1588,11 +1588,8 @@ else
     private async Task<IEnumerable<CertifsemanDTO>> BusquedaCertificados(string searchText)
     {
         var term = (searchText ?? string.Empty).Trim().ToLower();
-        var socioScod = T(socioSeleccionado?.Scod);
 
         var baseQuery = certificados
-            .Where(x => T(x.Nrocri).Equals(socioScod, StringComparison.OrdinalIgnoreCase))
-            .Where(x => x.FchUsu.HasValue)
             .Where(x => (x.NrDosi ?? 0) > 0)
             .Where(x => !IsCertifSelected(x));
 
@@ -1606,6 +1603,83 @@ else
 
         return await Task.FromResult(baseQuery.Take(30).ToList());
     }
+
+    private async Task<List<CertifsemanDTO>> LoadCertificadosForSocioAsync(int? socioId, string? socioCode)
+    {
+        var merged = new List<CertifsemanDTO>();
+
+        if (socioId.HasValue && socioId.Value > 0)
+        {
+            var byId = await _certifsemanServicio.GetBySocioId(socioId.Value);
+            var itemsById = byId.List?.ToList() ?? new List<CertifsemanDTO>();
+            Log($"LoadCertificadosForSocioAsync | Socio.Id={socioId.Value} | resultadoPorId={itemsById.Count}");
+            merged.AddRange(itemsById);
+        }
+
+        var codigo = T(socioCode);
+        if (string.IsNullOrWhiteSpace(codigo))
+        {
+            return MergeCertificadosByBusinessKey(merged);
+        }
+
+        var exactFilter = BuildCertificadoFilter(codigo);
+        var exact = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, exactFilter);
+        var exactItems = exact.List?.ToList() ?? new List<CertifsemanDTO>();
+        Log($"LoadCertificadosForSocioAsync | fallback exact Nrocri={Q(codigo)} | resultadoExacto={exactItems.Count}");
+        merged.AddRange(exactItems);
+        if (merged.Count == 0)
+        {
+            var containsFilter = BuildCertificadoFilter(codigo, useContains: true);
+            var contains = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, containsFilter);
+            var containsItems = (contains.List?.ToList() ?? new List<CertifsemanDTO>())
+                .Where(x => x.FchUsu.HasValue)
+                .ToList();
+            Log($"LoadCertificadosForSocioAsync | fallback contains Nrocri={Q(codigo)} | resultadoContains={containsItems.Count}");
+            merged.AddRange(containsItems);
+        }
+
+        var mergedItems = MergeCertificadosByBusinessKey(merged);
+        Log($"LoadCertificadosForSocioAsync | mergedTotal={mergedItems.Count}");
+        LogSelectedCertificadosSnapshot("LoadCertificadosForSocioAsync preview", mergedItems);
+        return mergedItems;
+    }
+
+    private void LogSelectedCertificadosSnapshot(string title, IEnumerable<CertifsemanDTO>? items)
+    {
+        var list = items?.ToList() ?? new List<CertifsemanDTO>();
+        var resumen = string.Join(" | ", list.Take(10).Select(c =>
+            $"Id={c.Id},HBA={Q(c.Hba)},Nom={Q(c.NomDad)},Nrocri={Q(c.Nrocri)},NrDosi={c.NrDosi},FchUsu={(c.FchUsu.HasValue ? c.FchUsu.Value.ToString("yyyy-MM-dd") : "<null>")}"));
+        Log($"{title} | total={list.Count} | {resumen}");
+    }
+
+    private static List<CertifsemanDTO> MergeCertificadosByBusinessKey(IEnumerable<CertifsemanDTO> items)
+    {
+        var unique = new List<CertifsemanDTO>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var item in items.Where(x => x != null))
+        {
+            var key = BuildCertificadoUniqueKey(item);
+            if (seen.Add(key))
+            {
+                unique.Add(item);
+            }
+        }
+
+        return unique;
+    }
+
+    private static string BuildCertificadoUniqueKey(CertifsemanDTO item)
+    {
+        if (item.Id > 0)
+        {
+            return $"ID:{item.Id}";
+        }
+
+        return $"BUS:{NormalizeKeyPart(item.NroCert)}|{NormalizeKeyPart(item.Hba)}|{NormalizeKeyPart(item.Tatpart)}";
+    }
+
+    private static string NormalizeKeyPart(string? value) => (value ?? string.Empty).Trim();
 
     private static string BuildCertificadoFilter(string? socioScod, bool useContains = false)
     {
@@ -1699,10 +1773,10 @@ else
         => await ToggleToro(args?.Data);
 
     private bool IsToroSelected(TorosuniDTO? toro)
-        => toro != null && torosSeleccionados.Any(t => t.original?.Hardb == toro.Hba);
+        => toro != null && torosSeleccionados.Any(t => string.Equals(T(t.original?.Hardb), T(toro.Hba), StringComparison.OrdinalIgnoreCase));
 
     private bool IsCertifSelected(CertifsemanDTO? certif)
-        => certif != null && certificadosSeleccionados.Any(c => c.original?.Hardb == certif.Hba);
+        => certif != null && certificadosSeleccionados.Any(c => string.Equals(T(c.original?.Hardb), T(certif.Hba), StringComparison.OrdinalIgnoreCase));
 
     private async Task ToggleToro(TorosuniDTO? toro)
     {
@@ -1712,7 +1786,7 @@ else
             return;
         }
 
-        var existente = torosSeleccionados.FirstOrDefault(t => t.original?.Hardb == toro.Hba);
+        var existente = torosSeleccionados.FirstOrDefault(t => string.Equals(T(t.original?.Hardb), T(toro.Hba), StringComparison.OrdinalIgnoreCase));
         if (existente != null)
         {
             Log($"ToggleToro ignorado (ya seleccionado) | HBA={Q(toro.Hba)}");
@@ -1787,7 +1861,7 @@ else
             return;
         }
 
-        var existente = certificadosSeleccionados.FirstOrDefault(c => c.original?.Hardb == certif.Hba);
+        var existente = certificadosSeleccionados.FirstOrDefault(c => string.Equals(T(c.original?.Hardb), T(certif.Hba), StringComparison.OrdinalIgnoreCase));
         if (existente != null)
         {
             Log($"ToggleCertif ignorado (ya seleccionado) | HBA={Q(certif.Hba)}");
@@ -1858,9 +1932,8 @@ else
         Log($"UpdateValores -> Toros filtro: {filtro}");
         var torosTask = _torosServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
 
-        filtro = BuildCertificadoFilter(socioScodRaw);
-        Log($"UpdateValores -> Certificados filtro: {filtro}");
-        var certificadosTask = _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, filtro);
+        Log($"UpdateValores -> Certificados filtro por Socio.Id: {socio?.Id}");
+        var certificadosTask = LoadCertificadosForSocioAsync(socio?.Id, socioScodRaw);
 
         await Task.WhenAll(plantelesTask, torosTask, certificadosTask);
 
@@ -1895,19 +1968,8 @@ else
             Log($"Toros criadores (muestra): {string.Join(" | ", criadores.Select(Q))}");
         }
 
-        var rtaa = await certificadosTask;
-        certificados = rtaa.List ?? new List<CertifsemanDTO>();
+        certificados = await certificadosTask;
         Log($"Certificados cargados: {certificados?.Count ?? 0}");
-        if ((certificados?.Count ?? 0) == 0 && !string.IsNullOrWhiteSpace(socioScodTrim))
-        {
-            var filtroDiag = BuildCertificadoFilter(socioScodTrim, useContains: true);
-            var rtDiag = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 20, filtroDiag);
-            certificados = (rtDiag?.List ?? new List<CertifsemanDTO>())
-                .Where(x => T(x.Nrocri).Equals(socioScodTrim, StringComparison.OrdinalIgnoreCase))
-                .Where(x => x.FchUsu.HasValue)
-                .ToList();
-            Log($"Diag Certificados (contains scod trim) -> {rtDiag?.List?.Count ?? 0} resultados crudos | filtradosExactos={certificados.Count} | filtro={filtroDiag}");
-        }
         if ((certificados?.Count ?? 0) > 0)
         {
             var nrocris = certificados.Select(c => c.Nrocri).Where(n => !string.IsNullOrWhiteSpace(n)).Distinct().Take(5);
@@ -2029,21 +2091,7 @@ else
             // 3) Asegurar certificados en memoria (si está vacío, recargar)
             if (certificados == null || certificados.Count == 0)
             {
-                // Si no hay socioSeleccionado, buscarlo por Nrocri de la declaración
-                if (socioSeleccionado == null && !string.IsNullOrWhiteSpace(oDeclaracion.Nrocri))
-                {
-                    var socioFiltro = $"Id > 0"; // o el que uses; lo importante es tener certificados
-                                                 // (si querés, también podés buscar socio por Scod == Nrocri)
-                }
-
-                if (!string.IsNullOrWhiteSpace(oDeclaracion.Nrocri))
-                {
-                    var certFiltro = BuildCertificadoFilter(oDeclaracion.Nrocri, useContains: true);
-                    var certrta = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, certFiltro);
-                    certificados = (certrta.List?.ToList() ?? new List<CertifsemanDTO>())
-                        .Where(x => x.FchUsu.HasValue)
-                        .ToList();
-                }
+                certificados = await LoadCertificadosForSocioAsync(socioSeleccionado?.Id, oDeclaracion.Nrocri);
             }
 
             // 4) Restaurar NrDosi por cada HBA involucrado

@@ -23,16 +23,13 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             try
             {
 
-                // Prefer creation date when available, then last update, then newest id.
-                return await _dbContext.Planteles
-                                         .Include(t => t.Socio)
-                                         .OrderByDescending(t => !string.IsNullOrWhiteSpace(t.Fecing))
-                                         .ThenByDescending(t => t.Fecing)
-                                         .ThenByDescending(t => t.FchUsu)
-                                         .ThenByDescending(t => t.Id)
-                                         .Skip(skip)
-                                         .Take(take)
-                                         .ToListAsync();
+                return await ApplyCreationOrder(
+                        _dbContext.Planteles
+                            .AsNoTracking()
+                            .Include(t => t.Socio))
+                    .Skip(skip)
+                    .Take(take)
+                    .ToListAsync();
             }
             catch
             {
@@ -84,11 +81,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = query.Where(filtro);
                 }
 
-                query = query
-                    .OrderByDescending(t => !string.IsNullOrWhiteSpace(t.Fecing))
-                    .ThenByDescending(t => t.Fecing)
-                    .ThenByDescending(t => t.FchUsu)
-                    .ThenByDescending(t => t.Id);
+                query = ApplyCreationOrder(query);
 
                 if (take == 0)
                 {
@@ -115,11 +108,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = query.Where(filtro);
                 }
 
-                query = query
-                    .OrderByDescending(t => !string.IsNullOrWhiteSpace(t.Fecing))
-                    .ThenByDescending(t => t.Fecing)
-                    .ThenByDescending(t => t.FchUsu)
-                    .ThenByDescending(t => t.Id);
+                query = ApplyCreationOrder(query);
 
                 if (take == 0)
                 {
@@ -223,6 +212,14 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
+        private static IOrderedQueryable<Plantel> ApplyCreationOrder(IQueryable<Plantel> query)
+            => query
+                .OrderByDescending(t => !string.IsNullOrWhiteSpace(t.Fecing))
+                .ThenByDescending(t => t.Fecing)
+                .ThenByDescending(t => t.Anioex)
+                .ThenByDescending(t => t.FchUsu)
+                .ThenByDescending(t => t.Id);
 
 
     }

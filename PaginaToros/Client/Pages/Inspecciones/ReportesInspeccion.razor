@@ -58,6 +58,18 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Resin1DTO" Property="Nropla" Title="Plantel" Width="21.7%" />
                 <RadzenDataGridColumn TItem="Resin1DTO" Property="Socio.Nombre" Title="Socio" Width="21.7%"/>
+                <RadzenDataGridColumn TItem="Resin1DTO" Property="FchUsu" Title="Fecha de Creación" Width="21.7%">
+                    <Template Context="data">
+                        @if (data.FchUsu.HasValue)
+                        {
+                            @data.FchUsu.Value.ToString("dd/MM/yyyy")
+                        }
+                        else
+                        {
+
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Resin1DTO" Property="Freali" Title="Fecha De Inspeccion" Width="21.7%">
                     <Template Context="data">
                         @if (data.Freali.HasValue)
@@ -119,6 +131,18 @@ else
                         <RadzenDataGridColumn TItem="Resin1DTO" Property="Nrores" Title="Nro Resultado" Width="21.7%" />
                         <RadzenDataGridColumn TItem="Resin1DTO" Property="Nropla" Title="Plantel" Width="21.7%" />
                         <RadzenDataGridColumn TItem="Resin1DTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="21.7%" />
+                        <RadzenDataGridColumn TItem="Resin1DTO" Property="FchUsu" Title="Fecha de Creación" Width="21.7%">
+                            <Template Context="data">
+                                @if (data.FchUsu.HasValue)
+                                {
+                                    @data.FchUsu.Value.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
 
                         <RadzenDataGridColumn TItem="Resin1DTO" Property="Freali" Title="Fecha De Inspeccion" Width="21.7%">
                             <Template Context="data">

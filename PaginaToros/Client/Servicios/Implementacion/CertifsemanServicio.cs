@@ -38,7 +38,7 @@ namespace PaginaToros.Client.Servicios.Implementacion
 
         public async Task<Respuesta<List<CertifsemanDTO>>> GetBySocioId(int socioId)
         {
-            string filter = $"Socio.Id={socioId}";
+            string filter = $"Socio.Id == {socioId}";
             var encoded = Uri.EscapeDataString(filter);
             var result = await _http.GetFromJsonAsync<Respuesta<List<CertifsemanDTO>>>($"api/Certifseman/LimitadosFiltrados?skip=0&take=0&expression={encoded}");
             return result;

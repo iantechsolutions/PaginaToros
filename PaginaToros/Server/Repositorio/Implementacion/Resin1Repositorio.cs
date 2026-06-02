@@ -249,6 +249,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             => query
                 .OrderByDescending(x => x.FchUsu.HasValue)
                 .ThenByDescending(x => x.FchUsu)
+                .ThenByDescending(x => x.Freali.HasValue)
+                .ThenByDescending(x => x.Freali.HasValue ? x.Freali.Value.Year : (int?)null)
                 .ThenByDescending(x => x.Id);
     }
 }
