@@ -42,6 +42,74 @@
         margin-left: auto;
         justify-content: center;
     }
+
+    .plantel-info-btn {
+        min-width: 1.6rem;
+        height: 1.6rem;
+        border-radius: 999px;
+        padding: 0;
+        font-weight: 600;
+        line-height: 1;
+        border: 1px solid #6f7680;
+        background-color: #747c85;
+        color: #fff;
+        box-shadow: none;
+        font-size: 0.72rem;
+    }
+
+    .plantel-info-btn:hover,
+    .plantel-info-btn:focus {
+        background-color: #666d76;
+        border-color: #606771;
+        color: #fff;
+        box-shadow: none;
+    }
+
+    .plantel-info-btn:disabled {
+        background-color: #8e959c;
+        border-color: #818991;
+        color: #fff;
+        opacity: 1;
+        cursor: not-allowed;
+    }
+
+    .plantel-panel {
+        padding: 0.7rem 0.85rem;
+    }
+
+    .plantel-panel-title {
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .plantel-panel-section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.35rem;
+    }
+
+    .plantel-panel-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem 1rem;
+    }
+
+    .plantel-panel-item {
+        min-width: 7.5rem;
+    }
+
+    .plantel-panel-label {
+        font-size: 0.72rem;
+        line-height: 1.1;
+        color: #6c757d;
+        margin-bottom: 0.05rem;
+    }
+
+    .plantel-panel-value {
+        font-size: 0.95rem;
+        line-height: 1.1;
+        font-weight: 600;
+    }
 </style>
 @if (socios.Count > 0) {
 <div class="card">
@@ -64,7 +132,7 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Socio Vendedor</label><br />
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" Disabled="IdSocio!=null" EnableDropDown="true" @bind-Value="socioVendedor">
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" Disabled="IdSocio!=null" EnableDropDown="true" TItem="SocioDTO" TValue="SocioDTO" Value="socioVendedor" ValueChanged="OnVendedorChanged" ValueExpression="@(() => socioVendedor)">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>
@@ -110,37 +178,104 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label>Plantel Origen</label>
-                    <BlazoredTypeahead class="plantel-typeahead" SearchMethod="BusquedaPlantelesVendedor" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelOrigen">
-                        <SelectedTemplate Context="eleccion">
-                            @FormatoPlantel(eleccion)
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @FormatoPlantel(eleccion)
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
+                    <div class="d-flex align-items-end">
+                        <BlazoredTypeahead class="plantel-typeahead flex-grow-1" SearchMethod="BusquedaPlantelesVendedor" placeholder="Busque plantel por numero" EnableDropDown="true" TItem="PlantelDTO" TValue="PlantelDTO" Value="plantelOrigen" ValueChanged="OnPlantelOrigenChanged" ValueExpression="@(() => plantelOrigen)">
+                            <SelectedTemplate Context="eleccion">
+                                @FormatoPlantel(eleccion)
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @FormatoPlantel(eleccion)
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                        <button type="button"
+                                class="plantel-info-btn ml-2"
+                                title="@(PuedeVerPlantel(plantelOrigen) ? "Ver stock actual" : "Seleccione un plantel")"
+                                disabled="@(!PuedeVerPlantel(plantelOrigen))"
+                                @onclick="() => TogglePlantelPanel(plantelOrigen)">
+                            @(PuedeVerPlantel(plantelOrigen) ? "i" : "!")
+                        </button>
+                    </div>
                 </div>
                 <div class="col-sm">
                     <label>Plantel Destino</label>
-                    <BlazoredTypeahead class="plantel-typeahead" SearchMethod="BusquedaPlantelesComprador" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="plantelDestino">
-                        <SelectedTemplate Context="eleccion">
-                            @FormatoPlantel(eleccion)
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @FormatoPlantel(eleccion)
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
+                    <div class="d-flex align-items-end">
+                        <BlazoredTypeahead class="plantel-typeahead flex-grow-1" SearchMethod="BusquedaPlantelesComprador" placeholder="Busque plantel por numero" EnableDropDown="true" TItem="PlantelDTO" TValue="PlantelDTO" Value="plantelDestino" ValueChanged="OnPlantelDestinoChanged" ValueExpression="@(() => plantelDestino)">
+                            <SelectedTemplate Context="eleccion">
+                                @FormatoPlantel(eleccion)
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @FormatoPlantel(eleccion)
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                        <button type="button"
+                                class="plantel-info-btn ml-2"
+                                title="@(PuedeVerPlantel(plantelDestino) ? "Ver stock actual" : "Seleccione un plantel")"
+                                disabled="@(!PuedeVerPlantel(plantelDestino))"
+                                @onclick="() => TogglePlantelPanel(plantelDestino)">
+                            @(PuedeVerPlantel(plantelDestino) ? "i" : "!")
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            @if (plantelPanelAbierto && PuedeVerPlantel(plantelPanelSeleccionado))
+            {
+                <div class="border rounded plantel-panel mt-3 bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="plantel-panel-title">@GetPlantelPanelTitle(plantelPanelSeleccionado)</div>
+                        <button type="button" class="btn btn-link btn-sm p-0" @onclick="CerrarPlantelPanel">Cerrar</button>
+                    </div>
+                    <div class="mt-3">
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <div class="plantel-panel-section-title">Puro Registrado</div>
+                                <div class="plantel-panel-row">
+                                    <div class="plantel-panel-item">
+                                        <div class="plantel-panel-label">Vacas</div>
+                                        <div class="plantel-panel-value">@FormatearCantidad(plantelPanelSeleccionado.Varede)</div>
+                                    </div>
+                                    <div class="plantel-panel-item">
+                                        <div class="plantel-panel-label" title="Vaquillonas con servicio PR">Vaq. PR C/S</div>
+                                        <div class="plantel-panel-value">@FormatearCantidad(plantelPanelSeleccionado.Vqcsrd)</div>
+                                    </div>
+                                    <div class="plantel-panel-item">
+                                        <div class="plantel-panel-label" title="Vaquillonas sin servicio PR">Vaq. PR S/S</div>
+                                        <div class="plantel-panel-value">@FormatearCantidad(plantelPanelSeleccionado.Vqssrd)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-2">
+                                <div class="plantel-panel-section-title">VIP</div>
+                                <div class="plantel-panel-row">
+                                    <div class="plantel-panel-item">
+                                        <div class="plantel-panel-label">Vacas</div>
+                                        <div class="plantel-panel-value">@FormatearCantidad(plantelPanelSeleccionado.Varepr)</div>
+                                    </div>
+                                    <div class="plantel-panel-item">
+                                        <div class="plantel-panel-label" title="Vaquillonas con servicio o preñadas VIP">Vaq. VIP C/S o preñadas</div>
+                                        <div class="plantel-panel-value">@FormatearCantidad(plantelPanelSeleccionado.Vqcsrp)</div>
+                                    </div>
+                                    <div class="plantel-panel-item">
+                                        <div class="plantel-panel-label" title="Vaquillonas sin servicio VIP">Vaq. VIP S/S</div>
+                                        <div class="plantel-panel-value">@FormatearCantidad(plantelPanelSeleccionado.Vqssrp)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
             <br />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Tipo de Hembras</label>
-                    <RadzenDropDown @bind-Value=@oTransan.Tipohem Data=@tiposHembra Style="width: 100%; max-width: 400px;" />
+                    <RadzenDropDown @bind-Value=@oTransan.Tipohem Data=@tiposHembra Change="@OnTipoHembraChanged" Style="width: 100%; max-width: 400px;" />
                     <ValidationMessage For="(()=> oTransan.Tipohem)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Tipo de Hacienda</label>
-                    <RadzenDropDown @bind-Value=@temp1 Data=@tiposHacienda Style="width: 100%; max-width: 400px;" />
+                    <RadzenDropDown @bind-Value=@temp1 Data=@tiposHacienda Change="@OnTipoHaciendaChanged" Style="width: 100%; max-width: 400px;" />
                     <ValidationMessage For="(()=> temp1)" style="color:red;" />
                 </div>
                 <div class="col-sm">
@@ -153,10 +288,34 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Estado de las Hembras</label>
-                    <RadzenDropDown @bind-Value=@temp3 Data=@estadoHembras Style="width: 100%; max-width: 400px;" />
+                    <RadzenDropDown @bind-Value=@temp3 Data=@estadoHembrasDisponibles Style="width: 100%; max-width: 400px;" />
                     <ValidationMessage For="(()=> temp3)" style="color:red;" />
                 </div>
             </div>
+            @if (TieneImpactoPosible())
+            {
+                var preview = GetPreviewImpacto();
+                if (string.IsNullOrWhiteSpace(preview.Error))
+                {
+                    <div class="alert alert-info mt-3 py-2 px-3">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="font-weight-bold mr-3">Transferencia de @preview.Impacto!.BucketLabel</div>
+                            <div>
+                                <span class="text-muted">Plantel Origen:</span>
+                                <span class="font-weight-bold">@preview.Impacto.OrigenAntes</span>
+                                <span class="text-muted mx-1">→</span>
+                                <span class="font-weight-bold">@preview.Impacto.OrigenDespues</span>
+                            </div>
+                            <div>
+                                <span class="text-muted">Plantel Destino:</span>
+                                <span class="font-weight-bold">@preview.Impacto.DestinoAntes</span>
+                                <span class="text-muted mx-1">→</span>
+                                <span class="font-weight-bold">@preview.Impacto.DestinoDespues</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
             <br />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
@@ -194,12 +353,14 @@ else
     List<string> tiposHembra = new List<string> { "VQ", "VA" };
     List<string> tiposHacienda = new List<string> { "PHPR (Puro Registrado)", "HPR (Puro Registrado)", "PHVIP (VIP)", "HVIP (VIP)" };
     List<string> sexoAnimales = new List<string> { "Hembras", "Machos" };
-    List<string> estadoHembras = new List<string> { "Con Cria (CC)", "Con Cria y Preñada (CCP)", "Sin Servicio (SS)", "Preñada (PR)" };
+    List<string> estadoHembrasDisponibles = new List<string>();
     string temp1 = "";
     string temp2 = "";
     string temp3 = "";
-    PlantelDTO plantelOrigen = new();
-    PlantelDTO plantelDestino = new();
+    PlantelDTO? plantelOrigen = null;
+    PlantelDTO? plantelDestino = null;
+    PlantelDTO? plantelPanelSeleccionado = null;
+    bool plantelPanelAbierto = false;
 
 
     private ClaimsPrincipal? user;
@@ -277,16 +438,23 @@ else
                 await EnsurePlantelesVendedorLoadedAsync();
                 await EnsurePlantelesCompradorLoadedAsync();
 
-                plantelOrigen = plantelesVendedor.FirstOrDefault(x => x.Placod == oTransan.Plant) ?? new PlantelDTO();
-                plantelDestino = plantelesComprador.FirstOrDefault(x => x.Placod == oTransan.NvoPla) ?? new PlantelDTO();
+                plantelOrigen = plantelesVendedor.FirstOrDefault(x => x.Id == oTransan.PlantOrigenId)
+                    ?? plantelesVendedor.FirstOrDefault(x => x.Placod == oTransan.Plant)
+                    ?? new PlantelDTO();
+                plantelDestino = plantelesComprador.FirstOrDefault(x => x.Id == oTransan.PlantDestinoId)
+                    ?? plantelesComprador.FirstOrDefault(x => x.Placod == oTransan.NvoPla)
+                    ?? new PlantelDTO();
                 temp1 = traductorCarga[oTransan.Tiphac];
                 temp2 = traductorCarga[oTransan.Tipani];
                 temp3 = traductorCarga[oTransan.Hemsta];
+                RecalcularEstadosHembras();
             }
             catch (Exception ex)
             {
             }
         }
+
+        RecalcularEstadosHembras();
     }
     async Task Guardar()
     {
@@ -350,47 +518,28 @@ else
         oTransan.Tipohem = totalHembras > 0 ? oTransan.Tipohem : null;
         oTransan.Incorp = 1;
 
-        // El stock de plantel sólo existe para categorías de hembras.
-        // Si no hay hembras adultas, no hay movimiento de stock a validar acá.
-        if (cantHem > 0)
+        // El stock de plantel sólo cambia con hembras adultas.
+        // El helper compartido decide qué columna mover y evita que front y backend diverjan.
+        if (!TransferenciaAnimalImpactoHelper.TryBuildImpacto(oTransan, plantelOrigen, plantelDestino, out var impactoPreview, out var impactoError))
         {
-            var tiphacCode = traductor.ContainsKey(temp1) ? traductor[temp1] : null;
-            var hemstaCode = traductor.ContainsKey(temp3) ? traductor[temp3] : null;
-            var field = GetHembraFieldClient(tiphacCode, hemstaCode);
-
-            if (!string.IsNullOrEmpty(field))
+            await Swal.FireAsync(new SweetAlertOptions
             {
-                if (plantelOrigen == null || string.IsNullOrWhiteSpace(plantelOrigen.Placod))
-                {
-                    await Swal.FireAsync(new SweetAlertOptions { Title = "Error", Html = "No hay plantel origen seleccionado.", Icon = SweetAlertIcon.Error });
-                    return;
-                }
+                Title = "No se puede guardar la transferencia",
+                Html = impactoError ?? "No se pudo determinar el impacto de la transferencia.",
+                Icon = SweetAlertIcon.Warning
+            });
+            return;
+        }
 
-                double currentValue = GetPlantelFieldValueClient(plantelOrigen, field);
-                int prevCant = 0;
-                if (Id != 0)
-                {
-                    prevCant = oTransan.CantHem ?? 0;
-                }
-
-                double allowed = currentValue + ((Id != 0 && oTransan.Plant == plantelOrigen.Placod) ? prevCant : 0);
-
-                if (cantHem > allowed)
-                {
-                    await Swal.FireAsync(new SweetAlertOptions
-                    {
-                        Title = "Cantidad inválida",
-                        Html = $"El plantel origen no dispone de {cantHem} hembras en la categoría seleccionada. Disponible: {allowed}.",
-                        Icon = SweetAlertIcon.Warning
-                    });
-                    return;
-                }
-            }
-            else
+        if (impactoPreview != null && cantHem > 0 && impactoPreview.OrigenAntes < cantHem)
+        {
+            await Swal.FireAsync(new SweetAlertOptions
             {
-                await Swal.FireAsync(new SweetAlertOptions { Title = "Error", Html = "No se pudo determinar la categoría de hembras para validar.", Icon = SweetAlertIcon.Error });
-                return;
-            }
+                Title = "Cantidad inválida",
+                Html = $"El plantel origen no dispone de {cantHem} hembras en la categoría seleccionada. Disponible: {impactoPreview.OrigenAntes:0}.",
+                Icon = SweetAlertIcon.Warning
+            });
+            return;
         }
 
         oTransan.Vnom = socioVendedor.Nombre;
@@ -401,13 +550,17 @@ else
 
         oTransan.Plant = plantelOrigen.Placod;
         oTransan.NvoPla = plantelDestino.Placod;
+        oTransan.PlantOrigenId = plantelOrigen.Id;
+        oTransan.PlantDestinoId = plantelDestino.Id;
 
         var request = new TransanSaveRequestDTO
         {
             Transan = oTransan,
             VendedorId = socioVendedor.Id,
             CompradorId = hayComprador ? socioComprador.Id : null,
-            MailComprador = hayComprador ? direccionCompra : null
+            MailComprador = hayComprador ? direccionCompra : null,
+            PlantOrigenId = plantelOrigen.Id,
+            PlantDestinoId = plantelDestino.Id
         };
 
         if (Id == 0)
@@ -435,33 +588,6 @@ else
     }
 
 
-    // Client helper: map to same field names used in server
-    private string GetHembraFieldClient(string tiphac, string hemsta)
-    {
-        if (string.IsNullOrWhiteSpace(hemsta) || string.IsNullOrWhiteSpace(tiphac)) return null;
-        var h = hemsta.Trim().ToUpper();
-        var t = tiphac.Trim().ToUpper();
-        bool isPR = t.Contains("PR");
-        if (h == "CC" || h == "CCP") return isPR ? "Varede" : "Varepr";
-        if (h == "PR") return isPR ? "Vqcsrd" : "Vqcsrp";
-        if (h == "SS") return isPR ? "Vqssrd" : "Vqssrp";
-        return null;
-    }
-
-    private double GetPlantelFieldValueClient(PlantelDTO plantel, string field)
-    {
-        return field switch
-        {
-            "Varede" => plantel.Varede ?? 0,
-            "Vqcsrd" => plantel.Vqcsrd ?? 0,
-            "Vqssrd" => plantel.Vqssrd ?? 0,
-            "Varepr" => plantel.Varepr ?? 0,
-            "Vqcsrp" => plantel.Vqcsrp ?? 0,
-            "Vqssrp" => plantel.Vqssrp ?? 0,
-            _ => 0
-        };
-    }
-
     public class ChangeNotificationModel
     {
         public string Names { get; set; }
@@ -481,6 +607,133 @@ else
 
     }
 
+    private bool PuedeVerPlantel(PlantelDTO? plantel)
+        => plantel != null && !string.IsNullOrWhiteSpace(plantel.Placod);
+
+    private void TogglePlantelPanel(PlantelDTO? plantel)
+    {
+        if (!PuedeVerPlantel(plantel))
+        {
+            return;
+        }
+
+        if (plantelPanelAbierto && plantelPanelSeleccionado?.Id == plantel!.Id)
+        {
+            CerrarPlantelPanel();
+            return;
+        }
+
+        plantelPanelSeleccionado = plantel;
+        plantelPanelAbierto = true;
+    }
+
+    private void CerrarPlantelPanel()
+    {
+        plantelPanelSeleccionado = null;
+        plantelPanelAbierto = false;
+    }
+
+    private string GetPlantelPanelTitle(PlantelDTO? plantel)
+    {
+        if (plantel is null)
+        {
+            return string.Empty;
+        }
+
+        var socioNombre = GetNombreSocio(plantel.Nrocri);
+        return string.IsNullOrWhiteSpace(socioNombre)
+            ? FormatoPlantel(plantel)
+            : $"{FormatoPlantel(plantel)} · {socioNombre}";
+    }
+
+    private void OnTipoHembraChanged(object? value)
+    {
+        oTransan.Tipohem = value?.ToString();
+        RecalcularEstadosHembras();
+    }
+
+    private void OnTipoHaciendaChanged(object? value)
+    {
+        RecalcularEstadosHembras();
+    }
+
+    private bool TieneImpactoPosible()
+    {
+        return PuedeVerPlantel(plantelOrigen) && PuedeVerPlantel(plantelDestino);
+    }
+
+    private void RecalcularEstadosHembras(object? _ = null)
+    {
+        estadoHembrasDisponibles = oTransan.Tipohem?.Trim().ToUpperInvariant() switch
+        {
+            "VA" => new List<string> { "Con Cria (CC)", "Con Cria y Preñada (CCP)" },
+            "VQ" => new List<string> { "Preñada (PR)", "Sin Servicio (SS)" },
+            _ => new List<string> { "Con Cria (CC)", "Con Cria y Preñada (CCP)", "Sin Servicio (SS)", "Preñada (PR)" }
+        };
+
+        if (!string.IsNullOrWhiteSpace(temp3) &&
+            !estadoHembrasDisponibles.Any(x => string.Equals(x, temp3, StringComparison.OrdinalIgnoreCase)))
+        {
+            temp3 = string.Empty;
+            oTransan.Hemsta = null;
+        }
+    }
+
+    private TransferenciaPreviewInfo GetPreviewImpacto()
+    {
+        // El preview usa la misma regla compartida del backend para mostrar el cambio real antes de guardar.
+        var transanPreview = BuildTransanParaImpacto();
+        if (!TransferenciaAnimalImpactoHelper.TryBuildImpacto(transanPreview, plantelOrigen, plantelDestino, out var impacto, out var error))
+        {
+            return new TransferenciaPreviewInfo
+            {
+                Error = error
+            };
+        }
+
+        return new TransferenciaPreviewInfo
+        {
+            Impacto = impacto
+        };
+    }
+
+    private TransanDTO BuildTransanParaImpacto()
+    {
+        var transan = new TransanDTO
+        {
+            Tiphac = traductor.TryGetValue(temp1, out var tiphac) ? tiphac : null,
+            Tipani = traductor.TryGetValue(temp2, out var tipani) ? tipani : null,
+            Hemsta = string.IsNullOrWhiteSpace(temp3) ? null : traductor.TryGetValue(temp3, out var hemsta) ? hemsta : null,
+            Tipohem = string.IsNullOrWhiteSpace(oTransan.Tipohem) ? null : oTransan.Tipohem,
+            CantHem = oTransan.CantHem,
+            CantMach = oTransan.CantMach,
+            CantChem = oTransan.CantChem,
+            CantCmach = oTransan.CantCmach
+        };
+
+        return transan;
+    }
+
+    private static string FormatearCantidad(double? value)
+        => (value ?? 0).ToString("0");
+
+    private string GetNombreSocio(string? nrocri)
+    {
+        if (string.IsNullOrWhiteSpace(nrocri))
+        {
+            return string.Empty;
+        }
+
+        var socio = socios.FirstOrDefault(x => string.Equals(x.Scod, nrocri, StringComparison.OrdinalIgnoreCase));
+        return socio?.Nombre ?? nrocri;
+    }
+
+    private sealed class TransferenciaPreviewInfo
+    {
+        public TransferenciaAnimalImpacto? Impacto { get; set; }
+        public string? Error { get; set; }
+    }
+
     private async Task MostrarErrorGuardado(string? mensaje)
     {
         await Swal.FireAsync(new SweetAlertOptions
@@ -497,9 +750,34 @@ else
     {
         socioComprador = socio;
         direccionCompra = socio?.Mail ?? string.Empty;
+        plantelDestino = null;
+        plantelesComprador = new List<PlantelDTO>();
+        plantelesCompradorSocioCode = null;
         await EnsurePlantelesCompradorLoadedAsync();
 
         StateHasChanged();
+    }
+
+    private async Task OnVendedorChanged(SocioDTO? socio)
+    {
+        socioVendedor = socio;
+        plantelOrigen = null;
+        plantelesVendedor = new List<PlantelDTO>();
+        plantelesVendedorSocioCode = null;
+        await EnsurePlantelesVendedorLoadedAsync();
+        StateHasChanged();
+    }
+
+    private Task OnPlantelOrigenChanged(PlantelDTO? plantel)
+    {
+        plantelOrigen = plantel;
+        return Task.CompletedTask;
+    }
+
+    private Task OnPlantelDestinoChanged(PlantelDTO? plantel)
+    {
+        plantelDestino = plantel;
+        return Task.CompletedTask;
     }
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
@@ -515,14 +793,21 @@ else
 
     private async Task<IEnumerable<PlantelDTO>> BusquedaPlantelesComprador(string searchText)
     {
-        await EnsurePlantelesCompradorLoadedAsync();
-
-        if (socioComprador != null && !string.IsNullOrWhiteSpace(socioComprador.Scod))
+        try
         {
-            return await Task.FromResult(
-                OrderPlantelesByYear(plantelesComprador)
-                    .Where(x => x.Placod.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList()
-            );
+            await EnsurePlantelesCompradorLoadedAsync();
+
+            if (socioComprador != null && !string.IsNullOrWhiteSpace(socioComprador.Scod))
+            {
+                return await Task.FromResult(
+                    OrderPlantelesByYear(plantelesComprador)
+                        .Where(x => x.Placod.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList()
+                );
+            }
+        }
+        catch
+        {
+            // Si falla la consulta de lookup, devolvemos vacío para no dejar el control en estado de carga.
         }
 
         return await Task.FromResult<IEnumerable<PlantelDTO>>(Array.Empty<PlantelDTO>());
@@ -530,11 +815,20 @@ else
 
     private async Task<IEnumerable<PlantelDTO>> BusquedaPlantelesVendedor(string searchText)
     {
-        await EnsurePlantelesVendedorLoadedAsync();
+        try
+        {
+            await EnsurePlantelesVendedorLoadedAsync();
 
-        return await Task.FromResult(
-            OrderPlantelesByYear(plantelesVendedor)
-                .Where(x => x.Placod.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList());
+            return await Task.FromResult(
+                OrderPlantelesByYear(plantelesVendedor)
+                    .Where(x => x.Placod.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList());
+        }
+        catch
+        {
+            // Si falla la consulta de lookup, devolvemos vacío para no dejar el control en estado de carga.
+        }
+
+        return await Task.FromResult<IEnumerable<PlantelDTO>>(Array.Empty<PlantelDTO>());
     }
 
     private static List<PlantelDTO> OrderPlantelesByYear(IEnumerable<PlantelDTO>? items)
@@ -620,10 +914,18 @@ else
             return new List<PlantelDTO>();
         }
 
-        var response = await http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>(
-            $"api/TransferenciasLookup/PlantelesBySocioCode?socioCode={Uri.EscapeDataString(socioCode)}");
+        try
+        {
+            var response = await http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>(
+                $"api/TransferenciasLookup/PlantelesBySocioCode?socioCode={Uri.EscapeDataString(socioCode)}");
 
-        return response?.List ?? new List<PlantelDTO>();
+            return response?.List ?? new List<PlantelDTO>();
+        }
+        catch
+        {
+            // Si el lookup falla, devolvemos una lista vacía para que el componente pueda recuperarse.
+            return new List<PlantelDTO>();
+        }
     }
 
     private async Task<List<SocioDTO>> GetSociosLookupAsync()

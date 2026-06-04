@@ -15,6 +15,12 @@ namespace PaginaToros.Shared.Models
         public string? Cnom { get; set; }
         public string? Plant { get; set; }
         public string? NvoPla { get; set; }
+        public int? PlantOrigenId { get; set; }
+        public int? PlantDestinoId { get; set; }
+        public string? PlantOrigenCodigo { get; set; }
+        public string? PlantOrigenAnioex { get; set; }
+        public string? PlantDestinoCodigo { get; set; }
+        public string? PlantDestinoAnioex { get; set; }
         public int? CantHem { get; set; }
         public int? CantMach { get; set; }
         public string? Tiphac { get; set; }

@@ -1,0 +1,141 @@
+﻿@inject ITransanServicio _transanServicio
+
+<div class="card">
+    <div class="card-body">
+        @if (isLoading)
+        {
+            <RadzenProgressBar style="position:relative;width:100%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+        }
+        else if (transferencia == null)
+        {
+            <div class="alert alert-warning mb-0">No se encontró información para esta transferencia.</div>
+        }
+        else
+        {
+            <h4 class="mb-3">Resumen de la transferencia</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Nro. certificado:</strong> @transferencia.NroCert</p>
+                    <p><strong>Fecha:</strong> @(transferencia.Fecvta?.ToString("dd/MM/yyyy") ?? "-")</p>
+                    <p><strong>Vendedor:</strong> @transferencia.Vnom</p>
+                    <p><strong>Comprador:</strong> @(string.IsNullOrWhiteSpace(transferencia.Cnom) ? "-" : transferencia.Cnom)</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Plantel origen:</strong> @FormatPlantel(transferencia.PlantOrigenCodigo, transferencia.PlantOrigenAnioex, transferencia.Plant)</p>
+                    <p><strong>Plantel destino:</strong> @FormatPlantel(transferencia.PlantDestinoCodigo, transferencia.PlantDestinoAnioex, transferencia.NvoPla)</p>
+                    <p><strong>Tipo de hacienda:</strong> @transferencia.Tiphac</p>
+                    <p><strong>Tipo de hembras:</strong> @transferencia.Tipohem</p>
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-md-3"><strong>Hembras:</strong> @transferencia.CantHem</div>
+                <div class="col-md-3"><strong>Machos:</strong> @transferencia.CantMach</div>
+                <div class="col-md-3"><strong>Crias hembras:</strong> @transferencia.CantChem</div>
+                <div class="col-md-3"><strong>Crias machos:</strong> @transferencia.CantCmach</div>
+            </div>
+
+            <hr class="my-4" />
+
+            <h4 class="mb-3">Auditoría</h4>
+            @if (auditoria.Count == 0)
+            {
+                <div class="alert alert-info mb-0">Todavía no hay registros de auditoría para esta transferencia.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Acción</th>
+                                <th>Fecha</th>
+                                <th>Usuario</th>
+                                <th>Bucket</th>
+                                <th>Origen</th>
+                                <th>Destino</th>
+                                <th>Mail</th>
+                                <th>Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in auditoria)
+                            {
+                                <tr>
+                                    <td>@item.Accion</td>
+                                    <td>@item.FechaEvento.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@(string.IsNullOrWhiteSpace(item.UsuarioNombre) ? "-" : item.UsuarioNombre)</td>
+                                    <td>
+                                        <div>@(string.IsNullOrWhiteSpace(item.BucketEtiqueta) ? "-" : item.BucketEtiqueta)</div>
+                                        <small class="text-muted">@item.BucketCampo</small>
+                                    </td>
+                                    <td>
+                                        <div>@ValueLine(item.OrigenAntes, item.OrigenDespues)</div>
+                                    </td>
+                                    <td>
+                                        <div>@ValueLine(item.DestinoAntes, item.DestinoDespues)</div>
+                                    </td>
+                                    <td>
+                                        <div>@(string.IsNullOrWhiteSpace(item.MailEstado) ? "-" : item.MailEstado)</div>
+                                        @if (!string.IsNullOrWhiteSpace(item.MailError))
+                                        {
+                                            <small class="text-danger">@item.MailError</small>
+                                        }
+                                    </td>
+                                    <td>@(string.IsNullOrWhiteSpace(item.Detalle) ? "-" : item.Detalle)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+
+        <div class="text-end mt-3">
+            <button type="button" class="btn btn-light" @onclick="Close">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; } = default!;
+    [Parameter] public int Id { get; set; }
+
+    private bool isLoading = true;
+    private TransanDTO? transferencia;
+    private List<TransanTransferAudit> auditoria = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+
+        var transferenciaResponse = await _transanServicio.LimitadosFiltrados(0, 1, $"Id = {Id}");
+        transferencia = transferenciaResponse.List?.FirstOrDefault();
+
+        var auditoriaResponse = await _transanServicio.Auditoria(Id);
+        auditoria = auditoriaResponse.List ?? new List<TransanTransferAudit>();
+
+        isLoading = false;
+    }
+
+    private static string ValueLine(double? before, double? after)
+        => $"{(before.HasValue ? before.Value.ToString("0") : "-")} -> {(after.HasValue ? after.Value.ToString("0") : "-")}";
+
+    private static string FormatPlantel(string? codigo, string? anioex, string? fallbackCodigo)
+    {
+        var code = !string.IsNullOrWhiteSpace(codigo) ? codigo : fallbackCodigo;
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            return "-";
+        }
+
+        return string.IsNullOrWhiteSpace(anioex)
+            ? code
+            : $"{code} - {anioex}";
+    }
+
+    private async Task Close()
+    {
+        await ModalInstance.CloseAsync(ModalResult.Ok("cerrado"));
+    }
+}

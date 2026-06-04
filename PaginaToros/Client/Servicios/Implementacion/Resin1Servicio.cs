@@ -34,6 +34,23 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return result;
         }
 
+        public async Task<Respuesta<Resin1PagedResponse>> SearchPaged(int skip, int take, string? searchText = null)
+        {
+            var url = new System.Text.StringBuilder($"api/Resin1/SearchPaged?skip={skip}&take={take}");
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                url.Append($"&searchText={Uri.EscapeDataString(searchText)}");
+            }
+
+            var result = await _http.GetFromJsonAsync<Respuesta<Resin1PagedResponse>>(url.ToString());
+            return result ?? new Respuesta<Resin1PagedResponse>
+            {
+                Exito = 0,
+                Mensaje = "Sin respuesta",
+                List = new Resin1PagedResponse()
+            };
+        }
+
         public async Task<Respuesta<List<Resin1DTO>>> GetBySocioId(int socioId)
         {
             var result = await _http.GetFromJsonAsync<Respuesta<List<Resin1DTO>>>($"api/Resin1/LimitadosFiltrados?skip=0&take=0");

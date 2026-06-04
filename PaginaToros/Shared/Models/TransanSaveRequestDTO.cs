@@ -6,5 +6,7 @@ namespace PaginaToros.Shared.Models
         public int VendedorId { get; set; }
         public int? CompradorId { get; set; }
         public string? MailComprador { get; set; }
+        public int? PlantOrigenId { get; set; }
+        public int? PlantDestinoId { get; set; }
     }
 }

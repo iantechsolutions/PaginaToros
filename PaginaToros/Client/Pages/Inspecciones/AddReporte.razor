@@ -2,6 +2,7 @@
 @using Blazored.Typeahead
 @using PaginaToros.Client.Pages.CrudInspecciones
 @using PaginaToros.Client.Servicios.Contrato;
+@using Radzen.Blazor
 @using System.Text.RegularExpressions;
 @using System;
 
@@ -23,109 +24,250 @@
         font-weight: bold;
     }
 
+    .reporte-loading-card {
+        border: 1px solid #e8ecef;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+        padding: 1.5rem;
+    }
+
+    .reporte-skeleton {
+        position: relative;
+        overflow: hidden;
+        background: #eef2f6;
+        border-radius: 12px;
+    }
+
+    .reporte-skeleton::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent);
+        animation: reporte-shimmer 1.3s infinite;
+    }
+
+    .reporte-skeleton-line {
+        height: 14px;
+        margin-bottom: .75rem;
+    }
+
+    .reporte-skeleton-input {
+        height: 42px;
+        margin-bottom: 1rem;
+    }
+
+    .reporte-skeleton-card {
+        height: 88px;
+        margin-bottom: 1rem;
+    }
+
+    .reporte-skeleton-grid {
+        height: 240px;
+    }
+
+    .reporte-loading-text {
+        color: #5b6470;
+        font-size: .95rem;
+        margin-bottom: 1rem;
+    }
+
+    .reporte-loading-inline {
+        margin: 1rem 0;
+    }
+
+    @@keyframes reporte-shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
 </style>
 
-@if(!cargando){
-<div>
+@if (isInitialLoading)
+{
+    <div class="reporte-loading-card mt-3">
+        <div class="reporte-loading-text">Preparando el formulario de inspección...</div>
+        <div class="row">
+            <div class="col-sm">
+                <div class="reporte-skeleton reporte-skeleton-line" style="width: 35%;"></div>
+                <div class="reporte-skeleton reporte-skeleton-input"></div>
+            </div>
+            <div class="col-sm">
+                <div class="reporte-skeleton reporte-skeleton-line" style="width: 35%; margin-left:auto;"></div>
+                <div class="reporte-skeleton reporte-skeleton-input"></div>
+            </div>
+            <div class="col-sm">
+                <div class="reporte-skeleton reporte-skeleton-line" style="width: 35%;"></div>
+                <div class="reporte-skeleton reporte-skeleton-input"></div>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-sm">
+                <div class="reporte-skeleton reporte-skeleton-card"></div>
+            </div>
+            <div class="col-sm">
+                <div class="reporte-skeleton reporte-skeleton-card"></div>
+            </div>
+        </div>
+        <div class="reporte-skeleton reporte-skeleton-grid mt-2"></div>
+    </div>
+}
+else
+{
+    <div>
         <button class="bm-title" @onclick="ComeBack"><FeatherArrowLeft Color="Black"></FeatherArrowLeft></button>
 
-    <div class="row" style="width=100%;">
-        <div class="col-md-1" />
-        <div class="col-md-3">
-            <label>Socio</label>
-                <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Busque socio por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado" Disabled="Id!=0">
-                <SelectedTemplate Context="eleccion">
-                    @eleccion.Nombre
-                </SelectedTemplate>
-                <ResultTemplate Context="eleccion">
-                    @eleccion.Nombre
-                </ResultTemplate>
-            </BlazoredTypeahead>
-        </div>
-        <div class="col-md-3" />
-        <div class="col-md-2">
-            @if (solicitudSeleccionada != null)
-            {
-
-                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:126px;" @onclick="()=>confirmarNuevo()">@(Id == 0 ? "Crear resultado de inspección" : "Actualizar datos")</button>
-            }
-                else  if (socioSeleccionado != null)
-            {
-                <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative" @onclick="()=>{ResultWithoutSolicitud();}" disabled=@(solicitudSeleccionada != null)>Resultado sin solicitud</button>
-
-            }
+        @if (isLoadingDependencias)
+        {
+            <div class="reporte-loading-card reporte-loading-inline">
+                <div class="reporte-loading-text">@loadingMessage</div>
+                <div class="row">
+                    <div class="col-sm">
+                        <div class="reporte-skeleton reporte-skeleton-line" style="width: 30%;"></div>
+                        <div class="reporte-skeleton reporte-skeleton-input"></div>
+                    </div>
+                    <div class="col-sm">
+                        <div class="reporte-skeleton reporte-skeleton-line" style="width: 30%;"></div>
+                        <div class="reporte-skeleton reporte-skeleton-input"></div>
+                    </div>
+                    <div class="col-sm">
+                        <div class="reporte-skeleton reporte-skeleton-line" style="width: 30%;"></div>
+                        <div class="reporte-skeleton reporte-skeleton-input"></div>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-sm">
+                        <div class="reporte-skeleton reporte-skeleton-card"></div>
+                    </div>
+                    <div class="col-sm">
+                        <div class="reporte-skeleton reporte-skeleton-card"></div>
+                    </div>
+                </div>
             </div>
-    </div>
+        }
+
+        <div class="row" style="width=100%;">
+            <div class="col-md-1" />
+            <div class="col-md-3">
+                <label>Socio</label>
+                <BlazoredTypeahead SearchMethod="BusquedaSocios"
+                                   TItem="SocioDTO"
+                                   TValue="SocioDTO"
+                                   placeholder="Busque socio por nombre"
+                                   EnableDropDown="true"
+                                   Value="socioSeleccionado"
+                                   ValueChanged="OnSocioChanged"
+                                   ValueExpression="@(() => socioSeleccionado)"
+                                   Disabled="Id!=0">
+                    <SelectedTemplate Context="eleccion">
+                        @eleccion.Nombre
+                    </SelectedTemplate>
+                    <ResultTemplate Context="eleccion">
+                        @eleccion.Nombre
+                    </ResultTemplate>
+                </BlazoredTypeahead>
+            </div>
+            <div class="col-md-3" />
+            <div class="col-md-2">
+                @if (solicitudSeleccionada != null)
+                {
+                    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
+                            style="position:relative;left:126px;"
+                            disabled="@(isLoadingDependencias || isSavingReporte || isUpdatingPlantel)"
+                            @onclick="()=>confirmarNuevo()">
+                        @(Id == 0 ? "Crear resultado de inspección" : "Actualizar datos")
+                    </button>
+                }
+                else if (socioSeleccionado != null)
+                {
+                    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
+                            style="position:relative"
+                            disabled="@(solicitudSeleccionada != null || isLoadingDependencias || isSavingReporte || isUpdatingPlantel)"
+                            @onclick="()=>{ResultWithoutSolicitud();}">
+                        Resultado sin solicitud
+                    </button>
+                }
+            </div>
+        </div>
+
         @if (socioSeleccionado != null)
         {
-
-        <div class="row">
-            <label>Solicitudes</label>
-         
-            @if (solicitudSeleccionada == null)
-            {
-            <RadzenDataGrid PageSize="25" Density="Density.Compact" Data="@solicitudes.Where(x=>establecimientos.Where(t => t.Codsoc == socioSeleccionado.Scod).Any(t => t.Ecod == x.Codest) && !resultados.Any(r=>r.Nrores==x.Nrosol)).ToList()" TItem="Solici1DTO"
-                    LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center" SelectionMode="DataGridSelectionMode.Single" ValueChanged="(e)=>onSolicitudChange(e)" >
-                <Columns>
-                            <RadzenDataGridColumn TItem="Solici1DTO" Property="Nrosol" Title="Nro Sol" />
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Socio">
-                        <Template Context="data">
-                            @socioSeleccionado.Nombre
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Fecha de solicitud">
-                        <Template Context="data">
-                            @if (data.Fecsol.HasValue)
-                            {
-                                <a>@data.Fecsol.Value.ToString("dd/MM/yyyy")</a>
-                            }
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Fecha de Autorización">
-                        <Template Context="data">
-                            @if(data.Fecins.HasValue){
-                                <a>@data.Fecins.Value.ToString("dd/MM/yyyy")</a>
-                            }
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="Cantor" Title="Toros PR"/>
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="Cantvq" Title="VQ PR" />
-                    <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Hembras VIP" >
-                        <Template Context="data">
-                            @(data.Canvac+data.Canvaq)
-                        </Template>
-                    </RadzenDataGridColumn>
-                </Columns>
-            </RadzenDataGrid>
-
-            <br/>
             <div class="row">
-                <div class="col-sm-9"/>
-                <div class="col-sm-3">
-                    <br/>
-                </div>
+                <label>Solicitudes</label>
+
+                @if (solicitudSeleccionada == null)
+                {
+                    <RadzenDataGrid PageSize="25"
+                                    Density="Density.Compact"
+                                    Data="@solicitudesVisibles"
+                                    TItem="Solici1DTO"
+                                    LogicalFilterOperator="LogicalFilterOperator.Or"
+                                    PagerHorizontalAlign="HorizontalAlign.Center"
+                                    SelectionMode="DataGridSelectionMode.Single"
+                                    ValueChanged="(e)=>onSolicitudChange(e)">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="Solici1DTO" Property="Nrosol" Title="Nro Sol" />
+                            <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Socio">
+                                <Template Context="data">
+                                    @socioSeleccionado.Nombre
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Fecha de solicitud">
+                                <Template Context="data">
+                                    @if (data.Fecsol.HasValue)
+                                    {
+                                        <a>@data.Fecsol.Value.ToString("dd/MM/yyyy")</a>
+                                    }
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Fecha de Autorización">
+                                <Template Context="data">
+                                    @if (data.Fecins.HasValue)
+                                    {
+                                        <a>@data.Fecins.Value.ToString("dd/MM/yyyy")</a>
+                                    }
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Solici1DTO" Property="Cantor" Title="Toros PR" />
+                            <RadzenDataGridColumn TItem="Solici1DTO" Property="Cantvq" Title="VQ PR" />
+                            <RadzenDataGridColumn TItem="Solici1DTO" Property="" Title="Hembras VIP">
+                                <Template Context="data">
+                                    @(data.Canvac + data.Canvaq)
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+
+                    <br />
+                    <div class="row">
+                        <div class="col-sm-9" />
+                        <div class="col-sm-3">
+                            <br />
+                        </div>
                     </div>
                 }
-                else
+                else if (SelectedSolicitud != null)
                 {
-                    if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
-                    {
-                    
-                    <RadzenNumeric Disabled="true" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Nrosol" class="w-100"></RadzenNumeric>
-                    }
-
+                    <RadzenNumeric Disabled="true" @bind-Value="@SelectedSolicitud.Nrosol" class="w-100"></RadzenNumeric>
                 }
             </div>
-    }
+        }
+
         @if (socioSeleccionado != null)
         {
-        <br />
-        <div class="row" style="width=100%;">
-            <div class="col-sm-1" />
-            <div class="col-sm">
-                <label>Inspector</label>
-                <br/>
-                    <BlazoredTypeahead SearchMethod="BusquedaInspects" placeholder="Busque inspector por nombre" disabled="@esSocio" EnableDropDown="true" @bind-Value="inspectorSeleccionado">
+            <br />
+            <div class="row" style="width=100%;">
+                <div class="col-sm-1" />
+                <div class="col-sm">
+                    <label>Inspector</label>
+                    <br />
+                <BlazoredTypeahead SearchMethod="BusquedaInspects"
+                                   placeholder="Busque inspector por nombre"
+                                   Disabled="@(esSocio || isLoadingDependencias || isSavingReporte)"
+                                   EnableDropDown="true"
+                                   @bind-Value="inspectorSeleccionado">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>
@@ -133,64 +275,44 @@
                             @eleccion.Nombre
                         </ResultTemplate>
                     </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Numero de Socio</label>
+                    <br />
+                    <RadzenTextBox Value="@socioSeleccionado.CodigoVisible()" placeholder="Nro Socio" Disabled="true"></RadzenTextBox>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Nombre de Socio</label>
+                    <br />
+                    <RadzenTextBox @bind-Value="@socioSeleccionado.Nombre" placeholder="Nombre de Socio" Disabled="true"></RadzenTextBox>
+                </div>
             </div>
-            <div class="col-sm">
-                <label class="col-sm">Numero de Socio</label>
-                <br/>
-                <RadzenTextBox Value="@socioSeleccionado.CodigoVisible()" placeholder="Nro Socio" Disabled="true"></RadzenTextBox>
-            </div>
-            <div class="col-sm">
-                <label class="col-sm">Nombre de Socio</label>
-                <br />
-                <RadzenTextBox @bind-Value="@socioSeleccionado.Nombre" placeholder="Nombre de Socio" Disabled="true"></RadzenTextBox>
-            </div>
+            <br />
 
-        </div>
-        <br />
-
-        <div class="row" style="width=100%;">
-
-            
-            @if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null){
-            <div class="col-sm-1" />
-            <div class="col-sm">
-                <label class="col-sm">Establecimiento</label>
-                <br />
-                    <RadzenTextBox @bind-Value="@solicitudSeleccionada.FirstOrDefault().Codest" Disabled="true" placeholder="Establecimiento"></RadzenTextBox>
-            </div>
-            <div class="col-sm">
-                <label class="col-sm">Localidad</label>
-                <br />
-                @if (establecimientoSeleccionado != null)
+            <div class="row" style="width=100%;">
+                @if (SelectedSolicitud != null)
                 {
-                    <RadzenTextBox @bind-Value="@establecimientoSeleccionado.Locali" Disabled="true" placeholder="Localidad"></RadzenTextBox>
-                }
-                else{
-                        <RadzenTextBox @bind-Value="@establecimientos.Where(x=>x.Ecod==solicitudSeleccionada.FirstOrDefault().Codest).First().Locali" Disabled="true" placeholder="Localidad"></RadzenTextBox>
-                }
-            
-            </div>
                     <div class="col-sm-1" />
-                  @*   <div class="col-sm">
-                        <label>Plantel</label>
-                        <BlazoredTypeahead SearchMethod="BusquedaPlanteles" Disabled="esSocio" placeholder="Busque plantel por numero" EnableDropDown="true" @bind-Value="Plantelseleccionado">
-                            <SelectedTemplate Context="eleccion">
-                                @eleccion.Placod
-                            </SelectedTemplate>
-                            <ResultTemplate Context="eleccion">
-                                @eleccion.Placod
-                            </ResultTemplate>
-                        </BlazoredTypeahead>
-                        </div> *@
+                    <div class="col-sm">
+                        <label class="col-sm">Establecimiento</label>
+                        <br />
+                        <RadzenTextBox Value="@SelectedSolicitud.Codest" Disabled="true" placeholder="Establecimiento"></RadzenTextBox>
+                    </div>
+                    <div class="col-sm">
+                        <label class="col-sm">Localidad</label>
+                        <br />
+                        <RadzenTextBox Value="@SelectedLocalidad" Disabled="true" placeholder="Localidad"></RadzenTextBox>
+                    </div>
+                    <div class="col-sm-1" />
+                }
 
-            }
                 @if (socioSeleccionado != null)
                 {
                     <div class="col-sm-1" />
                     <div class="col-sm">
                         <label>Plantel</label>
                         <BlazoredTypeahead SearchMethod="BusquedaPlanteles"
-                                           Disabled="@((Id != 0) || esSocio)"
+                                           Disabled="@((Id != 0) || esSocio || isLoadingDependencias || isSavingReporte || isUpdatingPlantel)"
                                            placeholder="Busque plantel por número"
                                            EnableDropDown="true"
                                            @bind-Value="Plantelseleccionado">
@@ -203,58 +325,53 @@
                         </BlazoredTypeahead>
                     </div>
                 }
-        </div>
-        <br />
-
-        <div class="row" style="width=100%;">
-            <div class="col-sm-1" />
-                @if (solicitudSeleccionada != null && solicitudSeleccionada.FirstOrDefault() != null)
-                {
-            <div class="col-sm">
-                <label class="col-sm">Fecha De Solicitud</label>
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@solicitudSeleccionada.FirstOrDefault().Fecsol" disabled="@esSocio" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
             </div>
-                }
-            <div class="col-sm">
-                <label class="col-sm">Fecha De Inspeccion</label>
-                @if (@Id != 0)
-                {
-            <div class="col-sm">
+            <br />
 
-                    <RadzenDatePicker TValue="DateTime?" @bind-Value="@oResin1.Freali" ShowTime="false" disabled="@esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+            <div class="row" style="width=100%;">
+                <div class="col-sm-1" />
+                @if (SelectedSolicitud != null)
+                {
+                    <div class="col-sm">
+                        <label class="col-sm">Fecha De Solicitud</label>
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="@SelectedSolicitud.Fecsol" disabled="@esSocio" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                    </div>
+                }
+                <div class="col-sm">
+                    <label class="col-sm">Fecha De Inspeccion</label>
+                    @if (@Id != 0)
+                    {
+                        <div class="col-sm">
+                            <RadzenDatePicker TValue="DateTime?" @bind-Value="@oResin1.Freali" ShowTime="false" disabled="@esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col-sm">
+                            <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" disabled="@esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+                        </div>
+                    }
                 </div>
 
-                    }
-                else
-                {
-            <div class="col-sm">
-                    <RadzenDatePicker TValue="DateTime" @bind-Value="@fechaTemp" ShowTime="false" disabled="@esSocio" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
-                        </div>
-
-                }
-            </div>
-
-            @* bolonqui *@
-            <div class="col-sm">
-                <label class="col-sm">Reinspeccion?</label>
-                <br />
-                    <input type="checkbox" disabled="@esSocio" @bind="@tempReinspeccion">
-            </div>
+                <div class="col-sm">
+                    <label class="col-sm">Reinspeccion?</label>
+                    <br />
+                    <input type="checkbox" disabled="@((esSocio || isLoadingDependencias || isSavingReporte || isUpdatingPlantel))" @bind="@tempReinspeccion">
+                </div>
                 @if (Id == 0)
                 {
                     <div class="col-sm">
                         <label class="col-sm">Crear nuevo plantel?</label>
                         <br />
-                        <input type="checkbox" disabled="@esSocio" @bind="@createNewPlantel">
+                        <input type="checkbox" disabled="@((esSocio || isLoadingDependencias || isSavingReporte || isUpdatingPlantel))" @bind="@createNewPlantel">
                     </div>
                 }
-       
-        </div>
-        <br />
-      
+            </div>
             <br />
-        <br />
-         @if (confirmado){
+            <br />
+            <br />
+            @if (confirmado)
+            {
             <RadzenTabs Class="w-100 mx-auto" RenderMode="TabRenderMode.Server">
                 <Tabs>
                     <RadzenTabsItem Text="Movimientos">
@@ -567,17 +684,9 @@
 
     }
     }
+            }
+        }
     </div>
-}
-else
-{
-    <br />
-    <center>
-        <div class="mb-2">
-            <br />
-            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-        </div>
-    </center>
 }
 @code {
 
@@ -608,9 +717,15 @@ else
     EstableDTO? establecimientoSeleccionado = null;
     List<Resin4DTO> promedios = new();
     List<Solici1DTO> solicitudes = new();
+    List<Solici1DTO> solicitudesVisibles = new();
+    Dictionary<string, EstableDTO> establecimientosPorCodigo = new(StringComparer.OrdinalIgnoreCase);
     IList<Solici1DTO?> solicitudSeleccionada = null;
     bool confirmado = false;
-    bool cargando = true;
+    bool isInitialLoading = true;
+    bool isLoadingDependencias = false;
+    bool isSavingReporte = false;
+    bool isUpdatingPlantel = false;
+    string loadingMessage = "Preparando formulario de inspección...";
     Resin1DTO? oResin1 = new();
     DateTime fechaTemp = DateTime.Now;
     Respuesta<Resin1DTO> oRespuesta = new();
@@ -664,27 +779,45 @@ else
 
     async Task CargarDatos()
     {
-        try{
-            var rtaaa = await _inspectServicio.LimitadosFiltrados(0, 0);
-            Inspects = OrderInspectsByCreation(rtaaa.List);
+        try
+        {
+            isInitialLoading = true;
+            loadingMessage = Id != 0 ? "Cargando reporte y datos asociados..." : "Preparando formulario de inspección...";
+            await InvokeAsync(StateHasChanged);
+            await Task.Yield();
+
+            var inspectTask = _inspectServicio.LimitadosFiltrados(0, 0);
+            var plantelTask = _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
+
+            var sociosTask = Id == 0
+                ? _socioServicio.LimitadosFiltrados(0, 0)
+                : Task.FromResult(new Respuesta<List<SocioDTO>> { List = new List<SocioDTO>() });
+            var solicitudesTask = Id == 0
+                ? _solici1Servicio.LimitadosFiltradosNoInclude(0, 0)
+                : Task.FromResult(new Respuesta<List<Solici1DTO>> { List = new List<Solici1DTO>() });
+            var resultadosTask = Id == 0
+                ? _resin1Servicio.LimitadosFiltradosNoInclude(0, 0)
+                : Task.FromResult(new Respuesta<List<Resin1DTO>> { List = new List<Resin1DTO>() });
+            var establecimientosTask = _estableServicio.LimitadosFiltradosNoInclude(0, 0);
+
             esSocio = opcion == 1;
-            var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
-            Planteles = OrderPlantelesByYear(plan.List);
+
             if (Id != 0)
             {
+                isLoadingDependencias = true;
+                loadingMessage = "Cargando dependencias del reporte...";
+                await InvokeAsync(StateHasChanged);
+                await Task.Yield();
+
                 string filtro = $"Id = {Id}";
                 var res = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-                oResin1 = res.List.Where(x=>x.Id==Id).FirstOrDefault();
+                oResin1 = res.List.FirstOrDefault() ?? new Resin1DTO();
 
-                filtro = $"(Scod == null ? \"\" : Scod).ToLower().Contains(\"{oResin1.Scod}\".ToLower())";
-                var rt = await _socioServicio.LimitadosFiltrados(0,1,filtro);
-                socioSeleccionado = rt.List.Where(x => x.Scod == oResin1.Scod).FirstOrDefault() ?? new SocioDTO();
+                var socioFiltro = $"(Scod == null ? \"\" : Scod).ToLower().Contains(\"{EscapeForFilter(oResin1.Scod)}\".ToLower())";
+                var rt = await _socioServicio.LimitadosFiltrados(0, 1, socioFiltro);
+                socioSeleccionado = rt.List.FirstOrDefault(x => x.Scod == oResin1.Scod) ?? new SocioDTO();
 
-                string nrores = oResin1.Nrores?.ToLower() ?? "";
-                filtro = $"(Nrosol == null ? \"\" : Nrosol).ToLower().Contains(\"{nrores}\")";
-
-                var sol = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-                if ((solicitudSeleccionada == null || solicitudSeleccionada.Count == 0) && !string.IsNullOrEmpty(oResin1.Nrores))
+                if (!string.IsNullOrWhiteSpace(oResin1.Nrores))
                 {
                     solicitudSeleccionada = new List<Solici1DTO?>
                     {
@@ -697,74 +830,222 @@ else
                     };
                 }
 
+                inspectorSeleccionado = null;
+                Plantelseleccionado = null;
+                establecimientoSeleccionado = null;
+            }
+            else
+            {
+                var sociosResponse = await sociosTask;
+                socios = OrderSociosByCreation(sociosResponse.List);
 
-                filtro = $"(Ecod == null ? \"\" : Ecod).ToLower().Contains(\"{oResin1.Estcod}\".ToLower())";
-                var estable = await _estableServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
-                establecimientoSeleccionado = estable.List.Where(x=>x.Ecod==oResin1.Estcod).FirstOrDefault();
+                var solicitudesResponse = await solicitudesTask;
+                solicitudes = OrderSolicitudesByCreation(solicitudesResponse.List);
 
-                inspectorSeleccionado = Inspects.FirstOrDefault(x => x.Icod == oResin1.Icod);
+                var resultadosResponse = await resultadosTask;
+                resultados = OrderResultadosByCreation(resultadosResponse.List);
+            }
 
-                loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
-                confirmado = true;
-                await InvokeAsync(StateHasChanged);
+            var inspectResponse = await inspectTask;
+            Inspects = OrderInspectsByCreation(inspectResponse.List);
 
+            var plantelResponse = await plantelTask;
+            Planteles = OrderPlantelesByYear(plantelResponse.List);
 
-                if (solicitudSeleccionada?.FirstOrDefault() != null)
+            var establecimientosResponse = await establecimientosTask;
+            establecimientos = establecimientosResponse.List ?? new List<EstableDTO>();
+            establecimientosPorCodigo = establecimientos
+                .Where(x => !string.IsNullOrWhiteSpace(x.Ecod))
+                .GroupBy(x => x.Ecod!, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(x => x.Key, x => x.First(), StringComparer.OrdinalIgnoreCase);
+
+            if (Id != 0)
+            {
+                var establecimiento = GetEstablecimientoForCurrentReport();
+                establecimientoSeleccionado = establecimiento;
+
+                if (socioSeleccionado != null)
                 {
-                    await updateEstadoHistorico(solicitudSeleccionada.FirstOrDefault().Nrosol);
-
-                    await updatePromedios(solicitudSeleccionada.FirstOrDefault().Nrosol);
-
-                    await updateRechazos(solicitudSeleccionada.First().Nrosol);
-
-                    await updateMovimientos(solicitudSeleccionada.FirstOrDefault().Nrosol, "no");
-
-                    await updateHembrasMachos(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                    LoadSocioDerivedState(false);
+                    var nrores = oResin1?.Nrores;
+                    if (!string.IsNullOrWhiteSpace(nrores))
+                    {
+                        await LoadReportSectionsAsync(nrores, firstLoad: true);
+                    }
                 }
-
-                confirmado = true;
-                try
-                {
-                    confirmado = true;
 
                 Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla);
-                    if (Plantelseleccionado == null && oResin1.Freali.HasValue)
-                    {
-                        var anio = oResin1.Freali.Value.Year.ToString();
-                        var porAnio = Planteles.FirstOrDefault(x => x.Anioex == anio && x.Nrocri == socioSeleccionado?.Scod);
-                        if (porAnio != null)
-                        {
-                            Plantelseleccionado = porAnio;
-                        }
-                    }
-
-                }
-                catch (Exception ex)
+                if (Plantelseleccionado == null && oResin1?.Freali.HasValue == true)
                 {
-                    Console.WriteLine($"Error al asignar plantel: {ex.Message}");
+                    var anio = oResin1.Freali.Value.Year.ToString();
+                    Plantelseleccionado = Planteles.FirstOrDefault(x => x.Anioex == anio && x.Nrocri == socioSeleccionado?.Scod);
                 }
             }
-            else{
-                var rta = await _socioServicio.LimitadosFiltrados(0, 0);
-                socios = OrderSociosByCreation(rta.List);
-
-                var rtaa = await _solici1Servicio.LimitadosFiltradosNoInclude(0, 0);
-                solicitudes = OrderSolicitudesByCreation(rtaa.List);
-
-                var rt = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
-                resultados = OrderResultadosByCreation(rt.List);
-
-                var respuesta = await _estableServicio.LimitadosFiltradosNoInclude(0, 0);
-                establecimientos = respuesta.List;
-
+            else
+            {
+                RefreshDerivedLists();
             }
+
+            confirmado = Id != 0;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             oRespuesta.Mensaje = ex.Message;
         }
-        cargando = false;
+        finally
+        {
+            isLoadingDependencias = false;
+            isInitialLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 
+    private static string EscapeForFilter(string? value) => (value ?? string.Empty).Replace("\"", "\\\"");
+
+    private void LoadSocioDerivedState(bool resetSelections)
+    {
+        if (resetSelections)
+        {
+            solicitudSeleccionada = null;
+            Plantelseleccionado = null;
+            establecimientoSeleccionado = null;
+        }
+
+        RefreshDerivedLists();
+    }
+
+    private void RefreshDerivedLists()
+    {
+        var codigosSocio = socioSeleccionado?.Scod == null
+            ? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            : establecimientos
+                .Where(x => string.Equals(x.Codsoc, socioSeleccionado.Scod, StringComparison.OrdinalIgnoreCase))
+                .Select(x => x.Ecod)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var resultadosNrores = resultados
+            .Where(x => !string.IsNullOrWhiteSpace(x.Nrores))
+            .Select(x => x.Nrores!)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        solicitudesVisibles = solicitudes
+            .Where(x => !string.IsNullOrWhiteSpace(x.Codest))
+            .Where(x => codigosSocio.Contains(x.Codest!))
+            .Where(x => string.IsNullOrWhiteSpace(x.Nrosol) || !resultadosNrores.Contains(x.Nrosol))
+            .ToList();
+    }
+
+    private async Task LoadReportSectionsAsync(string nrores, bool firstLoad = false)
+    {
+        if (string.IsNullOrWhiteSpace(nrores))
+        {
+            return;
+        }
+
+        loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
+        if (!firstLoad)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+
+        try
+        {
+            await updateEstadoHistorico(nrores);
+            await Task.WhenAll(
+                updatePromedios(nrores),
+                updateRechazos(nrores),
+                updateHembrasMachos(nrores)
+            );
+            await updateMovimientos(nrores, "no");
+        }
+        finally
+        {
+            loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
+        }
+    }
+
+    private async Task OnSocioChanged(SocioDTO? socio)
+    {
+        isLoadingDependencias = true;
+        loadingMessage = socio != null ? "Cargando datos del socio seleccionado..." : "Limpiando selección...";
+        await InvokeAsync(StateHasChanged);
+        await Task.Yield();
+
+        socioSeleccionado = socio;
+
+        if (socio == null)
+        {
+            solicitudSeleccionada = null;
+            Plantelseleccionado = null;
+            establecimientoSeleccionado = null;
+            inspectorSeleccionado = null;
+            confirmado = false;
+            oResin1 = new Resin1DTO();
+            RefreshDerivedLists();
+        }
+        else
+        {
+            if (Id == 0)
+            {
+                solicitudSeleccionada = null;
+                oResin1 = new Resin1DTO
+                {
+                    Freali = fechaTemp,
+                    Scod = socio.Scod
+                };
+                establecimientoSeleccionado = establecimientos.FirstOrDefault(x => string.Equals(x.Codsoc, socio.Scod, StringComparison.OrdinalIgnoreCase));
+                Plantelseleccionado = Planteles.FirstOrDefault(x => string.Equals(x.Nrocri, socio.Scod, StringComparison.OrdinalIgnoreCase));
+                inspectorSeleccionado = null;
+                confirmado = true;
+            }
+
+            RefreshDerivedLists();
+        }
+
+        isLoadingDependencias = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private Solici1DTO? SelectedSolicitud => solicitudSeleccionada?.FirstOrDefault();
+
+    private string? SelectedLocalidad
+    {
+        get
+        {
+            var codest = SelectedSolicitud?.Codest;
+            if (string.IsNullOrWhiteSpace(codest))
+            {
+                return establecimientoSeleccionado?.Locali;
+            }
+
+            if (establecimientoSeleccionado != null && string.Equals(establecimientoSeleccionado.Ecod, codest, StringComparison.OrdinalIgnoreCase))
+            {
+                return establecimientoSeleccionado.Locali;
+            }
+
+            return establecimientosPorCodigo.TryGetValue(codest, out var establecimiento)
+                ? establecimiento.Locali
+                : string.Empty;
+        }
+    }
+
+    private EstableDTO? GetEstablecimientoForCurrentReport()
+    {
+        var codest = oResin1?.Estcod ?? SelectedSolicitud?.Codest;
+        if (string.IsNullOrWhiteSpace(codest))
+        {
+            return null;
+        }
+
+        if (establecimientoSeleccionado != null && string.Equals(establecimientoSeleccionado.Ecod, codest, StringComparison.OrdinalIgnoreCase))
+        {
+            return establecimientoSeleccionado;
+        }
+
+        return establecimientosPorCodigo.TryGetValue(codest, out var establecimiento)
+            ? establecimiento
+            : establecimientos.FirstOrDefault(x => string.Equals(x.Ecod, codest, StringComparison.OrdinalIgnoreCase));
     }
 
     DateTime? GetSocioCreationDate(SocioDTO? socio)
@@ -842,36 +1123,37 @@ else
             .ThenByDescending(x => x.Id)
             .ToList();
 
-    async Task guardarReporte()
+    async Task<Resin1DTO?> guardarReporte()
     {
         Console.WriteLine("guardarReporte");
 
         try
         {
             oResin1.Id = Id;
+            var nroresSolicitud = solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
 
             if (socioSeleccionado == null)
             {
                 await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
-                return;
+                return null;
             }
 
-            if (string.IsNullOrWhiteSpace(oResin1.Nrores))
+            if (Id != 0 && string.IsNullOrWhiteSpace(oResin1.Nrores) && string.IsNullOrWhiteSpace(nroresSolicitud))
             {
                 await Swal.FireAsync("Error", "Debe seleccionar o generar una solicitud válida.", SweetAlertIcon.Error);
-                return;
+                return null;
             }
 
             if (inspectorSeleccionado == null)
             {
                 await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
-                return;
+                return null;
             }
 
             if (Plantelseleccionado == null)
             {
                 await Swal.FireAsync("Error", "Debe seleccionar un plantel válido.", SweetAlertIcon.Error);
-                return;
+                return null;
             }
 
             oResin1.Icod = inspectorSeleccionado.Icod;
@@ -892,40 +1174,46 @@ else
 
             if (Id == 0)
             {
-            
-
                 oResin1.Nropla = Plantelseleccionado.Placod;
                 oResin1.Freali = fechaTemp;
+                if (string.IsNullOrWhiteSpace(oResin1.Nrores) && !string.IsNullOrWhiteSpace(nroresSolicitud))
+                {
+                    oResin1.Nrores = nroresSolicitud;
+                }
 
-            var result = await _resin1Servicio.Crear(oResin1);
+                var result = await _resin1Servicio.Crear(oResin1);
 
-            if (result?.List == null)
-            {
-                await Swal.FireAsync("Error", "La respuesta del servidor al crear el reporte fue inválida.", SweetAlertIcon.Error);
-                return;
-            }
+                if (result?.List == null)
+                {
+                    await Swal.FireAsync("Error", "La respuesta del servidor al crear el reporte fue inválida.", SweetAlertIcon.Error);
+                    return null;
+                }
 
-            oResin1 = result.List;
-            Id = oResin1.Id;
-
-            
+                oResin1 = result.List;
+                Id = oResin1.Id;
+                return oResin1;
             }
             else
             {
+                if (string.IsNullOrWhiteSpace(oResin1.Nrores) && !string.IsNullOrWhiteSpace(nroresSolicitud))
+                {
+                    oResin1.Nrores = nroresSolicitud;
+                }
 
-            await _resin1Servicio.Editar(oResin1);
+                await _resin1Servicio.Editar(oResin1);
 
-            var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
-            oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
-            Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
-            await InvokeAsync(StateHasChanged);
-
+                var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
+                oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
+                Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
+                await InvokeAsync(StateHasChanged);
+                return oResin1;
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine("Excepción al guardar reporte: " + ex.Message);
             await Swal.FireAsync("Error", "Ocurrió un error al guardar el reporte: " + ex.Message, SweetAlertIcon.Error);
+            return null;
         }
     }
 
@@ -1129,66 +1417,79 @@ else
     }
     async Task confirmar(bool shouldRedirect)
     {
+        isSavingReporte = true;
         confirmado = true;
         loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
         await InvokeAsync(StateHasChanged);
-        Console.WriteLine($"Plantelseleccionado: {Plantelseleccionado}");
-        Console.WriteLine($"socioSeleccionado: {socioSeleccionado}");
-        Console.WriteLine($"solicitudSeleccionada: {solicitudSeleccionada?.Count()}");
-
-        // Asegurar plantel seleccionado por las dudas
-        if (Plantelseleccionado == null)
+        try
         {
-            try
+            Console.WriteLine($"Plantelseleccionado: {Plantelseleccionado}");
+            Console.WriteLine($"socioSeleccionado: {socioSeleccionado}");
+            Console.WriteLine($"solicitudSeleccionada: {solicitudSeleccionada?.Count()}");
+
+            // Asegurar plantel seleccionado por las dudas
+            if (Plantelseleccionado == null)
             {
-                Plantelseleccionado = Planteles
-                    .Where(x => x.Nrocri == socioSeleccionado?.Scod)
-                    .OrderByDescending(x => int.TryParse(x.Anioex, out var a) ? a : -1)
-                    .FirstOrDefault();
+                try
+                {
+                    Plantelseleccionado = Planteles
+                        .Where(x => x.Nrocri == socioSeleccionado?.Scod)
+                        .OrderByDescending(x => int.TryParse(x.Anioex, out var a) ? a : -1)
+                        .FirstOrDefault();
+                }
+                catch
+                {
+                    Console.WriteLine("No se pudo resolver Plantelseleccionado.");
+                }
             }
-            catch
+
+            var guardado = await guardarReporte();
+            if (guardado == null)
             {
-                Console.WriteLine("No se pudo resolver Plantelseleccionado.");
+                return;
             }
+
+            var nrores = guardado.Nrores ?? solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
+
+            if (!string.IsNullOrWhiteSpace(nrores))
+            {
+                await LoadReportSectionsAsync(nrores);
+                if (createNewPlantel)
+                {
+                    isUpdatingPlantel = true;
+                    await InvokeAsync(StateHasChanged);
+                    var destino = await updatePlantel(_subirDeAnioNoSeUsa: true);
+                    oResin1.Nropla = destino.Placod;
+                    await _resin1Servicio.Editar(oResin1);
+                    await EsperarActualizacionNropla(Id, destino.Placod);
+
+                    createNewPlantel = false;
+                    var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
+                    oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
+                    Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
+                    await InvokeAsync(StateHasChanged);
+                }
+
+
+                var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
+                resultados = rtRes.List;
+                RefreshDerivedLists();
+            }
+
+            await InvokeAsync(StateHasChanged);
         }
-
-        // Asegurar Nrores
-        oResin1.Nrores ??= solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
-
-        await guardarReporte();
-
-        var nrores = oResin1.Nrores ?? solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
-
-        if (!string.IsNullOrWhiteSpace(nrores))
+        catch (Exception ex)
         {
-            await updateEstadoHistorico(nrores); 
-            await Task.WhenAll(
-                updatePromedios(nrores),
-                updateRechazos(nrores),
-                updateHembrasMachos(nrores)
-            );
-            await updateMovimientos(nrores, "no");
-
-            if (createNewPlantel)
-            {
-            var destino = await updatePlantel(_subirDeAnioNoSeUsa: true);
-                oResin1.Nropla = destino.Placod;
-                await _resin1Servicio.Editar(oResin1);
-                await EsperarActualizacionNropla(Id, destino.Placod);
-
-                createNewPlantel = false; 
-                var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
-                oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
-                Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
-                await InvokeAsync(StateHasChanged);
-            }
-
-
-            var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
-            resultados = rtRes.List;
+            Console.WriteLine(ex.Message);
+            await Swal.FireAsync("Error", $"Ocurrió un error al guardar el reporte: {ex.Message}", SweetAlertIcon.Error);
         }
-
-        await InvokeAsync(StateHasChanged);
+        finally
+        {
+            isSavingReporte = false;
+            isUpdatingPlantel = false;
+            loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
+            await InvokeAsync(StateHasChanged);
+        }
 
         if (shouldRedirect)
         {
@@ -1252,7 +1553,6 @@ else
             await crearHistorico(solicitudSeleccionada.First().Nrosol);
         }
 
-        
         await confirmar(shouldRedirect);
 
 
@@ -1347,6 +1647,7 @@ async Task<PlantelDTO> updatePlantel(bool _subirDeAnioNoSeUsa)
 
     var ultimoDigito = anioDestino.Last();
     var fechaCreacionPlantel = (oResin1?.Freali ?? fechaTemp).ToString("yyyy/MM/dd");
+    var fechaAltaPlantel = DateTime.Now.ToString("yyyy/MM/dd");
 
     if (planDestino != null && !_subirDeAnioNoSeUsa)
     {
@@ -1396,7 +1697,7 @@ async Task<PlantelDTO> updatePlantel(bool _subirDeAnioNoSeUsa)
             Vqssrp = estadoFinal.Ea6,
             Nrocri = planViejo.Nrocri,
             Estado = planViejo.Estado,
-            Fecing = fechaCreacionPlantel,
+            Fecing = fechaAltaPlantel,
             Nroins = planViejo.Nroins
         };
 
@@ -1623,47 +1924,48 @@ async Task ResultWithoutSolicitud()
         // 2.1) Mostrar tabs y loaders ya mismo
         loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
         confirmado = true;
+        isSavingReporte = true;
         await InvokeAsync(StateHasChanged);
 
-        // 3) Armar solicitud "virtual" y crear Resin1
-        var guid = Guid.NewGuid().ToString();
-
-        solicitudSeleccionada = new List<Solici1DTO?>
-    {
-        new Solici1DTO { Nrosol = guid, Codest = codEst, Fecsol = DateTime.Now }
-    };
-
-        // IMPORTANTE: al crear, va con el plantel ACTUAL (luego lo actualizamos si tildaron "crear nuevo plantel")
+        // 3) Crear Resin1 dejando que el servidor asigne el nro correlativo si corresponde
+        solicitudSeleccionada = new List<Solici1DTO?>();
         oResin1 = new Resin1DTO
-            {
-                Nrores = guid,
-                Estcod = codEst,
-                Scod = socioSeleccionado.Scod,
-                Icod = inspectorSeleccionado.Icod,
-                Nropla = plantel.Placod,
-                Freali = fechaTemp
-            };
+        {
+            Nrores = null,
+            Estcod = codEst,
+            Scod = socioSeleccionado.Scod,
+            Icod = inspectorSeleccionado.Icod,
+            Nropla = plantel.Placod,
+            Freali = fechaTemp
+        };
 
-        var resultado = await _resin1Servicio.Crear(oResin1);
-        if (resultado?.List is null)
+        var guardado = await guardarReporte();
+        if (guardado is null || string.IsNullOrWhiteSpace(guardado.Nrores))
         {
             await Swal.FireAsync("Error", "No se pudo crear el resultado de inspección.", SweetAlertIcon.Error);
             loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
+            isSavingReporte = false;
             await InvokeAsync(StateHasChanged);
             return;
         }
 
-        // ⬅️⬅️⬅️ **CLAVE**: guardar el Id y la entidad devuelta ANTES de cualquier otra operación
-        Id = resultado.List.Id;
-        oResin1 = resultado.List;
+        Id = guardado.Id;
+        oResin1 = guardado;
 
-        // 4) Crear histórico desde Plantel y refrescar secciones
-        await crearHistorico(guid);
-        await RefreshAll(guid);
+        // 4) Crear histórico desde Plantel y refrescar secciones con el nro real
+        solicitudSeleccionada = new List<Solici1DTO?>
+        {
+            new Solici1DTO { Nrosol = guardado.Nrores, Codest = codEst, Fecsol = guardado.Freali ?? DateTime.Now }
+        };
+
+        await crearHistorico(guardado.Nrores);
+        await RefreshAll(guardado.Nrores);
 
         // 5) Crear/actualizar plantel si corresponde
         if (createNewPlantel)
         {
+            isUpdatingPlantel = true;
+            await InvokeAsync(StateHasChanged);
             var destino = await updatePlantel(_subirDeAnioNoSeUsa: true); // crea/actualiza 2025D1D1
             Plantelseleccionado = destino;                         // reflejar en UI
 
@@ -1680,12 +1982,14 @@ async Task ResultWithoutSolicitud()
             Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
 
             createNewPlantel = false; // evitar saltos a 2026, 2027...
+            isUpdatingPlantel = false;
             await InvokeAsync(StateHasChanged);
         }
 
         // 6) Refrescar grilla de resultados
         var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
         resultados = rtRes.List;
+        RefreshDerivedLists();
 
         // 7) Render final
         await InvokeAsync(StateHasChanged);
@@ -1695,7 +1999,12 @@ async Task ResultWithoutSolicitud()
         Console.WriteLine(ex.Message);
         await Swal.FireAsync("Error", $"Ocurrió un error al crear el resultado sin solicitud: {ex.Message}", SweetAlertIcon.Error);
         loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
+        isSavingReporte = false;
         await InvokeAsync(StateHasChanged);
+    }
+    finally
+    {
+        isSavingReporte = false;
     }
 }
 

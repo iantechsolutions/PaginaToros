@@ -405,10 +405,10 @@ else if (socios.Count > 0)
                                                        ValueChanged="OnToroSeleccionado"
                                                        ValueExpression="@(() => toroSeleccionado)">
                                         <SelectedTemplate Context="eleccion">
-                                            @($"{eleccion?.NomDad} - {eleccion?.Hba}")
+                                            @($"{DisplayOrNoInformado(eleccion?.NomDad)} - {DisplayOrNoInformado(eleccion?.Hba)}")
                                         </SelectedTemplate>
                                         <ResultTemplate Context="eleccion">
-                                            @($"{eleccion?.NomDad} | HBA {eleccion?.Hba} | Tat {eleccion?.Tatpart}")
+                                            @($"{DisplayOrNoInformado(eleccion?.NomDad)} | HBA {DisplayOrNoInformado(eleccion?.Hba)} | Tat {DisplayOrNoInformado(eleccion?.Tatpart)}")
                                         </ResultTemplate>
                                     </BlazoredTypeahead>
                                 </div>
@@ -422,29 +422,22 @@ else if (socios.Count > 0)
                                         @{
                                             var toro = toros.FirstOrDefault(x => string.Equals(T(x.Hba), T(data.original.Hardb), StringComparison.OrdinalIgnoreCase));
                                         }
-                                        @(toro?.NomDad ?? "-")
+                                        @DisplayOrNoInformado(toro?.NomDad)
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="4.6%">
                                     <Template Context="data">
-                                        @data.original.Hardb
+                                        @DisplayOrNoInformado(data.original.Hardb)
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tatuaje" Width="4.6%">
                                     <Template Context="data">
-                                        @data.original.Tatpart
+                                        @DisplayOrNoInformado(data.original.Tatpart)
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tipo" Width="4.6%">
                                     <Template Context="data">
-                                        @if (!string.IsNullOrWhiteSpace(data.TipToro) && traductorToros.ContainsKey(data.TipToro))
-                                        {
-                                            @traductorToros[data.TipToro]
-                                        }
-                                        else
-                                        {
-                                            <span>-</span>
-                                        }
+                                        @GetTipToroLabel(data.TipToro)
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Title="Quitar" Width="3%">
@@ -473,10 +466,10 @@ else if (socios.Count > 0)
                                                        ValueChanged="OnToroSeleccionado"
                                                        ValueExpression="@(() => toroSeleccionado)">
                                         <SelectedTemplate Context="eleccion">
-                                            @($"{eleccion?.NomDad} - {eleccion?.Hba}")
+                                            @($"{DisplayOrNoInformado(eleccion?.NomDad)} - {DisplayOrNoInformado(eleccion?.Hba)}")
                                         </SelectedTemplate>
                                         <ResultTemplate Context="eleccion">
-                                            @($"{eleccion?.NomDad} | HBA {eleccion?.Hba} | Tat {eleccion?.Tatpart}")
+                                            @($"{DisplayOrNoInformado(eleccion?.NomDad)} | HBA {DisplayOrNoInformado(eleccion?.Hba)} | Tat {DisplayOrNoInformado(eleccion?.Tatpart)}")
                                         </ResultTemplate>
                                     </BlazoredTypeahead>
                                 </div>
@@ -490,22 +483,22 @@ else if (socios.Count > 0)
                                         @{
                                             var toro = toros.FirstOrDefault(x => string.Equals(T(x.Hba), T(data.original.Hardb), StringComparison.OrdinalIgnoreCase));
                                         }
-                                        @(toro?.NomDad ?? "-")
+                                        @DisplayOrNoInformado(toro?.NomDad)
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="HBA" Width="3%">
                                     <Template Context="data">
-                                        @data.original.Hardb
+                                        @DisplayOrNoInformado(data.original.Hardb)
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tatuaje" Width="4.6%">
                                     <Template Context="data">
-                                        @data.original.Tatpart
+                                        @DisplayOrNoInformado(data.original.Tatpart)
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="TorosuniDTO" Property="TipToro" Title="Tipo de toro" Width="5%">
+                                <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Tipo de toro" Width="5%">
                                     <Template Context="data">
-                                        @traductorToros[data.TipToro]
+                                        @GetTipToroLabel(data.TipToro)
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Desepla3Data" Property="" Title="Desde" Width="7%">
@@ -729,8 +722,9 @@ else
     string tipoTemp = "";
     string previousTipoTemp = "";
     string? plantelLoadWarning = null;
+    private const string NoInformado = "No informado";
 
-    Dictionary<string, string> traductorToros = new Dictionary<string, string>{
+    Dictionary<string, string> traductorToros = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase){
         {"P","Puro Pedigree (SRA)"},
         {"S","S/"},
         {"GP","Ganador de prueba"},
@@ -748,6 +742,7 @@ else
     private void Log(string message) => Console.WriteLine($"{LogPrefix} {DateTime.Now:HH:mm:ss.fff} {message}");
     private static string Q(string? value) => value is null ? "<null>" : $"'{value}' (len={value.Length})";
     private static string T(string? value) => (value ?? string.Empty).Trim();
+    private static string DisplayOrNoInformado(string? value) => string.IsNullOrWhiteSpace(value) ? NoInformado : value.Trim();
     private static string EscapeForFilter(string? value) => (value ?? string.Empty).Replace("\"", "\\\"");
     private static DateTime KeepDayWithinMonth(DateTime current, DateTime selected)
     {
@@ -943,6 +938,7 @@ else
                     else
                     {
                         data.TipToro = GetTipToroByHba(desepla.Hardb);
+                        data.SelectionKey = BuildToroSelectionKey(data);
                         torosSeleccionados.Add(data);
                     }
                 }
@@ -979,8 +975,73 @@ else
     private string? GetTipToroByHba(string? hba)
     {
         if (string.IsNullOrWhiteSpace(hba)) return null;
-        return toros.FirstOrDefault(t => t.Hba == hba)?.TipToro;
+        var normalizedHba = T(hba);
+        return toros.FirstOrDefault(t => string.Equals(T(t.Hba), normalizedHba, StringComparison.OrdinalIgnoreCase))?.TipToro;
     }
+
+    private string GetTipToroLabel(string? tipToro)
+    {
+        if (string.IsNullOrWhiteSpace(tipToro))
+        {
+            return NoInformado;
+        }
+
+        return traductorToros.TryGetValue(tipToro.Trim(), out var label)
+            ? label
+            : tipToro.Trim();
+    }
+
+    private static string BuildToroSelectionKey(TorosuniDTO? toro)
+    {
+        if (toro is null)
+        {
+            return string.Empty;
+        }
+
+        if (toro.Id > 0)
+        {
+            return $"ID:{toro.Id}";
+        }
+
+        var hba = T(toro.Hba);
+        if (!string.IsNullOrWhiteSpace(hba))
+        {
+            return $"HBA:{hba.ToUpperInvariant()}";
+        }
+
+        var nomDad = T(toro.NomDad);
+        var tatpart = T(toro.Tatpart);
+        return $"BUS:{nomDad.ToUpperInvariant()}|{tatpart.ToUpperInvariant()}";
+    }
+
+    private static string BuildToroSelectionKey(Desepla3Data? data)
+    {
+        if (data is null)
+        {
+            return string.Empty;
+        }
+
+        if (!string.IsNullOrWhiteSpace(data.SelectionKey))
+        {
+            return data.SelectionKey.Trim();
+        }
+
+        var hba = T(data.original?.Hardb);
+        if (!string.IsNullOrWhiteSpace(hba))
+        {
+            return $"HBA:{hba.ToUpperInvariant()}";
+        }
+
+        if (data.Id > 0)
+        {
+            return $"DET:{data.Id}";
+        }
+
+        var apodo = T(data.original?.Apodo);
+        var tatpart = T(data.original?.Tatpart);
+        return $"BUS:{apodo.ToUpperInvariant()}|{tatpart.ToUpperInvariant()}";
+    }
+
     private async Task<bool> UserHasRole(string role)
     {
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -1824,23 +1885,34 @@ else
         => await ToggleToro(args?.Data);
 
     private bool IsToroSelected(TorosuniDTO? toro)
-        => toro != null && torosSeleccionados.Any(t => string.Equals(T(t.original?.Hardb), T(toro.Hba), StringComparison.OrdinalIgnoreCase));
+    {
+        var key = BuildToroSelectionKey(toro);
+        return !string.IsNullOrWhiteSpace(key)
+            && torosSeleccionados.Any(t => string.Equals(BuildToroSelectionKey(t), key, StringComparison.OrdinalIgnoreCase));
+    }
 
     private bool IsCertifSelected(CertifsemanDTO? certif)
         => certif != null && certificadosSeleccionados.Any(c => string.Equals(T(c.original?.Hardb), T(certif.Hba), StringComparison.OrdinalIgnoreCase));
 
     private async Task ToggleToro(TorosuniDTO? toro)
     {
-        if (toro == null || string.IsNullOrWhiteSpace(toro.Hba))
+        if (toro == null)
         {
-            Log("ToggleToro ignorado (toro null o HBA vacío)");
+            Log("ToggleToro ignorado (toro null)");
             return;
         }
 
-        var existente = torosSeleccionados.FirstOrDefault(t => string.Equals(T(t.original?.Hardb), T(toro.Hba), StringComparison.OrdinalIgnoreCase));
+        var selectionKey = BuildToroSelectionKey(toro);
+        if (string.IsNullOrWhiteSpace(selectionKey))
+        {
+            Log($"ToggleToro ignorado (sin clave de selección) | Id={toro.Id} | NomDad={Q(toro.NomDad)} | HBA={Q(toro.Hba)} | Tat={Q(toro.Tatpart)}");
+            return;
+        }
+
+        var existente = torosSeleccionados.FirstOrDefault(t => string.Equals(BuildToroSelectionKey(t), selectionKey, StringComparison.OrdinalIgnoreCase));
         if (existente != null)
         {
-            Log($"ToggleToro ignorado (ya seleccionado) | HBA={Q(toro.Hba)}");
+            Log($"ToggleToro ignorado (ya seleccionado) | key={selectionKey} | HBA={Q(toro.Hba)}");
             return;
         }
 
@@ -1856,11 +1928,13 @@ else
                     Tipo = "toro"
                 },
                 TipToro = toro.TipToro,
+                SelectionKey = selectionKey,
+                Id = toro.Id,
                 Desde = DateTime.Today,
                 Hasta = DateTime.Today
             }
         );
-        Log($"ToggleToro ADD | HBA={Q(toro.Hba)} | TipToro={Q(toro.TipToro)} | totalTorosSel={torosSeleccionados.Count}");
+        Log($"ToggleToro ADD | key={selectionKey} | Id={toro.Id} | HBA={Q(toro.Hba)} | TipToro={Q(toro.TipToro)} | totalTorosSel={torosSeleccionados.Count}");
 
         try { if (gridToro1 != null) await gridToro1.Reload(); } catch { }
         try { if (gridToro2 != null) await gridToro2.Reload(); } catch { }
@@ -2086,6 +2160,7 @@ else
         public DateTime Desde { get; set; } = DateTime.Today;
         public DateTime Hasta { get; set; } = DateTime.Today;
         public string? TipToro { get; set; } = "";
+        public string SelectionKey { get; set; } = "";
         public int Id { get; set; }
     }
 

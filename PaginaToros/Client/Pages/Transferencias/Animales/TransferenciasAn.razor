@@ -59,8 +59,16 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="TransanDTO" Property="Vnom" Title="Socio Vendedor" Width="6%"/>
                 <RadzenDataGridColumn TItem="TransanDTO" Property="Cnom" Title="Socio Comprador" Width="6%"/>
-                <RadzenDataGridColumn TItem="TransanDTO" Property="Plant" Title="De Plantel" Width="6%" />
-                <RadzenDataGridColumn TItem="TransanDTO" Property="NvoPla" Title="A Plantel" Width="6%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="Plant" Title="De Plantel" Width="6%">
+                    <Template Context="data">
+                        @FormatPlantel(data.Plant, data.PlantOrigenAnioex)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TransanDTO" Property="NvoPla" Title="A Plantel" Width="6%">
+                    <Template Context="data">
+                        @FormatPlantel(data.NvoPla, data.PlantDestinoAnioex)
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="TransanDTO" Property="CantHem" Title="Cant Hembras" Width="6.6%" />
                 <RadzenDataGridColumn TItem="TransanDTO" Property="CantMach" Title="Cant Machos" Width="6.6%" />
                 <RadzenDataGridColumn TItem="TransanDTO" Property="Tiphac" Title="Tipo de hacienda" Width="6.6%" />
@@ -76,6 +84,11 @@
                 <RadzenDataGridColumn TItem="TransanDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TransanDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                    <Template Context="data">
+                        <button class="btn" title="Ver trazabilidad" @onclick="() => verTrazabilidad(data.Id)"><FeatherInfo Size="16" Color="blue" /></button>
                     </Template>
                 </RadzenDataGridColumn>
                 @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
@@ -134,8 +147,16 @@ else
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="TransanDTO" Property="Vnom" Title="Socio Vendedor" Width="6.6%" />
                         <RadzenDataGridColumn TItem="TransanDTO" Property="Cnom" Title="Socio Comprador" Width="6.6%" />
-                        <RadzenDataGridColumn TItem="TransanDTO" Property="Plant" Title="De Plantel" Width="6.6%" />
-                        <RadzenDataGridColumn TItem="TransanDTO" Property="NvoPla" Title="A Plantel" Width="6.6%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="Plant" Title="De Plantel" Width="6.6%">
+                            <Template Context="data">
+                                @FormatPlantel(data.Plant, data.PlantOrigenAnioex)
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="NvoPla" Title="A Plantel" Width="6.6%">
+                            <Template Context="data">
+                                @FormatPlantel(data.NvoPla, data.PlantDestinoAnioex)
+                            </Template>
+                        </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="TransanDTO" Property="CantHem" Title="Cant Hembras" Width="6.6%" />
                         <RadzenDataGridColumn TItem="TransanDTO" Property="CantMach" Title="Cant Machos" Width="6.6%" />
                         <RadzenDataGridColumn TItem="TransanDTO" Property="Tiphac" Title="Tipo de hacienda" Width="6.6%" />
@@ -177,6 +198,13 @@ else
     };
     public bool allowFiltering = false;
     public Respuesta<List<TransanDTO>> oRespuesta = new Respuesta<List<TransanDTO>>();
+
+    private static string FormatPlantel(string? codigo, string? anioex)
+        => string.IsNullOrWhiteSpace(codigo)
+            ? "-"
+            : string.IsNullOrWhiteSpace(anioex)
+                ? codigo
+                : $"{codigo} - {anioex}";
     protected override async Task OnInitializedAsync()
     {
 
@@ -230,6 +258,20 @@ else
             }
         }
 
+    }
+
+    async Task verTrazabilidad(int id)
+    {
+        var parameters = new ModalParameters();
+        parameters.Add("Id", id);
+
+        var options = new ModalOptions()
+        {
+            Size = ModalSize.ExtraLarge
+        };
+
+        var modal = Modal.Show<InfoTransan>("Trazabilidad de la transferencia", parameters, options);
+        await modal.Result;
     }
 
     public async Task alertaDelete(int id)

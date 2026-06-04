@@ -26,18 +26,21 @@ namespace PaginaToros.Server.Controllers
         private readonly ITransanRepositorio _TransanRepositorio;
         private readonly IWebHostEnvironment _env;
         private readonly IUserSocioContextService _userSocioContextService;
+        private readonly ILogger<TransanController> _logger;
         public TransanController(
             hereford_prContext db,
             ITransanRepositorio TransanRepositorio,
             IMapper mapper,
             IWebHostEnvironment env,
-            IUserSocioContextService userSocioContextService)
+            IUserSocioContextService userSocioContextService,
+            ILogger<TransanController> logger)
         {
             this.db = db;
             _mapper = mapper;
             _TransanRepositorio = TransanRepositorio;
             _env = env;
             _userSocioContextService = userSocioContextService;
+            _logger = logger;
         }
         [HttpGet]
         [Route("Lista")]
@@ -368,11 +371,13 @@ namespace PaginaToros.Server.Controllers
             Respuesta<string> _Respuesta = new Respuesta<string>();
             try
             {
+                _logger.LogInformation("Transan.Eliminar iniciado. TransanId={TransanId}", id);
                 var accessContext = await _userSocioContextService.ResolveAsync(User);
                 // Load existing transfer using DbContext
                 var existing = await db.Transans.FirstOrDefaultAsync(u => u.Id == id);
                 if (existing == null)
                 {
+                    _logger.LogWarning("Transan.Eliminar no encontró la transferencia. TransanId={TransanId}", id);
                     _Respuesta = new Respuesta<string>() { Exito = 0, Mensaje = "No se encontró el identificador" };
                     return StatusCode(StatusCodes.Status404NotFound, _Respuesta);
                 }
@@ -386,49 +391,67 @@ namespace PaginaToros.Server.Controllers
                 await strategy.ExecuteAsync(async () =>
                 {
                     using var transaction = await db.Database.BeginTransactionAsync();
+                    _logger.LogInformation("Transan.Eliminar transacción abierta. TransanId={TransanId}", existing.Id);
 
-                        // Revert hembras: add back to seller
-                        var prevCantHem = existing.CantHem ?? 0;
-                        if (prevCantHem > 0)
+                    var prevCantHem = existing.CantHem ?? 0;
+                    var seller = await ResolveTransferPlantelAsync(existing.PlantOrigenId, existing.Plant, "de origen");
+                    var buyer = !string.IsNullOrWhiteSpace(existing.NvoPla) || existing.PlantDestinoId.HasValue
+                        ? await ResolveTransferPlantelAsync(existing.PlantDestinoId, existing.NvoPla, "de destino")
+                        : null;
+
+                    var field = TransferenciaAnimalImpactoHelper.ResolveFieldName(existing.Tiphac, existing.Hemsta, existing.Tipohem, out var fieldError);
+                    if (string.IsNullOrWhiteSpace(field))
+                        throw new Exception(fieldError ?? "No se pudo determinar la categoría de hembras a revertir.");
+
+                    _logger.LogInformation("Transan.Eliminar revirtiendo stock. TransanId={TransanId} Bucket={Bucket} Cantidad={Cantidad} OrigenPlantelId={OrigenPlantelId} DestinoPlantelId={DestinoPlantelId}",
+                        existing.Id, field, prevCantHem, seller.Id, buyer?.Id);
+
+                    if (prevCantHem > 0)
+                    {
+                        var sellerBefore = TransferenciaAnimalImpactoHelper.GetPlantelFieldValue(_mapper.Map<PlantelDTO>(seller), field);
+                        SetPlantelFieldValue(seller, field, sellerBefore + prevCantHem);
+                        seller.FchUsu = DateTime.Now;
+                        db.Planteles.Update(seller);
+                        _logger.LogInformation("Transan.Eliminar origen actualizado. PlantelId={PlantelId} Campo={Campo} Antes={Antes} Despues={Despues}",
+                            seller.Id, field, sellerBefore, sellerBefore + prevCantHem);
+
+                        if (buyer != null)
                         {
-                            var seller = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == existing.Plant);
-                            if (seller != null)
-                            {
-                                var field = GetHembraField(existing.Tiphac, existing.Hemsta);
-                                if (!string.IsNullOrEmpty(field))
-                                {
-                                    double val = GetPlantelFieldValue(seller, field);
-                                    SetPlantelFieldValue(seller, field, val + prevCantHem);
-                                    seller.FchUsu = DateTime.Now;
-                                    db.Planteles.Update(seller);
-                                }
-                            }
-
-                            if (!string.IsNullOrWhiteSpace(existing.NvoPla))
-                            {
-                                var buyer = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == existing.NvoPla);
-                                if (buyer != null)
-                                {
-                                    var field = GetHembraField(existing.Tiphac, existing.Hemsta);
-                                    if (!string.IsNullOrEmpty(field))
-                                    {
-                                        double val = GetPlantelFieldValue(buyer, field);
-                                        double newVal = Math.Max(0, val - prevCantHem);
-                                        SetPlantelFieldValue(buyer, field, newVal);
-                                        buyer.FchUsu = DateTime.Now;
-                                        db.Planteles.Update(buyer);
-                                    }
-                                }
-                            }
-
-                            await db.SaveChangesAsync();
+                            var buyerBefore = TransferenciaAnimalImpactoHelper.GetPlantelFieldValue(_mapper.Map<PlantelDTO>(buyer), field);
+                            var buyerAfter = Math.Max(0, buyerBefore - prevCantHem);
+                            SetPlantelFieldValue(buyer, field, buyerAfter);
+                            buyer.FchUsu = DateTime.Now;
+                            db.Planteles.Update(buyer);
+                            _logger.LogInformation("Transan.Eliminar destino actualizado. PlantelId={PlantelId} Campo={Campo} Antes={Antes} Despues={Despues}",
+                                buyer.Id, field, buyerBefore, buyerAfter);
                         }
+                    }
 
-                        // Remove transfer record
-                        db.Transans.Remove(existing);
-                        await db.SaveChangesAsync();
+                    var sellerSnapshot = _mapper.Map<PlantelDTO>(seller);
+                    var buyerSnapshot = buyer != null ? _mapper.Map<PlantelDTO>(buyer) : null;
+                    var impacto = new TransferenciaAnimalImpacto
+                    {
+                        FieldName = field,
+                        BucketLabel = TransferenciaAnimalImpactoHelper.GetBucketLabel(field),
+                        OrigenAntes = TransferenciaAnimalImpactoHelper.GetPlantelFieldValue(sellerSnapshot, field) - prevCantHem,
+                        OrigenDespues = TransferenciaAnimalImpactoHelper.GetPlantelFieldValue(sellerSnapshot, field),
+                        DestinoAntes = buyerSnapshot != null ? TransferenciaAnimalImpactoHelper.GetPlantelFieldValue(buyerSnapshot, field) + prevCantHem : 0,
+                        DestinoDespues = buyerSnapshot != null ? TransferenciaAnimalImpactoHelper.GetPlantelFieldValue(buyerSnapshot, field) : 0,
+                        Cantidad = prevCantHem
+                    };
 
-                        await transaction.CommitAsync();
+                    var audit = BuildTransferAudit(_mapper.Map<TransanDTO>(existing), accessContext, "Deleted", impacto, null, null, "N/A", "La transferencia fue eliminada y el stock se revirtió.");
+                    db.TransanTransferAudits.Add(audit);
+
+                    var writes1 = await db.SaveChangesAsync();
+                    _logger.LogInformation("Transan.Eliminar audit guardada. Writes={Writes} AuditId={AuditId} TransanId={TransanId}", writes1, audit.Id, existing.Id);
+
+                    db.Transans.Remove(existing);
+                    var writes2 = await db.SaveChangesAsync();
+                    _logger.LogInformation("Transan.Eliminar transferencia borrada. Writes={Writes} TransanId={TransanId}", writes2, existing.Id);
+
+                    await transaction.CommitAsync();
+                    _logger.LogInformation("Transan.Eliminar commit completado. TransanId={TransanId}", existing.Id);
                 });
 
                 // Log history
@@ -439,16 +462,17 @@ namespace PaginaToros.Server.Controllers
                 catch { }
 
                 _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
-             
-             
-                 return StatusCode(StatusCodes.Status200OK, _Respuesta);
-             }
-             catch (Exception ex)
-             {
-                 _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
-                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
-             }
-         }
+                _logger.LogInformation("Transan.Eliminar finalizado correctamente. TransanId={TransanId}", id);
+
+                return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Transan.Eliminar falló. TransanId={TransanId}", id);
+                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+            }
+        }
 
         [HttpPost]
         [Route("Guardar")]
@@ -457,6 +481,19 @@ namespace PaginaToros.Server.Controllers
             var respuesta = new Respuesta<TransanDTO>();
             try
             {
+                _logger.LogInformation("Transan.Guardar iniciado. VendedorId={VendedorId} CompradorId={CompradorId} PlantOrigenId={PlantOrigenId} PlantDestinoId={PlantDestinoId} CantHem={CantHem} CantMach={CantMach} CantChem={CantChem} CantCmach={CantCmach} Tiphac={Tiphac} Hemsta={Hemsta} Tipohem={Tipohem}",
+                    request?.VendedorId,
+                    request?.CompradorId,
+                    request?.PlantOrigenId,
+                    request?.PlantDestinoId,
+                    request?.Transan?.CantHem,
+                    request?.Transan?.CantMach,
+                    request?.Transan?.CantChem,
+                    request?.Transan?.CantCmach,
+                    request?.Transan?.Tiphac,
+                    request?.Transan?.Hemsta,
+                    request?.Transan?.Tipohem);
+
                 if (request?.Transan == null)
                 {
                     respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = "No se recibió la transferencia a guardar." };
@@ -475,23 +512,71 @@ namespace PaginaToros.Server.Controllers
                 var errores = await ValidateTransferRequestAsync(request, false);
                 if (errores.Count > 0)
                 {
+                    _logger.LogWarning("Transan.Guardar rechazado por validación: {Errores}", string.Join(" | ", errores));
                     respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = string.Join("<br/>", errores) };
                     return BadRequest(respuesta);
                 }
 
                 var transan = _mapper.Map<Transan>(request.Transan);
                 var strategy = db.Database.CreateExecutionStrategy();
+                TransanTransferAudit? audit = null;
 
                 await strategy.ExecuteAsync(async () =>
                 {
                     using var transaction = await db.Database.BeginTransactionAsync();
+                    _logger.LogInformation("Transan.Guardar transacción abierta. DraftId={DraftId} PlantOrigenId={PlantOrigenId} PlantDestinoId={PlantDestinoId}",
+                        transan.Id,
+                        transan.PlantOrigenId,
+                        transan.PlantDestinoId);
 
-                    await ApplyTransferChangesAsync(request.Transan);
+                    var impacto = await ApplyTransferChangesAsync(request.Transan);
+                    var sellerPlant = await ResolveTransferPlantelAsync(request.Transan.PlantOrigenId, request.Transan.Plant, "de origen");
+                    var buyerPlant = await ResolveTransferPlantelAsync(request.Transan.PlantDestinoId, request.Transan.NvoPla, "de destino");
+                    ApplyTransferPlantelMetadata(transan, sellerPlant, buyerPlant);
+                    _logger.LogInformation("Transan.Guardar impacto calculado. Bucket={Bucket} OrigenAntes={OrigenAntes} OrigenDespues={OrigenDespues} DestinoAntes={DestinoAntes} DestinoDespues={DestinoDespues}",
+                        impacto.FieldName,
+                        impacto.OrigenAntes,
+                        impacto.OrigenDespues,
+                        impacto.DestinoAntes,
+                        impacto.DestinoDespues);
+
                     db.Transans.Add(transan);
-                    await db.SaveChangesAsync();
-                    await SendTransferNotificationAsync(request, false);
+                    audit = BuildTransferAudit(
+                        request.Transan,
+                        accessContext,
+                        "Created",
+                        impacto,
+                        request.VendedorId,
+                        request.CompradorId,
+                        "Pendiente",
+                        null);
+                    db.TransanTransferAudits.Add(audit);
+                    var writes1 = await db.SaveChangesAsync();
+                    _logger.LogInformation("Transan.Guardar primer SaveChanges completado. Writes={Writes} TransanId={TransanId} AuditId={AuditId}",
+                        writes1,
+                        transan.Id,
+                        audit.Id);
+
+                    audit.TransanId = transan.Id;
+                    db.TransanTransferAudits.Update(audit);
+                    var writes2 = await db.SaveChangesAsync();
+                    _logger.LogInformation("Transan.Guardar audit enlazada a transan. Writes={Writes} TransanId={TransanId} AuditId={AuditId}",
+                        writes2,
+                        transan.Id,
+                        audit.Id);
+
+                    await QueueTransferNotificationAsync(request, transan, false);
+                    audit.MailEstado = "Pendiente";
+                    audit.MailError = null;
+                    db.TransanTransferAudits.Update(audit);
+                    var writes3 = await db.SaveChangesAsync();
+                    _logger.LogInformation("Transan.Guardar outbox registrada. Writes={Writes} TransanId={TransanId} AuditId={AuditId}",
+                        writes3,
+                        transan.Id,
+                        audit.Id);
 
                     await transaction.CommitAsync();
+                    _logger.LogInformation("Transan.Guardar commit completado. TransanId={TransanId}", transan.Id);
                 });
 
                 try
@@ -504,15 +589,18 @@ namespace PaginaToros.Server.Controllers
                 }
 
                 respuesta = new Respuesta<TransanDTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<TransanDTO>(transan) };
+                _logger.LogInformation("Transan.Guardar finalizado correctamente. TransanId={TransanId}", transan.Id);
                 return Ok(respuesta);
             }
             catch (DbUpdateException ex)
             {
+                _logger.LogError(ex, "Transan.Guardar fallo por DbUpdateException.");
                 respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = BuildDbUpdateMessage(ex) };
                 return BadRequest(respuesta);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Transan.Guardar fallo por Exception general.");
                 respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, respuesta);
             }
@@ -567,18 +655,55 @@ namespace PaginaToros.Server.Controllers
                 }
 
                 var strategy = db.Database.CreateExecutionStrategy();
+                TransanTransferAudit? audit = null;
                 await strategy.ExecuteAsync(async () =>
                 {
                     using var transaction = await db.Database.BeginTransactionAsync();
+                    _logger.LogInformation("Transan.Editar transacción abierta. TransanId={TransanId}", request.Transan.Id);
 
                     await RevertTransferChangesAsync(existing);
-                    await ApplyTransferChangesAsync(request.Transan);
+                    _logger.LogInformation("Transan.Editar stock anterior revertido. TransanId={TransanId}", existing.Id);
+                    var impacto = await ApplyTransferChangesAsync(request.Transan);
+                    var sellerPlant = await ResolveTransferPlantelAsync(request.Transan.PlantOrigenId, request.Transan.Plant, "de origen");
+                    var buyerPlant = await ResolveTransferPlantelAsync(request.Transan.PlantDestinoId, request.Transan.NvoPla, "de destino");
+                    ApplyTransferPlantelMetadata(existing, sellerPlant, buyerPlant);
+                    _logger.LogInformation("Transan.Editar nuevo impacto calculado. TransanId={TransanId} Bucket={Bucket} OrigenAntes={OrigenAntes} OrigenDespues={OrigenDespues} DestinoAntes={DestinoAntes} DestinoDespues={DestinoDespues}",
+                        request.Transan.Id,
+                        impacto.FieldName,
+                        impacto.OrigenAntes,
+                        impacto.OrigenDespues,
+                        impacto.DestinoAntes,
+                        impacto.DestinoDespues);
                     ApplyTransferEntityChanges(existing, request.Transan);
                     db.Transans.Update(existing);
-                    await db.SaveChangesAsync();
-                    await SendTransferNotificationAsync(request, true);
+                    audit = BuildTransferAudit(
+                        request.Transan,
+                        accessContext,
+                        "Edited",
+                        impacto,
+                        request.VendedorId,
+                        request.CompradorId,
+                        "Pendiente",
+                        "Se revirtió el movimiento anterior y se aplicó el nuevo.");
+                    db.TransanTransferAudits.Add(audit);
+                    var writes1 = await db.SaveChangesAsync();
+                    _logger.LogInformation("Transan.Editar primer SaveChanges completado. Writes={Writes} TransanId={TransanId} AuditId={AuditId}",
+                        writes1,
+                        existing.Id,
+                        audit.Id);
+
+                    await QueueTransferNotificationAsync(request, existing, true);
+                    audit.MailEstado = "Pendiente";
+                    audit.MailError = null;
+                    db.TransanTransferAudits.Update(audit);
+                    var writes2 = await db.SaveChangesAsync();
+                    _logger.LogInformation("Transan.Editar outbox registrada. Writes={Writes} TransanId={TransanId} AuditId={AuditId}",
+                        writes2,
+                        existing.Id,
+                        audit.Id);
 
                     await transaction.CommitAsync();
+                    _logger.LogInformation("Transan.Editar commit completado. TransanId={TransanId}", existing.Id);
                 });
 
                 try
@@ -591,17 +716,66 @@ namespace PaginaToros.Server.Controllers
                 }
 
                 respuesta = new Respuesta<TransanDTO> { Exito = 1, Mensaje = "ok", List = _mapper.Map<TransanDTO>(existing) };
+                _logger.LogInformation("Transan.Editar finalizado correctamente. TransanId={TransanId}", existing.Id);
                 return Ok(respuesta);
             }
             catch (DbUpdateException ex)
             {
+                _logger.LogError(ex, "Transan.Editar falló por DbUpdateException. TransanId={TransanId}", request?.Transan?.Id);
                 respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = BuildDbUpdateMessage(ex) };
                 return BadRequest(respuesta);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Transan.Editar falló por Exception general. TransanId={TransanId}", request?.Transan?.Id);
                 respuesta = new Respuesta<TransanDTO> { Exito = 0, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, respuesta);
+            }
+        }
+
+        [HttpGet]
+        [Route("Auditoria/{transanId:int}")]
+        public async Task<IActionResult> Auditoria(int transanId)
+        {
+            try
+            {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                var transfer = await db.Transans.AsNoTracking().FirstOrDefaultAsync(x => x.Id == transanId);
+
+                if (transfer == null)
+                {
+                    return NotFound(new Respuesta<List<TransanTransferAudit>>
+                    {
+                        Exito = 0,
+                        Mensaje = "No se encontró la transferencia solicitada."
+                    });
+                }
+
+                if (!CanAccessTransfer(accessContext, transfer.Sven, transfer.Scom))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<TransanTransferAudit>>());
+                }
+
+                var audits = await db.TransanTransferAudits
+                    .AsNoTracking()
+                    .Where(x => x.TransanId == transanId)
+                    .OrderByDescending(x => x.FechaEvento)
+                    .ToListAsync();
+
+                return Ok(new Respuesta<List<TransanTransferAudit>>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = audits
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<List<TransanTransferAudit>>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message
+                });
             }
         }
 
@@ -662,17 +836,29 @@ namespace PaginaToros.Server.Controllers
                 errores.Add("El plantel de origen y el plantel de destino no pueden ser el mismo.");
             }
 
-            if (string.IsNullOrWhiteSpace(transan.Tiphac))
-                errores.Add("Debés seleccionar un tipo de hacienda.");
+            try
+            {
+                await ResolveTransferPlantelAsync(
+                    request.PlantOrigenId ?? transan.PlantOrigenId,
+                    transan.Plant,
+                    "de origen");
+            }
+            catch (Exception ex)
+            {
+                errores.Add(ex.Message);
+            }
 
-            if (string.IsNullOrWhiteSpace(transan.Tipani))
-                errores.Add("Debés seleccionar el sexo de los animales.");
-
-            if (string.IsNullOrWhiteSpace(transan.Hemsta))
-                errores.Add("Debés seleccionar el estado de las hembras.");
-
-            if (string.IsNullOrWhiteSpace(transan.Tipohem))
-                errores.Add("Debés seleccionar el tipo de hembras.");
+            try
+            {
+                await ResolveTransferPlantelAsync(
+                    request.PlantDestinoId ?? transan.PlantDestinoId,
+                    transan.NvoPla,
+                    "de destino");
+            }
+            catch (Exception ex)
+            {
+                errores.Add(ex.Message);
+            }
 
             var cantidades = new[]
             {
@@ -682,7 +868,6 @@ namespace PaginaToros.Server.Controllers
                 transan.CantCmach ?? 0
             };
             var totalHembras = (transan.CantHem ?? 0) + (transan.CantChem ?? 0);
-            var totalMachos = (transan.CantMach ?? 0) + (transan.CantCmach ?? 0);
 
             if (cantidades.Any(x => x < 0))
                 errores.Add("Las cantidades no pueden ser negativas.");
@@ -690,31 +875,21 @@ namespace PaginaToros.Server.Controllers
             if (cantidades.Sum() == 0)
                 errores.Add("Debés ingresar al menos un animal para transferir.");
 
+            if (string.IsNullOrWhiteSpace(transan.Tiphac))
+                errores.Add("Debés seleccionar un tipo de hacienda.");
+
+            if (string.IsNullOrWhiteSpace(transan.Tipani))
+                errores.Add("Debés seleccionar el sexo de los animales.");
+
             if (totalHembras > 0)
             {
-                if (string.IsNullOrWhiteSpace(transan.Hemsta))
-                    errores.Add("Debés informar el estado de las hembras cuando la transferencia incluye hembras.");
-
-                if (string.IsNullOrWhiteSpace(transan.Tipohem))
-                    errores.Add("Debés informar el tipo de hembras cuando la transferencia incluye hembras.");
+                var fieldName = TransferenciaAnimalImpactoHelper.ResolveFieldName(transan.Tiphac, transan.Hemsta, transan.Tipohem, out var fieldError);
+                if (string.IsNullOrWhiteSpace(fieldName))
+                    errores.Add(fieldError ?? "No se pudo determinar la categoría de hembras a transferir.");
             }
 
             if (!string.IsNullOrWhiteSpace(request.MailComprador) && !IsValidEmail(request.MailComprador))
                 errores.Add("El mail del comprador no tiene un formato válido.");
-
-            if (!string.IsNullOrWhiteSpace(transan.Plant))
-            {
-                var plantelOrigen = await db.Planteles.AsNoTracking().FirstOrDefaultAsync(p => p.Placod == transan.Plant);
-                if (plantelOrigen == null)
-                    errores.Add("El plantel de origen seleccionado no existe.");
-            }
-
-            if (!string.IsNullOrWhiteSpace(transan.NvoPla))
-            {
-                var plantelDestino = await db.Planteles.AsNoTracking().FirstOrDefaultAsync(p => p.Placod == transan.NvoPla);
-                if (plantelDestino == null)
-                    errores.Add("El plantel de destino seleccionado no existe.");
-            }
 
             if (request.VendedorId > 0)
             {
@@ -749,6 +924,22 @@ namespace PaginaToros.Server.Controllers
         {
             var innerMessage = ex.InnerException?.Message ?? ex.Message;
 
+            if (innerMessage.Contains("TRANSAN_TRANSFER_AUDITS", StringComparison.OrdinalIgnoreCase) &&
+                (innerMessage.Contains("doesn't exist", StringComparison.OrdinalIgnoreCase) ||
+                 innerMessage.Contains("does not exist", StringComparison.OrdinalIgnoreCase) ||
+                 innerMessage.Contains("doesn't exists", StringComparison.OrdinalIgnoreCase)))
+            {
+                return "Falta la tabla de auditoría de transferencias en la base de datos. Ejecutá el script TRANSAN_TRANSFER_AUDITS antes de volver a intentar.";
+            }
+
+            if (innerMessage.Contains("TRANSAN_MAIL_OUTBOX", StringComparison.OrdinalIgnoreCase) &&
+                (innerMessage.Contains("doesn't exist", StringComparison.OrdinalIgnoreCase) ||
+                 innerMessage.Contains("does not exist", StringComparison.OrdinalIgnoreCase) ||
+                 innerMessage.Contains("doesn't exists", StringComparison.OrdinalIgnoreCase)))
+            {
+                return "Falta la tabla de cola de mails de transferencias en la base de datos. Ejecutá el script TRANSAN_MAIL_OUTBOX antes de volver a intentar.";
+            }
+
             if (innerMessage.Contains("Data too long for column 'NVO_PLA'", StringComparison.OrdinalIgnoreCase))
             {
                 return "El plantel de destino supera el largo permitido (máx 20 caracteres).";
@@ -759,43 +950,142 @@ namespace PaginaToros.Server.Controllers
                 return "El plantel de origen supera el largo permitido (máx 20 caracteres).";
             }
 
+            if (innerMessage.Contains("bucket impactado", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Faltan datos para determinar el bucket impactado. Revisá el tipo de hacienda, el estado de la hembra y el tipo de hembra.";
+            }
+
             return "No se pudo guardar la transferencia por un error de datos. Revisá los campos ingresados.";
         }
 
-        private async Task ApplyTransferChangesAsync(TransanDTO request)
+        private TransanTransferAudit BuildTransferAudit(
+            TransanDTO transan,
+            UserSocioAccessContext accessContext,
+            string accion,
+            TransferenciaAnimalImpacto? impacto,
+            int? vendedorId,
+            int? compradorId,
+            string mailEstado,
+            string? detalle)
         {
-            var cantHem = request.CantHem ?? 0;
-            if (cantHem <= 0)
-                return;
-
-            var sellerPlant = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == request.Plant);
-            if (sellerPlant == null)
-                throw new Exception("No se encontró el plantel de origen seleccionado.");
-
-            var field = GetHembraField(request.Tiphac, request.Hemsta);
-            if (string.IsNullOrWhiteSpace(field))
-                throw new Exception("No se pudo determinar la categoría de hembras a transferir.");
-
-            var sellerValue = GetPlantelFieldValue(sellerPlant, field);
-            if (sellerValue < cantHem)
+            return new TransanTransferAudit
             {
-                throw new Exception($"El plantel de origen no tiene stock suficiente para transferir {cantHem} hembras. Disponible: {sellerValue}.");
+                TransanId = transan.Id,
+                Accion = accion,
+                FechaEvento = DateTime.Now,
+                UsuarioId = accessContext.CurrentUser?.Id,
+                UsuarioNombre = accessContext.CurrentUser is null
+                    ? null
+                    : $"{accessContext.CurrentUser.Names} {accessContext.CurrentUser.LastNames}".Trim(),
+                UsuarioRol = accessContext.CurrentUser?.Rol,
+                VendedorId = vendedorId,
+                CompradorId = compradorId,
+                PlantelOrigenId = transan.PlantOrigenId,
+                PlantelDestinoId = transan.PlantDestinoId,
+                VendedorCodigo = transan.Sven,
+                CompradorCodigo = transan.Scom,
+                PlantelOrigen = FormatPlantSnapshot(transan.PlantOrigenCodigo, transan.PlantOrigenAnioex, transan.Plant),
+                PlantelDestino = FormatPlantSnapshot(transan.PlantDestinoCodigo, transan.PlantDestinoAnioex, transan.NvoPla),
+                PlantelOrigenCodigo = transan.PlantOrigenCodigo,
+                PlantelOrigenAnioex = transan.PlantOrigenAnioex,
+                PlantelDestinoCodigo = transan.PlantDestinoCodigo,
+                PlantelDestinoAnioex = transan.PlantDestinoAnioex,
+                BucketCampo = impacto?.FieldName,
+                BucketEtiqueta = impacto?.BucketLabel,
+                Tiphac = transan.Tiphac,
+                Hemsta = transan.Hemsta,
+                Tipohem = transan.Tipohem,
+                CantHem = transan.CantHem,
+                CantMach = transan.CantMach,
+                CantChem = transan.CantChem,
+                CantCmach = transan.CantCmach,
+                OrigenAntes = impacto?.OrigenAntes,
+                OrigenDespues = impacto?.OrigenDespues,
+                DestinoAntes = impacto?.DestinoAntes,
+                DestinoDespues = impacto?.DestinoDespues,
+                MailEstado = mailEstado,
+                Detalle = detalle
+            };
+        }
+
+        private TransanTransferAudit BuildTransferAudit(
+            Transan transan,
+            UserSocioAccessContext accessContext,
+            string accion,
+            TransferenciaAnimalImpacto? impacto,
+            string mailEstado,
+            string? detalle)
+        {
+            return BuildTransferAudit(_mapper.Map<TransanDTO>(transan), accessContext, accion, impacto, null, null, mailEstado, detalle);
+        }
+
+        private static string? FormatPlantSnapshot(string? codigo, string? anioex, string? fallbackCodigo)
+        {
+            var code = !string.IsNullOrWhiteSpace(codigo) ? codigo : fallbackCodigo;
+            if (string.IsNullOrWhiteSpace(code))
+                return null;
+
+            return string.IsNullOrWhiteSpace(anioex)
+                ? code
+                : $"{code} - {anioex}";
+        }
+
+        private bool ShouldSendTransferEmails()
+        {
+            return true;
+        }
+
+        private async Task<TransferenciaAnimalImpacto> ApplyTransferChangesAsync(TransanDTO request)
+        {
+            var sellerPlant = await ResolveTransferPlantelAsync(request.PlantOrigenId, request.Plant, "de origen");
+            var buyerPlant = await ResolveTransferPlantelAsync(request.PlantDestinoId, request.NvoPla, "de destino");
+
+            var sellerSnapshot = _mapper.Map<PlantelDTO>(sellerPlant);
+            var buyerSnapshot = _mapper.Map<PlantelDTO>(buyerPlant);
+
+            if (!TransferenciaAnimalImpactoHelper.TryBuildImpacto(request, sellerSnapshot, buyerSnapshot, out var impacto, out var error))
+                throw new Exception(error ?? "No se pudo determinar el impacto de la transferencia.");
+
+            if (impacto == null)
+                throw new Exception("No se pudo construir el impacto de la transferencia.");
+
+            var cantHem = request.CantHem ?? 0;
+            _logger.LogInformation("Transan.Impacto calculado. PlantelOrigenId={OrigenId} PlantelDestinoId={DestinoId} Campo={Campo} Cantidad={Cantidad} OrigenAntes={OrigenAntes} DestinoAntes={DestinoAntes}",
+                sellerPlant.Id,
+                buyerPlant.Id,
+                impacto.FieldName,
+                cantHem,
+                impacto.OrigenAntes,
+                impacto.DestinoAntes);
+
+            if (cantHem > 0)
+            {
+                var sellerValue = TransferenciaAnimalImpactoHelper.GetPlantelFieldValue(sellerSnapshot, impacto.FieldName);
+                if (sellerValue < cantHem)
+                {
+                    throw new Exception($"El plantel de origen no tiene stock suficiente para transferir {cantHem} hembras. Disponible: {sellerValue}.");
+                }
+
+                // Solo la cantidad de hembras adultas mueve stock entre planteles.
+                SetPlantelFieldValue(sellerPlant, impacto.FieldName, sellerValue - cantHem);
+                sellerPlant.FchUsu = DateTime.Now;
+                db.Planteles.Update(sellerPlant);
+                _logger.LogInformation("Transan.Impacto origen aplicado. PlantelId={PlantelId} Campo={Campo} Antes={Antes} Despues={Despues}",
+                    sellerPlant.Id, impacto.FieldName, sellerValue, sellerValue - cantHem);
+
+                var buyerValue = TransferenciaAnimalImpactoHelper.GetPlantelFieldValue(buyerSnapshot, impacto.FieldName);
+                SetPlantelFieldValue(buyerPlant, impacto.FieldName, buyerValue + cantHem);
+                buyerPlant.FchUsu = DateTime.Now;
+                db.Planteles.Update(buyerPlant);
+                _logger.LogInformation("Transan.Impacto destino aplicado. PlantelId={PlantelId} Campo={Campo} Antes={Antes} Despues={Despues}",
+                    buyerPlant.Id, impacto.FieldName, buyerValue, buyerValue + cantHem);
+
+                var writes = await db.SaveChangesAsync();
+                _logger.LogInformation("Transan.Impacto SaveChanges completado. Writes={Writes} OrigenPlantelId={OrigenPlantelId} DestinoPlantelId={DestinoPlantelId}",
+                    writes, sellerPlant.Id, buyerPlant.Id);
             }
 
-            SetPlantelFieldValue(sellerPlant, field, sellerValue - cantHem);
-            sellerPlant.FchUsu = DateTime.Now;
-            db.Planteles.Update(sellerPlant);
-
-            var buyerPlant = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == request.NvoPla);
-            if (buyerPlant == null)
-                throw new Exception("No se encontró el plantel de destino seleccionado.");
-
-            var buyerValue = GetPlantelFieldValue(buyerPlant, field);
-            SetPlantelFieldValue(buyerPlant, field, buyerValue + cantHem);
-            buyerPlant.FchUsu = DateTime.Now;
-            db.Planteles.Update(buyerPlant);
-
-            await db.SaveChangesAsync();
+            return impacto;
         }
 
         private async Task RevertTransferChangesAsync(Transan existing)
@@ -804,32 +1094,75 @@ namespace PaginaToros.Server.Controllers
             if (prevCantHem <= 0)
                 return;
 
-            var field = GetHembraField(existing.Tiphac, existing.Hemsta);
+            var sellerPlant = await ResolveTransferPlantelAsync(existing.PlantOrigenId, existing.Plant, "de origen");
+            var buyerPlant = !string.IsNullOrWhiteSpace(existing.NvoPla) || existing.PlantDestinoId.HasValue
+                ? await ResolveTransferPlantelAsync(existing.PlantDestinoId, existing.NvoPla, "de destino")
+                : null;
+
+            var field = TransferenciaAnimalImpactoHelper.ResolveFieldName(existing.Tiphac, existing.Hemsta, existing.Tipohem, out var error);
             if (string.IsNullOrWhiteSpace(field))
-                throw new Exception("No se pudo revertir la transferencia anterior porque su categoría de hembras es inválida.");
+                throw new Exception(error ?? "No se pudo revertir la transferencia anterior porque su categoría de hembras es inválida.");
 
-            var prevSeller = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == existing.Plant);
-            if (prevSeller != null)
+            _logger.LogInformation("Transan.Revertir impacto anterior. TransanId={TransanId} Campo={Campo} Cantidad={Cantidad} OrigenPlantelId={OrigenPlantelId} DestinoPlantelId={DestinoPlantelId}",
+                existing.Id,
+                field,
+                prevCantHem,
+                sellerPlant.Id,
+                buyerPlant?.Id);
+
+            var sellerValue = TransferenciaAnimalImpactoHelper.GetPlantelFieldValue(_mapper.Map<PlantelDTO>(sellerPlant), field);
+            SetPlantelFieldValue(sellerPlant, field, sellerValue + prevCantHem);
+            sellerPlant.FchUsu = DateTime.Now;
+            db.Planteles.Update(sellerPlant);
+            _logger.LogInformation("Transan.Revertir origen aplicado. PlantelId={PlantelId} Campo={Campo} Antes={Antes} Despues={Despues}",
+                sellerPlant.Id, field, sellerValue, sellerValue + prevCantHem);
+
+            if (buyerPlant != null)
             {
-                var sellerValue = GetPlantelFieldValue(prevSeller, field);
-                SetPlantelFieldValue(prevSeller, field, sellerValue + prevCantHem);
-                prevSeller.FchUsu = DateTime.Now;
-                db.Planteles.Update(prevSeller);
+                var buyerValue = TransferenciaAnimalImpactoHelper.GetPlantelFieldValue(_mapper.Map<PlantelDTO>(buyerPlant), field);
+                SetPlantelFieldValue(buyerPlant, field, Math.Max(0, buyerValue - prevCantHem));
+                buyerPlant.FchUsu = DateTime.Now;
+                db.Planteles.Update(buyerPlant);
+                _logger.LogInformation("Transan.Revertir destino aplicado. PlantelId={PlantelId} Campo={Campo} Antes={Antes} Despues={Despues}",
+                    buyerPlant.Id, field, buyerValue, Math.Max(0, buyerValue - prevCantHem));
             }
 
-            if (!string.IsNullOrWhiteSpace(existing.NvoPla))
+            var writes = await db.SaveChangesAsync();
+            _logger.LogInformation("Transan.Revertir SaveChanges completado. Writes={Writes} TransanId={TransanId}", writes, existing.Id);
+        }
+
+        private async Task<Plantel> ResolveTransferPlantelAsync(int? plantelId, string? plantelCodigo, string descripcion)
+        {
+            if (plantelId.HasValue && plantelId.Value > 0)
             {
-                var prevBuyer = await db.Planteles.FirstOrDefaultAsync(p => p.Placod == existing.NvoPla);
-                if (prevBuyer != null)
+                var plantel = await db.Planteles.FirstOrDefaultAsync(p => p.Id == plantelId.Value);
+                if (plantel == null)
+                    throw new Exception($"No se encontró el plantel {descripcion} seleccionado.");
+
+                if (!string.IsNullOrWhiteSpace(plantelCodigo) &&
+                    !string.Equals(plantel.Placod?.Trim(), plantelCodigo.Trim(), StringComparison.OrdinalIgnoreCase))
                 {
-                    var buyerValue = GetPlantelFieldValue(prevBuyer, field);
-                    SetPlantelFieldValue(prevBuyer, field, Math.Max(0, buyerValue - prevCantHem));
-                    prevBuyer.FchUsu = DateTime.Now;
-                    db.Planteles.Update(prevBuyer);
+                    throw new Exception($"El plantel {descripcion} seleccionado no coincide con el código informado.");
                 }
+
+                _logger.LogInformation("Transan.Plantel resuelto por Id. Descripcion={Descripcion} PlantelId={PlantelId} Codigo={Codigo}",
+                    descripcion, plantel.Id, plantel.Placod);
+                return plantel;
             }
 
-            await db.SaveChangesAsync();
+            if (string.IsNullOrWhiteSpace(plantelCodigo))
+                throw new Exception($"Debés seleccionar el plantel {descripcion}.");
+
+            var matches = await db.Planteles.Where(p => p.Placod == plantelCodigo).ToListAsync();
+            if (matches.Count == 0)
+                throw new Exception($"No se encontró el plantel {descripcion} seleccionado.");
+
+            if (matches.Count > 1)
+                throw new Exception($"El plantel {descripcion} está duplicado en la base de datos. Debe corregirse antes de guardar la transferencia.");
+
+            _logger.LogInformation("Transan.Plantel resuelto por código. Descripcion={Descripcion} PlantelId={PlantelId} Codigo={Codigo}",
+                descripcion, matches[0].Id, matches[0].Placod);
+            return matches[0];
         }
 
         private void ApplyTransferEntityChanges(Transan existing, TransanDTO request)
@@ -844,6 +1177,8 @@ namespace PaginaToros.Server.Controllers
             existing.Cnom = request.Cnom;
             existing.Plant = request.Plant;
             existing.NvoPla = request.NvoPla;
+            existing.PlantOrigenId = request.PlantOrigenId;
+            existing.PlantDestinoId = request.PlantDestinoId;
             existing.CantHem = request.CantHem;
             existing.CantMach = request.CantMach;
             existing.Tiphac = request.Tiphac;
@@ -857,50 +1192,56 @@ namespace PaginaToros.Server.Controllers
             existing.CodUsu = request.CodUsu;
         }
 
-        private async Task SendTransferNotificationAsync(TransanSaveRequestDTO request, bool isEdit)
+        private static void ApplyTransferPlantelMetadata(Transan target, Plantel sellerPlant, Plantel buyerPlant)
         {
-            var transan = request.Transan;
-            var asunto = isEdit
-                ? $"El socio {transan.Vnom ?? "N/D"} ha modificado una transferencia"
-                : "Nueva transferencia animal";
+            // Guardamos un snapshot mínimo del plantel asociado para que la transferencia
+            // conserve el código y el año aunque luego cambie el registro original.
+            target.PlantOrigenCodigo = sellerPlant.Placod;
+            target.PlantOrigenAnioex = sellerPlant.Anioex;
+            target.PlantDestinoCodigo = buyerPlant.Placod;
+            target.PlantDestinoAnioex = buyerPlant.Anioex;
+        }
 
-            using var mail = new MailMessage();
-
-            const string correoSistema = "planteles@hereford.org.ar";
-            const string smtpHost = "mail.hereford.org.ar";
-            const int smtpPort = 587;
-            const string smtpUsername = "planteles@hereford.org.ar";
-            const string smtpPassword = "Hereford.2033";
-
-            mail.From = new MailAddress(correoSistema);
-            mail.Subject = asunto;
-            mail.Body = BuildTransferEmailHtml(transan, isEdit);
-            mail.IsBodyHtml = true;
-
-            TryAddRecipient(mail, correoSistema);
-
+        private async Task QueueTransferNotificationAsync(TransanSaveRequestDTO request, Transan transan, bool isEdit)
+        {
             var mailVendedor = await ResolveEmailAsync(request.VendedorId);
-            if (!string.IsNullOrWhiteSpace(mailVendedor))
-                TryAddRecipient(mail, mailVendedor);
-
-            var mailComprador = !string.IsNullOrWhiteSpace(request.MailComprador)
+            var mailComprador = !string.IsNullOrWhiteSpace(request.MailComprador) && IsValidEmail(request.MailComprador)
                 ? request.MailComprador
                 : await ResolveEmailAsync(request.CompradorId);
 
-            if (!string.IsNullOrWhiteSpace(mailComprador))
-                TryAddRecipient(mail, mailComprador);
+            var destinatarios = new List<string> { "planteles@hereford.org.ar" };
+            if (IsValidEmail(mailVendedor))
+                destinatarios.Add(mailVendedor!);
+            if (IsValidEmail(mailComprador))
+                destinatarios.Add(mailComprador!);
 
-            if (mail.To.Count == 0)
-                throw new Exception("No se encontró ningún destinatario válido para enviar el mail de la transferencia.");
-
-            using var smtp = new SmtpClient(smtpHost, smtpPort)
+            var outbox = new TransanMailOutbox
             {
-                UseDefaultCredentials = false,
-                Credentials = new System.Net.NetworkCredential(smtpUsername, smtpPassword),
-                EnableSsl = true
+                TransanId = transan.Id,
+                Accion = isEdit ? "Edited" : "Created",
+                Asunto = isEdit
+                    ? $"El socio {transan.Vnom ?? "N/D"} ha modificado una transferencia"
+                    : "Nueva transferencia animal",
+                CuerpoHtml = BuildTransferEmailHtml(_mapper.Map<TransanDTO>(transan), isEdit),
+                Destinatarios = string.Join(";", destinatarios.Distinct(StringComparer.OrdinalIgnoreCase)),
+                MailVendedor = mailVendedor,
+                MailComprador = mailComprador,
+                Estado = "Pendiente",
+                Intentos = 0,
+                FechaCreacion = DateTime.UtcNow,
+                PlantelOrigenId = transan.PlantOrigenId,
+                PlantelDestinoId = transan.PlantDestinoId,
+                PlantelOrigenCodigo = transan.Plant,
+                PlantelDestinoCodigo = transan.NvoPla
             };
 
-            await smtp.SendMailAsync(mail);
+            db.TransanMailOutboxes.Add(outbox);
+            _logger.LogInformation("Transan.Outbox creada. TransanId={TransanId} Estado={Estado} Destinatarios={Destinatarios} PlantelOrigenId={OrigenId} PlantelDestinoId={DestinoId}",
+                transan.Id,
+                outbox.Estado,
+                outbox.Destinatarios,
+                outbox.PlantelOrigenId,
+                outbox.PlantelDestinoId);
         }
 
         private async Task<string?> ResolveEmailAsync(int? socioId)
@@ -1043,6 +1384,8 @@ namespace PaginaToros.Server.Controllers
                     Buyer = transan?.Scom,
                     PlantOrigen = transan?.Plant,
                     PlantDestino = transan?.NvoPla,
+                    PlantOrigenId = transan?.PlantOrigenId,
+                    PlantDestinoId = transan?.PlantDestinoId,
                     CantHem = transan?.CantHem,
                     CantMach = transan?.CantMach,
                     CantChem = transan?.CantChem,
@@ -1061,46 +1404,6 @@ namespace PaginaToros.Server.Controllers
             {
                 // don't fail on logging
             }
-        }
-
-        // Helper: decide which plantel field to use for hembras based on tipo hacienda and estado
-        private string GetHembraField(string tiphac, string hemsta)
-        {
-            if (string.IsNullOrWhiteSpace(hemsta) || string.IsNullOrWhiteSpace(tiphac)) return null;
-            hemsta = hemsta.Trim().ToUpper();
-            tiphac = tiphac.Trim().ToUpper();
-
-            bool isPR = tiphac.Contains("PR");
-            bool isVIP = tiphac.Contains("VIP");
-
-            if (hemsta == "CC" || hemsta == "CCP")
-            {
-                return isPR ? "Varede" : "Varepr"; // vacas
-            }
-            else if (hemsta == "PR")
-            {
-                return isPR ? "Vqcsrd" : "Vqcsrp"; // vaquillonas con servicio
-            }
-            else if (hemsta == "SS")
-            {
-                return isPR ? "Vqssrd" : "Vqssrp"; // vaquillonas sin servicio
-            }
-
-            return null;
-        }
-
-        private double GetPlantelFieldValue(Plantel plantel, string field)
-        {
-            return field switch
-            {
-                "Varede" => plantel.Varede ?? 0,
-                "Vqcsrd" => plantel.Vqcsrd ?? 0,
-                "Vqssrd" => plantel.Vqssrd ?? 0,
-                "Varepr" => plantel.Varepr ?? 0,
-                "Vqcsrp" => plantel.Vqcsrp ?? 0,
-                "Vqssrp" => plantel.Vqssrp ?? 0,
-                _ => 0
-            };
         }
 
         private void SetPlantelFieldValue(Plantel plantel, string field, double value)

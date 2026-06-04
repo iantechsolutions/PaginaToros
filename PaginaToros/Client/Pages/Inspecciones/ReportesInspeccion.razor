@@ -5,6 +5,55 @@
 @inject IResin1Servicio _resin1Servicio
 
 <style>
+    .reportes-page {
+        width: 100%;
+        margin: 0 auto 2rem;
+        color: #172033;
+    }
+
+    .reportes-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin: 1rem 0;
+        width: 93.5%;
+        margin-left: 3.33%;
+    }
+
+    .reportes-title {
+        margin: 0;
+        font-size: 1.55rem;
+        font-weight: 700;
+    }
+
+    .reportes-description {
+        margin: .25rem 0 0;
+        color: #64748b;
+    }
+
+    .reportes-card {
+        width: 93.5%;
+        margin-left: 3.33%;
+        border: 1px solid #dbe3cf;
+        border-radius: 8px;
+        background: #fffdf8;
+        box-shadow: 0 8px 18px rgba(76, 59, 32, .06);
+    }
+
+    .reportes-filter-card {
+        padding: .75rem;
+        margin-bottom: .85rem;
+    }
+
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: #475569;
+        border: 1px dashed #cbd5e1;
+        border-radius: 8px;
+        background: #f8fafc;
+    }
 
     .rz-cell-data,
     .rz-column-title-content {
@@ -25,355 +74,259 @@
     }
 </style>
 
-
-
-<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
-    <Authorized>
-<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Reportes de Inspeccion</h3>
-
-<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0,0)">Agregar Nuevo Reporte</button>
-
-@if (oRespuesta.List != null)
-{
-
-    <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-    <br />
-    <br />
-    <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-        <RadzenDataGrid IsLoading="isLoading" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-            Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-            Count="cantotal" LoadData="LoadData" Data="@oRespuesta.List" TItem="Resin1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
-            <Columns>
-                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nrores" Title="Nro Resultado" Width="21.7%">
-                    <Template Context="data">
-                        @if(data.Nrores.Length > 15)
-                        {
-                            <p>Sin solicitud</p>
-                        }
-                        else
-                        {
-                            @(data.Nrores)
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nropla" Title="Plantel" Width="21.7%" />
-                <RadzenDataGridColumn TItem="Resin1DTO" Property="Socio.Nombre" Title="Socio" Width="21.7%"/>
-                <RadzenDataGridColumn TItem="Resin1DTO" Property="FchUsu" Title="Fecha de Creación" Width="21.7%">
-                    <Template Context="data">
-                        @if (data.FchUsu.HasValue)
-                        {
-                            @data.FchUsu.Value.ToString("dd/MM/yyyy")
-                        }
-                        else
-                        {
-
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Resin1DTO" Property="Freali" Title="Fecha De Inspeccion" Width="21.7%">
-                    <Template Context="data">
-                        @if (data.Freali.HasValue)
-                        {
-                            @data.Freali.Value.ToString("dd/MM/yyyy")
-                        }
-                        else
-                        {
-
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Resin1DTO" Property="" Title="" Filterable="false" Width="3.33%">
-                    <Template Context="data">
-                        <button class="btn" title="Editar" @onclick="() => add(data.Id,0)"><FeatherEdit Size="16" Color="green" /></button>
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Resin1DTO" Property="" Title="" Filterable="false" Width="3.33%">
-                    <Template Context="data">
-                        <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash Size="16" Color="red" /></button>
-                    </Template>
-                </RadzenDataGridColumn>
-                
-            
-            </Columns>
-
-        </RadzenDataGrid>
-    </div>
-}
-else
-{
-    <br />
-    <center>
-        <div class="mb-2">
-            <br />
-            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-        </div>
-    </center>
-}
-
-</Authorized>
-</AuthorizeView>
-
-<AuthorizeView Roles="Socio">
-    <Authorized>
-        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Reportes de Inspeccion</h3>
-
-        @if (oRespuesta.List != null)
-        {
-
-            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-            <br />
-            <br />
-            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-                <RadzenDataGrid IsLoading="isLoading" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-                                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                                Count="cantotal" Data="@oRespuesta.List" TItem="Resin1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="Resin1DTO" Property="Nrores" Title="Nro Resultado" Width="21.7%" />
-                        <RadzenDataGridColumn TItem="Resin1DTO" Property="Nropla" Title="Plantel" Width="21.7%" />
-                        <RadzenDataGridColumn TItem="Resin1DTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="21.7%" />
-                        <RadzenDataGridColumn TItem="Resin1DTO" Property="FchUsu" Title="Fecha de Creación" Width="21.7%">
-                            <Template Context="data">
-                                @if (data.FchUsu.HasValue)
-                                {
-                                    @data.FchUsu.Value.ToString("dd/MM/yyyy")
-                                }
-                                else
-                                {
-
-                                }
-                            </Template>
-                        </RadzenDataGridColumn>
-
-                        <RadzenDataGridColumn TItem="Resin1DTO" Property="Freali" Title="Fecha De Inspeccion" Width="21.7%">
-                            <Template Context="data">
-                                @if (data.Freali.HasValue)
-                                {
-                                    @data.Freali.Value.ToString("dd/MM/yyyy")
-                                }
-                                else
-                                {
-
-                                }
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Resin1DTO" Property="" Title="" Filterable="false" Width="3.33%">
-                            <Template Context="data">
-                                <button class="btn" title="Editar" @onclick="() => add(data.Id,1)"><FeatherEdit Size="16" Color="green" /></button>
-                            </Template>
-                        </RadzenDataGridColumn>
-                    </Columns>
-
-                </RadzenDataGrid>
-            </div>
-        }
-        else
-        {
-            <br />
-            <center>
-                <div class="mb-2">
-                    <br />
-                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+<div class="reportes-page">
+    <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO,Socio">
+        <Authorized Context="reportesUser">
+            <div class="reportes-header">
+                <div>
+                    <h3 class="reportes-title">Reportes de Inspeccion</h3>
+                    <p class="reportes-description">Buscá por número, plantel, socio, establecimiento o fecha de creación.</p>
                 </div>
-            </center>
-        }
 
-    </Authorized>
-</AuthorizeView>
+                <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+                    <Authorized Context="reportesAdminButton">
+                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
+                                @onclick="() => add(0, 0)">
+                            Agregar Nuevo Reporte
+                        </button>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
+
+            <div class="reportes-card reportes-filter-card">
+                <SearchInput Value="@searchText"
+                             ValueChanged="OnSearchChanged"
+                             IsLoading="@searchLoading"
+                             Placeholder="Buscar por número, plantel, socio, establecimiento o fecha" />
+            </div>
+
+            <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
+                <Authorized Context="reportesAdminGrid">
+                    <div class="reportes-card tablacontent">
+                        <RadzenDataGrid @ref="grid"
+                                        IsLoading="@isLoading"
+                                        AllowColumnResize="true"
+                                        AllowSorting="false"
+                                        AllowPaging="true"
+                                        ShowPagingSummary="true"
+                                        PageSize="15"
+                                        Density="Density.Compact"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                        LogicalFilterOperator="LogicalFilterOperator.Or"
+                                        LoadData="LoadData"
+                                        Data="@items"
+                                        Count="@cantidad"
+                                        TItem="Resin1DTO"
+                                        ColumnWidth="3.33%">
+                            <EmptyTemplate>
+                                <div class="empty-state">No hay reportes para la búsqueda seleccionada.</div>
+                            </EmptyTemplate>
+                            <Columns>
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nrores" Title="Nro Resultado" Width="21.7%">
+                                    <Template Context="data">
+                                        @(string.IsNullOrWhiteSpace(data.Nrores) ? "Sin solicitud" : data.Nrores)
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nropla" Title="Plantel" Width="21.7%" />
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Socio.Nombre" Title="Socio" Width="21.7%" />
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="FchUsu" Title="Fecha de Creación" Width="21.7%">
+                                    <Template Context="data">
+                                        @if (data.FchUsu.HasValue)
+                                        {
+                                            @data.FchUsu.Value.ToString("dd/MM/yyyy")
+                                        }
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Freali" Title="Fecha De Inspeccion" Width="21.7%">
+                                    <Template Context="data">
+                                        @if (data.Freali.HasValue)
+                                        {
+                                            @data.Freali.Value.ToString("dd/MM/yyyy")
+                                        }
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="" Title="" Filterable="false" Width="3.33%">
+                                    <Template Context="data">
+                                        <button class="btn" title="Editar" @onclick="() => add(data.Id, 0)"><FeatherEdit Size="16" Color="green" /></button>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="" Title="" Filterable="false" Width="3.33%">
+                                    <Template Context="data">
+                                        <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash Size="16" Color="red" /></button>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Socio">
+                <Authorized Context="reportesSocioGrid">
+                    <div class="reportes-card tablacontent">
+                        <RadzenDataGrid @ref="grid"
+                                        IsLoading="@isLoading"
+                                        AllowColumnResize="true"
+                                        AllowSorting="false"
+                                        AllowPaging="true"
+                                        ShowPagingSummary="true"
+                                        PageSize="15"
+                                        Density="Density.Compact"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                        LogicalFilterOperator="LogicalFilterOperator.Or"
+                                        LoadData="LoadData"
+                                        Data="@items"
+                                        Count="@cantidad"
+                                        TItem="Resin1DTO"
+                                        ColumnWidth="3.33%">
+                            <EmptyTemplate>
+                                <div class="empty-state">No hay reportes para la búsqueda seleccionada.</div>
+                            </EmptyTemplate>
+                            <Columns>
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nrores" Title="Nro Resultado" Width="21.7%" />
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nropla" Title="Plantel" Width="21.7%" />
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="21.7%" />
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="FchUsu" Title="Fecha de Creación" Width="21.7%">
+                                    <Template Context="data">
+                                        @if (data.FchUsu.HasValue)
+                                        {
+                                            @data.FchUsu.Value.ToString("dd/MM/yyyy")
+                                        }
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Freali" Title="Fecha De Inspeccion" Width="21.7%">
+                                    <Template Context="data">
+                                        @if (data.Freali.HasValue)
+                                        {
+                                            @data.Freali.Value.ToString("dd/MM/yyyy")
+                                        }
+                                    </Template>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="" Title="" Filterable="false" Width="3.33%">
+                                    <Template Context="data">
+                                        <button class="btn" title="Editar" @onclick="() => add(data.Id, 1)"><FeatherEdit Size="16" Color="green" /></button>
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+        </Authorized>
+    </AuthorizeView>
+</div>
 
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    public bool allowFiltering = false;
     public RadzenDataGrid<Resin1DTO>? grid;
-    int currentPage;
-    int cantotal = 0;
-    bool isLoading = false;
-    public Respuesta<List<Resin1DTO>> oRespuesta = new Respuesta<List<Resin1DTO>>();
-    List<Socio> socios = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        await Get();
-    }
-    async Task Get()
-    {
-        var esSocio = await UserHasRole("Socio");
+    private List<Resin1DTO> items = new();
+    private bool isLoading;
+    private bool searchLoading;
+    private int cantidad;
+    private string searchText = string.Empty;
+    private int loadRequestVersion;
+    private bool initialGridLoadTriggered;
 
-        if (!esSocio){
-            oRespuesta = await _resin1Servicio.Lista(0, 15);
-            oRespuesta.List = RemoveDuplicates(oRespuesta.List);
-            var cantidad = await _resin1Servicio.CantidadTotal();
-            cantotal = cantidad.List;
-            StateHasChanged();
-        }
-        else
+    protected override Task OnInitializedAsync()
+        => Task.CompletedTask;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || initialGridLoadTriggered || grid == null)
         {
-            oRespuesta = await _resin1Servicio.LimitadosFiltrados(0, 0, string.Empty);
-            cantotal = oRespuesta.List.Count();
+            return;
+        }
+
+        initialGridLoadTriggered = true;
+        await grid.Reload();
+    }
+
+    private async Task LoadData(LoadDataArgs args)
+    {
+        var requestId = ++loadRequestVersion;
+        isLoading = true;
+
+        try
+        {
+            var response = await _resin1Servicio.SearchPaged(args.Skip ?? 0, args.Top ?? 15, searchText);
+            if (requestId != loadRequestVersion)
+            {
+                return;
+            }
+
+            items = response.List?.Items ?? new List<Resin1DTO>();
+            cantidad = response.List?.TotalCount ?? 0;
+        }
+        catch (Exception ex)
+        {
+            items = new List<Resin1DTO>();
+            cantidad = 0;
+            await Swal.FireAsync("Error", ex.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            if (requestId == loadRequestVersion)
+            {
+                isLoading = false;
+                searchLoading = false;
+                await InvokeAsync(StateHasChanged);
+            }
         }
     }
 
-
-    private async Task<bool> UserHasRole(string role)
+    private async Task OnSearchChanged(string value)
     {
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        return authenticationState.User.IsInRole(role);
+        searchLoading = true;
+        searchText = value ?? string.Empty;
+        await ReloadGridFromStartAsync();
     }
 
-    public void CambiarModoFiltro()
+    private async Task ReloadGridFromStartAsync()
     {
-        allowFiltering = !allowFiltering;
-        StateHasChanged();
+        if (grid != null)
+        {
+            if (grid.CurrentPage > 0)
+            {
+                await grid.FirstPage(true);
+            }
+            else
+            {
+                await grid.Reload();
+            }
+        }
     }
 
     async Task delete(int id)
     {
-
-        Console.WriteLine("Entro al eliminar");
-        currentPage = grid.CurrentPage;
         var response = await _resin1Servicio.Eliminar(id);
-        await grid.Reload();
-        if(response){
-            oRespuesta.List.Remove(oRespuesta.List.Where(x => x.Id == id).FirstOrDefault());
-            if (currentPage >= grid.Count / grid.PageSize && grid.Count != 0)
-            {
-                await grid.GoToPage(currentPage - 1);
-            }
-            else if (grid.Count != 0)
-            {
-                await grid.GoToPage(currentPage);
-            }
+        if (response)
+        {
+            await ReloadGridFromStartAsync();
         }
     }
 
     public async Task alertaDelete(int id)
     {
         SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
-            {
-                Title = "¿Está seguro?",
-                Text = "Se eliminará el reporte",
-                Icon = SweetAlertIcon.Warning,
-                ShowCancelButton = true,
-                ConfirmButtonText = "Eliminar",
-                CancelButtonText = "Cancelar"
-            });
+        {
+            Title = "¿Está seguro?",
+            Text = "Se eliminará el reporte",
+            Icon = SweetAlertIcon.Warning,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Eliminar",
+            CancelButtonText = "Cancelar"
+        });
 
         if (!string.IsNullOrEmpty(result.Value))
         {
             await delete(id);
-
-        }
-        else if (result.Dismiss == DismissReason.Cancel)
-        {
-
         }
     }
 
-    async Task add(int Id,int esSocio)
+    async Task add(int Id, int esSocio)
     {
-        //no se puede pasar bool por link, asi que esSocio = 1, si es socio
         nav.NavigateTo($"/inforeporte/{Id}/{esSocio}");
-        // if (Id != 0)
-        // {
-        //     currentPage = grid.CurrentPage;
-        //     try
-        //     {
-        //         var parameters = new ModalParameters();
-        //         parameters.Add(nameof(AddReporte.Id), Id);
-        //         var formModal = Modal.Show<AddReporte>("Editar Reporte", parameters);
-        //         var result = await formModal.Result;
-        //         if (result.Cancelled)
-        //         {
-        //             Console.WriteLine("Modal was cancelled");
-        //             await grid.GoToPage(currentPage);
-        //         }
-        //         else
-        //         {
-        //             await Get();
-        //             await grid.GoToPage(currentPage);
-        //         }
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Console.WriteLine(ex.Message);
-        //     }
-        // }
-        // else
-        // {
-        //     var formModal = Modal.Show<AddReporte>("Agregar Reporte");
-        //     var result = await formModal.Result;
-
-        //     if (result.Cancelled)
-        //     {
-        //         Console.WriteLine("Modal was cancelled");
-        //         await grid.GoToPage(currentPage);
-        //     }
-        //     else
-        //     {
-        //         await Get();
-        //         await grid.GoToPage(currentPage);
-        //     }
-        // }
-    }
-
-    //async Task gotoinfo(int id)
-    //{
-    //    currentPage = grid.CurrentPage;
-    //    var parameters = new ModalParameters();
-    //    var options = new ModalOptions()
-    //        {
-    //            HideHeader = true,
-    //            HideCloseButton = true
-    //        };
-    //    parameters.Add(nameof(InfoToro.id), id);
-    //    var formModal = Modal.Show<InfoToro>("", parameters, options);
-    //    var result = await formModal.Result;
-
-    //    if (result.Cancelled)
-    //    {
-    //        Console.WriteLine("Modal was cancelled");
-    //        await grid.GoToPage(currentPage);
-    //    }
-    //    else
-    //    {
-    //        await Get();
-    //        await grid.GoToPage(currentPage);
-    //    }
-    //}
-    async Task LoadData(LoadDataArgs args)
-    {
-        isLoading = true;
-        if (!string.IsNullOrEmpty(args.Filter))
-        {
-            oRespuesta = await _resin1Servicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
-            // oRespuesta.List = oRespuesta.List.Where(args.Filter)
-            oRespuesta.List = RemoveDuplicates(oRespuesta.List);
-        }
-        else
-        {
-            oRespuesta = await _resin1Servicio.Lista(args.Skip.Value, args.Top.Value);
-            oRespuesta.List = RemoveDuplicates(oRespuesta.List);
-        }
-
-        isLoading = false;
-    }
-
-    public static List<Resin1DTO> RemoveDuplicates(List<Resin1DTO> items)
-    {
-        var seenIds = new HashSet<int>();
-        var uniqueItems = new List<Resin1DTO>();
-
-        foreach (var item in items)
-        {
-            Console.WriteLine(item.Id);
-            var boole = seenIds.Add(item.Id);
-            Console.WriteLine(boole);
-            if (boole)  // HashSet.Add returns false if the item was already in the set
-            {
-                uniqueItems.Add(item);
-            }
-        }
-        Console.WriteLine(uniqueItems.Count());
-        return uniqueItems;
     }
 }

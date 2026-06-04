@@ -71,6 +71,52 @@ namespace PaginaToros.Server.Controllers
         }
 
         [HttpGet]
+        [Route("SearchPaged")]
+        public async Task<IActionResult> SearchPaged(int skip, int take, string? searchText = null)
+        {
+            var response = new Respuesta<Resin1PagedResponse>();
+
+            try
+            {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Resin1PagedResponse>());
+                }
+
+                var result = await _resin1Repositorio.SearchPagedAsync(
+                    skip,
+                    take,
+                    searchText,
+                    RequiresActiveSocioScope(accessContext) ? accessContext.ActiveSocioCode! : null);
+
+                response = new Respuesta<Resin1PagedResponse>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = new Resin1PagedResponse
+                    {
+                        Items = _mapper.Map<List<Resin1DTO>>(result.Items),
+                        TotalCount = result.TotalCount
+                    }
+                };
+
+                return StatusCode(StatusCodes.Status200OK, response);
+            }
+            catch (Exception ex)
+            {
+                response = new Respuesta<Resin1PagedResponse>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = null
+                };
+
+                return StatusCode(StatusCodes.Status500InternalServerError, response);
+            }
+        }
+
+        [HttpGet]
         [Route("Cantidad")]
         public async Task<IActionResult> CantidadTotal()
         {
@@ -279,6 +325,8 @@ namespace PaginaToros.Server.Controllers
                     var nuevoNro = (ultimo ?? 0) + 1;
                     request.Nrores = nuevoNro.ToString("D6");
                 }
+
+                request.FchUsu ??= DateTime.Now;
 
                 var entity = _mapper.Map<Resin1>(request);
                 if (RequiresActiveSocioScope(accessContext))

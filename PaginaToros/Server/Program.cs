@@ -94,6 +94,7 @@ builder.Services.AddScoped<ISolici1AuxRepositorio, Solici1AuxRepositorio>();
 builder.Services.AddScoped<ITorosRepositorio, TorosRepositorio>();
 builder.Services.AddScoped<ITransanRepositorio, TransanRepositorio>();
 builder.Services.AddScoped<ITranssbRepositorio, TranssbRepositorio>();
+builder.Services.AddHostedService<TransanMailOutboxWorker>();
 var app = builder.Build();
 var useHttpsFeatures = builder.Configuration.GetValue("Hosting:UseHttps", false);
 

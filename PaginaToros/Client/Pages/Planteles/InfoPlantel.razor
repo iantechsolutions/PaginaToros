@@ -17,7 +17,7 @@
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Año de Existencia</RadzenText>
                     <RadzenText TextStyle="TextStyle.Body1"><b>@oPlantel.Anioex</b></RadzenText>
                     <RadzenText TextStyle="TextStyle.Overline" Class="d-flex mt-3 mb-0">Nombre de Socio</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@socios.Where(x=>x.Scod==oPlantel.Nrocri)</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@GetSocioNombre(oPlantel.Nrocri)</b></RadzenText>
 
                 </div>
             </div>
@@ -88,12 +88,24 @@
     {
         if (id != 0)
         {
-            oRta = await Http.GetFromJsonAsync<Respuesta<Plantel>>($"/api/Plantel/{id}");
-            oPlantel = oRta.List;
-            var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/Socio");
-            socios = rta.List;
+            oRta = await Http.GetFromJsonAsync<Respuesta<Plantel>>($"/api/Plantel/{id}") ?? new Respuesta<Plantel>();
+            oPlantel = oRta.List ?? new Plantel();
+            var rta = await Http.GetFromJsonAsync<Respuesta<List<Socio>>>($"/api/Socio") ?? new Respuesta<List<Socio>>();
+            socios = rta.List ?? new List<Socio>();
         }
     }
+
+    private string GetSocioNombre(string? scod)
+    {
+        if (string.IsNullOrWhiteSpace(scod))
+        {
+            return "-";
+        }
+
+        var socio = socios.FirstOrDefault(x => string.Equals(x.Scod, scod, StringComparison.OrdinalIgnoreCase));
+        return socio?.Nombre ?? scod;
+    }
+
     async Task cancel()
     {
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));

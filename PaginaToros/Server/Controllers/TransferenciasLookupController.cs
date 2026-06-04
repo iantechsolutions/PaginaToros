@@ -31,12 +31,6 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                var accessContext = await _userSocioContextService.ResolveAsync(User);
-                if (!CanUseLookup(accessContext))
-                {
-                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<List<PlantelDTO>>());
-                }
-
                 if (string.IsNullOrWhiteSpace(socioCode))
                 {
                     return BadRequest(new Respuesta<List<PlantelDTO>>

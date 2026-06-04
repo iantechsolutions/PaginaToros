@@ -35,6 +35,12 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return result;
         }
 
+        public async Task<Respuesta<List<TransanTransferAudit>>> Auditoria(int transanId)
+        {
+            var result = await _http.GetFromJsonAsync<Respuesta<List<TransanTransferAudit>>>($"api/Transan/Auditoria/{transanId}");
+            return result!;
+        }
+
 
         public async Task<bool> Eliminar(int id)
         {

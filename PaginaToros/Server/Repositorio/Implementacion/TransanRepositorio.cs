@@ -140,9 +140,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         }
 
         private static IOrderedQueryable<Transan> ApplyCreationOrder(IQueryable<Transan> query)
-            => query
-                .OrderByDescending(x => x.FchUsu.HasValue)
-                .ThenByDescending(x => x.FchUsu)
-                .ThenByDescending(x => x.Id);
+            // El orden estable de la grilla debe seguir la creación real del registro.
+            // En esta tabla eso queda representado por el AUTO_INCREMENT del Id.
+            => query.OrderByDescending(x => x.Id);
     }
 }

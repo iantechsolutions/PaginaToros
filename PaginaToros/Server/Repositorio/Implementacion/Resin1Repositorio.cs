@@ -125,6 +125,46 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             }
         }
 
+        public async Task<(List<Resin1> Items, int TotalCount)> SearchPagedAsync(int skip, int take, string? searchText = null, string? activeSocioCode = null)
+        {
+            try
+            {
+                if (take <= 0)
+                {
+                    take = 15;
+                }
+
+                IQueryable<Resin1> query = _dbContext.Resin1s
+                    .AsNoTracking()
+                    .Include(x => x.Socio)
+                    .Include(x => x.Establecimiento);
+
+                if (!string.IsNullOrWhiteSpace(activeSocioCode))
+                {
+                    query = query.Where(x => x.Scod == activeSocioCode);
+                }
+
+                if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    query = ApplySearchFilter(query, searchText);
+                }
+
+                query = ApplyCreationOrder(query);
+
+                var totalCount = await query.CountAsync();
+                var items = await query
+                    .Skip(Math.Max(0, skip))
+                    .Take(take)
+                    .ToListAsync();
+
+                return (items, totalCount);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
         public async Task<bool> Eliminar(Resin1 entidad)
         {
             var strategy = _dbContext.Database.CreateExecutionStrategy();
@@ -177,11 +217,16 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             try
             {
-                return await _dbContext.Resin1s
+                var values = await _dbContext.Resin1s
+                    .AsNoTracking()
                     .Where(r => r.Nrores != null)
-                    .OrderByDescending(r => Convert.ToInt32(r.Nrores))
-                    .Select(r => (int?)Convert.ToInt32(r.Nrores))
-                    .FirstOrDefaultAsync();
+                    .Select(r => r.Nrores)
+                    .ToListAsync();
+
+                return values
+                    .Select(v => int.TryParse(v, out var nro) ? (int?)nro : null)
+                    .Where(v => v.HasValue)
+                    .Max();
             }
             catch (Exception ex)
             {
@@ -252,5 +297,47 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 .ThenByDescending(x => x.Freali.HasValue)
                 .ThenByDescending(x => x.Freali.HasValue ? x.Freali.Value.Year : (int?)null)
                 .ThenByDescending(x => x.Id);
+
+        private static IQueryable<Resin1> ApplySearchFilter(IQueryable<Resin1> query, string searchText)
+        {
+            var terms = searchText
+                .Trim()
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            foreach (var term in terms)
+            {
+                var currentTerm = term;
+                var like = $"%{currentTerm}%";
+                var hasParsedDate = DateTime.TryParse(currentTerm, out var parsedDate);
+                var hasYear = int.TryParse(currentTerm, out var parsedYear);
+
+                query = query.Where(x =>
+                    (x.Nrores != null && EF.Functions.Like(x.Nrores, like)) ||
+                    (x.Nropla != null && EF.Functions.Like(x.Nropla, like)) ||
+                    (x.Scod != null && EF.Functions.Like(x.Scod, like)) ||
+                    (x.Estcod != null && EF.Functions.Like(x.Estcod, like)) ||
+                    (x.Socio != null && (
+                        (x.Socio.Prenom != null && EF.Functions.Like(x.Socio.Prenom, like)) ||
+                        (x.Socio.Nombre != null && EF.Functions.Like(x.Socio.Nombre, like)) ||
+                        (x.Socio.Posnom != null && EF.Functions.Like(x.Socio.Posnom, like)) ||
+                        (x.Socio.Mail != null && EF.Functions.Like(x.Socio.Mail, like)) ||
+                        (x.Socio.Scod != null && EF.Functions.Like(x.Socio.Scod, like)) ||
+                        (x.Socio.Codpos2 != null && EF.Functions.Like(x.Socio.Codpos2, like))
+                    )) ||
+                    (x.Establecimiento != null && (
+                        (x.Establecimiento.Ecod != null && EF.Functions.Like(x.Establecimiento.Ecod, like)) ||
+                        (x.Establecimiento.Nombre != null && EF.Functions.Like(x.Establecimiento.Nombre, like)) ||
+                        (x.Establecimiento.Codsoc != null && EF.Functions.Like(x.Establecimiento.Codsoc, like))
+                    )) ||
+                    (hasParsedDate && x.FchUsu.HasValue && x.FchUsu.Value.Date == parsedDate.Date) ||
+                    (hasParsedDate && x.Freali.HasValue && x.Freali.Value.Date == parsedDate.Date) ||
+                    (hasYear && x.FchUsu.HasValue && x.FchUsu.Value.Year == parsedYear) ||
+                    (hasYear && x.Freali.HasValue && x.Freali.Value.Year == parsedYear));
+            }
+
+            return query;
+        }
     }
 }

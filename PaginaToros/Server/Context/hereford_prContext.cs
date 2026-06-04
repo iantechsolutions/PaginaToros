@@ -61,6 +61,8 @@ namespace PaginaToros.Server.Context
         public virtual DbSet<Torosuni> Torosunis { get; set; } = null!;
         public virtual DbSet<Torosuniestado> Torosuniestados { get; set; } = null!;
         public virtual DbSet<Transan> Transans { get; set; } = null!;
+        public virtual DbSet<TransanMailOutbox> TransanMailOutboxes { get; set; } = null!;
+        public virtual DbSet<TransanTransferAudit> TransanTransferAudits { get; set; } = null!;
         public virtual DbSet<Transem> Transems { get; set; } = null!;
         public virtual DbSet<Transsb> Transsbs { get; set; } = null!;
         public virtual DbSet<User> User { get; set; } = null!;
@@ -2683,6 +2685,30 @@ namespace PaginaToros.Server.Context
                     .HasMaxLength(20)
                     .HasColumnName("NVO_PLA");
 
+                entity.Property(e => e.PlantDestinoId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("PLANT_DESTINO_ID");
+
+                entity.Property(e => e.PlantOrigenId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("PLANT_ORIGEN_ID");
+
+                entity.Property(e => e.PlantOrigenCodigo)
+                    .HasMaxLength(20)
+                    .HasColumnName("PLANT_ORIGEN_CODIGO");
+
+                entity.Property(e => e.PlantOrigenAnioex)
+                    .HasMaxLength(4)
+                    .HasColumnName("PLANT_ORIGEN_ANIOEX");
+
+                entity.Property(e => e.PlantDestinoCodigo)
+                    .HasMaxLength(20)
+                    .HasColumnName("PLANT_DESTINO_CODIGO");
+
+                entity.Property(e => e.PlantDestinoAnioex)
+                    .HasMaxLength(4)
+                    .HasColumnName("PLANT_DESTINO_ANIOEX");
+
                 entity.Property(e => e.Plant)
                     .HasMaxLength(20)
                     .HasColumnName("PLANT");
@@ -2710,6 +2736,251 @@ namespace PaginaToros.Server.Context
                 entity.Property(e => e.Vnom)
                     .HasMaxLength(100)
                     .HasColumnName("VNOM");
+            });
+
+            modelBuilder.Entity<TransanMailOutbox>(entity =>
+            {
+                entity.ToTable("TRANSAN_MAIL_OUTBOX");
+
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.TransanId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("transan_id");
+
+                entity.Property(e => e.Accion)
+                    .HasMaxLength(32)
+                    .HasColumnName("accion");
+
+                entity.Property(e => e.Asunto)
+                    .HasMaxLength(200)
+                    .HasColumnName("asunto");
+
+                entity.Property(e => e.CuerpoHtml)
+                    .HasColumnType("longtext")
+                    .HasColumnName("cuerpo_html");
+
+                entity.Property(e => e.Destinatarios)
+                    .HasColumnType("longtext")
+                    .HasColumnName("destinatarios");
+
+                entity.Property(e => e.MailVendedor)
+                    .HasMaxLength(255)
+                    .HasColumnName("mail_vendedor");
+
+                entity.Property(e => e.MailComprador)
+                    .HasMaxLength(255)
+                    .HasColumnName("mail_comprador");
+
+                entity.Property(e => e.Estado)
+                    .HasMaxLength(32)
+                    .HasColumnName("estado");
+
+                entity.Property(e => e.Intentos)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("intentos");
+
+                entity.Property(e => e.UltimoError)
+                    .HasColumnType("longtext")
+                    .HasColumnName("ultimo_error");
+
+                entity.Property(e => e.FechaCreacion)
+                    .HasColumnType("datetime")
+                    .HasColumnName("fecha_creacion");
+
+                entity.Property(e => e.UltimoIntento)
+                    .HasColumnType("datetime")
+                    .HasColumnName("ultimo_intento");
+
+                entity.Property(e => e.FechaEnvio)
+                    .HasColumnType("datetime")
+                    .HasColumnName("fecha_envio");
+
+                entity.Property(e => e.ProximoIntento)
+                    .HasColumnType("datetime")
+                    .HasColumnName("proximo_intento");
+
+                entity.Property(e => e.PlantelOrigenId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("plantel_origen_id");
+
+                entity.Property(e => e.PlantelDestinoId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("plantel_destino_id");
+
+                entity.Property(e => e.PlantelOrigenCodigo)
+                    .HasMaxLength(20)
+                    .HasColumnName("plantel_origen_codigo");
+
+                entity.Property(e => e.PlantelDestinoCodigo)
+                    .HasMaxLength(20)
+                    .HasColumnName("plantel_destino_codigo");
+
+            });
+
+            modelBuilder.Entity<TransanTransferAudit>(entity =>
+            {
+                entity.ToTable("TRANSAN_TRANSFER_AUDITS");
+
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("id");
+
+                entity.Property(e => e.TransanId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("transan_id");
+
+                entity.Property(e => e.Accion)
+                    .HasMaxLength(32)
+                    .HasColumnName("accion");
+
+                entity.Property(e => e.FechaEvento)
+                    .HasColumnType("datetime")
+                    .HasColumnName("fecha_evento");
+
+                entity.Property(e => e.UsuarioId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("usuario_id");
+
+                entity.Property(e => e.UsuarioNombre)
+                    .HasMaxLength(200)
+                    .HasColumnName("usuario_nombre");
+
+                entity.Property(e => e.UsuarioRol)
+                    .HasMaxLength(60)
+                    .HasColumnName("usuario_rol");
+
+                entity.Property(e => e.VendedorId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("vendedor_id");
+
+                entity.Property(e => e.CompradorId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("comprador_id");
+
+                entity.Property(e => e.PlantelOrigenId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("plantel_origen_id");
+
+                entity.Property(e => e.PlantelDestinoId)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("plantel_destino_id");
+
+                entity.Property(e => e.VendedorCodigo)
+                    .HasMaxLength(20)
+                    .HasColumnName("vendedor_codigo");
+
+                entity.Property(e => e.CompradorCodigo)
+                    .HasMaxLength(20)
+                    .HasColumnName("comprador_codigo");
+
+                entity.Property(e => e.PlantelOrigen)
+                    .HasMaxLength(20)
+                    .HasColumnName("plantel_origen");
+
+                entity.Property(e => e.PlantelDestino)
+                    .HasMaxLength(20)
+                    .HasColumnName("plantel_destino");
+
+                entity.Property(e => e.PlantelOrigenCodigo)
+                    .HasMaxLength(20)
+                    .HasColumnName("plantel_origen_codigo");
+
+                entity.Property(e => e.PlantelOrigenAnioex)
+                    .HasMaxLength(4)
+                    .HasColumnName("plantel_origen_anioex");
+
+                entity.Property(e => e.PlantelDestinoCodigo)
+                    .HasMaxLength(20)
+                    .HasColumnName("plantel_destino_codigo");
+
+                entity.Property(e => e.PlantelDestinoAnioex)
+                    .HasMaxLength(4)
+                    .HasColumnName("plantel_destino_anioex");
+
+                entity.Property(e => e.BucketCampo)
+                    .HasMaxLength(20)
+                    .HasColumnName("bucket_campo");
+
+                entity.Property(e => e.BucketEtiqueta)
+                    .HasMaxLength(120)
+                    .HasColumnName("bucket_etiqueta");
+
+                entity.Property(e => e.Tiphac)
+                    .HasMaxLength(10)
+                    .HasColumnName("tiphac");
+
+                entity.Property(e => e.Hemsta)
+                    .HasMaxLength(10)
+                    .HasColumnName("hemsta");
+
+                entity.Property(e => e.Tipohem)
+                    .HasMaxLength(10)
+                    .HasColumnName("tipohem");
+
+                entity.Property(e => e.CantHem)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("cant_hem");
+
+                entity.Property(e => e.CantMach)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("cant_mach");
+
+                entity.Property(e => e.CantChem)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("cant_chem");
+
+                entity.Property(e => e.CantCmach)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("cant_cmach");
+
+                entity.Property(e => e.OrigenAntes)
+                    .HasColumnType("double")
+                    .HasColumnName("origen_antes");
+
+                entity.Property(e => e.OrigenDespues)
+                    .HasColumnType("double")
+                    .HasColumnName("origen_despues");
+
+                entity.Property(e => e.DestinoAntes)
+                    .HasColumnType("double")
+                    .HasColumnName("destino_antes");
+
+                entity.Property(e => e.DestinoDespues)
+                    .HasColumnType("double")
+                    .HasColumnName("destino_despues");
+
+                entity.Property(e => e.MailVendedor)
+                    .HasMaxLength(255)
+                    .HasColumnName("mail_vendedor");
+
+                entity.Property(e => e.MailComprador)
+                    .HasMaxLength(255)
+                    .HasColumnName("mail_comprador");
+
+                entity.Property(e => e.MailEstado)
+                    .HasMaxLength(40)
+                    .HasColumnName("mail_estado");
+
+                entity.Property(e => e.MailError)
+                    .HasColumnType("longtext")
+                    .HasColumnName("mail_error");
+
+                entity.Property(e => e.Detalle)
+                    .HasColumnType("longtext")
+                    .HasColumnName("detalle");
+
+                entity.HasIndex(e => e.TransanId)
+                    .HasDatabaseName("idx_transan_transfer_audits_transan_id");
+
+                entity.HasIndex(e => e.FechaEvento)
+                    .HasDatabaseName("idx_transan_transfer_audits_fecha_evento");
             });
 
             modelBuilder.Entity<Transem>(entity =>
