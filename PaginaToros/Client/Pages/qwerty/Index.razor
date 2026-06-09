@@ -2,10 +2,10 @@
 @page "/qwerty/ytrewq"
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
+@using PaginaToros.Shared.Helpers
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ISocioServicio _socioServicio
 @inject HttpClient http
-@using System.Text
 
 
 <h3>Mail masivos </h3>
@@ -207,7 +207,7 @@ else
                     Console.WriteLine($"Enviando usuario: {JsonSerializer.Serialize(usuario)}");
 
                     // Generar contraseña aleatoria
-                    var pswd = GenerateRandomPassword(random.Next(7, 11));
+                    var pswd = PasswordGeneratorHelper.GenerateWordPassword();
 
                     // Enviar solicitudes HTTP
                     var result = await http.PostAsJsonAsync($"api/Account/CreateUser?password={pswd}", usuario);
@@ -244,21 +244,6 @@ else
     }
 
 
-    private const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-    Random random = new Random();
-    public string GenerateRandomPassword(int length)
-    {
-        StringBuilder sb = new StringBuilder();
-
-
-        for (int i = 0; i < length; i++)
-        {
-            int randomIndex = random.Next(validChars.Length);
-            sb.Append(validChars[randomIndex]);
-        }
-
-        return sb.ToString();
-    }
     public void CambiarModoFiltro()
     {
         allowFiltering = !allowFiltering;

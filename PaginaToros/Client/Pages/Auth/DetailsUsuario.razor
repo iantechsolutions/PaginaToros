@@ -1,5 +1,5 @@
 ﻿@using System.ComponentModel.DataAnnotations
-@using System.Text
+@using PaginaToros.Shared.Helpers
 @attribute [Authorize(Roles = "USUARIOMAESTRO, ADMINISTRADOR")]
 @inject HttpClient http
 @inject NavigationManager uriHelper
@@ -28,7 +28,6 @@
     bool guardando = false;
     bool disabled = false;
     bool logout = false;
-    readonly Random random = new();
     string originalEmail = "";
 
 
@@ -71,7 +70,7 @@
         if (disabled) return;
         disabled = true;
 
-        var pswd = GenerateRandomPassword(12); // MAYÚSCULAS + dígitos + símbolos
+        var pswd = PasswordGeneratorHelper.GenerateWordPassword();
 
         // Abro modal de espera
         var wait = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
@@ -196,32 +195,5 @@
     {
         public User Usuario { get; set; }
         public string NuevaContrasena { get; set; }
-    }
-    public static string GenerateRandomPassword(int length)
-    {
-        const string UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const string DIGITS = "0123456789";
-        const string SPECIAL = "!@#$%^*_-=?.";
-        string ALL = UPPER + DIGITS + SPECIAL;
-
-        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
-        int Next(int max)
-        {
-            Span<byte> b = stackalloc byte[4];
-            rng.GetBytes(b);
-            return (int)(BitConverter.ToUInt32(b) % (uint)max);
-        }
-
-        var sb = new StringBuilder();
-        sb.Append(UPPER[Next(UPPER.Length)]);
-        sb.Append(DIGITS[Next(DIGITS.Length)]);
-        sb.Append(SPECIAL[Next(SPECIAL.Length)]);
-
-        while (sb.Length < Math.Max(length, 8))
-            sb.Append(ALL[Next(ALL.Length)]);
-
-        var chars = sb.ToString().ToCharArray();
-        Array.Sort(chars, (a, b) => Next(2) * 2 - 1);
-        return new string(chars);
     }
 }

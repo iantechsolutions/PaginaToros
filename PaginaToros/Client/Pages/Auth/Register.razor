@@ -1,6 +1,6 @@
 ﻿@attribute [Authorize(Roles = "USUARIOMAESTRO, ADMINISTRADOR")]
 @page "/RegistroUsuario"
-@using System.Text
+@using PaginaToros.Shared.Helpers
 @inject HttpClient http
 @inject NavigationManager uriHelper
 
@@ -16,7 +16,6 @@
     User User { get; set; } = new() { Status = "ACTIVO" };
 
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
-    private readonly Random random = new();
 
     private async Task CreateUser()
     {
@@ -27,7 +26,7 @@
 
         try
         {
-            var pswd = GenerateRandomPassword(random.Next(10, 14)); // MAYÚSCULAS
+            var pswd = PasswordGeneratorHelper.GenerateWordPassword();
 
             // crear usuario en Identity + tu tabla User
             var result = await http.PostAsJsonAsync($"api/Account/CreateUser?password={Uri.EscapeDataString(pswd)}", User);
@@ -86,38 +85,6 @@
                 SharedModalOptions.modalOptionsInfo);
         }
     }
-
-    // Password SIEMPRE en MAYÚSCULAS + dígitos
-    public static string GenerateRandomPassword(int length)
-    {
-        const string UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const string DIGITS = "0123456789";
-        string ALL = UPPER + DIGITS;
-
-        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
-        int Next(int max)
-        {
-            Span<byte> b = stackalloc byte[4];
-            rng.GetBytes(b);
-            return (int)(BitConverter.ToUInt32(b) % (uint)max);
-        }
-
-        var sb = new StringBuilder();
-        sb.Append(UPPER[Next(UPPER.Length)]);
-        sb.Append(DIGITS[Next(DIGITS.Length)]);
-
-        while (sb.Length < Math.Max(length, 10))
-            sb.Append(ALL[Next(ALL.Length)]);
-
-        var arr = sb.ToString().ToCharArray();
-        for (int i = 0; i < arr.Length; i++)
-        {
-            int j = Next(arr.Length);
-            (arr[i], arr[j]) = (arr[j], arr[i]);
-        }
-        return new string(arr);
-    }
-
 
     private sealed class IdentityErrorDto
     {

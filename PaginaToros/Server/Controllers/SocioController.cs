@@ -17,6 +17,7 @@ using System.Net.Mime;
 using System.Text;
 using PaginaToros.Server.Services;
 using System.Security.Claims;
+using PaginaToros.Shared.Helpers;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -619,7 +620,7 @@ namespace PaginaToros.Server.Controllers
             var previousSocioState = CaptureSocioState(socioDb);
             var previousDomainUserState = CloneDomainUser(targetDomainUser);
             var previousIdentityState = CloneIdentityUser(targetIdentityUser);
-            var password = GenerateServerPassword(12);
+            var password = PasswordGeneratorHelper.GenerateWordPassword();
 
             try
             {
@@ -1512,39 +1513,6 @@ namespace PaginaToros.Server.Controllers
             socioDb.Fecing = socioDto.Fecing;
             socioDb.Placod = socioDto.Placod;
             socioDb.Codpos2 = socioDto.Codpos2;
-        }
-
-        private static string GenerateServerPassword(int length)
-        {
-            const string upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            const string digits = "0123456789";
-            string all = upper + digits;
-
-            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
-            int Next(int max)
-            {
-                Span<byte> bytes = stackalloc byte[4];
-                rng.GetBytes(bytes);
-                return (int)(BitConverter.ToUInt32(bytes) % (uint)max);
-            }
-
-            var sb = new StringBuilder();
-            sb.Append(upper[Next(upper.Length)]);
-            sb.Append(digits[Next(digits.Length)]);
-
-            while (sb.Length < Math.Max(length, 10))
-            {
-                sb.Append(all[Next(all.Length)]);
-            }
-
-            var chars = sb.ToString().ToCharArray();
-            for (int i = 0; i < chars.Length; i++)
-            {
-                int j = Next(chars.Length);
-                (chars[i], chars[j]) = (chars[j], chars[i]);
-            }
-
-            return new string(chars);
         }
 
         private sealed class FriendlySocioRegistrationException : Exception

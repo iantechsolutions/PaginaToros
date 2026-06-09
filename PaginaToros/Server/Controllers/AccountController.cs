@@ -19,6 +19,8 @@ using PaginaToros.Client.Pages.Auth;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System.Globalization;
 using System.Net;
+using PaginaToros.Shared.Helpers;
+using PaginaToros.Server.Utilidades;
 namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
@@ -782,17 +784,13 @@ namespace PaginaToros.Server.Controllers
         {
             try
             {
-                var usuario = db.User.FirstOrDefault(x => x.Id == model.UserId)
-                           ?? db.User.FirstOrDefault(x => x.Email == model.Email);
+                var sync = await AccountEmailSyncHelper.ResolveAndSyncAsync(db, _userManager, model.UserId, model.Email);
+                if (!sync.Success)
+                {
+                    return BadRequest(sync.ErrorMessage);
+                }
 
-                if (usuario == null) return BadRequest("No se pudo encontrar un usuario");
-
-                var email = usuario.Email;
-                var user = db.Users.FirstOrDefault(x => x.UserName == email)
-                        ?? db.Users.FirstOrDefault(x => x.Email == email)
-                        ?? db.Users.FirstOrDefault(x => x.NormalizedEmail == email.ToUpper());
-
-                if (user == null) return BadRequest("No se pudo encontrar un usuario de acceso");
+                var user = sync.IdentityUser!;
 
                 // Validar password contra políticas
                 foreach (var validator in _userManager.PasswordValidators)
@@ -836,85 +834,20 @@ namespace PaginaToros.Server.Controllers
 
             try
             {
-                // 1) Usuario de dominio
-                var dbUser = await db.User.FirstOrDefaultAsync(u => u.Id == req.UserId);
-                if (dbUser == null)
+                var sync = await AccountEmailSyncHelper.ResolveAndSyncAsync(db, _userManager, req.UserId, req.NewEmail);
+                if (!sync.Success)
                 {
-                    Console.WriteLine("dbUser == null");
-                    return BadRequest("Usuario no encontrado.");
+                    Console.WriteLine(sync.ErrorMessage);
+                    return BadRequest(sync.ErrorMessage);
                 }
 
-                Console.WriteLine($"dbUser.Email (actual): {dbUser.Email}");
+                var dbUser = sync.DomainUser!;
+                var aspUser = sync.IdentityUser!;
+                var newEmail = sync.Email;
+                Console.WriteLine($"Usuario sincronizado. Email final: {newEmail}");
 
-                // 2) AspNetUser (por email actual)
-                var aspUser =
-                      await _userManager.FindByEmailAsync(dbUser.Email)
-                   ?? await _userManager.FindByNameAsync(dbUser.Email);
-
-                if (aspUser == null)
-                {
-                    Console.WriteLine("aspUser == null (no existe en AspNetUsers con el mail actual)");
-                    // Intento por el mail nuevo (por si ya migró a mano)
-                    aspUser = await _userManager.FindByEmailAsync(req.NewEmail)
-                           ?? await _userManager.FindByNameAsync(req.NewEmail);
-
-                    if (aspUser == null)
-                        return BadRequest("Usuario de acceso no encontrado (AspNetUsers).");
-                    Console.WriteLine($"Encontrado aspUser por NewEmail: {aspUser.Id}");
-                }
-                else
-                {
-                    Console.WriteLine($"aspUser encontrado: Id={aspUser.Id}, UserName={aspUser.UserName}, Email={aspUser.Email}");
-                }
-
-                var newEmail = (req.NewEmail ?? "").Trim();
-                if (string.IsNullOrWhiteSpace(newEmail))
-                {
-                    Console.WriteLine("newEmail inválido (vacío)");
-                    return BadRequest("Email inválido.");
-                }
-
-                // 3) Si cambia el email, validar duplicados y actualizar
-                if (!string.Equals(aspUser.Email, newEmail, StringComparison.OrdinalIgnoreCase))
-                {
-                    Console.WriteLine($"Cambio de email detectado: '{aspUser.Email}' -> '{newEmail}'");
-
-                    var conflict = await _userManager.FindByEmailAsync(newEmail);
-                    if (conflict != null && conflict.Id != aspUser.Id)
-                    {
-                        Console.WriteLine($"CONFLICTO: {newEmail} ya está en uso por AspNetUser.Id={conflict.Id}");
-                        return BadRequest("El email ya está en uso por otro usuario.");
-                    }
-
-                    var se = await _userManager.SetEmailAsync(aspUser, newEmail);
-                    Console.WriteLine($"SetEmailAsync => {se.Succeeded}");
-                    if (!se.Succeeded) return BadRequest(se.Errors);
-
-                    var su = await _userManager.SetUserNameAsync(aspUser, newEmail);
-                    Console.WriteLine($"SetUserNameAsync => {su.Succeeded}");
-                    if (!su.Succeeded) return BadRequest(su.Errors);
-
-                    // Normalizados + confirmado (evita problemas al loguear por NormalizedUserName)
-                    aspUser.NormalizedEmail = newEmail.ToUpperInvariant();
-                    aspUser.NormalizedUserName = newEmail.ToUpperInvariant();
-                    aspUser.EmailConfirmed = true;
-
-                    var upd = await _userManager.UpdateAsync(aspUser);
-                    Console.WriteLine($"UpdateAsync(aspUser) => {upd.Succeeded}");
-                    if (!upd.Succeeded) return BadRequest(upd.Errors);
-
-                    Console.WriteLine($"aspUser.UserName NOW: {aspUser.UserName}");
-                    Console.WriteLine($"aspUser.Email NOW: {aspUser.Email}");
-                    Console.WriteLine($"aspUser.NormalizedUserName NOW: {aspUser.NormalizedUserName}");
-                    Console.WriteLine($"aspUser.NormalizedEmail NOW: {aspUser.NormalizedEmail}");
-                }
-                else
-                {
-                    Console.WriteLine("No hay cambio de email (mismo valor).");
-                }
-
-                // 4) Generar UNA contraseña (solo A-Z y 0-9)
-                var newPassword = GenerateServerPassword(12);
+                // 4) Generar UNA contraseña con formato de palabras separadas por puntos
+                var newPassword = PasswordGeneratorHelper.GenerateWordPassword();
                 Console.WriteLine($"Password generado (masked): {Mask(newPassword)}");
 
                 // 5) Validar y setear password en Identity
@@ -937,11 +870,6 @@ namespace PaginaToros.Server.Controllers
                 if (!add.Succeeded) return BadRequest(add.Errors);
 
                 // 6) Actualizar tu tabla User
-                Console.WriteLine($"dbUser.Email '{dbUser.Email}' -> '{newEmail}'");
-                dbUser.Email = newEmail;
-                await db.SaveChangesAsync();
-                Console.WriteLine("dbUser guardado (SaveChanges OK)");
-
                 // 7) Enviar mail con la MISMA contraseña
                 var mailReq = new SendResetMailRequest { Usuario = dbUser, NuevaContrasena = newPassword };
 
@@ -971,42 +899,6 @@ namespace PaginaToros.Server.Controllers
             if (s.Length <= 4) return "****";
             return s.Substring(0, 2) + new string('*', s.Length - 4) + s.Substring(s.Length - 2, 2);
         }
-
-        // Generador server-side: SOLO MAYÚSCULAS + DÍGITOS
-        private static string GenerateServerPassword(int length)
-        {
-            const string UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            const string DIGITS = "0123456789";
-            string ALL = UPPER + DIGITS;
-
-            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
-
-            int Next(int max)
-            {
-                Span<byte> b = stackalloc byte[4];
-                rng.GetBytes(b);
-                return (int)(BitConverter.ToUInt32(b) % (uint)max);
-            }
-
-            var sb = new StringBuilder();
-            sb.Append(UPPER[Next(UPPER.Length)]);
-            sb.Append(DIGITS[Next(DIGITS.Length)]);
-
-            while (sb.Length < Math.Max(length, 8))
-                sb.Append(ALL[Next(ALL.Length)]);
-
-            // mezclar in-place
-            var chars = sb.ToString().ToCharArray();
-            for (int i = 0; i < chars.Length; i++)
-            {
-                int j = Next(chars.Length);
-                (chars[i], chars[j]) = (chars[j], chars[i]);
-            }
-            return new string(chars);
-        }
-
-
-
 
         [HttpGet("GetUsers/{search}/{status}/{actualPage}")]
         public async Task<ActionResult> GetUsers(string search, string status, int actualPage)
