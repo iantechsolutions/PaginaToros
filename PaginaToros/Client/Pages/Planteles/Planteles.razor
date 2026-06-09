@@ -5,6 +5,7 @@
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ISocioServicio _socioServicio
 @inject IPlantelServicio _plantelServicio
+@inject HttpClient Http
 <style>
 
     .rz-cell-data,
@@ -221,14 +222,14 @@ else
              LogDuplicatesIfAny(oRespuesta, "Get - Lista(0,15)");
               StateHasChanged();
          }
-         else
-         {
-            var usuarioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
-            //CAMBIAR ID
-            oRespuesta = await _plantelServicio.GetBySocioId(usuarioId);
+        else
+        {
+            var context = await Http.GetFromJsonAsync<UserContextDTO>("api/Account/context");
+            var socioId = context?.ActiveSocioId ?? 0;
+            oRespuesta = await _plantelServicio.GetBySocioId(socioId);
             EnsureNoDuplicates(oRespuesta);
             LogDuplicatesIfAny(oRespuesta, "Get - GetBySocioId");
-             cantidad = oRespuesta.List.Count;
+            cantidad = oRespuesta.List?.Count ?? 0;
          }
      }
 

@@ -4,6 +4,7 @@
 @using PaginaToros.Shared.Models
 @inject IEstableServicio _estableServicio
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
 <style>
 
     .rz-cell-data,
@@ -120,9 +121,10 @@
         }
         else
         {
-            var usuarioId = await CurrentUserHelper.GetCurrentSocioIdAsync(AuthenticationStateProvider, Http) ?? 0;
-            oRespuesta = await _estableServicio.GetBySocioId(usuarioId);
-            cantidad = oRespuesta.List.Count;
+            var context = await Http.GetFromJsonAsync<UserContextDTO>("api/Account/context");
+            var socioId = context?.ActiveSocioId ?? 0;
+            oRespuesta = await _estableServicio.GetBySocioId(socioId);
+            cantidad = oRespuesta.List?.Count ?? 0;
         }
     }
 
