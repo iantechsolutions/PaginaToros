@@ -98,6 +98,8 @@ builder.Services.AddHostedService<TransanMailOutboxWorker>();
 var app = builder.Build();
 var useHttpsFeatures = builder.Configuration.GetValue("Hosting:UseHttps", false);
 
+await EnsureTransferAuditSchemaAsync(app.Services);
+
 app.Use(async (context, next) =>
 {
     context.Response.OnStarting(() =>
@@ -151,3 +153,26 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+static async Task EnsureTransferAuditSchemaAsync(IServiceProvider services)
+{
+    using var scope = services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<hereford_prContext>();
+
+    const string sql = @"
+        ALTER TABLE `TRANSAN_TRANSFER_AUDITS`
+            ADD COLUMN IF NOT EXISTS `plantel_origen_codigo` VARCHAR(20) NULL,
+            ADD COLUMN IF NOT EXISTS `plantel_destino_codigo` VARCHAR(20) NULL,
+            ADD COLUMN IF NOT EXISTS `plantel_origen_anioex` VARCHAR(4) NULL,
+            ADD COLUMN IF NOT EXISTS `plantel_destino_anioex` VARCHAR(4) NULL;";
+
+    try
+    {
+        await db.Database.ExecuteSqlRawAsync(sql);
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"No se pudo asegurar el esquema de TRANSAN_TRANSFER_AUDITS: {ex.Message}");
+        throw;
+    }
+}

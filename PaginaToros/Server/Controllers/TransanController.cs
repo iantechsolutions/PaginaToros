@@ -469,7 +469,7 @@ namespace PaginaToros.Server.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Transan.Eliminar falló. TransanId={TransanId}", id);
-                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
+                _Respuesta = new Respuesta<string>() { Exito = 0, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
         }
@@ -518,6 +518,7 @@ namespace PaginaToros.Server.Controllers
                 }
 
                 var transan = _mapper.Map<Transan>(request.Transan);
+                transan.FchUsu ??= DateTime.Now;
                 var strategy = db.Database.CreateExecutionStrategy();
                 TransanTransferAudit? audit = null;
 
@@ -955,6 +956,13 @@ namespace PaginaToros.Server.Controllers
                 return "Faltan datos para determinar el bucket impactado. Revisá el tipo de hacienda, el estado de la hembra y el tipo de hembra.";
             }
 
+            if (innerMessage.Contains("Unknown column", StringComparison.OrdinalIgnoreCase) &&
+                (innerMessage.Contains("plantel_origen_anioex", StringComparison.OrdinalIgnoreCase) ||
+                 innerMessage.Contains("plantel_destino_anioex", StringComparison.OrdinalIgnoreCase)))
+            {
+                return "La tabla de auditoría de transferencias está desactualizada. Ejecutá la actualización de esquema para agregar los campos plantel_origen_anioex y plantel_destino_anioex.";
+            }
+
             return "No se pudo guardar la transferencia por un error de datos. Revisá los campos ingresados.";
         }
 
@@ -1188,7 +1196,6 @@ namespace PaginaToros.Server.Controllers
             existing.Tipohem = request.Tipohem;
             existing.CantChem = request.CantChem;
             existing.CantCmach = request.CantCmach;
-            existing.FchUsu = request.FchUsu;
             existing.CodUsu = request.CodUsu;
         }
 

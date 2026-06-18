@@ -133,7 +133,7 @@ else
 }
 </Authorized>
 </AuthorizeView>
-<AuthorizeView Roles="Socio">
+<AuthorizeView Roles="Socio,SOCIO">
     <Authorized>
         <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Planteles</h3>
         @if (oRespuesta.List != null)
@@ -209,7 +209,7 @@ else
     }
     async Task Get()
     {
-        var esSocio = await UserHasRole("Socio");
+        var esSocio = await UserHasRole("Socio") || await UserHasRole("SOCIO");
         var rta = await _socioServicio.LimitadosFiltrados(0, 0);
         socios = rta.List;
         if (!esSocio){
@@ -225,7 +225,7 @@ else
         else
         {
             var context = await Http.GetFromJsonAsync<UserContextDTO>("api/Account/context");
-            var socioId = context?.ActiveSocioId ?? 0;
+            var socioId = context?.ActiveSocioId ?? context?.AllowedSocios?.FirstOrDefault()?.Id ?? 0;
             oRespuesta = await _plantelServicio.GetBySocioId(socioId);
             EnsureNoDuplicates(oRespuesta);
             LogDuplicatesIfAny(oRespuesta, "Get - GetBySocioId");

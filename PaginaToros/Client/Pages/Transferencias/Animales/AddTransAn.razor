@@ -431,7 +431,6 @@ else
                 string filtro = $"Id = {Id}";
                 var r = await _transanServicio.LimitadosFiltrados(0, 1, filtro);
                 oTransan = r.List.FirstOrDefault();
-                oTransan.Fecvta = DateTime.Now;
                 socioComprador = socios.FirstOrDefault(x => x.Scod == oTransan.Scom) ?? new SocioDTO();
                 socioVendedor = socios.FirstOrDefault(x => x.Scod == oTransan.Sven) ?? new SocioDTO();
 

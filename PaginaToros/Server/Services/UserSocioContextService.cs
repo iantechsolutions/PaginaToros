@@ -78,6 +78,25 @@ namespace PaginaToros.Server.Services
                 allowedSocioIds.Add(currentUser.SocioId.Value);
             }
 
+            if (allowedSocioIds.Count == 0 && !string.IsNullOrWhiteSpace(currentUser.Email))
+            {
+                var inferredSocioIds = await _db.Socios
+                    .AsNoTracking()
+                    .Where(x =>
+                        (!string.IsNullOrWhiteSpace(x.Mail) && x.Mail == currentUser.Email) ||
+                        (!string.IsNullOrWhiteSpace(x.Mailreg) && x.Mailreg == currentUser.Email))
+                    .Select(x => x.Id)
+                    .Distinct()
+                    .ToListAsync(cancellationToken);
+
+                if (inferredSocioIds.Count == 1)
+                {
+                    allowedSocioIds.Add(inferredSocioIds[0]);
+                    currentUser.SocioId = inferredSocioIds[0];
+                    await _db.SaveChangesAsync(cancellationToken);
+                }
+            }
+
             allowedSocioIds = allowedSocioIds
                 .Where(x => x > 0)
                 .Distinct()

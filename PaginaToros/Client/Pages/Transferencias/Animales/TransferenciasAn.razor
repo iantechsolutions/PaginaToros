@@ -45,6 +45,14 @@
             <Columns>
 
                 <RadzenDataGridColumn TItem="TransanDTO" Property="NroCert" Title="Nro Certificado" Width="4.5%" />
+                <RadzenDataGridColumn TItem="TransanDTO" Property="FchUsu" Title="Fecha de Proceso" Width="6%">
+                    <Template Context="data">
+                        @if (data.FchUsu.HasValue)
+                        {
+                            <a>@data.FchUsu.Value.ToString("dd/MM/yyyy")</a>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="TransanDTO" Property="Fecvta" Title="Fecha de Venta" Width="6%">
                     <Template Context="data">
                         @if (data.Fecvta.HasValue)
@@ -133,6 +141,14 @@ else
                     <Columns>
 
                         <RadzenDataGridColumn TItem="TransanDTO" Property="NroCert" Title="Nro Certificado" Width="5.3%" />
+                        <RadzenDataGridColumn TItem="TransanDTO" Property="FchUsu" Title="Fecha de Proceso" Width="6.6%">
+                            <Template Context="data">
+                                @if (data.FchUsu.HasValue)
+                                {
+                                    <a>@data.FchUsu.Value.ToString("dd/MM/yyyy")</a>
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="TransanDTO" Property="Fecvta" Title="Fecha de Venta" Width="6.6%">
                             <Template Context="data">
                                 @if (data.Fecvta.HasValue)
@@ -288,7 +304,7 @@ else
 
         if (!string.IsNullOrEmpty(result.Value))
         {
-            delete(id);
+            await delete(id);
 
         }
         else if (result.Dismiss == DismissReason.Cancel)
