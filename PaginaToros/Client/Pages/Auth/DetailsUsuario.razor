@@ -70,8 +70,7 @@
         if (disabled) return;
         disabled = true;
 
-        //var pswd = PasswordGeneratorHelper.GenerateWordPassword();
-        var pswd = "VACA.TORO.LOBO";
+        var pswd = PasswordGeneratorHelper.GenerateWordPassword();
 
         // Abro modal de espera
         var wait = Modal.Show<ModalWait>("", SharedModalOptions.modalOptionsWait);
