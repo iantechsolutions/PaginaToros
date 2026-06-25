@@ -84,6 +84,11 @@
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosi" Title="Cant. dosis restantes" Width="7.34%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipEnv" Title="Tipo de Envase" Width="7.34%" />
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Variedad" Title="Variedad" Width="5.3%" />
+                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="FchUsu" Title="Fecha de Creación" Width="7.34%">
+                    <Template Context="data">
+                        @(data.FchUsu.HasValue ? data.FchUsu.Value.ToString("dd/MM/yyyy") : "-")
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="CertifsemanDTO" Property="" Title="" Filterable="false" Width="3.33%">
                     <Template Context="data">
                         <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
@@ -143,6 +148,11 @@ else
                         <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosi" Title="Cant. dosis restantes" Width="7.34%" />
                         <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipEnv" Title="Tipo de Envase" Width="7.34%" />
                         <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Variedad" Title="Variedad" Width="5.3%" />
+                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="FchUsu" Title="Fecha de Creación" Width="7.34%">
+                            <Template Context="data">
+                                @(data.FchUsu.HasValue ? data.FchUsu.Value.ToString("dd/MM/yyyy") : "-")
+                            </Template>
+                        </RadzenDataGridColumn>
                     </Columns>
 
                 </RadzenDataGrid>
