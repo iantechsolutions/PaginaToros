@@ -246,6 +246,16 @@ namespace PaginaToros.Server.Controllers
                     return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<CertifsemanDTO>());
                 }
 
+                var validationErrors = ValidateRequest(request, accessContext.ActiveSocioCode);
+                if (validationErrors.Count > 0)
+                {
+                    return BadRequest(new Respuesta<CertifsemanDTO>
+                    {
+                        Exito = 0,
+                        Mensaje = string.Join(" | ", validationErrors)
+                    });
+                }
+
                 var nroCert = NormalizeKeyPart(request.NroCert);
                 var hba = NormalizeKeyPart(request.Hba);
                 request.NroCert = nroCert;
@@ -284,7 +294,9 @@ namespace PaginaToros.Server.Controllers
                         Mensaje = "No se pudo crear el certificado."
                     };
 
-                return Ok(response);
+                return response.Exito == 1
+                    ? Ok(response)
+                    : StatusCode(StatusCodes.Status500InternalServerError, response);
             }
             catch (Exception ex)
             {
@@ -308,6 +320,16 @@ namespace PaginaToros.Server.Controllers
                 if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
                 {
                     return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<CertifsemanDTO>());
+                }
+
+                var validationErrors = ValidateRequest(request, accessContext.ActiveSocioCode);
+                if (validationErrors.Count > 0)
+                {
+                    return BadRequest(new Respuesta<CertifsemanDTO>
+                    {
+                        Exito = 0,
+                        Mensaje = string.Join(" | ", validationErrors)
+                    });
                 }
 
                 var nroCert = NormalizeKeyPart(request.NroCert);
@@ -373,7 +395,11 @@ namespace PaginaToros.Server.Controllers
                     response = new Respuesta<CertifsemanDTO> { Exito = 0, Mensaje = "No se encontró el identificador" };
                 }
 
-                return StatusCode(StatusCodes.Status200OK, response);
+                return response.Exito == 1
+                    ? Ok(response)
+                    : response.Mensaje == "No se encontró el identificador"
+                        ? NotFound(response)
+                        : StatusCode(StatusCodes.Status500InternalServerError, response);
             }
             catch (Exception ex)
             {
@@ -461,5 +487,57 @@ namespace PaginaToros.Server.Controllers
 
         private static string NormalizeKeyPart(string? value)
             => (value ?? string.Empty).Trim();
+
+        private static List<string> ValidateRequest(CertifsemanDTO? request, string? activeSocioCode)
+        {
+            var errors = new List<string>();
+
+            if (request == null)
+            {
+                errors.Add("Request vacío.");
+                return errors;
+            }
+
+            if (string.IsNullOrWhiteSpace(request.TipoCert))
+            {
+                errors.Add("El tipo de certificado es obligatorio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.NroCert))
+            {
+                errors.Add("El número de certificado es obligatorio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Hba))
+            {
+                errors.Add("El HBA es obligatorio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Nrocen))
+            {
+                errors.Add("El centro es obligatorio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Apodo))
+            {
+                errors.Add("El tipo de toro es obligatorio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(activeSocioCode) && string.IsNullOrWhiteSpace(request.Nrocri))
+            {
+                errors.Add("El socio es obligatorio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.NrDosiOr))
+            {
+                errors.Add("La cantidad original de dosis es obligatoria.");
+            }
+            else if (!int.TryParse(request.NrDosiOr.Trim(), out var parsedDosi) || parsedDosi < 0)
+            {
+                errors.Add("La cantidad original de dosis debe ser un número válido y no negativo.");
+            }
+
+            return errors;
+        }
     }
 }

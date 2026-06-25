@@ -17,6 +17,26 @@
 @if (centros.Count>0){
 <div class="card">
     <div class="card-body">
+        @if (!string.IsNullOrWhiteSpace(formMessage))
+        {
+            <div class="@formMessageCss" role="alert">
+                @formMessage
+            </div>
+        }
+
+        @if (validationErrors.Count > 0)
+        {
+            <div class="alert alert-danger" role="alert">
+                <strong>Revisá estos datos:</strong>
+                <ul class="mb-0 mt-2">
+                    @foreach (var error in validationErrors)
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            </div>
+        }
+
         <EditForm Model="@oCertifseman" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
             <div class="row" style="width=100%;">
@@ -86,7 +106,7 @@
                 <div class="col-sm">
                     <label class="col-sm">Macho Dador Nro</label>
                     <InputText @bind-Value="@oCertifseman.NrInsd" class="form-control" placeholder=""></InputText>
-                    <ValidationMessage For="(()=> oCertifseman.TipEnv)" style="color:red;" />
+                    <ValidationMessage For="(()=> oCertifseman.NrInsd)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Variedad</label>
@@ -104,9 +124,9 @@
                 <div class="col-sm">
                     <label class="col-sm">Tipo de toro</label>
                         <RadzenDropDown @bind-Value=@oCertifseman.Apodo Data=@tiposToro Style="width: 100%; max-width: 400px;" />
-                    <ValidationMessage For="(()=> tipoToro)" style="color:red;" />
+                    <ValidationMessage For="(()=> oCertifseman.Apodo)" style="color:red;" />
                 </div>
-                @if (tipoToro == "S/")
+                @if (oCertifseman.Apodo == "S/")
                 {
                     <div class="col-sm">
                         <label class="col-sm">HBA</label>
@@ -147,8 +167,8 @@
 
             <br />
 
-            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
-            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+            <button type="submit" class="btn btn-primary mr-2" disabled="@isBusy">Aceptar</button>
+            <button type="button" @onclick="cancel" class="btn btn-light" disabled="@isBusy">Cancelar</button>
         </EditForm>
     </div>
 </div>
@@ -173,7 +193,10 @@ else
     List<SocioDTO> socios = new();
     CentrosiumDTO? centroSeleccionado = null;
     List<CentrosiumDTO> centros = new();
-    string tipoToro = "";
+    private readonly List<string> validationErrors = new();
+    private string? formMessage;
+    private string formMessageCss = "alert alert-danger";
+    private bool isBusy;
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
 
@@ -191,72 +214,135 @@ else
             {
                 string filtro = $"Id = {Id}";
                 var rtt = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 1, filtro);
+                oCertifseman = rtt.List?.FirstOrDefault() ?? new CertifsemanDTO();
+                if (oCertifseman.Id == 0)
+                {
+                    SetFormError("No se encontró el certificado solicitado.");
+                    return;
+                }
 
-                oCertifseman = rtt.List.FirstOrDefault();
                 centroSeleccionado = centros.Where(x => x.Nrocen == oCertifseman.Nrocen).FirstOrDefault();
                 socioSeleccionado = socios.Where(x => x.Scod == oCertifseman.Nrocri).FirstOrDefault();
-
             }
             catch (Exception ex)
             {
+                SetFormError($"No se pudo cargar el certificado: {ex.Message}");
             }
         }
-        oCertifseman.TipEnv = "PAJUELAS";
-
+        oCertifseman.TipEnv ??= "PAJUELAS";
 
     }
     async Task Guardar()
     {
-        if (socioSeleccionado == null || centroSeleccionado == null)
+        if (isBusy)
         {
-            Console.WriteLine("ERROR: Socio o Centro no seleccionado.");
             return;
         }
 
+        ClearMessages();
+
+        if (!ValidateForm())
+        {
+            SetFormError("Revisá los datos marcados antes de guardar.");
+            return;
+        }
+
+        isBusy = true;
+
         oCertifseman.Nrocri = socioSeleccionado.Scod;
         oCertifseman.Nrocen = centroSeleccionado.Nrocen;
-        oCertifseman.Apodo = tipoToro;
+        oCertifseman.Apodo = oCertifseman.Apodo?.Trim();
+        oCertifseman.TipoCert = oCertifseman.TipoCert?.Trim();
+        oCertifseman.NroCert = oCertifseman.NroCert?.Trim();
+        oCertifseman.Hba = oCertifseman.Hba?.Trim();
+        oCertifseman.Tatpart = oCertifseman.Tatpart?.Trim();
+        oCertifseman.NomDad = oCertifseman.NomDad?.Trim();
+        oCertifseman.NrInsd = oCertifseman.NrInsd?.Trim();
+        oCertifseman.NrTsan = oCertifseman.NrTsan?.Trim();
+        oCertifseman.NrDosiOr = oCertifseman.NrDosiOr?.Trim();
+        oCertifseman.TipEnv = string.IsNullOrWhiteSpace(oCertifseman.TipEnv) ? "PAJUELAS" : oCertifseman.TipEnv.Trim();
 
-        if (Id == 0)
+        try
         {
-            try
+            if (Id == 0)
             {
-                oCertifseman.NrDosi = Int32.Parse(oCertifseman.NrDosiOr);
-            }
-            catch
-            {
-                oCertifseman.NrDosi = 0;
-            }
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(oCertifseman));
+                if (!int.TryParse(oCertifseman.NrDosiOr, out var dosisOriginales))
+                {
+                    SetFormError("La cantidad original de dosis debe ser un número válido.");
+                    return;
+                }
 
-            await _certifsemanServicio.Crear(oCertifseman);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+                oCertifseman.NrDosi = dosisOriginales;
+
+                var createResponse = await _certifsemanServicio.Crear(oCertifseman);
+                if (createResponse.Exito != 1 || createResponse.List == null)
+                {
+                    ShowBackendErrors(createResponse);
+                    return;
+                }
+
+                SetFormSuccess("Certificado creado correctamente.");
+                await Swal.FireAsync("Éxito", "Certificado creado correctamente.", SweetAlertIcon.Success);
+                await ModalInstance.CloseAsync(ModalResult.Ok("Certificado guardado."));
+            }
+            else
+            {
+                if (!int.TryParse(oCertifseman.NrDosiOr, out var dosisOriginales))
+                {
+                    SetFormError("La cantidad original de dosis debe ser un número válido.");
+                    return;
+                }
+
+                oCertifseman.NrDosi = dosisOriginales;
+                var editResponse = await _certifsemanServicio.Editar(oCertifseman);
+                if (editResponse.Exito != 1)
+                {
+                    ShowBackendErrors(editResponse);
+                    return;
+                }
+
+                var mail = $"Aviso de edición a un certificado\n" +
+                           $"certificado: {oCertifseman.Nrocri}\n" +
+                           $"Socio: {oCertifseman.Socio}\n" +
+                           $"Tipo: Edición\n";
+
+                var request = new
+                {
+                    Vendedor = oCertifseman.Socio,
+                    Comprador = oCertifseman.Socio,
+                    Mail = mail,
+                    Direccion = oCertifseman.Apodo
+                };
+
+                HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var serverMessage = await response.Content.ReadAsStringAsync();
+                    SetFormError(string.IsNullOrWhiteSpace(serverMessage)
+                        ? "El certificado se guardó, pero falló el envío del mail."
+                        : $"El certificado se guardó, pero falló el envío del mail. {serverMessage}");
+                    return;
+                }
+
+                SetFormSuccess("Certificado editado correctamente.");
+                await Swal.FireAsync("Éxito", "Certificado editado correctamente.", SweetAlertIcon.Success);
+                await ModalInstance.CloseAsync(ModalResult.Ok("Certificado guardado."));
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await _certifsemanServicio.Editar(oCertifseman);
-
-            var mail = $"Aviso de edición a un certificado\n" +
-                       $"certificado: {oCertifseman.Nrocri}\n" +
-                       $"Socio: {oCertifseman.Socio}\n" +
-                       $"Tipo: Edición\n";
-
-            var request = new
-            {
-                Vendedor = oCertifseman.Socio,
-                Comprador = oCertifseman.Socio,
-                Mail = mail,
-                Direccion = oCertifseman.Apodo
-            };
-
-            HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
-            await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
+            SetFormError($"Ocurrió un error al guardar el certificado: {ex.Message}");
+            await Swal.FireAsync("Error", $"Ocurrió un error al guardar el certificado: {ex.Message}", SweetAlertIcon.Error);
+        }
+        finally
+        {
+            isBusy = false;
         }
     }
 
     async Task cancel()
     {
-        await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
+        await ModalInstance.CloseAsync(ModalResult.Cancel($"Form was cancelled"));
 
     }
 
@@ -270,6 +356,75 @@ else
     {
         var result = socios.Where(x => x.Criador=="S" && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
         return await Task.FromResult(result);
+    }
+
+    private bool ValidateForm()
+    {
+        validationErrors.Clear();
+
+        if (socioSeleccionado == null)
+        {
+            validationErrors.Add("Seleccioná un socio.");
+        }
+
+        if (centroSeleccionado == null)
+        {
+            validationErrors.Add("Seleccioná un centro.");
+        }
+
+        AddIfMissing(oCertifseman.TipoCert, "Seleccioná el tipo de certificado.");
+        AddIfMissing(oCertifseman.NroCert, "Ingresá el número de certificado.");
+        AddIfMissing(oCertifseman.Hba, "Ingresá el HBA.");
+        AddIfMissing(oCertifseman.NomDad, "Ingresá el nombre.");
+        AddIfMissing(oCertifseman.Apodo, "Seleccioná el tipo de toro.");
+
+        return validationErrors.Count == 0;
+    }
+
+    private void ShowBackendErrors(Respuesta<CertifsemanDTO>? response)
+    {
+        validationErrors.Clear();
+        var message = response?.Mensaje?.Trim();
+
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            validationErrors.Add("No se pudo guardar el certificado.");
+        }
+        else
+        {
+            validationErrors.AddRange(message.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        }
+
+        formMessage = null;
+        formMessageCss = "alert alert-danger";
+    }
+
+    private void SetFormError(string message)
+    {
+        formMessageCss = "alert alert-danger";
+        formMessage = message;
+    }
+
+    private void SetFormSuccess(string message)
+    {
+        validationErrors.Clear();
+        formMessageCss = "alert alert-success";
+        formMessage = message;
+    }
+
+    private void ClearMessages()
+    {
+        validationErrors.Clear();
+        formMessage = null;
+        formMessageCss = "alert alert-danger";
+    }
+
+    private void AddIfMissing(string? value, string message)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            validationErrors.Add(message);
+        }
     }
 
 }

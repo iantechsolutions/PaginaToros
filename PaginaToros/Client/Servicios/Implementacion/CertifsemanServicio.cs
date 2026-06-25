@@ -47,14 +47,7 @@ namespace PaginaToros.Client.Servicios.Implementacion
         {
             var url = $"api/Certifseman/{id}/nr-dosi";
             var res = await _http.PutAsJsonAsync(url, nrDosi);
-
-            var payload = await res.Content.ReadFromJsonAsync<Respuesta<CertifsemanDTO>>();
-
-            return payload ?? new Respuesta<CertifsemanDTO>
-            {
-                Exito = 0,
-                Mensaje = $"Error HTTP {(int)res.StatusCode} al actualizar NrDosi"
-            };
+            return await ReadResponseAsync<CertifsemanDTO>(res, $"Error HTTP {(int)res.StatusCode} al actualizar NrDosi");
         }
 
 
@@ -69,22 +62,41 @@ namespace PaginaToros.Client.Servicios.Implementacion
         public async Task<Respuesta<CertifsemanDTO>> Crear(CertifsemanDTO entidad)
         {
             var result = await _http.PostAsJsonAsync("api/Certifseman/Guardar", entidad);
-            var response = await result.Content.ReadFromJsonAsync<Respuesta<CertifsemanDTO>>();
-            return response!;
+            return await ReadResponseAsync<CertifsemanDTO>(result, $"Error HTTP {(int)result.StatusCode} al crear el certificado");
         }
 
-        public async Task<bool> Editar(CertifsemanDTO entidad)
+        public async Task<Respuesta<CertifsemanDTO>> Editar(CertifsemanDTO entidad)
         {
             var result = await _http.PutAsJsonAsync("api/Certifseman/Editar", entidad);
-            var response = await result.Content.ReadFromJsonAsync<Respuesta<CertifsemanDTO>>();
-
-            return response!.Exito == 1;
+            return await ReadResponseAsync<CertifsemanDTO>(result, $"Error HTTP {(int)result.StatusCode} al editar el certificado");
         }
 
         public async Task<Respuesta<CertifsemanDTO>> Filtrar(string descripcion)
         {
             var result = await _http.GetFromJsonAsync<Respuesta<CertifsemanDTO>>($"api/Certifseman/filtrar?categoriaItem={descripcion}");
             return result!;
+        }
+
+        private static async Task<Respuesta<T>> ReadResponseAsync<T>(HttpResponseMessage result, string fallbackMessage)
+        {
+            try
+            {
+                var payload = await result.Content.ReadFromJsonAsync<Respuesta<T>>();
+                if (payload != null)
+                {
+                    return payload;
+                }
+            }
+            catch
+            {
+                // Fall through to a consistent error response.
+            }
+
+            return new Respuesta<T>
+            {
+                Exito = 0,
+                Mensaje = fallbackMessage
+            };
         }
     }
 }
