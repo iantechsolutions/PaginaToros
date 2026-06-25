@@ -1754,6 +1754,7 @@ else
         }
 
         var mergedItems = MergeCertificadosByBusinessKey(merged);
+        mergedItems = OrderCertificadosByCreation(mergedItems);
         Log($"LoadCertificadosForSocioAsync | mergedTotal={mergedItems.Count}");
         LogSelectedCertificadosSnapshot("LoadCertificadosForSocioAsync preview", mergedItems);
         return mergedItems;
@@ -1783,6 +1784,13 @@ else
 
         return unique;
     }
+
+    private static List<CertifsemanDTO> OrderCertificadosByCreation(IEnumerable<CertifsemanDTO>? items)
+        => (items ?? Enumerable.Empty<CertifsemanDTO>())
+            .OrderByDescending(x => x.FchUsu.HasValue)
+            .ThenByDescending(x => x.FchUsu)
+            .ThenByDescending(x => x.Id)
+            .ToList();
 
     private static string BuildCertificadoUniqueKey(CertifsemanDTO item)
     {
