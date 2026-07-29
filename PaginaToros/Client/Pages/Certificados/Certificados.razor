@@ -1,5 +1,4 @@
-﻿@page "/certificados"
-@using Newtonsoft.Json
+@page "/certificados"
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
@@ -9,15 +8,55 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <style>
+    .certificados-page {
+        width: min(98%, 1600px);
+        margin: 0 auto;
+    }
+
+    .certificados-toolbar {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .certificados-toolbar-main,
+    .certificados-toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .certificados-toolbar-actions {
+        margin-left: auto;
+    }
+
+    .certificados-typeahead {
+        min-width: 320px;
+        width: min(520px, 100%);
+    }
+
+    .certificados-grid {
+        width: 100%;
+    }
+
+    .certificados-filter-button {
+        min-width: 56px;
+    }
 
     .rz-cell-data,
     .rz-column-title-content {
         font-size: 13px !important;
     }
+
     .rz-column-title-content {
         white-space: normal !important;
         word-wrap: break-word !important;
     }
+
     .rz-cell-data {
         overflow: visible !important;
         white-space: normal !important;
@@ -30,177 +69,194 @@
     .rz-paginator {
         border-top: solid #E0E0E0 1px;
     }
+
+    @@media (max-width: 768px) {
+        .certificados-page {
+            width: 100%;
+            padding: 0 0.75rem;
+        }
+
+        .certificados-toolbar {
+            align-items: stretch;
+        }
+
+        .certificados-toolbar-main,
+        .certificados-toolbar-actions {
+            width: 100%;
+        }
+
+        .certificados-typeahead {
+            min-width: 0;
+            width: 100%;
+        }
+    }
 </style>
+
 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
     <Authorized>
-<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Certificados de semen</h3>
+        <div class="certificados-page">
+            <h3 class="pb-3 font-bold text-xl">Certificados de semen</h3>
 
+            @if (oRespuesta.List != null)
+            {
+                <div class="certificados-toolbar">
+                    <div class="certificados-toolbar-main">
+                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="()=>add(0)">Agregar Certificado</button>
 
-<button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0)">Agregar Certificado</button>
+                        <BlazoredTypeahead SearchMethod="BusquedaSocios"
+                                           class="certificados-typeahead"
+                                           placeholder="Buscar por socio"
+                                           EnableDropDown="true"
+                                           Value="socioSeleccionado"
+                                           ValueChanged="EventCallback.Factory.Create<SocioDTO?>(this, OnSocioSeleccionadoChanged)"
+                                           ValueExpression="(() => socioSeleccionado)">
+                            <SelectedTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </SelectedTemplate>
+                            <ResultTemplate Context="eleccion">
+                                @eleccion.Nombre
+                            </ResultTemplate>
+                        </BlazoredTypeahead>
+                    </div>
 
-
-
-@if (oRespuesta.List != null)
-{
-            <div class="row">
-                <div class="col-3" />
-                <div class="col-4">
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" class="max-w-sm" placeholder="Buscar por socio" EnableDropDown="true" @bind-Value="socioSeleccionado">
-                        <SelectedTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </SelectedTemplate>
-                        <ResultTemplate Context="eleccion">
-                            @eleccion.Nombre
-                        </ResultTemplate>
-                    </BlazoredTypeahead>
+                    <div class="certificados-toolbar-actions">
+                        <button class="no-print px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 certificados-filter-button" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="()=>PaginaReporte()">Reporte x socio</button>
+                    </div>
                 </div>
-                <div class="col-5">
-                    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="outline:none; float: right;margin-right:3%;height:100%;" @onclick="()=>PaginaReporte()">Reporte x socio</button>
-                    <button style="outline:none; float: right;margin-right:3%;height:100%;" class="no-print px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-                    <button class="font-bold px-8 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="outline:none; float: right;margin-right:3%;height:100%;" @onclick="()=>BuscarPorSocio()">Buscar</button>
-                </div>
-            </div>
-    <br />
-    <br />
-    <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-        <RadzenDataGrid AllowFiltering="allowFiltering" LoadData="LoadData" IsLoading=@isLoading AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-                        Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                        Data="@oRespuesta.List" Count="cantotal" TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-            <Columns>
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipoCert" Title="Tipo cert." Width="6%" >
-                    <Template Context="data">
-                        @data.TipoCert.ToUpper()
-                    </Template>
-                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Centro.Nombre" Title="Nombre del centro" Width="7.34%" />
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" />
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="5.3%" />
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="5.3%" />
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre" Width="8.6%" />
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Apodacion" Title="Apodo" Width="8.6%" />
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrTsan" Title="Tip/ADN" Width="5.3%" />
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrInsd" Title="Nro Macho Dador" Width="7.34%" />
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosiOr" Title="Cant. de dosis" Width="6.6%" />
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosi" Title="Cant. dosis restantes" Width="7.34%" />
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipEnv" Title="Tipo de Envase" Width="7.34%" />
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Variedad" Title="Variedad" Width="5.3%" />
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="FchUsu" Title="Fecha de Creación" Width="7.34%">
-                    <Template Context="data">
-                        @(data.FchUsu.HasValue ? data.FchUsu.Value.ToString("dd/MM/yyyy") : "-")
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="" Title="" Filterable="false" Width="3.33%">
-                    <Template Context="data">
-                        <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="CertifsemanDTO" Property="" Title="" Filterable="false" Width="3.33%">
-                    <Template Context="data">
-                        <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
-                    </Template>
-                </RadzenDataGridColumn>
-                @*            <RadzenDataGridColumn TItem="Estable" Property="" Title="" Filterable="false" Width="30px">
-            <Template Context="data">
-            <button class="btn" title="Ver info" @onclick="() => gotoinfo(data.Id)"><FeatherInfo Color="blue" /></button>
-            </Template>
-            </RadzenDataGridColumn>*@
-            </Columns>
 
-        </RadzenDataGrid>
-    </div>
-    <br />
-}
-else
-{
-    <br />
-    <center>
-        <div class="mb-2">
-            <br />
-            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                <div class="tablacontent certificados-grid">
+                    <RadzenDataGrid AllowFiltering="allowFiltering" LoadData="LoadData" IsLoading=@isLoading AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                                    Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                                    Data="@oRespuesta.List" Count="cantotal" TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipoCert" Title="Tipo cert." Width="6%">
+                                <Template Context="data">
+                                    @data.TipoCert.ToUpper()
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Centro.Nombre" Title="Nombre del centro" Width="7.34%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="5.3%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="5.3%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre" Width="8.6%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Apodacion" Title="Apodo" Width="8.6%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrTsan" Title="Tip/ADN" Width="5.3%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrInsd" Title="Nro Macho Dador" Width="7.34%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosiOr" Title="Cant. de dosis" Width="6.6%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosi" Title="Cant. dosis restantes" Width="7.34%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipEnv" Title="Tipo de Envase" Width="7.34%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Variedad" Title="Variedad" Width="5.3%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="FchUsu" Title="Fecha de Creación" Width="7.34%">
+                                <Template Context="data">
+                                    @(data.FchUsu.HasValue ? data.FchUsu.Value.ToString("dd/MM/yyyy") : "-")
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                                <Template Context="data">
+                                    <button class="btn" position="absolute" title="Editar Certificado" @onclick="() => add(data.Id)"><FeatherEdit Size="16" Color="green" /></button>
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="" Title="" Filterable="false" Width="3.33%">
+                                <Template Context="data">
+                                    <button class="btn" title="Eliminar" @onclick="() => alertaDelete(data.Id)"><FeatherTrash2 Size="16" Color="red" /></button>
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </div>
+            }
+            else
+            {
+                <br />
+                <center>
+                    <div class="mb-2">
+                        <br />
+                        <RadzenProgressBar style="width:100%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                    </div>
+                </center>
+            }
         </div>
-    </center>
-}
-</Authorized>
+    </Authorized>
 </AuthorizeView>
 
 <AuthorizeView Roles="Socio">
     <Authorized>
-        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Certificados de semen</h3>
+        <div class="certificados-page">
+            <h3 class="pb-3 font-bold text-xl">Certificados de semen</h3>
 
-        @if (oRespuesta.List != null)
-        {
-            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-            <br />
-            <br />
-            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
-                <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading=@isLoading AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
-                                Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
-                                Data="@oRespuesta.List" TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
-                    <Columns>
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipoCert" Title="Tipo cert." Width="6%" />
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Centro.Nombre" Title="Nombre del centro" Width="7.34%" />
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="5.3%" />
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="5.3%" />
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre" Width="8.6%" />
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrTsan" Title="Tip/ADN" Width="5.3%" />
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrInsd" Title="Nro Macho Dador" Width="7.34%" />
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosiOr" Title="Cant. de dosis" Width="6.6%" />
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosi" Title="Cant. dosis restantes" Width="7.34%" />
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipEnv" Title="Tipo de Envase" Width="7.34%" />
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Variedad" Title="Variedad" Width="5.3%" />
-                        <RadzenDataGridColumn TItem="CertifsemanDTO" Property="FchUsu" Title="Fecha de Creación" Width="7.34%">
-                            <Template Context="data">
-                                @(data.FchUsu.HasValue ? data.FchUsu.Value.ToString("dd/MM/yyyy") : "-")
-                            </Template>
-                        </RadzenDataGridColumn>
-                    </Columns>
-
-                </RadzenDataGrid>
-            </div>
-            <br />
-        }
-        else
-        {
-            <br />
-            <center>
-                <div class="mb-2">
-                    <br />
-                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+            @if (oRespuesta.List != null)
+            {
+                <div class="certificados-toolbar">
+                    <div class="certificados-toolbar-actions">
+                        <button class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 certificados-filter-button" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+                    </div>
                 </div>
-            </center>
-        }
+
+                <div class="tablacontent certificados-grid">
+                    <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading=@isLoading AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                                    Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
+                                    Data="@oRespuesta.List" TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipoCert" Title="Tipo cert." Width="6%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Centro.Nombre" Title="Nombre del centro" Width="7.34%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="5.3%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="5.3%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre" Width="8.6%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrTsan" Title="Tip/ADN" Width="5.3%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrInsd" Title="Nro Macho Dador" Width="7.34%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosiOr" Title="Cant. de dosis" Width="6.6%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NrDosi" Title="Cant. dosis restantes" Width="7.34%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipEnv" Title="Tipo de Envase" Width="7.34%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Variedad" Title="Variedad" Width="5.3%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="FchUsu" Title="Fecha de Creación" Width="7.34%">
+                                <Template Context="data">
+                                    @(data.FchUsu.HasValue ? data.FchUsu.Value.ToString("dd/MM/yyyy") : "-")
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </div>
+            }
+            else
+            {
+                <br />
+                <center>
+                    <div class="mb-2">
+                        <br />
+                        <RadzenProgressBar style="width:100%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+                    </div>
+                </center>
+            }
+        </div>
     </Authorized>
 </AuthorizeView>
-
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
     public RadzenDataGrid<CertifsemanDTO>? grid;
     int currentPage;
     int cantotal;
-    SocioDTO socioSeleccionado;
-    List<SocioDTO> socios = new List<SocioDTO>();
+    SocioDTO? socioSeleccionado;
+    List<SocioDTO> socios = new();
     bool isLoading = false;
     public bool allowFiltering = false;
-    List<CentrosiumDTO> centros = new();
     public Respuesta<List<CertifsemanDTO>> oRespuesta = new Respuesta<List<CertifsemanDTO>>();
+
     protected override async Task OnInitializedAsync()
     {
         await Get();
     }
+
     async Task Get()
     {
         var esSocio = await UserHasRole("Socio");
 
-        if (!esSocio){
+        if (!esSocio)
+        {
             var rta = await _socioServicio.LimitadosFiltrados(0, 0);
             socios = rta.List;
-            var rt = await _certifsemanServicio.CantidadTotal();
-            cantotal = rt.List;
-            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 15);
-            oRespuesta.List = OrderCertificadosByCreation(RemoveDuplicatesByBusinessKey(oRespuesta.List));
-            string s = JsonConvert.SerializeObject(oRespuesta);
-            StateHasChanged();
+            await CargarCertificadosAsync(0, 15, string.Empty);
         }
         else
         {
@@ -208,9 +264,7 @@ else
             oRespuesta.List = OrderCertificadosByCreation(RemoveDuplicatesByBusinessKey(oRespuesta.List));
             cantotal = oRespuesta.List.Count();
         }
-
     }
-
 
     public static List<CertifsemanDTO> RemoveDuplicatesByBusinessKey(List<CertifsemanDTO>? items)
     {
@@ -230,6 +284,7 @@ else
                 uniqueItems.Add(item);
             }
         }
+
         return uniqueItems;
     }
 
@@ -271,29 +326,23 @@ else
             }
             StateHasChanged();
         }
-
     }
 
     public async Task alertaDelete(int id)
     {
         SweetAlertResult result = await Swal.FireAsync(new SweetAlertOptions
-            {
-                Title = "¿Está seguro?",
-                Text = "Se eliminará este certificado",
-                Icon = SweetAlertIcon.Warning,
-                ShowCancelButton = true,
-                ConfirmButtonText = "Eliminar",
-                CancelButtonText = "Cancelar"
-            });
+        {
+            Title = "¿Está seguro?",
+            Text = "Se eliminará este certificado",
+            Icon = SweetAlertIcon.Warning,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Eliminar",
+            CancelButtonText = "Cancelar"
+        });
 
         if (!string.IsNullOrEmpty(result.Value))
         {
             delete(id);
-
-        }
-        else if (result.Dismiss == DismissReason.Cancel)
-        {
-
         }
     }
 
@@ -308,9 +357,9 @@ else
                 var parameters = new ModalParameters();
                 parameters.Add(nameof(AddCertificado.Id), Id);
                 var options = new ModalOptions()
-                    {
-                        Size = ModalSize.ExtraLarge
-                    };
+                {
+                    Size = ModalSize.ExtraLarge
+                };
                 var formModal = Modal.Show<AddCertificado>("Editar Certificado", parameters, options);
                 var result = await formModal.Result;
                 if (result.Cancelled)
@@ -328,9 +377,7 @@ else
                     }
                     else
                     {
-                        string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                        oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 60, filtro);
-                        oRespuesta.List = OrderCertificadosByCreation(RemoveDuplicatesByBusinessKey(oRespuesta.List));
+                        await CargarCertificadosAsync(0, 15, BuildSocioFilter());
                         await grid.Reload();
                     }
                 }
@@ -343,9 +390,9 @@ else
         else
         {
             var options = new ModalOptions()
-                {
-                    Size = ModalSize.ExtraLarge
-                };
+            {
+                Size = ModalSize.ExtraLarge
+            };
             var formModal = Modal.Show<AddCertificado>("Agregar Certificado", options);
             var result = await formModal.Result;
 
@@ -360,23 +407,15 @@ else
                 {
                     await RecargarDatos();
                     await grid.GoToPage(currentPage);
-
                 }
                 else
                 {
-                    string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                    oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 60, filtro);
-                    oRespuesta.List = OrderCertificadosByCreation(RemoveDuplicatesByBusinessKey(oRespuesta.List));
+                    await CargarCertificadosAsync(0, 15, BuildSocioFilter());
                     await grid.Reload();
                 }
             }
         }
     }
-
-
-
-
-
 
     async Task LoadData(LoadDataArgs args)
     {
@@ -384,20 +423,18 @@ else
 
         var skip = args.Skip ?? 0;
         var take = args.Top ?? 15;
-        string filtro = args.Filter;
+        var filtro = CombineFilters(args.Filter, BuildSocioFilter());
 
-        if (socioSeleccionado != null)
+        try
         {
-            filtro = string.IsNullOrWhiteSpace(filtro)
-                ? $"Socio.Id={socioSeleccionado.Id}"
-                : $"({filtro}) AND Socio.Id={socioSeleccionado.Id}";
+            await CargarCertificadosAsync(skip, take, filtro);
         }
-
-        oRespuesta = await _certifsemanServicio.LimitadosFiltrados(skip, take, filtro);
-        oRespuesta.List = OrderCertificadosByCreation(RemoveDuplicatesByBusinessKey(oRespuesta.List));
-
-        isLoading = false;
+        finally
+        {
+            isLoading = false;
+        }
     }
+
     public async Task PaginaReporte()
     {
         nav.NavigateTo($"/reporteprint/0");
@@ -405,47 +442,77 @@ else
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var result = socios
+            .Where(x => !string.IsNullOrWhiteSpace(x.Nombre) && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
         return await Task.FromResult(result);
     }
 
-    private async Task BuscarPorSocio()
+    private async Task OnSocioSeleccionadoChanged(SocioDTO? socio)
     {
-        if (socioSeleccionado != null)
-        {
-            var coso = new LoadDataArgs();
-            coso.Filter = "";
-            await LoadData(coso);
-        }
-        else
-        {
-            var coso = new LoadDataArgs();
-            coso.Skip = 0;
-            coso.Top = 15;
-            await LoadData(coso);
-        }
-    }
+        socioSeleccionado = socio;
 
+        if (grid is null)
+        {
+            return;
+        }
+
+        currentPage = 0;
+        await grid.FirstPage(true);
+    }
 
     public async Task RecargarDatos()
     {
         isLoading = true;
-        if (socioSeleccionado != null)
+
+        try
         {
-            string filtro = $"Socio.Id={socioSeleccionado.Id}";
-            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 60, filtro);
-            oRespuesta.List = OrderCertificadosByCreation(RemoveDuplicatesByBusinessKey(oRespuesta.List));
+            await CargarCertificadosAsync(0, 15, BuildSocioFilter());
         }
-        else
+        finally
         {
-            oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 15);
-            oRespuesta.List = OrderCertificadosByCreation(RemoveDuplicatesByBusinessKey(oRespuesta.List));
-            var rt = await _certifsemanServicio.CantidadTotal();
-            cantotal = rt.List;
+            isLoading = false;
         }
 
-        isLoading = false;
         await grid.Reload();
+    }
+
+    private async Task CargarCertificadosAsync(int skip, int take, string? filtro)
+    {
+        oRespuesta = await _certifsemanServicio.LimitadosFiltrados(skip, take, filtro ?? string.Empty);
+        oRespuesta.List = OrderCertificadosByCreation(RemoveDuplicatesByBusinessKey(oRespuesta.List));
+
+        if (string.IsNullOrWhiteSpace(filtro))
+        {
+            var rt = await _certifsemanServicio.CantidadTotal();
+            cantotal = rt.List;
+            return;
+        }
+
+        var filteredResponse = await _certifsemanServicio.LimitadosFiltrados(0, 0, filtro);
+        cantotal = RemoveDuplicatesByBusinessKey(filteredResponse.List).Count;
+    }
+
+    private string BuildSocioFilter()
+        => socioSeleccionado?.Id > 0 ? $"Socio.Id == {socioSeleccionado.Id}" : string.Empty;
+
+    private static string CombineFilters(string? gridFilter, string? socioFilter)
+    {
+        var hasGridFilter = !string.IsNullOrWhiteSpace(gridFilter);
+        var hasSocioFilter = !string.IsNullOrWhiteSpace(socioFilter);
+
+        if (!hasGridFilter)
+        {
+            return socioFilter ?? string.Empty;
+        }
+
+        if (!hasSocioFilter)
+        {
+            return gridFilter!;
+        }
+
+        return $"({gridFilter}) && ({socioFilter})";
     }
 
     private static string BuildBusinessKey(CertifsemanDTO item)
@@ -453,5 +520,4 @@ else
 
     private static string NormalizeKeyPart(string? value)
         => (value ?? string.Empty).Trim();
-
 }
