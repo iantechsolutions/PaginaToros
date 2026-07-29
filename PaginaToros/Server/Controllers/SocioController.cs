@@ -31,6 +31,8 @@ namespace PaginaToros.Server.Controllers
         private readonly ApplicationDbContext _identityDb;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IUserSocioContextService _userSocioContextService;
+        private readonly IAccessMailService _accessMailService;
+        private readonly IIdentityPasswordService _identityPasswordService;
 
         public SocioController(
             ISocioRepositorio SocioRepositorio,
@@ -38,7 +40,9 @@ namespace PaginaToros.Server.Controllers
             hereford_prContext db,
             ApplicationDbContext identityDb,
             UserManager<IdentityUser> userManager,
-            IUserSocioContextService userSocioContextService)
+            IUserSocioContextService userSocioContextService,
+            IAccessMailService accessMailService,
+            IIdentityPasswordService identityPasswordService)
         {
             _mapper = mapper;
             _SocioRepositorio = SocioRepositorio;
@@ -46,6 +50,8 @@ namespace PaginaToros.Server.Controllers
             _identityDb = identityDb;
             _userManager = userManager;
             _userSocioContextService = userSocioContextService;
+            _accessMailService = accessMailService;
+            _identityPasswordService = identityPasswordService;
         }
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
@@ -639,19 +645,15 @@ namespace PaginaToros.Server.Controllers
                 targetIdentityUser.EmailConfirmed = true;
                 targetIdentityUser.PhoneNumber = socioDto.Telefo1;
 
-                var passwordValidation = await ValidatePasswordAsync(targetIdentityUser, password);
-                if (!passwordValidation.Succeeded)
+                var passwordReset = await _identityPasswordService.ResetPasswordAsync(targetIdentityUser, password);
+                if (!passwordReset.Succeeded)
                 {
                     response.Mensaje = "No se pudo generar una contraseña válida.";
                     response.List.CodigoError = "PASSWORD_POLICY_FAILED";
-                    response.List.MensajeUsuario = MapIdentityErrors(passwordValidation.Errors);
+                    response.List.MensajeUsuario = MapIdentityErrors(passwordReset.Errors);
                     AddUniqueError(response.List, response.List.MensajeUsuario);
                     throw new FriendlySocioRegistrationException(response);
                 }
-
-                targetIdentityUser.PasswordHash = _userManager.PasswordHasher.HashPassword(targetIdentityUser, password);
-                targetIdentityUser.SecurityStamp = Guid.NewGuid().ToString("D");
-                targetIdentityUser.ConcurrencyStamp = Guid.NewGuid().ToString("D");
 
                 var identityUpdate = await _userManager.UpdateAsync(targetIdentityUser);
                 if (!identityUpdate.Succeeded)
@@ -665,7 +667,7 @@ namespace PaginaToros.Server.Controllers
 
                 await _identityDb.SaveChangesAsync();
 
-                var mailSent = await TrySendRegistrationMailAsync(targetDomainUser, password);
+                var mailSent = await _accessMailService.SendAccessMailAsync(targetDomainUser, password, AccessMailTemplate.Registration);
                 if (!mailSent.Success)
                 {
                     response.Mensaje = "No se pudo enviar el mail de inscripción.";
@@ -1192,7 +1194,13 @@ namespace PaginaToros.Server.Controllers
 
                 var logoHtml = string.IsNullOrEmpty(logoPath)
                     ? string.Empty
-                    : "<img src='cid:logoImage' alt='Hereford Logo' style='width:150px; height:auto;' />";
+                    : "<img src='cid:logoImage' alt='Hereford Logo' style='width:150px; height:auto; display:block;' />";
+
+                var fecha = DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", new CultureInfo("es-ES"));
+                var nombre = WebUtility.HtmlEncode(model.Names ?? "criador");
+                var apellido = WebUtility.HtmlEncode(model.LastNames ?? string.Empty);
+                var email = WebUtility.HtmlEncode(model.Email);
+                var safePassword = WebUtility.HtmlEncode(password);
 
                 string body = $@"
             <html>
@@ -1200,21 +1208,21 @@ namespace PaginaToros.Server.Controllers
                 <table width='100%' border='0' cellspacing='0' cellpadding='0'>
                     <tr>
                         <td>
-                            <table width='600' border='0' cellspacing='0' cellpadding='0' align='center' style='background-repeat:no-repeat;background-image:url(cid:backgroundImage);background-size:cover;'>
+                            <table width='600' border='0' cellspacing='0' cellpadding='0' align='center' style='background-color:#ffffff;background-repeat:no-repeat;background-image:url({(string.IsNullOrEmpty(imagePath) ? "" : "cid:backgroundImage")});background-size:cover;'>
                                 <tr>
                                     <td style='padding: 20px; text-align: left;'>
                                         {logoHtml}
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style='padding: 20px; padding-top: 10px; color: #000;'>
-                                        <h2>Buenos Aires, {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", new CultureInfo("es-ES"))}</h2>
-                                        <p>Señor {WebUtility.HtmlEncode(model.Names ?? "criador")} {WebUtility.HtmlEncode(model.LastNames ?? string.Empty)}:</p>
+                                    <td style='padding:20px; padding-top:10px; color:#000000; font-family:Arial, Helvetica, sans-serif; line-height:1.5;'>
+                                        <h2 style='margin:0 0 16px 0; color:#000000;'>Buenos Aires, {fecha}</h2>
+                                        <p style='margin:0 0 14px 0; color:#000000;'>Señor {nombre} {apellido}:</p>
                                         <p>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar:1050/'>aquí</a>.</p>
-                                        <p><strong>Detalles de inicio de sesión:</strong></p>
-                                        <p>Correo electrónico registrado: {WebUtility.HtmlEncode(model.Email)}<br>Contraseña: {WebUtility.HtmlEncode(password)}</p>
-                                        <p>Recuerde mantener segura esta información y no compartirla. Gracias por su tiempo y ante cualquier consulta no dude en comunicarse por mail a planteles@hereford.org.ar</p>
-                                        <p>Gracias por su comprensión y colaboración.</p>
+                                        <p style='margin:0 0 14px 0; color:#000000;'><strong>Detalles de inicio de sesión:</strong></p>
+                                        <p style='margin:0 0 14px 0; color:#000000;'>Correo electrónico registrado: {email}<br />Contraseña: <code style='font-size:16px; color:#000000;'>{safePassword}</code></p>
+                                        <p style='margin:0 0 14px 0; color:#000000;'>Recuerde mantener segura esta información y no compartirla. Ante cualquier consulta escriba a <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a>.</p>
+                                        <p style='margin:0; color:#000000;'>Gracias por su comprensión y colaboración.</p>
                                     </td>
                                 </tr>
                                 <tr>

@@ -5,6 +5,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Controllers;
+using PaginaToros.Server.Services;
 using PaginaToros.Shared.Models;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
@@ -70,13 +71,16 @@ public class AccountControllerSearchTests
             .Options;
 
         var identityContext = new ApplicationDbContext(identityOptions);
+        var userManager = CreateUserManager();
 
         return new AccountController(
             identityContext,
-            CreateUserManager(),
+            userManager,
             null!,
             new ConfigurationBuilder().Build(),
-            domainContext);
+            domainContext,
+            new AccessMailService(),
+            new IdentityPasswordService(userManager));
     }
 
     private static UserManager<IdentityUser> CreateUserManager()

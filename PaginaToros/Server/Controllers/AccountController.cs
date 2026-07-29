@@ -20,6 +20,7 @@ using Org.BouncyCastle.Pqc.Crypto.Lms;
 using System.Globalization;
 using System.Net;
 using PaginaToros.Shared.Helpers;
+using PaginaToros.Server.Services;
 using PaginaToros.Server.Utilidades;
 namespace PaginaToros.Server.Controllers
 {
@@ -34,18 +35,24 @@ namespace PaginaToros.Server.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly hereford_prContext _hfdb;
+        private readonly IAccessMailService _accessMailService;
+        private readonly IIdentityPasswordService _identityPasswordService;
 
         public AccountController(ApplicationDbContext db,
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
             IConfiguration configuration,
-            hereford_prContext hfdb)
+            hereford_prContext hfdb,
+            IAccessMailService accessMailService,
+            IIdentityPasswordService identityPasswordService)
         {
             this.db = db;
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
             _hfdb = hfdb;
+            _accessMailService = accessMailService;
+            _identityPasswordService = identityPasswordService;
         }
 
         //Metodos dmuu kdke jobp bhgo
@@ -309,130 +316,15 @@ namespace PaginaToros.Server.Controllers
         [HttpPost("SendMail2025")]
         public async Task<ActionResult> SendMailInfo([FromBody] User model, string password)
         {
-            try
+            var mailResult = await _accessMailService.SendAccessMailAsync(model, password, AccessMailTemplate.Registration);
+            if (mailResult.Success)
             {
-                using (MailMessage mail = new MailMessage())
-                {
-                    Console.WriteLine("Entro por lo mens");
-
-                    mail.From = new MailAddress("planteles@hereford.org.ar");
-                    mail.To.Add(model.Email);
-                    mail.Subject = "Hereford - Puro Registrado.";
-
-                    string projectRoot = Directory.GetCurrentDirectory();
-                    string imagePath = Path.Combine(projectRoot, "wwwroot", "images", "backgroundEnvio.jpg");
-                    string logoPath = Path.Combine(projectRoot, "wwwroot", "images", "LOGO.jpg");
-
-                    // Verifica si el email es de Outlook, en tal caso no carga las imágenes
-                    if (model.Email.Contains("outlook"))
-                    {
-                        logoPath = null;
-                        imagePath = null; // No cargamos la imagen de fondo
-                    }
-
-                    if (!string.IsNullOrEmpty(imagePath) && !System.IO.File.Exists(imagePath))
-                    {
-                        Console.WriteLine("Imagen de fondo no encontrada.");
-                        return BadRequest("Imagen de fondo no encontrada.");
-                    }
-
-                    if (!string.IsNullOrEmpty(logoPath) && !System.IO.File.Exists(logoPath))
-                    {
-                        Console.WriteLine("Logo no encontrado.");
-                        return BadRequest("Logo no encontrado.");
-                    }
-
-                    string logoHtml = string.IsNullOrEmpty(logoPath) ? "" : $"<img src='cid:logoImage' alt='Hereford Logo' style='width:150px; height:auto;' />";
-
-                    string body = $@"
-            <html>
-            <body style='margin:0;padding:0;'>
-                <table width='100%' border='0' cellspacing='0' cellpadding='0'>
-                    <tr>
-                        <td>
-                            <table width='600' border='0' cellspacing='0' cellpadding='0' align='center' style='background-repeat:no-repeat;background-image:url(cid:backgroundImage);background-size:cover;'>
-                                <tr>
-                                    <td style='padding: 20px; text-align: left;'>
-                                        {logoHtml}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style='padding: 20px; padding-top: 10px; color: #000;'>
-                                        <h2>Buenos Aires, {DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-ES"))}</h2>
-                                        <p>Señor {model.Names ?? "criador"} {model.LastNames}:</p>
-                                        <p>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar:1050/'>aquí</a>.</p>
-                                        <p><strong>Detalles de inicio de sesión:</strong></p>
-                                        <p>Correo electrónico registrado: {model.Email}<br>Contraseña: {password}</p>
-                                        <p>Recuerde mantener segura esta información y no compartirla. Gracias por su tiempo y ante cualquier consulta no dude en comunicarse por mail a planteles@hereford.org.ar</p>
-                                        <p>Gracias por su comprensión y colaboración.</p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style='padding: 20px; padding-top: 25px; color: #777;'>
-                                        <p>Paz Hernández (Encargada Registros) - <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a></p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style='height: 200px;'></td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-            </body>
-            </html>";
-
-                    AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, MediaTypeNames.Text.Html);
-
-                    if (!string.IsNullOrEmpty(imagePath))
-                    {
-                        LinkedResource background = new LinkedResource(imagePath, MediaTypeNames.Image.Jpeg)
-                        {
-                            ContentId = "backgroundImage",
-                            TransferEncoding = System.Net.Mime.TransferEncoding.Base64
-                        };
-                        htmlView.LinkedResources.Add(background);
-                    }
-
-                    if (!string.IsNullOrEmpty(logoPath))
-                    {
-                        LinkedResource logo = new LinkedResource(logoPath, MediaTypeNames.Image.Jpeg)
-                        {
-                            ContentId = "logoImage",
-                            TransferEncoding = System.Net.Mime.TransferEncoding.Base64
-                        };
-                        htmlView.LinkedResources.Add(logo);
-                    }
-
-                    mail.AlternateViews.Add(htmlView);
-                    mail.IsBodyHtml = true;
-
-                    //string filePath = Path.Combine(projectRoot, "wwwroot", "images", "Tarifas Registros 2025.docx");
-                    //if (System.IO.File.Exists(filePath))
-                    //{
-                    //    Attachment attachment = new Attachment(filePath);
-                    //    mail.Attachments.Add(attachment);
-                    //}
-
-                    using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
-                    {
-                        smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033");
-                        smtp.EnableSsl = true;
-                        smtp.Send(mail);
-                    }
-                }
-
                 Console.WriteLine("Correo enviado correctamente.");
                 return Ok("Correo enviado correctamente.");
             }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Error: {e.Message}");
-                Console.WriteLine(model.Email);
-                Console.WriteLine(password);
-                return BadRequest($"Error al enviar el correo: {e.Message}");
-            }
+
+            Console.WriteLine($"Error: {mailResult.ErrorMessage}");
+            return BadRequest($"Error al enviar el correo: {mailResult.ErrorMessage}");
         }
 
 
@@ -549,125 +441,15 @@ namespace PaginaToros.Server.Controllers
             if (req is null || req.Usuario is null || string.IsNullOrWhiteSpace(req.NuevaContrasena))
                 return BadRequest("Payload inválido.");
 
-            var model = req.Usuario;
-            // IMPORTANTE: encode por si la contraseña tiene caracteres que rompan HTML
-            var nuevaContraseña = WebUtility.HtmlEncode(req.NuevaContrasena);
-
-            try
+            var mailResult = await _accessMailService.SendAccessMailAsync(req.Usuario, req.NuevaContrasena, AccessMailTemplate.Reset);
+            if (mailResult.Success)
             {
-                using (var mail = new MailMessage())
-                {
-                    mail.From = new MailAddress("planteles@hereford.org.ar");
-                    mail.To.Add(model.Email);
-                    mail.Subject = "Hereford - Restablecimiento de contraseña.";
-
-                    string projectRoot = Directory.GetCurrentDirectory();
-                    string imagePath = Path.Combine(projectRoot, "wwwroot", "images", "backgroundEnvio.jpg");
-                    string logoPath = Path.Combine(projectRoot, "wwwroot", "images", "LOGO.jpg");
-
-                    // Outlook: no cargar imágenes (case-insensitive)
-                    bool esOutlook = model.Email?.IndexOf("outlook", StringComparison.OrdinalIgnoreCase) >= 0;
-                    if (esOutlook)
-                    {
-                        logoPath = null;
-                        imagePath = null;
-                    }
-
-                    if (!string.IsNullOrEmpty(imagePath) && !System.IO.File.Exists(imagePath))
-                        return BadRequest("Imagen de fondo no encontrada.");
-
-                    if (!string.IsNullOrEmpty(logoPath) && !System.IO.File.Exists(logoPath))
-                        return BadRequest("Logo no encontrado.");
-
-                    string logoHtml = string.IsNullOrEmpty(logoPath)
-                        ? ""
-                        : "<img src='cid:logoImage' alt='Hereford Logo' style='width:150px; height:auto;' />";
-
-                    var fecha = DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", new CultureInfo("es-ES"));
-
-                    string body = $@"
-                        <html>
-                        <body style='margin:0;padding:0;'>
-                          <table width='100%' border='0' cellspacing='0' cellpadding='0'>
-                            <tr>
-                              <td>
-                                <table width='600' border='0' cellspacing='0' cellpadding='0' align='center' style='background-repeat:no-repeat;background-image:url({(string.IsNullOrEmpty(imagePath) ? "" : "cid:backgroundImage")});background-size:cover;'>
-                                  <tr>
-                                    <td style='padding: 20px; text-align: left;'>
-                                      {logoHtml}
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td style='padding: 20px; padding-top: 10px; color: #000;'>
-                                      <h2>Buenos Aires, {fecha}</h2>
-                                      <p>Señor {(!string.IsNullOrWhiteSpace(model.Names) ? model.Names : "criador")}:</p>
-                                      <p>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar:1050/'>aquí</a>.</p>
-                                      <p><strong>Detalles de inicio de sesión:</strong></p>
-                                      <p>Correo electrónico registrado: {model.Email}<br>Contraseña: <code>{nuevaContraseña}</code></p>
-                                      <p>Recuerde mantener segura esta información y no compartirla. Ante cualquier consulta escriba a <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a>.</p>
-                                      <p>Gracias por su comprensión y colaboración.</p>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td style='padding: 20px; padding-top: 25px; color: #777;'>
-                                      <p>Paz Hernández (Encargada Registros) - <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a></p>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td style='height: 200px;'></td>
-                                  </tr>
-                                </table>
-                              </td>
-                            </tr>
-                          </table>
-                        </body>
-                        </html>";
-
-                    var htmlView = AlternateView.CreateAlternateViewFromString(body, null, MediaTypeNames.Text.Html);
-
-                    if (!string.IsNullOrEmpty(imagePath))
-                    {
-                        var background = new LinkedResource(imagePath, MediaTypeNames.Image.Jpeg)
-                        {
-                            ContentId = "backgroundImage",
-                            TransferEncoding = TransferEncoding.Base64
-                        };
-                        htmlView.LinkedResources.Add(background);
-                    }
-
-                    if (!string.IsNullOrEmpty(logoPath))
-                    {
-                        var logo = new LinkedResource(logoPath, MediaTypeNames.Image.Jpeg)
-                        {
-                            ContentId = "logoImage",
-                            TransferEncoding = TransferEncoding.Base64
-                        };
-                        htmlView.LinkedResources.Add(logo);
-                    }
-
-                    mail.AlternateViews.Add(htmlView);
-                    mail.IsBodyHtml = true;
-
-                    using var smtp = new SmtpClient("mail.hereford.org.ar", 587)
-                    {
-                        UseDefaultCredentials = false,
-                        Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"),
-                        EnableSsl = true
-                    };
-
-                    smtp.Send(mail);
-                }
-
                 Console.WriteLine("Correo enviado correctamente.");
                 return Ok("Correo enviado correctamente.");
             }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Error SendResetMail: {e.Message}");
-                Console.WriteLine(model.Email);
-                Console.WriteLine(nuevaContraseña);
-                return BadRequest($"Error al enviar el correo: {e.Message}");
-            }
+
+            Console.WriteLine($"Error SendResetMail: {mailResult.ErrorMessage}");
+            return BadRequest($"Error al enviar el correo: {mailResult.ErrorMessage}");
         }
 
 
@@ -792,22 +574,8 @@ namespace PaginaToros.Server.Controllers
 
                 var user = sync.IdentityUser!;
 
-                // Validar password contra políticas
-                foreach (var validator in _userManager.PasswordValidators)
-                {
-                    var v = await validator.ValidateAsync(_userManager, user, model.Password);
-                    if (!v.Succeeded) return BadRequest(v.Errors);
-                }
-
-                // Remover si tiene y luego agregar
-                if (await _userManager.HasPasswordAsync(user))
-                {
-                    var remove = await _userManager.RemovePasswordAsync(user);
-                    if (!remove.Succeeded) return BadRequest(remove.Errors);
-                }
-
-                var add = await _userManager.AddPasswordAsync(user, model.Password);
-                if (!add.Succeeded) return BadRequest(add.Errors);
+                var reset = await _identityPasswordService.ResetPasswordAsync(user, model.Password);
+                if (!reset.Succeeded) return BadRequest(reset.Errors);
 
                 return Ok("ok");
             }
@@ -850,24 +618,9 @@ namespace PaginaToros.Server.Controllers
                 var newPassword = PasswordGeneratorHelper.GenerateWordPassword();
                 Console.WriteLine($"Password generado (masked): {Mask(newPassword)}");
 
-                // 5) Validar y setear password en Identity
-                foreach (var validator in _userManager.PasswordValidators)
-                {
-                    var v = await validator.ValidateAsync(_userManager, aspUser, newPassword);
-                    Console.WriteLine($"PasswordValidator => {v.Succeeded}");
-                    if (!v.Succeeded) return BadRequest(v.Errors);
-                }
-
-                if (await _userManager.HasPasswordAsync(aspUser))
-                {
-                    var rm = await _userManager.RemovePasswordAsync(aspUser);
-                    Console.WriteLine($"RemovePasswordAsync => {rm.Succeeded}");
-                    if (!rm.Succeeded) return BadRequest(rm.Errors);
-                }
-
-                var add = await _userManager.AddPasswordAsync(aspUser, newPassword);
-                Console.WriteLine($"AddPasswordAsync => {add.Succeeded}");
-                if (!add.Succeeded) return BadRequest(add.Errors);
+                var reset = await _identityPasswordService.ResetPasswordAsync(aspUser, newPassword);
+                Console.WriteLine($"ResetPasswordAsync => {reset.Succeeded}");
+                if (!reset.Succeeded) return BadRequest(reset.Errors);
 
                 // 6) Actualizar tu tabla User
                 // 7) Enviar mail con la MISMA contraseña

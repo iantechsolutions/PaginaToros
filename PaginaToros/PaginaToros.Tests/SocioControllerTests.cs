@@ -67,6 +67,7 @@ public class SocioControllerTests
         var mapper = mapperConfig.CreateMapper();
         var repo = new SocioRepositorio(context);
         var identityContext = CreateIdentityContext();
+        var userManager = CreateUserManager();
         var accessService = new TestUserSocioContextService(new UserSocioAccessContext
         {
             IsAuthenticated = true,
@@ -80,8 +81,10 @@ public class SocioControllerTests
             mapper,
             context,
             identityContext,
-            CreateUserManager(),
-            accessService)
+            userManager,
+            accessService,
+            new AccessMailService(),
+            new IdentityPasswordService(userManager))
         {
             ControllerContext = new ControllerContext
             {

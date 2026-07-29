@@ -74,6 +74,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IUserSocioContextService, UserSocioContextService>();
+builder.Services.AddScoped<IAccessMailService, AccessMailService>();
+builder.Services.AddScoped<IIdentityPasswordService, IdentityPasswordService>();
 builder.Services.AddScoped<ICentrosiumRepositorio, CentrosiumRepositorio>();
 builder.Services.AddScoped<ICertifsemanRepositorio, CertifsemanRepositorio>();
 builder.Services.AddScoped<IDesepla1Repositorio, Desepla1Repositorio>();
