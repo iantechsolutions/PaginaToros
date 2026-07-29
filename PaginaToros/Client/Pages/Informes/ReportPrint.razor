@@ -288,7 +288,7 @@ else if (seleccion && !terminado)
 
         foreach (var item in items)
         {
-            var key = $"{(item.NroCert ?? string.Empty).Trim()}|{(item.Hba ?? string.Empty).Trim()}";
+            var key = $"{(item.Nrocri ?? string.Empty).Trim()}|{(item.NroCert ?? string.Empty).Trim()}|{(item.Hba ?? string.Empty).Trim()}";
             if (seenKeys.Add(key))
             {
                 uniqueItems.Add(item);

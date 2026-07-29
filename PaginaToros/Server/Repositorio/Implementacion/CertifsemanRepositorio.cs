@@ -277,7 +277,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         }
 
         private static string BuildBusinessKey(Certifseman item)
-            => $"{NormalizeKeyPart(item.NroCert)}|{NormalizeKeyPart(item.Hba)}";
+            => $"{NormalizeKeyPart(item.Nrocri)}|{NormalizeKeyPart(item.NroCert)}|{NormalizeKeyPart(item.Hba)}";
 
         private static string NormalizeKeyPart(string? value)
             => (value ?? string.Empty).Trim();

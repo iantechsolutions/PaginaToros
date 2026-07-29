@@ -449,7 +449,7 @@ else
     }
 
     private static string BuildBusinessKey(CertifsemanDTO item)
-        => $"{NormalizeKeyPart(item.NroCert)}|{NormalizeKeyPart(item.Hba)}";
+        => $"{NormalizeKeyPart(item.Nrocri)}|{NormalizeKeyPart(item.NroCert)}|{NormalizeKeyPart(item.Hba)}";
 
     private static string NormalizeKeyPart(string? value)
         => (value ?? string.Empty).Trim();
