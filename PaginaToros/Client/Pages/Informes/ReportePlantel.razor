@@ -4,37 +4,37 @@
 @inject IPlantelServicio _plantelServicio
 @inject HttpClient http
 
-<center><RadzenText TextStyle="TextStyle.H4">Informe de planteles</RadzenText></center>
+<div class="rp-page">
 
-<div>
+<h2 class="font-bold text-2xl mb-4 text-center rp-title">Informe de Planteles</h2>
+
+<div class="rp-filter-card no-print">
     <DataAnnotationsValidator />
-    <div class="row">
-        <div class="col-sm">
-            <label>Seleccionar Fecha Inicial</label>
-            <RadzenDatePicker TValue="DateTime?" @bind-Value="@fechaInicial"
-                              ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75"
-                              @onchange="OnFechaInicialChanged" /> @* *** auto-regenerar (opcional) *@
-        </div>
-        <div class="col-sm">
-            <label>Seleccionar Fecha Final</label>
-            <RadzenDatePicker TValue="DateTime?" @bind-Value="@fechaFinal"
-                              ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75"
-                              @onchange="OnFechaFinalChanged" /> @* *** auto-regenerar (opcional) *@
-        </div>
-        <div class="col-sm">
-            <label>Seleccione el estado de los planteles</label>
-            <RadzenDropDown @bind-Value="@seleccion" Data="@opciones" Style="width: 100%; max-width: 400px;"
-                            Change="OnSeleccionChanged" /> @* *** auto-regenerar (opcional) *@
-        </div>
+    <div>
+        <div class="rp-field-label"><FeatherCalendar Size="14" Color="#475467" /> Fecha inicial</div>
+        <RadzenDatePicker TValue="DateTime?" @bind-Value="@fechaInicial"
+                          ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Style="width:100%"
+                          @onchange="OnFechaInicialChanged" />
+    </div>
+    <div>
+        <div class="rp-field-label"><FeatherCalendar Size="14" Color="#475467" /> Fecha final</div>
+        <RadzenDatePicker TValue="DateTime?" @bind-Value="@fechaFinal"
+                          ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Style="width:100%"
+                          @onchange="OnFechaFinalChanged" />
+    </div>
+    <div>
+        <div class="rp-field-label"><FeatherFilter Size="14" Color="#475467" /> Estado de los planteles</div>
+        <RadzenDropDown @bind-Value="@seleccion" Data="@opciones" Style="width:100%"
+                        Change="OnSeleccionChanged" />
     </div>
 </div>
 
-<br />
+<div class="rp-actions no-print">
+    <button class="rp-btn rp-btn-ghost" @onclick="ReiniciarFiltros" disabled="@isLoading">
+        <span><FeatherRotateCcw Color="currentColor" Size="16" /> Reiniciar filtros</span>
+    </button>
 
-@* *** Toolbar SIEMPRE visible, con Generar siempre accesible *@
-<div style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
-    <button class="font-bold px-6 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
-            style="width: 150px;" @onclick="Generate" disabled="@(!CanGenerate)">
+    <button class="rp-btn rp-btn-primary" @onclick="Generate" disabled="@(!CanGenerate)">
         @if (isLoading)
         {
             <span><i class="fa fa-spinner fa-spin"></i> Generando...</span>
@@ -45,63 +45,51 @@
         }
     </button>
 
-    <button class="no-print font-bold px-6 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
-            style="width: 150px;" @onclick="DescargarExcel" disabled="@(isLoading || !terminado || !plantelesConAnio.Any() && !plantelesSinAnio.Any())">
-        Descargar Excel
+    <button class="rp-btn rp-btn-secondary" @onclick="DescargarExcel" disabled="@(isLoading || !terminado || !plantelesConAnio.Any() && !plantelesSinAnio.Any())">
+        <span><FeatherDownload Color="currentColor" Size="16" /> Exportar Excel</span>
     </button>
 
-    <button class="no-print px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center"
-            style="width: 100px;" @onclick="Print" disabled="@(isLoading || !terminado)">
-        <FeatherPrinter Color="Black"></FeatherPrinter>
-    </button>
-
-    <button @onclick="ReiniciarFiltros"
-            class="font-bold px-4 py-2 rounded-2xl bg-gray-100 hover:bg-gray-300 transition ease-in duration-100"
-            style="width: 150px;" disabled="@isLoading">
-        Reiniciar Filtros
+    <button class="rp-btn rp-btn-secondary" title="Exportar PDF" @onclick="Print" disabled="@(isLoading || !terminado)">
+        <span><FeatherPrinter Color="currentColor" Size="16" /> Exportar PDF</span>
     </button>
 </div>
 
 @if (terminado)
 {
-    <table style="border-collapse:collapse;position:relative;left:3%;width:95%" cellspacing="0">
+    <div class="rp-results">
+    <div class="rp-section-title">Total general</div>
+    <table class="rp-table">
+        <thead>
         <tr>
-            <td colspan="9">
-                <p class="2"> TOTAL GENERAL</p>
-            </td>
+            <th rowspan="2">Plantel</th>
+            <th colspan="3">PR</th>
+            <th colspan="3">VIP</th>
+            <th rowspan="2">Socio</th>
+            <th rowspan="2">Estado</th>
         </tr>
         <tr>
-            <td><p class="s2">Plantel</p></td>
-            <td colspan="3" style="text-align:center"><p class="s2">PR</p></td>
-            <td colspan="3" style="text-align:center"><p class="s2">VIP</p></td>
-            <td><p class="s2">Socio</p></td>
-            <td><p class="s2">Estado</p></td>
+            <th>Vacas</th>
+            <th>Vaquill. c/servicio</th>
+            <th>Vaquill. s/servicio</th>
+            <th>Vacas</th>
+            <th>Vaquill. c/servicio</th>
+            <th>Vaquill. s/servicio</th>
         </tr>
+        </thead>
+        <tfoot>
         <tr>
             <td></td>
-            <td><p class="s2">Vacas</p></td>
-            <td><p class="s2">Vaquill. c/servicio</p></td>
-            <td><p class="s2">Vaquill. s/servicio</p></td>
-            <td><p class="s2">Vacas</p></td>
-            <td><p class="s2">Vaquill. c/servicio</p></td>
-            <td><p class="s2">Vaquill. s/servicio</p></td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td></td>
-            <td><p class="s2">@plantelesConAnio.Sum(x => x.Varede ?? 0)</p></td>
-            <td><p class="s2">@plantelesConAnio.Sum(x => x.Vqcsrd ?? 0)</p></td>
-            <td><p class="s2">@plantelesConAnio.Sum(x => x.Vqssrd ?? 0)</p></td>
-            <td><p class="s2">@plantelesConAnio.Sum(x => x.Varepr ?? 0)</p></td>
-            <td><p class="s2">@plantelesConAnio.Sum(x => x.Vqcsrp ?? 0)</p></td>
-            <td><p class="s2">@plantelesConAnio.Sum(x => x.Vqssrp ?? 0)</p></td>
+            <td>@plantelesConAnio.Sum(x => x.Varede ?? 0)</td>
+            <td>@plantelesConAnio.Sum(x => x.Vqcsrd ?? 0)</td>
+            <td>@plantelesConAnio.Sum(x => x.Vqssrd ?? 0)</td>
+            <td>@plantelesConAnio.Sum(x => x.Varepr ?? 0)</td>
+            <td>@plantelesConAnio.Sum(x => x.Vqcsrp ?? 0)</td>
+            <td>@plantelesConAnio.Sum(x => x.Vqssrp ?? 0)</td>
             <td></td>
             <td></td>
         </tr>
+        </tfoot>
     </table>
-    <br />
-    <br />
 
     @foreach (int i in anios)
     {
@@ -109,42 +97,44 @@
             .Where(x => int.TryParse(x.Anioex, out var yy) && yy == i)
             .ToList();
 
-        <RadzenText TextStyle="Radzen.Blazor.TextStyle.H4">Año @i</RadzenText>
+        <div class="rp-section-title">Año @i</div>
 
-        <table style="border-collapse:collapse;position:relative;left:3%;width:95%" cellspacing="0">
+        <table class="rp-table">
+            <thead>
             <tr>
-                <td><p class="s2">Plantel</p></td>
-                <td><p class="s2">Vacas PR</p></td>
-                <td><p class="s2">Vaq. PR C/S</p></td>
-                <td><p class="s2">Vaq. PR S/S</p></td>
-                <td><p class="s2">Vacas</p></td>
-                <td><p class="s2">Vaq. VIP C/S o preñadas</p></td>
-                <td><p class="s2">Vaq. VIP S/S</p></td>
-                <td><p class="s2">Socio</p></td>
-                <td><p class="s2">Estado</p></td>
+                <th>Plantel</th>
+                <th>Vacas PR</th>
+                <th>Vaq. PR C/S</th>
+                <th>Vaq. PR S/S</th>
+                <th>Vacas</th>
+                <th>Vaq. VIP C/S o preñadas</th>
+                <th>Vaq. VIP S/S</th>
+                <th>Socio</th>
+                <th>Estado</th>
             </tr>
-
+            </thead>
+            <tbody>
             @if (datosAnio.Any())
             {
                 @foreach (var plan in datosAnio)
                 {
                     <tr>
-                        <td><p class="s2">@plan.Placod</p></td>
-                        <td><p class="s2">@plan.Varede</p></td>
-                        <td><p class="s2">@plan.Vqcsrd</p></td>
-                        <td><p class="s2">@plan.Vqssrd</p></td>
-                        <td><p class="s2">@plan.Varepr</p></td>
-                        <td><p class="s2">@plan.Vqcsrp</p></td>
-                        <td><p class="s2">@plan.Vqssrp</p></td>
-                        <td><p class="s2">@plan.Socio?.Nombre</p></td>
+                        <td>@plan.Placod</td>
+                        <td>@plan.Varede</td>
+                        <td>@plan.Vqcsrd</td>
+                        <td>@plan.Vqssrd</td>
+                        <td>@plan.Varepr</td>
+                        <td>@plan.Vqcsrp</td>
+                        <td>@plan.Vqssrp</td>
+                        <td>@plan.Socio?.Nombre</td>
                         <td>
                             @if (!string.IsNullOrEmpty(plan.Estado) && plan.Estado == "S")
                             {
-                                <p class="s2" style="color:green">Activo</p>
+                                <span class="rp-estado-activo">Activo</span>
                             }
                             else
                             {
-                                <p class="s2" style="color:red">Inactivo</p>
+                                <span class="rp-estado-inactivo">Inactivo</span>
                             }
                         </td>
                     </tr>
@@ -153,86 +143,88 @@
             else
             {
                 <tr>
-                    <td colspan="9"><p class="s2">No hay datos para este año.</p></td>
+                    <td colspan="9">No hay datos para este año.</td>
                 </tr>
             }
-
+            </tbody>
+            <tfoot>
             <tr>
-                <td colspan="9"><p class="s2">TOTAL del año @i</p></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td><p class="s2">@datosAnio.Sum(x => x.Varede ?? 0)</p></td>
-                <td><p class="s2">@datosAnio.Sum(x => x.Vqcsrd ?? 0)</p></td>
-                <td><p class="s2">@datosAnio.Sum(x => x.Vqssrd ?? 0)</p></td>
-                <td><p class="s2">@datosAnio.Sum(x => x.Varepr ?? 0)</p></td>
-                <td><p class="s2">@datosAnio.Sum(x => x.Vqcsrp ?? 0)</p></td>
-                <td><p class="s2">@datosAnio.Sum(x => x.Vqssrp ?? 0)</p></td>
+                <td>TOTAL del año @i</td>
+                <td>@datosAnio.Sum(x => x.Varede ?? 0)</td>
+                <td>@datosAnio.Sum(x => x.Vqcsrd ?? 0)</td>
+                <td>@datosAnio.Sum(x => x.Vqssrd ?? 0)</td>
+                <td>@datosAnio.Sum(x => x.Varepr ?? 0)</td>
+                <td>@datosAnio.Sum(x => x.Vqcsrp ?? 0)</td>
+                <td>@datosAnio.Sum(x => x.Vqssrp ?? 0)</td>
                 <td></td>
                 <td></td>
             </tr>
+            </tfoot>
         </table>
     }
 
     @* Separate section for planteles without Anioex *@
     @if (plantelesSinAnio.Any())
     {
-        <br />
-        <RadzenText TextStyle="Radzen.Blazor.TextStyle.H4">Planteles sin año</RadzenText>
-        <table style="border-collapse:collapse;position:relative;left:3%;width:95%" cellspacing="0">
+        <div class="rp-section-title">Planteles sin año</div>
+        <table class="rp-table">
+            <thead>
             <tr>
-                <td><p class="s2">Plantel</p></td>
-                <td><p class="s2">Vacas PR</p></td>
-                <td><p class="s2">Vaq. PR C/S</p></td>
-                <td><p class="s2">Vaq. PR S/S</p></td>
-                <td><p class="s2">Vacas VIP</p></td>
-                <td><p class="s2">Vaq. VIP C/S</p></td>
-                <td><p class="s2">Vaq. VIP S/S</p></td>
-                <td><p class="s2">Socio</p></td>
-                <td><p class="s2">Estado</p></td>
+                <th>Plantel</th>
+                <th>Vacas PR</th>
+                <th>Vaq. PR C/S</th>
+                <th>Vaq. PR S/S</th>
+                <th>Vacas VIP</th>
+                <th>Vaq. VIP C/S</th>
+                <th>Vaq. VIP S/S</th>
+                <th>Socio</th>
+                <th>Estado</th>
             </tr>
-
+            </thead>
+            <tbody>
             @foreach (var plan in plantelesSinAnio)
             {
                 <tr>
-                    <td><p class="s2">@plan.Placod</p></td>
-                    <td><p class="s2">@plan.Varede</p></td>
-                    <td><p class="s2">@plan.Vqcsrd</p></td>
-                    <td><p class="s2">@plan.Vqssrd</p></td>
-                    <td><p class="s2">@plan.Varepr</p></td>
-                    <td><p class="s2">@plan.Vqcsrp</p></td>
-                    <td><p class="s2">@plan.Vqssrp</p></td>
-                    <td><p class="s2">@plan.Socio?.Nombre</p></td>
+                    <td>@plan.Placod</td>
+                    <td>@plan.Varede</td>
+                    <td>@plan.Vqcsrd</td>
+                    <td>@plan.Vqssrd</td>
+                    <td>@plan.Varepr</td>
+                    <td>@plan.Vqcsrp</td>
+                    <td>@plan.Vqssrp</td>
+                    <td>@plan.Socio?.Nombre</td>
                     <td>
                         @if (!string.IsNullOrEmpty(plan.Estado) && plan.Estado == "S")
                         {
-                            <p class="s2" style="color:green">Activo</p>
+                            <span class="rp-estado-activo">Activo</span>
                         }
                         else
                         {
-                            <p class="s2" style="color:red">Inactivo</p>
+                            <span class="rp-estado-inactivo">Inactivo</span>
                         }
                     </td>
                 </tr>
             }
-
+            </tbody>
+            <tfoot>
             <tr>
-                <td colspan="9"><p class="s2">TOTAL (Sin año)</p></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td><p class="s2">@plantelesSinAnio.Sum(x => x.Varede ?? 0)</p></td>
-                <td><p class="s2">@plantelesSinAnio.Sum(x => x.Vqcsrd ?? 0)</p></td>
-                <td><p class="s2">@plantelesSinAnio.Sum(x => x.Vqssrd ?? 0)</p></td>
-                <td><p class="s2">@plantelesSinAnio.Sum(x => x.Varepr ?? 0)</p></td>
-                <td><p class="s2">@plantelesSinAnio.Sum(x => x.Vqcsrp ?? 0)</p></td>
-                <td><p class="s2">@plantelesSinAnio.Sum(x => x.Vqssrp ?? 0)</p></td>
+                <td>TOTAL (Sin año)</td>
+                <td>@plantelesSinAnio.Sum(x => x.Varede ?? 0)</td>
+                <td>@plantelesSinAnio.Sum(x => x.Vqcsrd ?? 0)</td>
+                <td>@plantelesSinAnio.Sum(x => x.Vqssrd ?? 0)</td>
+                <td>@plantelesSinAnio.Sum(x => x.Varepr ?? 0)</td>
+                <td>@plantelesSinAnio.Sum(x => x.Vqcsrp ?? 0)</td>
+                <td>@plantelesSinAnio.Sum(x => x.Vqssrp ?? 0)</td>
                 <td></td>
                 <td></td>
             </tr>
+            </tfoot>
         </table>
     }
+    </div>
 }
+
+</div>
 
 @code {
     public DateTime? fechaInicial { get; set; } = new DateTime(2020, 1, 1);

@@ -813,7 +813,10 @@ else
                 var res = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, filtro);
                 oResin1 = res.List.FirstOrDefault() ?? new Resin1DTO();
 
-                var socioFiltro = $"(Scod == null ? \"\" : Scod).ToLower().Contains(\"{EscapeForFilter(oResin1.Scod)}\".ToLower())";
+                // Igualdad exacta (no Contains): con Contains + limite 1, si el codigo de socio buscado
+                // es subcadena de otro (ej. "5" dentro de "15"), el registro devuelto podia ser el de
+                // OTRO socio y quedaba descartado por el filtro de abajo, mostrando el socio vacio.
+                var socioFiltro = $"(Scod == null ? \"\" : Scod).Trim().ToUpper() == \"{EscapeForFilter(oResin1.Scod).Trim().ToUpper()}\"";
                 var rt = await _socioServicio.LimitadosFiltrados(0, 1, socioFiltro);
                 socioSeleccionado = rt.List.FirstOrDefault(x => x.Scod == oResin1.Scod) ?? new SocioDTO();
 
@@ -1249,12 +1252,15 @@ else
         loadingProms = true; await InvokeAsync(StateHasChanged);
         try
         {
-            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+            string filtro = $"(Nrores == null ? \"\" : Nrores).Trim().ToUpper() == \"{EscapeForFilter(nrores).Trim().ToUpper()}\"";
             var rtt = await _resin4Servicio.LimitadosFiltrados(0, 2, filtro);
-            if (rtt.List.Count > 0)
+            // Igualdad exacta (no Contains): evita traer promedios de OTRO reporte de inspeccion
+            // cuyo Nrores sea, por ejemplo, "15" siendo que se busca "1".
+            var rttList = rtt.List.Where(x => string.Equals((x.Nrores ?? "").Trim(), nrores.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+            if (rttList.Count > 0)
             {
-                promediohembra = rtt.List.FirstOrDefault(x => x.Sexo == "H") ?? new();
-                promediomacho = rtt.List.FirstOrDefault(x => x.Sexo == "M") ?? new();
+                promediohembra = rttList.FirstOrDefault(x => x.Sexo == "H") ?? new();
+                promediomacho = rttList.FirstOrDefault(x => x.Sexo == "M") ?? new();
             }
             else { promediohembra = new(); promediomacho = new(); }
         }
@@ -1269,9 +1275,10 @@ else
         loadingRech = true; await InvokeAsync(StateHasChanged);
         try
         {
-            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+            string filtro = $"(Nrores == null ? \"\" : Nrores).Trim().ToUpper() == \"{EscapeForFilter(nrores).Trim().ToUpper()}\"";
             var res = await _resin8Servicio.LimitadosFiltrados(0, 0, filtro);
-            rechazos = res.List;
+            // Igualdad exacta (no Contains): evita mezclar rechazos de OTRO reporte de inspeccion.
+            rechazos = res.List.Where(x => string.Equals((x.Nrores ?? "").Trim(), nrores.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
         }
         finally
         {
@@ -1286,9 +1293,10 @@ else
 
         try
         {
-            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+            string filtro = $"(Nrores == null ? \"\" : Nrores).Trim().ToUpper() == \"{EscapeForFilter(nrores).Trim().ToUpper()}\"";
             var respuesta = await _resin3Servicio.LimitadosFiltrados(0, 0, filtro);
-            mtos = respuesta.List;
+            // Igualdad exacta (no Contains): evita mezclar movimientos de OTRO reporte de inspeccion.
+            mtos = respuesta.List.Where(x => string.Equals((x.Nrores ?? "").Trim(), nrores.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
             salidasFinal = new();
             entradasFinal = new();
             foreach (var mov in mtos)
@@ -1329,9 +1337,10 @@ else
         loadingHemyma = true; await InvokeAsync(StateHasChanged);
         try
         {
-            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+            string filtro = $"(Nrores == null ? \"\" : Nrores).Trim().ToUpper() == \"{EscapeForFilter(nrores).Trim().ToUpper()}\"";
             var rta = await _resin6Servicio.LimitadosFiltrados(0, 1, filtro);
-            hemyma = rta.List.FirstOrDefault() ?? new();
+            // Igualdad exacta (no Contains): evita mostrar hembras/machos de OTRO reporte de inspeccion.
+            hemyma = rta.List.FirstOrDefault(x => string.Equals((x.Nrores ?? "").Trim(), nrores.Trim(), StringComparison.OrdinalIgnoreCase)) ?? new();
         }
         finally
         {
@@ -1342,10 +1351,11 @@ else
     {
         try
         {
-            string filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{nrores}\".ToLower())";
+            string filtro = $"(Nrores == null ? \"\" : Nrores).Trim().ToUpper() == \"{EscapeForFilter(nrores).Trim().ToUpper()}\"";
             var rt = await _resin2Servicio.LimitadosFiltrados(0, 1, filtro);
 
-            var hist = rt.List.FirstOrDefault();
+            // Igualdad exacta (no Contains): evita heredar el estado historico de OTRO reporte de inspeccion.
+            var hist = rt.List.FirstOrDefault(x => string.Equals((x.Nrores ?? "").Trim(), nrores.Trim(), StringComparison.OrdinalIgnoreCase));
             if (hist != null)
             {
                 estadoAnterior = hist;

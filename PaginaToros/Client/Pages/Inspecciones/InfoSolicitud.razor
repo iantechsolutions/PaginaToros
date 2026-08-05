@@ -343,7 +343,10 @@ else
                 var auxs = await _solici1AuxServicio.GetBySolId(id);
                 ListaSoliAux = auxs.List;
 
-                filtro = $"(Nrores == null ? \"\" : Nrores).ToLower().Contains(\"{oSolicitud.Nrosol}\".ToLower())";
+                // Igualdad exacta (no Contains): evita asignar el inspector de OTRO reporte de inspeccion
+                // cuyo Nrores sea, por ejemplo, "15" siendo que se busca "1".
+                var nrosolEscapado = (oSolicitud.Nrosol ?? string.Empty).Trim().ToUpper().Replace("\"", "\\\"");
+                filtro = $"(Nrores == null ? \"\" : Nrores).Trim().ToUpper() == \"{nrosolEscapado}\"";
                 var rt = await _resin1Servicio.LimitadosFiltrados(0, 1, filtro);
                 Console.WriteLine("ver");
                 var socioId = oSolicitud.Establecimiento.Socio.Id;

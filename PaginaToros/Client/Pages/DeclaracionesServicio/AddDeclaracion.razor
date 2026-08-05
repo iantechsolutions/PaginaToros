@@ -1746,8 +1746,10 @@ else
         {
             var containsFilter = BuildCertificadoFilter(codigo, useContains: true);
             var contains = await _certifsemanServicio.LimitadosFiltradosNoInclude(0, 0, containsFilter);
+            // El filtro Contains solo se usa para tolerar variantes de mayus/espacios; nunca debe
+            // devolver certificados de OTRO socio, asi que se vuelve a exigir igualdad exacta aca.
             var containsItems = (contains.List?.ToList() ?? new List<CertifsemanDTO>())
-                .Where(x => x.FchUsu.HasValue)
+                .Where(x => x.FchUsu.HasValue && T(x.Nrocri).Equals(codigo, StringComparison.OrdinalIgnoreCase))
                 .ToList();
             Log($"LoadCertificadosForSocioAsync | fallback contains Nrocri={Q(codigo)} | resultadoContains={containsItems.Count}");
             merged.AddRange(containsItems);

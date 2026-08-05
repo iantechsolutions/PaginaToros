@@ -11,78 +11,26 @@
 @using OfficeOpenXml.Style
 @using System.Drawing
 
-<style>
-    @@page {
-        margin: 0;
-    }
+<div class="rp-page">
 
-    @@media-print {
-        .row {
-            break-inside: avoid
-        }
-
-        .no-print {
-            display: none;
-        }
-    }
-
-    button[disabled] {
-        opacity: .6;
-        cursor: not-allowed !important;
-        pointer-events: none;
-    }
-
-    .btn-busy {
-        animation: pulse 0.9s ease-in-out infinite;
-        transform-origin: center;
-    }
-
-    @@keyframes pulse {
-        0% {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(0.985);
-        }
-
-        100% {
-            transform: scale(1);
-        }
-    }
-
-    .col-sm {
-        display: block;
-        min-height: 100px;
-    }
-
-    .rz-dropdown-panel {
-        max-height: 320px !important;
-        overflow: auto !important;
-    }
-</style>
-
-<h2 class="font-bold text-2xl mb-4 text-center">
+<h2 class="font-bold text-2xl mb-4 text-center rp-title">
     Resumen General de Inspecciones
 </h2>
 
-<div class="row no-print">
-    <div class="col-sm">
-        <label>Seleccionar Fecha Inicial</label>
-        <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaInicial Disabled="terminado && confirmado" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+<div class="rp-filter-card no-print">
+    <div>
+        <div class="rp-field-label"><FeatherCalendar Size="14" Color="#475467" /> Fecha inicial</div>
+        <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaInicial Disabled="terminado && confirmado" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Style="width:100%" />
     </div>
-    <div class="col-sm">
-        <label>Seleccionar Fecha Final</label>
-        <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaFinal Disabled="terminado && confirmado" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Class="w-75" />
+    <div>
+        <div class="rp-field-label"><FeatherCalendar Size="14" Color="#475467" /> Fecha final</div>
+        <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaFinal Disabled="terminado && confirmado" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Style="width:100%" />
     </div>
-    <div class="col-sm"></div>
-</div>
 
-<div class="row no-print">
-    <div class="row no-print">
+    <div class="rp-filter-row-full">
         <!-- Inspectores -->
-        <div class="col-sm">
-            <label>Selecciona Inspectores</label>
+        <div>
+            <div class="rp-field-label"><FeatherUsers Size="14" Color="#475467" /> Inspectores</div>
             <RadzenDropDown Data="@inspectOpts"
                             Multiple="true"
                             AllowFiltering="true"
@@ -93,15 +41,15 @@
                             TValue="IEnumerable<string>"
                             @bind-Value="inspectoresSeleccionadosCods"
                             Placeholder="Busque por nombre" />
-            <div class="flex gap-2 mt-1">
-                <button class="no-print" @onclick="SeleccionarTodosInspectores"><FeatherCheck Color="green" Width="18" Height="18" /></button>
-                <button class="no-print" @onclick="DeseleccionarTodosInspectores"><FeatherX Color="red" Width="18" Height="18" /></button>
+            <div class="rp-field-group">
+                <button class="rp-chip-btn rp-chip-ok" @onclick="SeleccionarTodosInspectores"><FeatherCheck Size="14" /> Todos</button>
+                <button class="rp-chip-btn rp-chip-clear" @onclick="DeseleccionarTodosInspectores"><FeatherX Size="14" /> Ninguno</button>
             </div>
         </div>
 
         <!-- Provincias -->
-        <div class="col-sm">
-            <label>Selecciona Provincias</label>
+        <div>
+            <div class="rp-field-label"><FeatherMapPin Size="14" Color="#475467" /> Provincias</div>
             <RadzenDropDown Data="@provinciasOpts"
                             Multiple="true"
                             AllowFiltering="true"
@@ -112,18 +60,22 @@
                             TValue="IEnumerable<string>"
                             @bind-Value="provinciasSeleccionadas"
                             Placeholder="Busque por nombre" />
-            <div class="flex gap-2 mt-1">
-                <button class="no-print" @onclick="SeleccionarTodasProvincias"><FeatherCheck Color="green" Width="18" Height="18" /></button>
-                <button class="no-print" @onclick="DeseleccionarTodasProvincias"><FeatherX Color="red" Width="18" Height="18" /></button>
+            <div class="rp-field-group">
+                <button class="rp-chip-btn rp-chip-ok" @onclick="SeleccionarTodasProvincias"><FeatherCheck Size="14" /> Todas</button>
+                <button class="rp-chip-btn rp-chip-clear" @onclick="DeseleccionarTodasProvincias"><FeatherX Size="14" /> Ninguna</button>
             </div>
         </div>
     </div>
 </div>
 
-<br class="no-print" />
-<div class="flex items-center gap-2 ml-2">
-    <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 @(loading ? "btn-busy" : "")"
-            style="position:relative;width:20%; margin-bottom:5px;"
+<div class="rp-actions no-print">
+    <button class="rp-btn rp-btn-ghost"
+            @onclick="ReiniciarFiltros"
+            disabled="@loading">
+        <span><FeatherRotateCcw Color="currentColor" Size="16" /> Reiniciar filtros</span>
+    </button>
+
+    <button class="rp-btn rp-btn-primary @(loading ? "busy" : "")"
             @onclick="OnGenerarClick"
             disabled="@(!terminado || confirmado || loading)">
         @if (loading)
@@ -132,12 +84,11 @@
         }
         else
         {
-            <span>Generar Reporte</span>
+            <span>Generar reporte</span>
         }
     </button>
 
-    <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 @(download ? "btn-busy" : "")"
-            style="position:relative;width:20%; margin-bottom:5px;"
+    <button class="rp-btn rp-btn-secondary @(download ? "busy" : "")"
             @onclick="OnDescargarClick"
             disabled="@(download || !(confirmado && (byProvince.Any() || byInspector.Any() || byMonth.Any())))">
         @if (download)
@@ -146,142 +97,124 @@
         }
         else
         {
-            <span>Exportar Excel</span>
+            <span><FeatherDownload Color="currentColor" Size="16" /> Exportar Excel</span>
         }
-    </button>
-
-    <button class="no-print font-bold px-4 py-3 rounded-2xl bg-gray-100 hover:bg-gray-300 transition ease-in duration-100"
-            style="position:relative;width:20%; margin-bottom:5px;"
-            @onclick="ReiniciarFiltros"
-            disabled="@loading">
-        Reiniciar Filtros
     </button>
 </div>
 
-<br class="no-print" />
-<br class="no-print" />
-
 @if (confirmado)
 {
-    <div class="mt-4">
-        <h3 class="font-bold text-xl mb-3">
-            Resumen General — @FechaInicial.ToString("dd/MM/yyyy") a @FechaFinal.ToString("dd/MM/yyyy")
+    <div class="rp-results">
+        <h3 class="rp-results-title text-base mb-3">
+            Resumen general — @FechaInicial.ToString("dd/MM/yyyy") a @FechaFinal.ToString("dd/MM/yyyy")
             (@listaFiltrada.Count inspecciones)
         </h3>
 
         <!-- HEMBRAS: PR y VIP en una sola fila -->
-        <h5 class="font-semibold text-sm mt-2 mb-1">Hembras</h5>
-        <div class="grid" style="grid-template-columns: repeat(2,minmax(0,1fr)); gap:10px;">
+        <div class="rp-section-title">Hembras</div>
+        <div class="rp-table-grid">
             <!-- PR -->
-            <table class="table-auto w-full text-xs border mb-2">
+            <table class="rp-table">
+                <caption>PR</caption>
                 <thead>
-                    <tr class="bg-gray-100">
-                        <th class="border px-2 py-1" colspan="3">PR</th>
-                    </tr>
-                    <tr class="bg-gray-50">
-                        <th class="border px-2 py-1">Presentadas</th>
-                        <th class="border px-2 py-1">Marcadas</th>
-                        <th class="border px-2 py-1">Rechazadas</th>
+                    <tr>
+                        <th>Presentadas</th>
+                        <th>Marcadas</th>
+                        <th>Rechazadas</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="border px-2 py-1">@totalesGeneral.prPres</td>
-                        <td class="border px-2 py-1">@totalesGeneral.prMarc</td>
-                        <td class="border px-2 py-1">@totalesGeneral.prRech</td>
+                        <td>@totalesGeneral.prPres</td>
+                        <td>@totalesGeneral.prMarc</td>
+                        <td>@totalesGeneral.prRech</td>
                     </tr>
                 </tbody>
             </table>
 
             <!-- VIP -->
-            <table class="table-auto w-full text-xs border mb-2">
+            <table class="rp-table">
+                <caption>VIP</caption>
                 <thead>
-                    <tr class="bg-gray-100">
-                        <th class="border px-2 py-1" colspan="3">VIP</th>
-                    </tr>
-                    <tr class="bg-gray-50">
-                        <th class="border px-2 py-1">Presentadas</th>
-                        <th class="border px-2 py-1">Marcadas</th>
-                        <th class="border px-2 py-1">Rechazadas</th>
+                    <tr>
+                        <th>Presentadas</th>
+                        <th>Marcadas</th>
+                        <th>Rechazadas</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="border px-2 py-1">@totalesGeneral.vipPres</td>
-                        <td class="border px-2 py-1">@totalesGeneral.vipMarc</td>
-                        <td class="border px-2 py-1">@totalesGeneral.vipRech</td>
+                        <td>@totalesGeneral.vipPres</td>
+                        <td>@totalesGeneral.vipMarc</td>
+                        <td>@totalesGeneral.vipRech</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
         <!-- MACHOS: SCP y CP en una sola fila -->
-        <h5 class="font-semibold text-sm mt-3 mb-1">Machos</h5>
-        <div class="grid" style="grid-template-columns: repeat(2,minmax(0,1fr)); gap:10px;">
+        <div class="rp-section-title">Machos</div>
+        <div class="rp-table-grid">
             <!-- SCP -->
-            <table class="table-auto w-full text-xs border mb-2">
+            <table class="rp-table">
+                <caption>SCP (Sin Control de Producción)</caption>
                 <thead>
-                    <tr class="bg-gray-100">
-                        <th class="border px-2 py-1" colspan="3">SCP (Sin Control de Producción)</th>
-                    </tr>
-                    <tr class="bg-gray-50">
-                        <th class="border px-2 py-1">Presentados</th>
-                        <th class="border px-2 py-1">Marcados</th>
-                        <th class="border px-2 py-1">Rechazados</th>
+                    <tr>
+                        <th>Presentados</th>
+                        <th>Marcados</th>
+                        <th>Rechazados</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="border px-2 py-1">@totalesGeneral.scpPres</td>
-                        <td class="border px-2 py-1">@totalesGeneral.scpMarc</td>
-                        <td class="border px-2 py-1">@totalesGeneral.scpRech</td>
+                        <td>@totalesGeneral.scpPres</td>
+                        <td>@totalesGeneral.scpMarc</td>
+                        <td>@totalesGeneral.scpRech</td>
                     </tr>
                 </tbody>
             </table>
 
             <!-- CP con S/ -->
-            <table class="table-auto w-full text-xs border mb-2">
+            <table class="rp-table">
+                <caption>CP (Con Control de Producción)</caption>
                 <thead>
-                    <tr class="bg-gray-100">
-                        <th class="border px-2 py-1" colspan="4">CP (Con Control de Producción)</th>
-                    </tr>
-                    <tr class="bg-gray-50">
-                        <th class="border px-2 py-1">Presentados</th>
-                        <th class="border px-2 py-1">Marcados</th>
-                        <th class="border px-2 py-1">Rechazados</th>
-                        <th class="border px-2 py-1">S/</th>
+                    <tr>
+                        <th>Presentados</th>
+                        <th>Marcados</th>
+                        <th>Rechazados</th>
+                        <th>S/</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="border px-2 py-1">@totalesGeneral.cpPres</td>
-                        <td class="border px-2 py-1">@totalesGeneral.cpMarc</td>
-                        <td class="border px-2 py-1">@totalesGeneral.cpRech</td>
-                        <td class="border px-2 py-1">@totalesGeneral.cpSBarra</td>
+                        <td>@totalesGeneral.cpPres</td>
+                        <td>@totalesGeneral.cpMarc</td>
+                        <td>@totalesGeneral.cpRech</td>
+                        <td>@totalesGeneral.cpSBarra</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
         <!-- ===================== POR PROVINCIA ===================== -->
-        <h5 class="font-semibold text-sm mt-4 mb-1">Por Provincia</h5>
-        <table class="table-auto w-full text-xs border mb-2">
+        <div class="rp-section-title">Por provincia</div>
+        <table class="rp-table">
             <thead>
-                <tr class="bg-gray-100">
-                    <th class="border px-2 py-1">Provincia</th>
-                    <th class="border px-2 py-1">PR Pres</th>
-                    <th class="border px-2 py-1">PR Marc</th>
-                    <th class="border px-2 py-1">PR Rech</th>
-                    <th class="border px-2 py-1">VIP Pres</th>
-                    <th class="border px-2 py-1">VIP Marc</th>
-                    <th class="border px-2 py-1">VIP Rech</th>
-                    <th class="border px-2 py-1">SCP Pres</th>
-                    <th class="border px-2 py-1">SCP Marc</th>
-                    <th class="border px-2 py-1">SCP Rech</th>
-                    <th class="border px-2 py-1">CP Pres</th>
-                    <th class="border px-2 py-1">CP Marc</th>
-                    <th class="border px-2 py-1">CP Rech</th>
-                    <th class="border px-2 py-1">CP S/</th>
+                <tr>
+                    <th>Provincia</th>
+                    <th>PR Pres</th>
+                    <th>PR Marc</th>
+                    <th>PR Rech</th>
+                    <th>VIP Pres</th>
+                    <th>VIP Marc</th>
+                    <th>VIP Rech</th>
+                    <th>SCP Pres</th>
+                    <th>SCP Marc</th>
+                    <th>SCP Rech</th>
+                    <th>CP Pres</th>
+                    <th>CP Marc</th>
+                    <th>CP Rech</th>
+                    <th>CP S/</th>
                 </tr>
             </thead>
             <tbody>
@@ -292,47 +225,47 @@
                     var code = kv.Key;
                     var c = kv.Value;
                     <tr>
-                        <td class="border px-2 py-1">@SafeProvName(code)</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.prPres</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.prMarc</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.prRech</td>
+                        <td>@SafeProvName(code)</td>
+                        <td>@c.prPres</td>
+                        <td>@c.prMarc</td>
+                        <td>@c.prRech</td>
 
-                        <td class="border px-2 py-1" style="text-align:right">@c.vipPres</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.vipMarc</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.vipRech</td>
+                        <td>@c.vipPres</td>
+                        <td>@c.vipMarc</td>
+                        <td>@c.vipRech</td>
 
-                        <td class="border px-2 py-1" style="text-align:right">@c.scpPres</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.scpMarc</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.scpRech</td>
+                        <td>@c.scpPres</td>
+                        <td>@c.scpMarc</td>
+                        <td>@c.scpRech</td>
 
-                        <td class="border px-2 py-1" style="text-align:right">@c.cpPres</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.cpMarc</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.cpRech</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.cpSBarra</td>
+                        <td>@c.cpPres</td>
+                        <td>@c.cpMarc</td>
+                        <td>@c.cpRech</td>
+                        <td>@c.cpSBarra</td>
                     </tr>
                 }
             </tbody>
         </table>
 
         <!-- ===================== POR INSPECTOR ===================== -->
-        <h5 class="font-semibold text-sm mt-4 mb-1">Por Inspector</h5>
-        <table class="table-auto w-full text-xs border mb-2">
+        <div class="rp-section-title">Por inspector</div>
+        <table class="rp-table">
             <thead>
-                <tr class="bg-gray-100">
-                    <th class="border px-2 py-1">Inspector</th>
-                    <th class="border px-2 py-1">PR Pres</th>
-                    <th class="border px-2 py-1">PR Marc</th>
-                    <th class="border px-2 py-1">PR Rech</th>
-                    <th class="border px-2 py-1">VIP Pres</th>
-                    <th class="border px-2 py-1">VIP Marc</th>
-                    <th class="border px-2 py-1">VIP Rech</th>
-                    <th class="border px-2 py-1">SCP Pres</th>
-                    <th class="border px-2 py-1">SCP Marc</th>
-                    <th class="border px-2 py-1">SCP Rech</th>
-                    <th class="border px-2 py-1">CP Pres</th>
-                    <th class="border px-2 py-1">CP Marc</th>
-                    <th class="border px-2 py-1">CP Rech</th>
-                    <th class="border px-2 py-1">CP S/</th>
+                <tr>
+                    <th>Inspector</th>
+                    <th>PR Pres</th>
+                    <th>PR Marc</th>
+                    <th>PR Rech</th>
+                    <th>VIP Pres</th>
+                    <th>VIP Marc</th>
+                    <th>VIP Rech</th>
+                    <th>SCP Pres</th>
+                    <th>SCP Marc</th>
+                    <th>SCP Rech</th>
+                    <th>CP Pres</th>
+                    <th>CP Marc</th>
+                    <th>CP Rech</th>
+                    <th>CP S/</th>
                 </tr>
             </thead>
             <tbody>
@@ -343,23 +276,23 @@
                     var code = kv.Key;
                     var c = kv.Value;
                     <tr>
-                        <td class="border px-2 py-1">@SafeInspName(code)</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.prPres</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.prMarc</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.prRech</td>
+                        <td>@SafeInspName(code)</td>
+                        <td>@c.prPres</td>
+                        <td>@c.prMarc</td>
+                        <td>@c.prRech</td>
 
-                        <td class="border px-2 py-1" style="text-align:right">@c.vipPres</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.vipMarc</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.vipRech</td>
+                        <td>@c.vipPres</td>
+                        <td>@c.vipMarc</td>
+                        <td>@c.vipRech</td>
 
-                        <td class="border px-2 py-1" style="text-align:right">@c.scpPres</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.scpMarc</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.scpRech</td>
+                        <td>@c.scpPres</td>
+                        <td>@c.scpMarc</td>
+                        <td>@c.scpRech</td>
 
-                        <td class="border px-2 py-1" style="text-align:right">@c.cpPres</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.cpMarc</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.cpRech</td>
-                        <td class="border px-2 py-1" style="text-align:right">@c.cpSBarra</td>
+                        <td>@c.cpPres</td>
+                        <td>@c.cpMarc</td>
+                        <td>@c.cpRech</td>
+                        <td>@c.cpSBarra</td>
                     </tr>
                 }
             </tbody>
@@ -376,59 +309,55 @@
             var nombreInsp = SafeInspName(inspCode);
             var c = byInspector.TryGetValue(inspCode, out var vv) ? vv : new Counters();
 
-            <h5 class="font-semibold text-sm mt-4 mb-1">Resumen del Inspector: @nombreInsp</h5>
+            <div class="rp-section-title">Resumen del inspector: @nombreInsp</div>
 
-            <div class="grid" style="grid-template-columns: repeat(2,minmax(0,1fr)); gap:10px;">
+            <div class="rp-table-grid">
                 <!-- General del inspector -->
-                <table class="table-auto w-full text-xs border mb-2">
+                <table class="rp-table">
+                    <caption>General</caption>
                     <thead>
-                        <tr class="bg-gray-100">
-                            <th class="border px-2 py-1" colspan="7">General</th>
-                        </tr>
-                        <tr class="bg-gray-50">
-                            <th class="border px-2 py-1">PR Pres</th>
-                            <th class="border px-2 py-1">PR Marc</th>
-                            <th class="border px-2 py-1">PR Rech</th>
-                            <th class="border px-2 py-1">VIP Pres</th>
-                            <th class="border px-2 py-1">VIP Marc</th>
-                            <th class="border px-2 py-1">VIP Rech</th>
-                            <th class="border px-2 py-1">CP S/</th>
+                        <tr>
+                            <th>PR Pres</th>
+                            <th>PR Marc</th>
+                            <th>PR Rech</th>
+                            <th>VIP Pres</th>
+                            <th>VIP Marc</th>
+                            <th>VIP Rech</th>
+                            <th>CP S/</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="border px-2 py-1" style="text-align:right">@c.prPres</td>
-                            <td class="border px-2 py-1" style="text-align:right">@c.prMarc</td>
-                            <td class="border px-2 py-1" style="text-align:right">@c.prRech</td>
-                            <td class="border px-2 py-1" style="text-align:right">@c.vipPres</td>
-                            <td class="border px-2 py-1" style="text-align:right">@c.vipMarc</td>
-                            <td class="border px-2 py-1" style="text-align:right">@c.vipRech</td>
-                            <td class="border px-2 py-1" style="text-align:right">@c.cpSBarra</td>
+                            <td>@c.prPres</td>
+                            <td>@c.prMarc</td>
+                            <td>@c.prRech</td>
+                            <td>@c.vipPres</td>
+                            <td>@c.vipMarc</td>
+                            <td>@c.vipRech</td>
+                            <td>@c.cpSBarra</td>
                         </tr>
                     </tbody>
                 </table>
 
                 <!-- Por provincia del inspector -->
-                <table class="table-auto w-full text-xs border mb-2">
+                <table class="rp-table">
+                    <caption>Por provincia (del inspector)</caption>
                     <thead>
-                        <tr class="bg-gray-100">
-                            <th class="border px-2 py-1" colspan="14">Por Provincia (del inspector)</th>
-                        </tr>
-                        <tr class="bg-gray-50">
-                            <th class="border px-2 py-1">Provincia</th>
-                            <th class="border px-2 py-1">PR Pres</th>
-                            <th class="border px-2 py-1">PR Marc</th>
-                            <th class="border px-2 py-1">PR Rech</th>
-                            <th class="border px-2 py-1">VIP Pres</th>
-                            <th class="border px-2 py-1">VIP Marc</th>
-                            <th class="border px-2 py-1">VIP Rech</th>
-                            <th class="border px-2 py-1">SCP Pres</th>
-                            <th class="border px-2 py-1">SCP Marc</th>
-                            <th class="border px-2 py-1">SCP Rech</th>
-                            <th class="border px-2 py-1">CP Pres</th>
-                            <th class="border px-2 py-1">CP Marc</th>
-                            <th class="border px-2 py-1">CP Rech</th>
-                            <th class="border px-2 py-1">CP S/</th>
+                        <tr>
+                            <th>Provincia</th>
+                            <th>PR Pres</th>
+                            <th>PR Marc</th>
+                            <th>PR Rech</th>
+                            <th>VIP Pres</th>
+                            <th>VIP Marc</th>
+                            <th>VIP Rech</th>
+                            <th>SCP Pres</th>
+                            <th>SCP Marc</th>
+                            <th>SCP Rech</th>
+                            <th>CP Pres</th>
+                            <th>CP Marc</th>
+                            <th>CP Rech</th>
+                            <th>CP S/</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -439,20 +368,20 @@
                        .OrderByDescending(r => r.c.TotalPresentadas))
                         {
                             <tr>
-                                <td class="border px-2 py-1">@SafeProvName(row.prov)</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.prPres</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.prMarc</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.prRech</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.vipPres</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.vipMarc</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.vipRech</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.scpPres</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.scpMarc</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.scpRech</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.cpPres</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.cpMarc</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.cpRech</td>
-                                <td class="border px-2 py-1" style="text-align:right">@row.c.cpSBarra</td>
+                                <td>@SafeProvName(row.prov)</td>
+                                <td>@row.c.prPres</td>
+                                <td>@row.c.prMarc</td>
+                                <td>@row.c.prRech</td>
+                                <td>@row.c.vipPres</td>
+                                <td>@row.c.vipMarc</td>
+                                <td>@row.c.vipRech</td>
+                                <td>@row.c.scpPres</td>
+                                <td>@row.c.scpMarc</td>
+                                <td>@row.c.scpRech</td>
+                                <td>@row.c.cpPres</td>
+                                <td>@row.c.cpMarc</td>
+                                <td>@row.c.cpRech</td>
+                                <td>@row.c.cpSBarra</td>
                             </tr>
                         }
                     </tbody>
@@ -461,6 +390,8 @@
         }
     </div>
 }
+
+</div>
 
 @code {
     /* ======== MODELOS DE OPCIÓN ======== */

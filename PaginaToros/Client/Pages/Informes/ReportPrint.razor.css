@@ -20,8 +20,109 @@
     margin: 0.5rem 0 1.1rem;
 }
 
-.report-toolbar .row {
+.report-search-bar {
+    display: flex;
     align-items: center;
+    gap: 0.75rem;
+    max-width: 720px;
+}
+
+.report-search-field {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+}
+
+.report-search-icon {
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* El componente Blazored.Typeahead ya renderiza su propio contenedor
+   (.blazored-typeahead) con borde, radio y resplandor de foco. En vez de
+   agregarle un segundo "pill" al input interno (lo que generaba dos cajas
+   anidadas), estilamos ese contenedor como el unico pill visible y dejamos
+   el input interno transparente. */
+.report-search-field ::deep .blazored-typeahead {
+    width: 100%;
+    border: 1.5px solid #d0d5dd;
+    border-radius: 999px;
+    background: #fff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.report-search-field ::deep .blazored-typeahead:focus-within {
+    border-color: #6b8f5e;
+    box-shadow: 0 0 0 3px rgba(107, 143, 94, 0.18);
+}
+
+.report-search-field ::deep .blazored-typeahead__controls {
+    padding-left: 2rem;
+}
+
+.report-search-field ::deep .blazored-typeahead__input,
+.report-search-field ::deep .blazored-typeahead__input-mask {
+    padding: 0.6rem 0.5rem;
+    font-size: 0.95rem;
+    background: transparent;
+    border-radius: 999px;
+}
+
+.report-search-field ::deep .blazored-typeahead__input-icon {
+    border-radius: 0 999px 999px 0;
+}
+
+.report-search-field ::deep .blazored-typeahead__results {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 0.35rem;
+}
+
+.report-print-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex: 0 0 auto;
+    padding: 0.6rem 1.1rem;
+    border: 1.5px solid #d0d5dd;
+    border-radius: 999px;
+    background: #f2f4f7;
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.report-print-btn:hover {
+    background: #e4e7ec;
+    border-color: #98a2b3;
+}
+
+.report-print-btn:active {
+    transform: translateY(1px);
+}
+
+@media (max-width: 640px) {
+    .report-search-bar {
+        max-width: 100%;
+    }
+
+    .report-print-btn span {
+        display: none;
+    }
+
+    .report-print-btn {
+        border-radius: 50%;
+        padding: 0.6rem;
+    }
 }
 
 .report-shell {

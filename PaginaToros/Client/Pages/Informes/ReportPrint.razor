@@ -9,32 +9,30 @@
 <div class="report-page">
 <br/>
 <div class="no-print report-toolbar">
-    <br/>
-<div class="row">
-    <div class="col-sm-3"/> 
-    <div class="col-sm-6">
+    <div class="report-search-bar">
+        <div class="report-search-field">
+            <span class="report-search-icon">
+                <FeatherSearch Size="18" Color="#6b7280" />
+            </span>
             <BlazoredTypeahead SearchMethod="BusquedaSocios"
-                               placeholder="Seleccione el socio"
+                               placeholder="Buscar socio por nombre..."
                                EnableDropDown="true"
                                Value="socioSeleccionado"
                                ValueChanged="@(EventCallback.Factory.Create<SocioDTO>(this, OnSocioChanged))"
                                ValueExpression="(() => socioSeleccionado)">
-        <SelectedTemplate Context="eleccion">
-            @eleccion.Nombre
-        </SelectedTemplate>
-        <ResultTemplate Context="eleccion">
-            @eleccion.Nombre
-        </ResultTemplate>
-    </BlazoredTypeahead>
+                <SelectedTemplate Context="eleccion">
+                    @eleccion.Nombre
+                </SelectedTemplate>
+                <ResultTemplate Context="eleccion">
+                    @eleccion.Nombre
+                </ResultTemplate>
+            </BlazoredTypeahead>
+        </div>
+        <button type="button" class="report-print-btn" title="Imprimir reporte" @onclick="() => Print()">
+            <FeatherPrinter Size="18" Color="currentColor"></FeatherPrinter>
+            <span>Imprimir</span>
+        </button>
     </div>
-    <div class="col-sm-2" style="width:10%;position:relative;left:2%">
-        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;width:80%" @onclick="()=>Generate()">Buscar</button>
-    </div>
-    <div class="col-sm-1">
-        <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => Print()"><FeatherPrinter Color="Black"></FeatherPrinter></button>
-    </div>
-</div>
-
 </div>
 @if(socioSeleccionado!=null && terminado && opcion == 1){
     <div class="report-shell">
@@ -229,11 +227,14 @@ else if (seleccion && !terminado)
         return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
-    private Task OnSocioChanged(SocioDTO? socio)
+    private async Task OnSocioChanged(SocioDTO? socio)
     {
         socioSeleccionado = socio;
         LimpiarReporte();
-        return Task.CompletedTask;
+        if (socioSeleccionado != null)
+        {
+            await Generate();
+        }
     }
 
     private void LimpiarReporte()
@@ -254,17 +255,27 @@ else if (seleccion && !terminado)
             }
 
             seleccion = true;
+            var scod = (socioSeleccionado.Scod ?? string.Empty).Trim();
             if (opcion == 1)
             {
-                string filtro = $"(Criador == null ? \"\" : Criador).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
+                // Igualdad exacta (no Contains) para evitar que un codigo de socio que sea
+                // subcadena de otro (ej. "5" dentro de "15") traiga datos de otros socios.
+                string filtro = $"(Criador == null ? \"\" : Criador).Trim().ToUpper() == \"{scod.ToUpper()}\"";
                 var rtaa = await _torosServicio.LimitadosFiltradosNoInclude(0, 0,filtro);
-                toros = rtaa.List.Where(x=>x.CodEstado!="4").ToList();
+                // Filtro defensivo adicional en el cliente: descarta cualquier registro
+                // cuyo codigo de criador no coincida exactamente con el socio elegido.
+                toros = rtaa.List
+                    .Where(x => x.CodEstado!="4" && string.Equals((x.Criador ?? string.Empty).Trim(), scod, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
             }
             else if (opcion == 0)
             {
-                string filtro = $"(Nrocri == null ? \"\" : Nrocri).ToLower().Contains(\"{socioSeleccionado.Scod}\".ToLower())";
+                string filtro = $"(Nrocri == null ? \"\" : Nrocri).Trim().ToUpper() == \"{scod.ToUpper()}\"";
                 var rtaa = await _certifsemanServicio.LimitadosFiltrados(0, 0,filtro);
-                certificados = RemoveDuplicatesByBusinessKey(rtaa.List);
+                var soloDelSocio = rtaa.List
+                    .Where(x => string.Equals((x.Nrocri ?? string.Empty).Trim(), scod, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                certificados = RemoveDuplicatesByBusinessKey(soloDelSocio);
             }
             terminado = true;
         }
