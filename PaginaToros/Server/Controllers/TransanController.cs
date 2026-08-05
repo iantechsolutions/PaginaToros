@@ -14,6 +14,7 @@ using System.Text.Json;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace PaginaToros.Server.Controllers
 {
@@ -824,11 +825,20 @@ namespace PaginaToros.Server.Controllers
 
             if (string.IsNullOrWhiteSpace(transan.NvoPla))
                 errores.Add("Debés seleccionar un plantel de destino.");
-            else if (transan.NvoPla.Length > 20)
-                errores.Add("El plantel de destino supera el largo permitido (máx 20 caracteres).");
+            else if (transan.NvoPla.Length > TransferenciaCampoLimites.PlantelCodigo)
+                errores.Add($"El código del plantel de destino supera el largo permitido (máx {TransferenciaCampoLimites.PlantelCodigo} caracteres).");
 
-            if (!string.IsNullOrWhiteSpace(transan.Plant) && transan.Plant.Length > 20)
-                errores.Add("El plantel de origen supera el largo permitido (máx 20 caracteres).");
+            if (!string.IsNullOrWhiteSpace(transan.Plant) && transan.Plant.Length > TransferenciaCampoLimites.PlantelCodigo)
+                errores.Add($"El código del plantel de origen supera el largo permitido (máx {TransferenciaCampoLimites.PlantelCodigo} caracteres).");
+
+            if (!string.IsNullOrWhiteSpace(transan.Tiphac) && transan.Tiphac.Length > TransferenciaCampoLimites.TipoHacienda)
+                errores.Add($"El tipo de hacienda supera el largo permitido (máx {TransferenciaCampoLimites.TipoHacienda} caracteres).");
+
+            if (!string.IsNullOrWhiteSpace(transan.Vnom) && transan.Vnom.Length > TransferenciaCampoLimites.SocioNombre)
+                errores.Add($"El nombre del socio vendedor supera el largo permitido (máx {TransferenciaCampoLimites.SocioNombre} caracteres).");
+
+            if (!string.IsNullOrWhiteSpace(transan.Cnom) && transan.Cnom.Length > TransferenciaCampoLimites.SocioNombre)
+                errores.Add($"El nombre del socio comprador supera el largo permitido (máx {TransferenciaCampoLimites.SocioNombre} caracteres).");
 
             if (!string.IsNullOrWhiteSpace(transan.Plant) &&
                 !string.IsNullOrWhiteSpace(transan.NvoPla) &&
@@ -941,14 +951,15 @@ namespace PaginaToros.Server.Controllers
                 return "Falta la tabla de cola de mails de transferencias en la base de datos. Ejecutá el script TRANSAN_MAIL_OUTBOX antes de volver a intentar.";
             }
 
-            if (innerMessage.Contains("Data too long for column 'NVO_PLA'", StringComparison.OrdinalIgnoreCase))
+            // "Data too long" siempre significa que el esquema de la base quedó más
+            // angosto que lo que el modelo cree. No inventamos un largo máximo acá:
+            // reportamos la columna real para que el error sea accionable.
+            var columnaDesbordada = TryGetOverflowedColumn(innerMessage);
+            if (columnaDesbordada != null)
             {
-                return "El plantel de destino supera el largo permitido (máx 20 caracteres).";
-            }
-
-            if (innerMessage.Contains("Data too long for column 'PLANT'", StringComparison.OrdinalIgnoreCase))
-            {
-                return "El plantel de origen supera el largo permitido (máx 20 caracteres).";
+                return $"El valor de '{DescribirColumna(columnaDesbordada)}' no entra en la base de datos " +
+                       $"(columna {columnaDesbordada}). El esquema quedó desactualizado: ejecutá el script " +
+                       "de ampliación de columnas de transferencias.";
             }
 
             if (innerMessage.Contains("bucket impactado", StringComparison.OrdinalIgnoreCase))
@@ -965,6 +976,31 @@ namespace PaginaToros.Server.Controllers
 
             return "No se pudo guardar la transferencia por un error de datos. Revisá los campos ingresados.";
         }
+
+        private static readonly Regex DataTooLongRegex = new(
+            @"Data too long for column '(?<col>[^']+)'",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static string? TryGetOverflowedColumn(string message)
+        {
+            var match = DataTooLongRegex.Match(message);
+            return match.Success ? match.Groups["col"].Value : null;
+        }
+
+        private static string DescribirColumna(string columna) => columna.ToUpperInvariant() switch
+        {
+            "PLANT" or "PLANT_ORIGEN_CODIGO" => "plantel de origen",
+            "NVO_PLA" or "PLANT_DESTINO_CODIGO" => "plantel de destino",
+            "TIPHAC" => "tipo de hacienda",
+            "HEMSTA" => "estado de las hembras",
+            "TIPOHEM" => "tipo de hembras",
+            "VNOM" => "socio vendedor",
+            "CNOM" => "socio comprador",
+            "SVEN" => "código del socio vendedor",
+            "SCOM" => "código del socio comprador",
+            "NRO_CERT" => "nro. de certificado",
+            _ => columna
+        };
 
         private TransanTransferAudit BuildTransferAudit(
             TransanDTO transan,

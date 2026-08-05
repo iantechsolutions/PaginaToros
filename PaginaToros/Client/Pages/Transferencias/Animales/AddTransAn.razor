@@ -562,27 +562,37 @@ else
             PlantDestinoId = plantelDestino.Id
         };
 
-        if (Id == 0)
+        // Sin este try/catch, una respuesta que no sea JSON (500 sin cuerpo, sesión
+        // vencida, timeout) rompe el modal con el error genérico de Blazor y el
+        // usuario pierde todo lo que cargó.
+        try
         {
-            var response = await _transanServicio.Crear(request);
-            if (response == null || response.Exito != 1)
+            if (Id == 0)
             {
-                await MostrarErrorGuardado(response?.Mensaje);
-                return;
-            }
+                var response = await _transanServicio.Crear(request);
+                if (response == null || response.Exito != 1)
+                {
+                    await MostrarErrorGuardado(response?.Mensaje);
+                    return;
+                }
 
-            await ModalInstance.CloseAsync(ModalResult.Ok("Creado"));
+                await ModalInstance.CloseAsync(ModalResult.Ok("Creado"));
+            }
+            else
+            {
+                var response = await _transanServicio.Editar(request);
+                if (response == null || response.Exito != 1)
+                {
+                    await MostrarErrorGuardado(response?.Mensaje);
+                    return;
+                }
+
+                await ModalInstance.CloseAsync(ModalResult.Ok("Editado"));
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var response = await _transanServicio.Editar(request);
-            if (response == null || response.Exito != 1)
-            {
-                await MostrarErrorGuardado(response?.Mensaje);
-                return;
-            }
-
-            await ModalInstance.CloseAsync(ModalResult.Ok("Editado"));
+            await MostrarErrorGuardado($"Ocurrió un error inesperado al comunicarse con el servidor: {ex.Message}");
         }
     }
 

@@ -930,7 +930,7 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("CATEG_SV");
 
                 entity.Property(e => e.Cnom)
-                    .HasMaxLength(50)
+                    .HasMaxLength(TransferenciaCampoLimites.SocioNombre)
                     .HasColumnName("CNOM");
 
                 entity.Property(e => e.CodUsu)
@@ -962,11 +962,11 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("NRO_TRANS");
 
                 entity.Property(e => e.PlantDest)
-                    .HasMaxLength(5)
+                    .HasMaxLength(TransferenciaCampoLimites.PlantelCodigo)
                     .HasColumnName("PLANT_DEST");
 
                 entity.Property(e => e.Plantel)
-                    .HasMaxLength(4)
+                    .HasMaxLength(TransferenciaCampoLimites.PlantelCodigo)
                     .HasColumnName("PLANTEL");
 
                 entity.Property(e => e.Scom)
@@ -978,7 +978,7 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("SVEN");
 
                 entity.Property(e => e.Vnom)
-                    .HasMaxLength(35)
+                    .HasMaxLength(TransferenciaCampoLimites.SocioNombre)
                     .HasColumnName("VNOM");
             });
 
@@ -2682,7 +2682,7 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("NRO_CERT");
 
                 entity.Property(e => e.NvoPla)
-                    .HasMaxLength(20)
+                    .HasMaxLength(TransferenciaCampoLimites.PlantelCodigo)
                     .HasColumnName("NVO_PLA");
 
                 entity.Property(e => e.PlantDestinoId)
@@ -2710,7 +2710,7 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("PLANT_DESTINO_ANIOEX");
 
                 entity.Property(e => e.Plant)
-                    .HasMaxLength(20)
+                    .HasMaxLength(TransferenciaCampoLimites.PlantelCodigo)
                     .HasColumnName("PLANT");
 
                 entity.Property(e => e.Scom)
@@ -2726,7 +2726,7 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("TIPANI");
 
                 entity.Property(e => e.Tiphac)
-                    .HasMaxLength(4)
+                    .HasMaxLength(TransferenciaCampoLimites.TipoHacienda)
                     .HasColumnName("TIPHAC");
 
                 entity.Property(e => e.Tipohem)

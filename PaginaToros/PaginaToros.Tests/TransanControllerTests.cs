@@ -100,6 +100,64 @@ public class TransanControllerTests
         Assert.False(await scope.Context.Transans.AnyAsync(x => x.Id == created.Id));
     }
 
+    [Fact]
+    public async Task Guardar_AcceptsRealWorldPlantelCodesAndVipHacienda()
+    {
+        // Regresion: PLANT/NVO_PLA eran varchar(4) y TIPHAC varchar(4), pero
+        // PLANTEL.PLACOD es varchar(10) y 'PHVIP' ocupa 5. Codigos como 5R141 /
+        // 5RB52 hacian fallar el guardado con "Data too long for column".
+        using var scope = CreateContext();
+        Seed(scope.Context);
+
+        scope.Context.Planteles.AddRange(
+            new Plantel
+            {
+                Id = 10,
+                Placod = "5R141",
+                Anioex = "2025",
+                Nrocri = "1000",
+                Estado = "A",
+                Fecing = "2025/01/01",
+                Vqcsrp = 239
+            },
+            new Plantel
+            {
+                Id = 11,
+                Placod = "5RB52",
+                Anioex = "2025",
+                Nrocri = "2000",
+                Estado = "A",
+                Fecing = "2025/01/01",
+                Vqcsrp = 101
+            });
+        scope.Context.SaveChanges();
+        scope.Context.ChangeTracker.Clear();
+
+        var controller = CreateController(scope.Context);
+        var request = BuildCreateRequest();
+        request.Transan.Plant = "5R141";
+        request.Transan.NvoPla = "5RB52";
+        request.Transan.PlantOrigenId = 10;
+        request.Transan.PlantDestinoId = 11;
+        request.PlantOrigenId = 10;
+        request.PlantDestinoId = 11;
+        request.Transan.Tiphac = "PHVIP";
+        request.Transan.Tipohem = "VQ";
+        request.Transan.Hemsta = "PR";
+        request.Transan.CantHem = 17;
+
+        var result = await controller.Guardar(request);
+
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var response = Assert.IsType<Respuesta<TransanDTO>>(okResult.Value);
+        Assert.Equal(1, response.Exito);
+
+        var seller = await scope.Context.Planteles.FirstAsync(x => x.Id == 10);
+        var buyer = await scope.Context.Planteles.FirstAsync(x => x.Id == 11);
+        Assert.Equal(222, seller.Vqcsrp);
+        Assert.Equal(118, buyer.Vqcsrp);
+    }
+
     private static TransanController CreateController(hereford_prContext context)
     {
         var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile<AutoMapperProfile>());
