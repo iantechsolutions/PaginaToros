@@ -52,7 +52,14 @@
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Centro</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaCentros" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="centroSeleccionado">
+                    <BlazoredTypeahead SearchMethod="BusquedaCentros"
+                                       placeholder="Buscar por nombre o nro. de centro"
+                                       EnableDropDown="true"
+                                       TItem="CentrosiumDTO"
+                                       TValue="CentrosiumDTO"
+                                       Value="centroSeleccionado"
+                                       ValueChanged="OnCentroChanged"
+                                       ValueExpression="@(() => centroSeleccionado)">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>
@@ -71,7 +78,14 @@
             <div class="row" style="width=100%;">
                 <div class="col-sm">
                     <label class="col-sm">Socio</label>
-                    <BlazoredTypeahead SearchMethod="BusquedaSocios" placeholder="Buscar por nombre" EnableDropDown="true" @bind-Value="socioSeleccionado">
+                    <BlazoredTypeahead SearchMethod="BusquedaSocios"
+                                       placeholder="Buscar por nombre o código"
+                                       EnableDropDown="true"
+                                       TItem="SocioDTO"
+                                       TValue="SocioDTO"
+                                       Value="socioSeleccionado"
+                                       ValueChanged="OnSocioChanged"
+                                       ValueExpression="@(() => socioSeleccionado)">
                         <SelectedTemplate Context="eleccion">
                             @eleccion.Nombre
                         </SelectedTemplate>
@@ -87,7 +101,7 @@
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Cantidad original de dosis</label>
-                    <InputText @bind-Value="@oCertifseman.NrDosiOr" class="form-control" placeholder=""></InputText>
+                    <InputText @bind-Value="@oCertifseman.NrDosiOr" class="form-control" placeholder="" inputmode="numeric"></InputText>
                     <ValidationMessage For="(()=> oCertifseman.NrDosiOr)" style="color:red;" />
                 </div>
                 <div class="col-sm">
@@ -203,11 +217,10 @@ else
     protected override async Task OnInitializedAsync()
     {
         var rta = await _socioServicio.LimitadosFiltrados(0, 0);
-        socios = rta.List;
+        socios = rta.List ?? new();
         var rt = await _centrosiumServicio.LimitadosFiltrados(0, 0);
-        centros = rt.List;
-        Console.WriteLine("ADD");
-        Console.WriteLine(Id);
+        centros = rt.List ?? new();
+
         if (Id != 0)
         {
             try
@@ -221,14 +234,16 @@ else
                     return;
                 }
 
-                centroSeleccionado = centros.Where(x => x.Nrocen == oCertifseman.Nrocen).FirstOrDefault();
-                socioSeleccionado = socios.Where(x => x.Scod == oCertifseman.Nrocri).FirstOrDefault();
+                centroSeleccionado = FindCentroByCode(oCertifseman.Nrocen);
+                socioSeleccionado = FindSocioByCode(oCertifseman.Nrocri);
             }
             catch (Exception ex)
             {
                 SetFormError($"No se pudo cargar el certificado: {ex.Message}");
             }
         }
+
+        SyncSelectionsToModel();
         oCertifseman.TipEnv ??= "PAJUELAS";
 
     }
@@ -240,6 +255,8 @@ else
         }
 
         ClearMessages();
+        NormalizeFormFields();
+        SyncSelectionsToModel();
 
         if (!ValidateForm())
         {
@@ -249,30 +266,13 @@ else
 
         isBusy = true;
 
-        oCertifseman.Nrocri = socioSeleccionado.Scod;
-        oCertifseman.Nrocen = centroSeleccionado.Nrocen;
-        oCertifseman.Apodo = oCertifseman.Apodo?.Trim();
-        oCertifseman.TipoCert = oCertifseman.TipoCert?.Trim();
-        oCertifseman.NroCert = oCertifseman.NroCert?.Trim();
-        oCertifseman.Hba = oCertifseman.Hba?.Trim();
-        oCertifseman.Tatpart = oCertifseman.Tatpart?.Trim();
-        oCertifseman.NomDad = oCertifseman.NomDad?.Trim();
-        oCertifseman.NrInsd = oCertifseman.NrInsd?.Trim();
-        oCertifseman.NrTsan = oCertifseman.NrTsan?.Trim();
-        oCertifseman.NrDosiOr = oCertifseman.NrDosiOr?.Trim();
-        oCertifseman.TipEnv = string.IsNullOrWhiteSpace(oCertifseman.TipEnv) ? "PAJUELAS" : oCertifseman.TipEnv.Trim();
-
         try
         {
+            var (dosisOriginales, dosisRemanentes) = ParseDosisValues();
+
             if (Id == 0)
             {
-                if (!int.TryParse(oCertifseman.NrDosiOr, out var dosisOriginales))
-                {
-                    SetFormError("La cantidad original de dosis debe ser un número válido.");
-                    return;
-                }
-
-                oCertifseman.NrDosi = dosisOriginales;
+                oCertifseman.NrDosi = dosisRemanentes ?? dosisOriginales;
 
                 var createResponse = await _certifsemanServicio.Crear(oCertifseman);
                 if (createResponse.Exito != 1 || createResponse.List == null)
@@ -287,13 +287,7 @@ else
             }
             else
             {
-                if (!int.TryParse(oCertifseman.NrDosiOr, out var dosisOriginales))
-                {
-                    SetFormError("La cantidad original de dosis debe ser un número válido.");
-                    return;
-                }
-
-                oCertifseman.NrDosi = dosisOriginales;
+                oCertifseman.NrDosi = dosisRemanentes;
                 var editResponse = await _certifsemanServicio.Editar(oCertifseman);
                 if (editResponse.Exito != 1)
                 {
@@ -303,15 +297,15 @@ else
 
                 var mail = $"Aviso de edición a un certificado\n" +
                            $"certificado: {oCertifseman.Nrocri}\n" +
-                           $"Socio: {oCertifseman.Socio}\n" +
+                           $"Socio: {socioSeleccionado?.Nombre}\n" +
                            $"Tipo: Edición\n";
 
                 var request = new
                 {
-                    Vendedor = oCertifseman.Socio,
-                    Comprador = oCertifseman.Socio,
+                    Vendedor = socioSeleccionado?.Id ?? 0,
+                    Comprador = socioSeleccionado?.Id ?? 0,
                     Mail = mail,
-                    Direccion = oCertifseman.Apodo
+                    Direccion = (string?)null
                 };
 
                 HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
@@ -348,13 +342,28 @@ else
 
     private async Task<IEnumerable<CentrosiumDTO>> BusquedaCentros(string searchText)
     {
-        var result = centros.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var query = searchText?.Trim() ?? string.Empty;
+        var result = centros
+            .Where(x =>
+                !string.IsNullOrWhiteSpace(x.Nombre) &&
+                x.Nombre.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                !string.IsNullOrWhiteSpace(x.Nrocen) &&
+                x.Nrocen.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToList();
         return await Task.FromResult(result);
     }
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.Criador=="S" && x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+        var query = searchText?.Trim() ?? string.Empty;
+        var result = socios
+            .Where(x =>
+                x.Criador == "S" &&
+                ((!string.IsNullOrWhiteSpace(x.Nombre) &&
+                  x.Nombre.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                 (!string.IsNullOrWhiteSpace(x.Scod) &&
+                  x.Scod.Contains(query, StringComparison.OrdinalIgnoreCase))))
+            .ToList();
         return await Task.FromResult(result);
     }
 
@@ -362,12 +371,16 @@ else
     {
         validationErrors.Clear();
 
-        if (socioSeleccionado == null)
+        SyncSelectionsToModel();
+
+        int? dosisOriginales = null;
+
+        if (socioSeleccionado == null || string.IsNullOrWhiteSpace(oCertifseman.Nrocri))
         {
             validationErrors.Add("Seleccioná un socio.");
         }
 
-        if (centroSeleccionado == null)
+        if (centroSeleccionado == null || string.IsNullOrWhiteSpace(oCertifseman.Nrocen))
         {
             validationErrors.Add("Seleccioná un centro.");
         }
@@ -377,9 +390,94 @@ else
         AddIfMissing(oCertifseman.Hba, "Ingresá el HBA.");
         AddIfMissing(oCertifseman.NomDad, "Ingresá el nombre.");
         AddIfMissing(oCertifseman.Apodo, "Seleccioná el tipo de toro.");
+        AddIfMissing(oCertifseman.NrDosiOr, "Ingresá la cantidad original de dosis.");
+
+        if (!string.IsNullOrWhiteSpace(oCertifseman.NrDosiOr))
+        {
+            if (!int.TryParse(oCertifseman.NrDosiOr, out var parsedOriginales) || parsedOriginales < 0)
+            {
+                validationErrors.Add("La cantidad original de dosis debe ser un número válido y no negativo.");
+            }
+            else
+            {
+                dosisOriginales = parsedOriginales;
+            }
+        }
+
+        if (oCertifseman.NrDosi.HasValue)
+        {
+            if (oCertifseman.NrDosi.Value < 0)
+            {
+                validationErrors.Add("La cantidad de dosis remanentes no puede ser negativa.");
+            }
+            else if (dosisOriginales.HasValue && oCertifseman.NrDosi.Value > dosisOriginales.Value)
+            {
+                validationErrors.Add("La cantidad de dosis remanentes no puede ser mayor a la cantidad original.");
+            }
+        }
 
         return validationErrors.Count == 0;
     }
+
+    private void OnCentroChanged(CentrosiumDTO? centro)
+    {
+        centroSeleccionado = centro;
+        oCertifseman.Nrocen = centro?.Nrocen?.Trim();
+    }
+
+    private void OnSocioChanged(SocioDTO? socio)
+    {
+        socioSeleccionado = socio;
+        oCertifseman.Nrocri = socio?.Scod?.Trim();
+    }
+
+    private void NormalizeFormFields()
+    {
+        oCertifseman.Apodo = oCertifseman.Apodo?.Trim();
+        oCertifseman.TipoCert = oCertifseman.TipoCert?.Trim();
+        oCertifseman.NroCert = oCertifseman.NroCert?.Trim();
+        oCertifseman.Hba = oCertifseman.Hba?.Trim();
+        oCertifseman.Tatpart = oCertifseman.Tatpart?.Trim();
+        oCertifseman.NomDad = oCertifseman.NomDad?.Trim();
+        oCertifseman.NrInsd = oCertifseman.NrInsd?.Trim();
+        oCertifseman.NrTsan = oCertifseman.NrTsan?.Trim();
+        oCertifseman.NrDosiOr = oCertifseman.NrDosiOr?.Trim();
+        oCertifseman.TipEnv = string.IsNullOrWhiteSpace(oCertifseman.TipEnv) ? "PAJUELAS" : oCertifseman.TipEnv.Trim();
+        oCertifseman.Variedad = oCertifseman.Variedad?.Trim();
+        oCertifseman.Apodacion = oCertifseman.Apodacion?.Trim();
+    }
+
+    private void SyncSelectionsToModel()
+    {
+        if (socioSeleccionado == null && !string.IsNullOrWhiteSpace(oCertifseman.Nrocri))
+        {
+            socioSeleccionado = FindSocioByCode(oCertifseman.Nrocri);
+        }
+
+        if (centroSeleccionado == null && !string.IsNullOrWhiteSpace(oCertifseman.Nrocen))
+        {
+            centroSeleccionado = FindCentroByCode(oCertifseman.Nrocen);
+        }
+
+        oCertifseman.Nrocri = socioSeleccionado?.Scod?.Trim() ?? oCertifseman.Nrocri?.Trim();
+        oCertifseman.Nrocen = centroSeleccionado?.Nrocen?.Trim() ?? oCertifseman.Nrocen?.Trim();
+    }
+
+    private (int dosisOriginales, int? dosisRemanentes) ParseDosisValues()
+    {
+        if (!int.TryParse(oCertifseman.NrDosiOr, out var dosisOriginales))
+        {
+            throw new InvalidOperationException("La cantidad original de dosis debe ser un número válido.");
+        }
+
+        return (dosisOriginales, oCertifseman.NrDosi);
+    }
+
+    private SocioDTO? FindSocioByCode(string? scod)
+        => socios.FirstOrDefault(x => string.Equals(x.Scod?.Trim(), scod?.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    private CentrosiumDTO? FindCentroByCode(string? nrocen)
+        => centros.FirstOrDefault(x => string.Equals(x.Nrocen?.Trim(), nrocen?.Trim(), StringComparison.OrdinalIgnoreCase));
 
     private void ShowBackendErrors(Respuesta<CertifsemanDTO>? response)
     {
