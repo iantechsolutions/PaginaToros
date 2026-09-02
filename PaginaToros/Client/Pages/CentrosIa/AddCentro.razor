@@ -16,11 +16,18 @@
 @if(oRespuesta.List!=null){
 <div class="card">
     <div class="card-body">
+        @if (!string.IsNullOrWhiteSpace(formError))
+        {
+            <div class="alert alert-danger" role="alert">
+                @formError
+            </div>
+        }
+
         <EditForm Model="@oCentrosiumDTO" OnValidSubmit="Guardar">
             <DataAnnotationsValidator />
             <div class="row" style="width=100%;">
                 <div class="col-sm">
-                    <label class="col-sm">Numero de centro</label>
+                    <label class="col-sm">Numero de centro *</label>
                     <InputText disabled=@(Id != 0) @bind-Value="@oCentrosiumDTO.Nrocen" class="form-control" placeholder="Numero de centro"></InputText>
                     <ValidationMessage For="(()=> oCentrosiumDTO.Nrocen)" style="color:red;" />
                 </div>
@@ -56,6 +63,7 @@ else
 }
 @code {
     CentrosiumDTO oCentrosiumDTO = new();
+    private string? formError;
     List<CentrosiumDTO> Centros = new();
     Respuesta<List<CentrosiumDTO>> oRespuesta = new();
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
@@ -91,6 +99,23 @@ else
     }
     async Task Guardar()
     {
+        formError = null;
+        oCentrosiumDTO.Nrocen = (oCentrosiumDTO.Nrocen ?? string.Empty).Trim();
+        oCentrosiumDTO.Nombre = oCentrosiumDTO.Nombre?.Trim();
+        oCentrosiumDTO.NroCSayg = oCentrosiumDTO.NroCSayg?.Trim();
+
+        if (string.IsNullOrWhiteSpace(oCentrosiumDTO.Nrocen))
+        {
+            formError = "El numero de centro es obligatorio: es el dato con el que los certificados de semen se vinculan al centro, y no se puede editar despues del alta.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(oCentrosiumDTO.Nombre))
+        {
+            formError = "El nombre del centro es obligatorio.";
+            return;
+        }
+
         if (Id == 0)
         {
             await _centrosiumServicio.Crear(oCentrosiumDTO);

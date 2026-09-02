@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PaginaToros.Shared.Models.Response;
 using PaginaToros.Shared.Models;
 using PaginaToros.Server.Context;
@@ -14,10 +17,12 @@ namespace PaginaToros.Server.Controllers
     {
         private readonly IMapper _mapper;
         private readonly ICentrosiumRepositorio _CentrosiumRepositorio;
-        public CentrosiumController(ICentrosiumRepositorio CentrosiumRepositorio, IMapper mapper)
+        private readonly hereford_prContext _db;
+        public CentrosiumController(ICentrosiumRepositorio CentrosiumRepositorio, IMapper mapper, hereford_prContext db)
         {
             _mapper = mapper;
             _CentrosiumRepositorio = CentrosiumRepositorio;
+            _db = db;
         }
         [Route("Lista")]
         public async Task<IActionResult> Lista(int skip, int take)
@@ -186,6 +191,194 @@ namespace PaginaToros.Server.Controllers
                 _Respuesta = new Respuesta<CentrosiumDTO>() { Exito = 1, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
             }
+        }
+
+        /// <summary>
+        /// Diagnostica (y opcionalmente repara) los centros que quedaron sin NROCEN.
+        /// Un centro sin NROCEN se puede elegir en el alta de certificados porque el combo
+        /// muestra el NOMBRE, pero el certificado se graba por NROCEN, así que el backend
+        /// lo rechaza con "El centro es obligatorio.".
+        /// Con aplicar=false devuelve sólo el plan, sin escribir nada.
+        /// </summary>
+        [HttpPost]
+        [Route("RepararNrocen")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "ADMINISTRADOR,USUARIOMAESTRO")]
+        public async Task<IActionResult> RepararNrocen(bool aplicar = false)
+        {
+            var resultado = new CentroRepairResult { SoloDiagnostico = !aplicar };
+
+            try
+            {
+                var centros = await _db.Centrosia
+                    .AsNoTracking()
+                    .OrderBy(c => c.Id)
+                    .ToListAsync();
+
+                resultado.TotalCentros = centros.Count;
+
+                var sinCodigo = centros
+                    .Where(c => string.IsNullOrWhiteSpace(c.Nrocen))
+                    .ToList();
+
+                resultado.CentrosSinNrocen = sinCodigo.Count;
+
+                // NROCEN es principal key de la relación con CERTIFSEMEN: no puede repetirse.
+                var codigosUsados = new HashSet<string>(
+                    centros.Where(c => !string.IsNullOrWhiteSpace(c.Nrocen))
+                           .Select(c => c.Nrocen.Trim()),
+                    StringComparer.OrdinalIgnoreCase);
+
+                resultado.CertificadosHuerfanos = await _db.Certifsemen
+                    .AsNoTracking()
+                    .CountAsync(c => c.Nrocen == null || c.Nrocen.Trim() == "");
+
+                if (sinCodigo.Count == 0)
+                {
+                    resultado.Observaciones.Add("No hay centros sin NROCEN: no hay nada que reparar.");
+
+                    if (resultado.CertificadosHuerfanos > 0)
+                    {
+                        resultado.Observaciones.Add(
+                            $"Quedan {resultado.CertificadosHuerfanos} certificado(s) con NROCEN vacío. No hay ningún " +
+                            "centro sin código al que atribuirlos, así que hay que corregirlos a mano indicando el centro.");
+                    }
+
+                    return Ok(new Respuesta<CentroRepairResult> { Exito = 1, Mensaje = "OK", List = resultado });
+                }
+
+                // Plan: primero se intenta reusar NRO_C_SAYG (el código real del centro según
+                // la Secretaría); si no sirve, se genera el primer número libre.
+                foreach (var centro in sinCodigo)
+                {
+                    var sayg = centro.NroCSayg?.Trim();
+                    string nuevo;
+                    string origen;
+
+                    if (!string.IsNullOrWhiteSpace(sayg) && sayg.Length <= 6 && !codigosUsados.Contains(sayg))
+                    {
+                        nuevo = sayg;
+                        origen = "NRO_C_SAYG";
+                    }
+                    else
+                    {
+                        nuevo = SiguienteNrocenLibre(codigosUsados);
+                        origen = "generado";
+
+                        if (!string.IsNullOrWhiteSpace(sayg))
+                        {
+                            resultado.Observaciones.Add(
+                                $"Centro Id={centro.Id}: no se pudo usar NRO_C_SAYG '{sayg}' " +
+                                "(supera los 6 caracteres o ya está en uso).");
+                        }
+                    }
+
+                    codigosUsados.Add(nuevo);
+
+                    resultado.Detalle.Add(new CentroRepairItem
+                    {
+                        Id = centro.Id,
+                        Nombre = centro.Nombre,
+                        NroCSayg = sayg,
+                        NrocenNuevo = nuevo,
+                        Origen = origen,
+                        Estado = aplicar ? "reparado" : "pendiente"
+                    });
+                }
+
+                // Los certificados con NROCEN vacío sólo se pueden reasignar sin ambigüedad
+                // cuando hay exactamente un centro sin código.
+                var revincularCertificados = sinCodigo.Count == 1 && resultado.CertificadosHuerfanos > 0;
+
+                if (resultado.CertificadosHuerfanos > 0 && !revincularCertificados)
+                {
+                    resultado.Observaciones.Add(
+                        $"Hay {resultado.CertificadosHuerfanos} certificado(s) con NROCEN vacío y {sinCodigo.Count} centros " +
+                        "sin código: no se puede deducir a qué centro corresponde cada uno, así que quedan sin tocar.");
+                }
+
+                if (!aplicar)
+                {
+                    resultado.Observaciones.Insert(0,
+                        revincularCertificados
+                            ? $"Modo análisis: no se escribió nada. Al aplicar se asignan {resultado.Detalle.Count} código(s) " +
+                              $"y se revinculan {resultado.CertificadosHuerfanos} certificado(s)."
+                            : $"Modo análisis: no se escribió nada. Al aplicar se asignan {resultado.Detalle.Count} código(s).");
+
+                    return Ok(new Respuesta<CentroRepairResult> { Exito = 1, Mensaje = "OK", List = resultado });
+                }
+
+                await using var transaction = await _db.Database.BeginTransactionAsync();
+
+                // Se escribe con SQL directo porque NROCEN es principal key de la relación y EF
+                // no permite modificar propiedades de clave en una entidad rastreada.
+                foreach (var item in resultado.Detalle)
+                {
+                    var nuevo = item.NrocenNuevo!;
+                    var id = item.Id;
+
+                    await _db.Database.ExecuteSqlInterpolatedAsync(
+                        $"UPDATE CENTROSIA SET NROCEN = {nuevo} WHERE id = {id}");
+
+                    resultado.CentrosReparados++;
+                }
+
+                if (revincularCertificados)
+                {
+                    var nuevo = resultado.Detalle[0].NrocenNuevo!;
+
+                    resultado.CertificadosRevinculados = await _db.Database.ExecuteSqlInterpolatedAsync(
+                        $"UPDATE CERTIFSEMEN SET NROCEN = {nuevo} WHERE NROCEN IS NULL OR TRIM(NROCEN) = ''");
+
+                    resultado.Observaciones.Add(
+                        $"Se revincularon {resultado.CertificadosRevinculados} certificado(s) al centro " +
+                        $"'{resultado.Detalle[0].Nombre}' (NROCEN '{nuevo}'), el único que estaba sin código.");
+                }
+
+                await transaction.CommitAsync();
+
+                return Ok(new Respuesta<CentroRepairResult>
+                {
+                    Exito = 1,
+                    Mensaje = $"Se repararon {resultado.CentrosReparados} centro(s).",
+                    List = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                resultado.Observaciones.Add("No se aplicó ningún cambio: la transacción se revirtió.");
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<CentroRepairResult>
+                {
+                    Exito = 0,
+                    Mensaje = ex.InnerException?.Message ?? ex.Message,
+                    List = resultado
+                });
+            }
+        }
+
+        /// <summary>Primer NROCEN numérico libre, respetando el largo máximo de 6 de la columna.</summary>
+        private static string SiguienteNrocenLibre(HashSet<string> codigosUsados)
+        {
+            var maximo = codigosUsados
+                .Select(codigo => int.TryParse(codigo, out var valor) ? valor : 0)
+                .DefaultIfEmpty(0)
+                .Max();
+
+            var candidato = Math.Max(1, maximo + 1);
+
+            while (candidato <= 999999)
+            {
+                var texto = candidato.ToString("D4");
+
+                if (texto.Length <= 6 && !codigosUsados.Contains(texto))
+                {
+                    return texto;
+                }
+
+                candidato++;
+            }
+
+            throw new InvalidOperationException("No quedan valores libres de NROCEN de hasta 6 caracteres.");
         }
     }
 }

@@ -5,6 +5,7 @@
 @using PaginaToros.Shared.Helpers
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ISocioServicio _socioServicio
+@inject ICentrosiumServicio _centrosiumServicio
 @inject HttpClient http
 
 
@@ -114,6 +115,97 @@ else
     </table>
 }
 <br />
+<hr />
+<br />
+
+<h3>Reparar centros sin nro. de centro</h3>
+<p style="max-width:960px">
+    Un centro dado de alta sin <strong>Numero de centro</strong> (columna <code>NROCEN</code>) se puede
+    elegir igual en el alta de certificados, porque el buscador lo muestra por nombre. Pero el certificado
+    se graba por ese código, así que al guardar el backend responde
+    <em>"El centro es obligatorio."</em> aunque el centro esté seleccionado.
+    Este script le asigna un código a cada centro que no lo tenga: reutiliza el
+    <strong>Nro segun Secretaria Agric y Ganaderia</strong> si sirve (6 caracteres o menos y libre) y,
+    si no, genera el primer número libre.
+</p>
+
+<div style="margin-bottom:1rem">
+    <button @onclick="() => RepararCentros(false)" disabled="@repairBusy"
+            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 disabled:opacity-50">
+        1. Analizar (no modifica nada)
+    </button>
+    <button @onclick="() => RepararCentros(true)"
+            disabled="@(repairBusy || repairResult == null || !repairResult.SoloDiagnostico || repairResult.CentrosSinNrocen == 0)"
+            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50">
+        2. Aplicar reparación
+    </button>
+</div>
+
+@if (repairBusy)
+{
+    <RadzenProgressBar style="width:60%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
+}
+
+@if (!string.IsNullOrWhiteSpace(repairMessage))
+{
+    <div class="@(repairError ? "alert alert-danger" : "alert alert-success")" role="alert" style="max-width:960px">
+        @repairMessage
+    </div>
+}
+
+@if (repairResult != null)
+{
+    <p>
+        <strong>@(repairResult.SoloDiagnostico ? "Análisis" : "Reparación aplicada")</strong> &mdash;
+        centros totales: @repairResult.TotalCentros |
+        sin NROCEN: @repairResult.CentrosSinNrocen |
+        reparados: @repairResult.CentrosReparados |
+        certificados huérfanos: @repairResult.CertificadosHuerfanos |
+        certificados revinculados: @repairResult.CertificadosRevinculados
+    </p>
+
+    @if (repairResult.Detalle.Any())
+    {
+        <table class="table-auto w-full border-collapse border border-gray-300" style="max-width:960px">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="border border-gray-300 px-4 py-2">Id</th>
+                    <th class="border border-gray-300 px-4 py-2">Nombre</th>
+                    <th class="border border-gray-300 px-4 py-2">NRO_C_SAYG</th>
+                    <th class="border border-gray-300 px-4 py-2">NROCEN a asignar</th>
+                    <th class="border border-gray-300 px-4 py-2">Origen</th>
+                    <th class="border border-gray-300 px-4 py-2">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in repairResult.Detalle)
+                {
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2">@item.Id</td>
+                        <td class="border border-gray-300 px-4 py-2">@item.Nombre</td>
+                        <td class="border border-gray-300 px-4 py-2">@item.NroCSayg</td>
+                        <td class="border border-gray-300 px-4 py-2"><strong>@item.NrocenNuevo</strong></td>
+                        <td class="border border-gray-300 px-4 py-2">@item.Origen</td>
+                        <td class="border border-gray-300 px-4 py-2">@item.Estado</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (repairResult.Observaciones.Any())
+    {
+        <h5 style="margin-top:1rem">Observaciones</h5>
+        <ul style="list-style:disc;padding-left:1.5rem;max-width:960px">
+            @foreach (var obs in repairResult.Observaciones)
+            {
+                <li>@obs</li>
+            }
+        </ul>
+    }
+}
+
+<br />
 <br />
 <br />
 <br />
@@ -121,6 +213,10 @@ else
 @code {
 
     int cantidad;
+    private CentroRepairResult? repairResult;
+    private bool repairBusy;
+    private bool repairError;
+    private string? repairMessage;
     public bool allowFiltering = false;
     public RadzenDataGrid<SocioDTO>? grid;
     int currentPage;
@@ -236,6 +332,59 @@ else
     }
 
 
+
+    /// <summary>
+    /// Corre el diagnóstico (aplicar=false) o la reparación (aplicar=true) de los centros
+    /// que quedaron sin NROCEN y por eso rompen el alta de certificados de semen.
+    /// </summary>
+    private async Task RepararCentros(bool aplicar)
+    {
+        if (repairBusy)
+        {
+            return;
+        }
+
+        if (aplicar)
+        {
+            var confirmacion = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "¿Aplicar la reparación?",
+                Text = $"Se van a modificar {repairResult?.CentrosSinNrocen ?? 0} centro(s) en la base de datos. " +
+                       "Desde la aplicación no se puede deshacer.",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Aplicar",
+                CancelButtonText = "Cancelar"
+            });
+
+            if (string.IsNullOrEmpty(confirmacion.Value))
+            {
+                return;
+            }
+        }
+
+        repairBusy = true;
+        repairError = false;
+        repairMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var respuesta = await _centrosiumServicio.RepararNrocen(aplicar);
+            repairResult = respuesta.List;
+            repairError = respuesta.Exito != 1;
+            repairMessage = respuesta.Mensaje;
+        }
+        catch (Exception ex)
+        {
+            repairError = true;
+            repairMessage = $"Error al ejecutar la reparación: {ex.Message}";
+        }
+        finally
+        {
+            repairBusy = false;
+        }
+    }
 
     private class MailStatus
     {

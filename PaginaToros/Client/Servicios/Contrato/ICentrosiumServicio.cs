@@ -12,5 +12,6 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<Respuesta<CentrosiumDTO>> Crear(CentrosiumDTO entidad);
         Task<bool> Editar(CentrosiumDTO entidad);
         Task<Respuesta<CentrosiumDTO>> Filtrar(string descripcion);
+        Task<Respuesta<CentroRepairResult>> RepararNrocen(bool aplicar);
     }
 }

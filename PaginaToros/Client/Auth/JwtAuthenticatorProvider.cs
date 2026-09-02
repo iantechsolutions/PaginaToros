@@ -17,12 +17,15 @@ namespace PaginaToros.Client.Auth
     {
         private readonly IJSExtensions js;
         private readonly HttpClient httpClient;
+        private readonly NavigationManager navigationManager;
         public static readonly string TOKENKEY = "TOKENKEY";
+        private bool sesionVencidaNotificada;
         private AuthenticationState anonimo => new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
 
-        public JwtAuthenticatorProvider(IJSRuntime _js, HttpClient httpClient)
+        public JwtAuthenticatorProvider(IJSRuntime _js, HttpClient httpClient, NavigationManager navigationManager)
         {
             this.httpClient = httpClient;
+            this.navigationManager = navigationManager;
             js = new IJSExtensions(_js);
         }
 
@@ -40,9 +43,11 @@ namespace PaginaToros.Client.Auth
             {
                 httpClient.DefaultRequestHeaders.Authorization = null;
                 await js.RemoveItem(TOKENKEY);
+                NotificarSesionVencida();
                 return anonimo;
             }
 
+            sesionVencidaNotificada = false;
             return BuildAuthenticationState(token);
         }
 
@@ -50,6 +55,7 @@ namespace PaginaToros.Client.Auth
         {
             await js.RemoveItem(TOKENKEY);
             await js.SetInLocalStorage(TOKENKEY, token);
+            sesionVencidaNotificada = false;
             var authState = BuildAuthenticationState(token);
             NotifyAuthenticationStateChanged(Task.FromResult(authState));
         }
@@ -59,6 +65,39 @@ namespace PaginaToros.Client.Auth
             httpClient.DefaultRequestHeaders.Authorization = null;
             await js.RemoveItem(TOKENKEY);
             NotifyAuthenticationStateChanged(Task.FromResult(anonimo));
+        }
+
+        // Devolver el estado anonimo no alcanza: si no se avisa el cambio, CascadingAuthenticationState
+        // conserva el estado anterior y queda una sesion zombi donde la UI sigue mostrando permisos
+        // que el token ya no tiene.
+        private void NotificarSesionVencida()
+        {
+            if (sesionVencidaNotificada)
+            {
+                return;
+            }
+
+            sesionVencidaNotificada = true;
+            NotifyAuthenticationStateChanged(Task.FromResult(anonimo));
+
+            if (EstaEnPantallaDeAcceso())
+            {
+                return;
+            }
+
+            // Relativa al <base href> para que siga funcionando si la app se publica en un subpath.
+            navigationManager.NavigateTo("Login");
+        }
+
+        private bool EstaEnPantallaDeAcceso()
+        {
+            var ruta = navigationManager
+                .ToBaseRelativePath(navigationManager.Uri)
+                .Split('?', '#')[0]
+                .Trim('/');
+
+            return ruta.Equals("login", StringComparison.OrdinalIgnoreCase)
+                || ruta.Equals("logout", StringComparison.OrdinalIgnoreCase);
         }
 
         private AuthenticationState BuildAuthenticationState(string token)

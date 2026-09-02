@@ -51,6 +51,31 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return response!.Exito == 1;
         }
 
+        public async Task<Respuesta<CentroRepairResult>> RepararNrocen(bool aplicar)
+        {
+            var result = await _http.PostAsync($"api/Centrosium/RepararNrocen?aplicar={aplicar.ToString().ToLowerInvariant()}", null);
+
+            try
+            {
+                var payload = await result.Content.ReadFromJsonAsync<Respuesta<CentroRepairResult>>();
+                if (payload != null)
+                {
+                    return payload;
+                }
+            }
+            catch
+            {
+                // Cae al error consistente de abajo.
+            }
+
+            return new Respuesta<CentroRepairResult>
+            {
+                Exito = 0,
+                Mensaje = $"Error HTTP {(int)result.StatusCode} al reparar los centros.",
+                List = new CentroRepairResult()
+            };
+        }
+
         public async Task<Respuesta<CentrosiumDTO>> Filtrar(string descripcion)
         {
             var result = await _http.GetFromJsonAsync<Respuesta<CentrosiumDTO>>($"api/Centrosium/filtrar?categoriaItem={descripcion}");

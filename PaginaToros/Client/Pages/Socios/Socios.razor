@@ -266,6 +266,7 @@
 
 @code {
     [CascadingParameter] public IModalService Modal { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
 
     private RadzenDataGrid<SocioDTO>? grid;
     private List<SocioDTO> items = new();
@@ -280,7 +281,7 @@
 
     private bool CanUseAdminControls => canUseAdminControls;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         canUseAdminControls = await UserHasAnyRoleAsync("ADMINISTRADOR", "USUARIOMAESTRO");
     }
@@ -340,7 +341,12 @@
 
     private async Task<bool> UserHasAnyRoleAsync(params string[] roles)
     {
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (AuthenticationStateTask is null)
+        {
+            return false;
+        }
+
+        var authenticationState = await AuthenticationStateTask;
         return roles.Any(authenticationState.User.IsInRole);
     }
 

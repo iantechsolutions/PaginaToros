@@ -61,10 +61,10 @@
                                        ValueChanged="OnCentroChanged"
                                        ValueExpression="@(() => centroSeleccionado)">
                         <SelectedTemplate Context="eleccion">
-                            @eleccion.Nombre
+                            @DescribirCentro(eleccion)
                         </SelectedTemplate>
                         <ResultTemplate Context="eleccion">
-                            @eleccion.Nombre
+                            @DescribirCentro(eleccion)
                         </ResultTemplate>
                     </BlazoredTypeahead>
                 </div>
@@ -380,9 +380,13 @@ else
             validationErrors.Add("Seleccioná un socio.");
         }
 
-        if (centroSeleccionado == null || string.IsNullOrWhiteSpace(oCertifseman.Nrocen))
+        if (centroSeleccionado == null)
         {
             validationErrors.Add("Seleccioná un centro.");
+        }
+        else if (string.IsNullOrWhiteSpace(oCertifseman.Nrocen))
+        {
+            validationErrors.Add($"El centro \"{centroSeleccionado.Nombre}\" no tiene cargado el número de centro, que es el dato con el que se vincula el certificado. Hay que completarlo en el centro antes de poder usarlo.");
         }
 
         AddIfMissing(oCertifseman.TipoCert, "Seleccioná el tipo de certificado.");
@@ -423,13 +427,20 @@ else
     {
         centroSeleccionado = centro;
         oCertifseman.Nrocen = centro?.Nrocen?.Trim();
+        ClearMessages();
     }
 
     private void OnSocioChanged(SocioDTO? socio)
     {
         socioSeleccionado = socio;
         oCertifseman.Nrocri = socio?.Scod?.Trim();
+        ClearMessages();
     }
+
+    private static string DescribirCentro(CentrosiumDTO centro)
+        => string.IsNullOrWhiteSpace(centro.Nrocen)
+            ? $"{centro.Nombre} (sin nro. de centro)"
+            : $"{centro.Nombre} ({centro.Nrocen.Trim()})";
 
     private void NormalizeFormFields()
     {
