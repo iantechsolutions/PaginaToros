@@ -1,4 +1,6 @@
 ﻿@using Blazored.Typeahead
+@using System.Globalization
+@using System.Text
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ICertifsemanServicio _certifsemanServicio
 @inject ISocioServicio _socioServicio
@@ -207,6 +209,10 @@ else
     List<SocioDTO> socios = new();
     CentrosiumDTO? centroSeleccionado = null;
     List<CentrosiumDTO> centros = new();
+    // El typeahead no expone el texto tipeado al padre. Lo guardamos para poder
+    // resolver la seleccion aunque el usuario no haya clickeado un item de la lista.
+    private string? ultimaBusquedaCentro;
+    private string? ultimaBusquedaSocio;
     private readonly List<string> validationErrors = new();
     private string? formMessage;
     private string formMessageCss = "alert alert-danger";
@@ -342,27 +348,23 @@ else
 
     private async Task<IEnumerable<CentrosiumDTO>> BusquedaCentros(string searchText)
     {
-        var query = searchText?.Trim() ?? string.Empty;
+        ultimaBusquedaCentro = searchText;
+        var query = Normalizar(searchText);
         var result = centros
-            .Where(x =>
-                !string.IsNullOrWhiteSpace(x.Nombre) &&
-                x.Nombre.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                !string.IsNullOrWhiteSpace(x.Nrocen) &&
-                x.Nrocen.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .Where(x => Normalizar(x.Nombre).Contains(query) || Normalizar(x.Nrocen).Contains(query))
+            .OrderBy(x => x.Nombre)
             .ToList();
         return await Task.FromResult(result);
     }
 
     private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        var query = searchText?.Trim() ?? string.Empty;
+        ultimaBusquedaSocio = searchText;
+        var query = Normalizar(searchText);
         var result = socios
-            .Where(x =>
-                x.Criador == "S" &&
-                ((!string.IsNullOrWhiteSpace(x.Nombre) &&
-                  x.Nombre.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
-                 (!string.IsNullOrWhiteSpace(x.Scod) &&
-                  x.Scod.Contains(query, StringComparison.OrdinalIgnoreCase))))
+            .Where(x => x.Criador == "S" &&
+                        (Normalizar(x.Nombre).Contains(query) || Normalizar(x.Scod).Contains(query)))
+            .OrderBy(x => x.Nombre)
             .ToList();
         return await Task.FromResult(result);
     }
@@ -377,12 +379,12 @@ else
 
         if (socioSeleccionado == null || string.IsNullOrWhiteSpace(oCertifseman.Nrocri))
         {
-            validationErrors.Add("Seleccioná un socio.");
+            validationErrors.Add(DescribirSeleccionFaltante("socio", ultimaBusquedaSocio));
         }
 
         if (centroSeleccionado == null)
         {
-            validationErrors.Add("Seleccioná un centro.");
+            validationErrors.Add(DescribirSeleccionFaltante("centro", ultimaBusquedaCentro));
         }
         else if (string.IsNullOrWhiteSpace(oCertifseman.Nrocen))
         {
@@ -427,6 +429,7 @@ else
     {
         centroSeleccionado = centro;
         oCertifseman.Nrocen = centro?.Nrocen?.Trim();
+        ultimaBusquedaCentro = null;
         ClearMessages();
     }
 
@@ -434,13 +437,113 @@ else
     {
         socioSeleccionado = socio;
         oCertifseman.Nrocri = socio?.Scod?.Trim();
+        ultimaBusquedaSocio = null;
         ClearMessages();
     }
 
-    private static string DescribirCentro(CentrosiumDTO centro)
-        => string.IsNullOrWhiteSpace(centro.Nrocen)
+    private static string DescribirCentro(CentrosiumDTO? centro)
+    {
+        if (centro is null)
+        {
+            return string.Empty;
+        }
+
+        return string.IsNullOrWhiteSpace(centro.Nrocen)
             ? $"{centro.Nombre} (sin nro. de centro)"
             : $"{centro.Nombre} ({centro.Nrocen.Trim()})";
+    }
+
+    /// <summary>
+    /// Compara ignorando mayusculas, acentos, espacios y puntuacion, para que
+    /// "SEMEX ARGENTINA S.A." matchee con "Semex Argentina SA".
+    /// </summary>
+    private static string Normalizar(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var descompuesto = value.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(descompuesto.Length);
+
+        foreach (var ch in descompuesto)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.NonSpacingMark)
+            {
+                continue;
+            }
+
+            if (char.IsLetterOrDigit(ch))
+            {
+                sb.Append(char.ToUpperInvariant(ch));
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// El typeahead deja el texto tipeado a la vista aunque no se haya elegido un
+    /// item de la lista, asi que el campo "parece" completo pero la seleccion es
+    /// null. Si ese texto identifica a un unico centro, lo damos por elegido en
+    /// vez de rechazar el formulario.
+    /// </summary>
+    private CentrosiumDTO? ResolverCentroDesdeTexto(string? texto)
+    {
+        var clave = Normalizar(texto);
+        if (clave.Length == 0)
+        {
+            return null;
+        }
+
+        var exactos = centros
+            .Where(x => Normalizar(x.Nombre) == clave || Normalizar(x.Nrocen) == clave)
+            .ToList();
+        if (exactos.Count == 1)
+        {
+            return exactos[0];
+        }
+        if (exactos.Count > 1)
+        {
+            return null;
+        }
+
+        var parciales = centros
+            .Where(x => Normalizar(x.Nombre).Contains(clave) || Normalizar(x.Nrocen).Contains(clave))
+            .ToList();
+
+        return parciales.Count == 1 ? parciales[0] : null;
+    }
+
+    private SocioDTO? ResolverSocioDesdeTexto(string? texto)
+    {
+        var clave = Normalizar(texto);
+        if (clave.Length == 0)
+        {
+            return null;
+        }
+
+        var candidatos = socios.Where(x => x.Criador == "S").ToList();
+
+        var exactos = candidatos
+            .Where(x => Normalizar(x.Nombre) == clave || Normalizar(x.Scod) == clave)
+            .ToList();
+        if (exactos.Count == 1)
+        {
+            return exactos[0];
+        }
+        if (exactos.Count > 1)
+        {
+            return null;
+        }
+
+        var parciales = candidatos
+            .Where(x => Normalizar(x.Nombre).Contains(clave) || Normalizar(x.Scod).Contains(clave))
+            .ToList();
+
+        return parciales.Count == 1 ? parciales[0] : null;
+    }
 
     private void NormalizeFormFields()
     {
@@ -460,14 +563,16 @@ else
 
     private void SyncSelectionsToModel()
     {
-        if (socioSeleccionado == null && !string.IsNullOrWhiteSpace(oCertifseman.Nrocri))
+        if (socioSeleccionado == null)
         {
-            socioSeleccionado = FindSocioByCode(oCertifseman.Nrocri);
+            socioSeleccionado = FindSocioByCode(oCertifseman.Nrocri)
+                ?? ResolverSocioDesdeTexto(ultimaBusquedaSocio);
         }
 
-        if (centroSeleccionado == null && !string.IsNullOrWhiteSpace(oCertifseman.Nrocen))
+        if (centroSeleccionado == null)
         {
-            centroSeleccionado = FindCentroByCode(oCertifseman.Nrocen);
+            centroSeleccionado = FindCentroByCode(oCertifseman.Nrocen)
+                ?? ResolverCentroDesdeTexto(ultimaBusquedaCentro);
         }
 
         oCertifseman.Nrocri = socioSeleccionado?.Scod?.Trim() ?? oCertifseman.Nrocri?.Trim();
@@ -526,6 +631,15 @@ else
         validationErrors.Clear();
         formMessage = null;
         formMessageCss = "alert alert-danger";
+    }
+
+    private static string DescribirSeleccionFaltante(string campo, string? textoTipeado)
+    {
+        // Distinguir "no escribiste nada" de "escribiste algo que no resolvimos"
+        // evita el caso donde el campo se ve completo y el error dice "seleccioná".
+        return string.IsNullOrWhiteSpace(textoTipeado)
+            ? $"Seleccioná un {campo}."
+            : $"\"{textoTipeado.Trim()}\" no coincide con un único {campo} de la lista. Elegí uno del desplegable.";
     }
 
     private void AddIfMissing(string? value, string message)
