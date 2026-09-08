@@ -69,6 +69,12 @@
         position: relative;
         overflow: hidden;
         border-radius: 8px;
+        /* Encabezados mas compactos: el tema deja 1rem de sangria en el titulo y
+           reserva 1.25rem para el icono de orden, y eso recortaba los titulos. */
+        --rz-grid-header-cell-padding: .3rem 0;
+        --rz-grid-header-title-padding: 0;
+        --rz-grid-sort-icon-width: .7rem;
+        --rz-grid-sort-icon-height: .7rem;
     }
 
     .tablacontent .rz-datatable-tablewrapper,
@@ -76,35 +82,64 @@
         border-radius: 8px 8px 0 0 !important;
     }
 
-    .tablacontent .rz-cell-data,
-    .tablacontent .rz-column-title-content {
-        font-size: 11.2px !important;
-    }
-
     .tablacontent .rz-cell-data {
+        font-size: 11.2px !important;
         overflow: hidden !important;
         text-overflow: ellipsis;
         white-space: nowrap !important;
     }
 
+    .tablacontent .rz-grid-table td,
+    .tablacontent .rz-grid-table th {
+        padding-left: .32rem !important;
+        padding-right: .32rem !important;
+    }
+
+    /* El tema global pone 1rem de padding vertical en el encabezado: lo bajamos y
+       dejamos que el titulo use dos lineas en vez de recortarse. */
+    .tablacontent .rz-grid-table thead th,
     .tablacontent th.rz-unselectable-text.rz-text-align-left {
-        background-color: #f1f5f9;
-        color: #334155;
+        padding-top: .3rem !important;
+        padding-bottom: .3rem !important;
+        white-space: normal !important;
+        vertical-align: middle;
+    }
+
+    .tablacontent th.rz-unselectable-text.rz-text-align-left {
         position: sticky;
         top: 0;
         z-index: 2;
     }
 
-    .tablacontent .rz-grid-table td,
-    .tablacontent .rz-grid-table th {
-        padding-left: .42rem !important;
-        padding-right: .42rem !important;
+    .tablacontent .rz-grid-table thead th .rz-column-title {
+        align-items: center;
+        gap: .1rem;
+        line-height: 1.25;
+        white-space: normal;
+        overflow: hidden;
     }
 
-    .tablacontent .rz-grid-table thead th,
-    .tablacontent th.rz-unselectable-text.rz-text-align-left {
-        padding-top: .75rem !important;
-        padding-bottom: .75rem !important;
+    /* Corta en los espacios (nunca dentro de una palabra) y recien como ultimo
+       recurso, si una palabra sola no entra, recorta con puntos suspensivos. */
+    .tablacontent .rz-grid-table thead th .rz-column-title-content {
+        flex: 0 1 auto;
+        min-width: 0;
+        font-size: 11.2px;
+        white-space: normal;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* El icono de orden queda pegado al titulo: tenue si la columna no ordena,
+       marcado en la columna por la que se esta ordenando. */
+    .tablacontent .rz-grid-table thead th .rzi-grid-sort {
+        flex: 0 0 auto;
+        opacity: .4;
+    }
+
+    .tablacontent .rz-grid-table thead th .rzi-sort-asc,
+    .tablacontent .rz-grid-table thead th .rzi-sort-desc {
+        opacity: 1;
     }
 
     .rz-paginator {
@@ -209,13 +244,13 @@
                         </div>
                     </EmptyTemplate>
                     <Columns>
-                        <RadzenDataGridColumn TItem="SocioDTO" Property="Codpos2" Title="Nro Socio" Width="3.6%">
+                        <RadzenDataGridColumn TItem="SocioDTO" Property="Codpos2" Title="Nro Socio" Width="6%">
                             <Template Context="data">
                                 @data.CodigoVisible()
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="SocioDTO" Property="Placod" Title="Plantel" Width="3%" />
-                        <RadzenDataGridColumn TItem="SocioDTO" Property="Criador" Title="Activo?" Width="3.33%">
+                        <RadzenDataGridColumn TItem="SocioDTO" Property="Placod" Title="Plantel" Width="6.5%" />
+                        <RadzenDataGridColumn TItem="SocioDTO" Property="Criador" Title="Activo?" Width="6.5%">
                             <Template Context="data">
                                 @if (EsActivo(data))
                                 {
@@ -227,14 +262,14 @@
                                 }
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="SocioDTO" Property="Nombre" Title="Nombre" Width="9.3%" />
-                        <RadzenDataGridColumn TItem="SocioDTO" Property="Direcc1" Title="Domicilio" Width="5.6%" />
-                        <RadzenDataGridColumn TItem="SocioDTO" Property="Locali1" Title="Localidad" Width="6.6%" />
-                        <RadzenDataGridColumn TItem="SocioDTO" Property="Codpos1" Title="Cod. Postal" Width="4.3%" />
-                        <RadzenDataGridColumn TItem="SocioDTO" Property="Provincia.Nombre" Title="Provincia" Width="5%" />
-                        <RadzenDataGridColumn TItem="SocioDTO" Property="Telefo1" Title="Telefono" Width="5%" />
-                        <RadzenDataGridColumn TItem="SocioDTO" Property="Mail" Title="Mail" Width="6.6%" />
-                        <RadzenDataGridColumn TItem="SocioDTO" Property="Fecing" Title="Fecha de Creacion" Width="6.6%">
+                        <RadzenDataGridColumn TItem="SocioDTO" Property="Nombre" Title="Nombre" Width="12%" />
+                        <RadzenDataGridColumn TItem="SocioDTO" Property="Direcc1" Title="Domicilio" Width="9%" />
+                        <RadzenDataGridColumn TItem="SocioDTO" Property="Locali1" Title="Localidad" Width="8.5%" />
+                        <RadzenDataGridColumn TItem="SocioDTO" Property="Codpos1" Title="Cod. Postal" Width="6.5%" />
+                        <RadzenDataGridColumn TItem="SocioDTO" Property="Provincia.Nombre" Title="Provincia" Width="8%" />
+                        <RadzenDataGridColumn TItem="SocioDTO" Property="Telefo1" Title="Telefono" Width="7.5%" />
+                        <RadzenDataGridColumn TItem="SocioDTO" Property="Mail" Title="Mail" Width="10%" />
+                        <RadzenDataGridColumn TItem="SocioDTO" Property="Fecing" Title="Fecha de Creacion" Width="7.5%">
                             <Template Context="data">
                                 @if (data.Fecing.HasValue)
                                 {
@@ -244,14 +279,14 @@
                         </RadzenDataGridColumn>
                         @if (CanUseAdminControls)
                         {
-                            <RadzenDataGridColumn TItem="SocioDTO" Title="" Filterable="false" Sortable="false" Width="3%">
+                            <RadzenDataGridColumn TItem="SocioDTO" Title="" Filterable="false" Sortable="false" Width="4%">
                                 <Template Context="data">
                                     <button class="table-action" title="Editar Socio" @onclick="() => AddAsync(data.Id, data.Scod)">
                                         <FeatherEdit Size="16" Color="green" />
                                     </button>
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="SocioDTO" Title="" Filterable="false" Sortable="false" Width="3%">
+                            <RadzenDataGridColumn TItem="SocioDTO" Title="" Filterable="false" Sortable="false" Width="4%">
                                 <Template Context="data">
                                     <button class="table-action" title="Eliminar" @onclick="() => AlertDelete(data.Id, data.Scod)">
                                         <FeatherTrash2 Size="16" Color="red" />
@@ -259,7 +294,7 @@
                                 </Template>
                             </RadzenDataGridColumn>
                         }
-                        <RadzenDataGridColumn TItem="SocioDTO" Title="" Filterable="false" Sortable="false" Width="3%">
+                        <RadzenDataGridColumn TItem="SocioDTO" Title="" Filterable="false" Sortable="false" Width="4%">
                             <Template Context="data">
                                 <button class="table-action" title="Ver info" @onclick="() => GoToInfoAsync(data.Id, data.Scod)">
                                     <FeatherInfo Size="16" Color="blue" />
