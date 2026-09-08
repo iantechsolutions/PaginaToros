@@ -15,7 +15,9 @@ namespace PaginaToros.Server.Repositorio.Contrato
             int skip,
             int take,
             string? searchText = null,
-            IReadOnlyCollection<int>? allowedSocioIds = null);
+            IReadOnlyCollection<int>? allowedSocioIds = null,
+            string? sortBy = null,
+            bool sortDescending = false);
         Task<bool> Eliminar(Socio entidad);
         Task<Socio> Crear(Socio entidad);
         Task<bool> Editar(Socio entidad);

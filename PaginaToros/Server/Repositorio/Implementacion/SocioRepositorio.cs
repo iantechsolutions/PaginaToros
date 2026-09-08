@@ -12,6 +12,38 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 {
     public class SocioRepositorio : ISocioRepositorio
     {
+        private const string SortFieldCodigo = "Codpos2";
+        private const string SortFieldPlantel = "Placod";
+        private const string SortFieldActivo = "Criador";
+        private const string SortFieldNombre = "Nombre";
+        private const string SortFieldDomicilio = "Direcc1";
+        private const string SortFieldLocalidad = "Locali1";
+        private const string SortFieldCodigoPostal = "Codpos1";
+        private const string SortFieldProvincia = "Provincia.Nombre";
+        private const string SortFieldTelefono = "Telefo1";
+        private const string SortFieldMail = "Mail";
+        private const string SortFieldFecing = "Fecing";
+
+        /// <summary>
+        /// Columnas por las que se permite ordenar el listado. Actua como lista blanca:
+        /// cualquier otro valor recibido se ignora y se usa el orden por defecto.
+        /// </summary>
+        private static readonly IReadOnlyDictionary<string, string> SortableFields =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                [SortFieldCodigo] = SortFieldCodigo,
+                [SortFieldPlantel] = SortFieldPlantel,
+                [SortFieldActivo] = SortFieldActivo,
+                [SortFieldNombre] = SortFieldNombre,
+                [SortFieldDomicilio] = SortFieldDomicilio,
+                [SortFieldLocalidad] = SortFieldLocalidad,
+                [SortFieldCodigoPostal] = SortFieldCodigoPostal,
+                [SortFieldProvincia] = SortFieldProvincia,
+                [SortFieldTelefono] = SortFieldTelefono,
+                [SortFieldMail] = SortFieldMail,
+                [SortFieldFecing] = SortFieldFecing,
+            };
+
         private readonly hereford_prContext _dbContext;
 
         public SocioRepositorio(hereford_prContext dbContext)
@@ -396,7 +428,9 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             int skip,
             int take,
             string? searchText = null,
-            IReadOnlyCollection<int>? allowedSocioIds = null)
+            IReadOnlyCollection<int>? allowedSocioIds = null,
+            string? sortBy = null,
+            bool sortDescending = false)
         {
             try
             {
@@ -407,7 +441,6 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
                 IQueryable<Socio> query = _dbContext.Socios
                     .AsNoTracking()
-                    .Where(x => x.Criador == "S")
                     .Include(x => x.Provincia);
 
                 if (allowedSocioIds != null && allowedSocioIds.Count > 0)
@@ -420,10 +453,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = ApplySearchFilter(query, searchText);
                 }
 
-                query = ApplyCreationOrder(query);
-
                 var totalCount = await query.CountAsync();
-                var items = await query
+                var items = await ApplySocioOrder(query, sortBy, sortDescending)
                     .Skip(Math.Max(0, skip))
                     .Take(take)
                     .ToListAsync();
@@ -435,6 +466,75 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
+        /// <summary>
+        /// Ordena el listado de socios. Los inactivos quedan siempre al final, salvo que se
+        /// pida ordenar justamente por esa columna.
+        /// </summary>
+        private static IOrderedQueryable<Socio> ApplySocioOrder(IQueryable<Socio> query, string? sortBy, bool descending)
+        {
+            var field = NormalizeSortField(sortBy);
+
+            IOrderedQueryable<Socio> ordered = field == SortFieldActivo
+                ? ApplyOrder(query, x => x.Criador == "S", descending)
+                : query.OrderByDescending(x => x.Criador == "S");
+
+            if (field == null)
+            {
+                return ThenByCreationOrder(ordered);
+            }
+
+            ordered = field switch
+            {
+                SortFieldCodigo => ThenBy(
+                    ThenBy(ordered, x => (x.Codpos2 ?? x.Scod).Length, descending),
+                    x => x.Codpos2 ?? x.Scod,
+                    descending),
+                SortFieldNombre => ThenBy(
+                    ThenBy(ordered, x => x.Nombre, descending),
+                    x => x.Prenom,
+                    descending),
+                SortFieldFecing => ThenBy(
+                    ThenBy(ordered, x => x.Fecing.HasValue, true),
+                    x => x.Fecing,
+                    descending),
+                SortFieldPlantel => ThenBy(ordered, x => x.Placod, descending),
+                SortFieldDomicilio => ThenBy(ordered, x => x.Direcc1, descending),
+                SortFieldLocalidad => ThenBy(ordered, x => x.Locali1, descending),
+                SortFieldCodigoPostal => ThenBy(ordered, x => x.Codpos1, descending),
+                SortFieldProvincia => ThenBy(ordered, x => x.Provincia!.Nombre, descending),
+                SortFieldTelefono => ThenBy(ordered, x => x.Telefo1, descending),
+                SortFieldMail => ThenBy(ordered, x => x.Mail, descending),
+                _ => ordered
+            };
+
+            return ordered.ThenByDescending(x => x.Id);
+        }
+
+        private static string? NormalizeSortField(string? sortBy)
+            => !string.IsNullOrWhiteSpace(sortBy) && SortableFields.TryGetValue(sortBy.Trim(), out var field)
+                ? field
+                : null;
+
+        private static IOrderedQueryable<Socio> ApplyOrder<TKey>(
+            IQueryable<Socio> query,
+            Expression<Func<Socio, TKey>> keySelector,
+            bool descending)
+            => descending ? query.OrderByDescending(keySelector) : query.OrderBy(keySelector);
+
+        private static IOrderedQueryable<Socio> ThenBy<TKey>(
+            IOrderedQueryable<Socio> query,
+            Expression<Func<Socio, TKey>> keySelector,
+            bool descending)
+            => descending ? query.ThenByDescending(keySelector) : query.ThenBy(keySelector);
+
+        private static IOrderedQueryable<Socio> ThenByCreationOrder(IOrderedQueryable<Socio> query)
+            => query
+                .ThenByDescending(x => x.Fecing.HasValue)
+                .ThenByDescending(x => x.Fecing)
+                .ThenByDescending(x => x.FchUsu.HasValue)
+                .ThenByDescending(x => x.FchUsu)
+                .ThenByDescending(x => x.Id);
 
         private static IOrderedQueryable<Socio> ApplyCreationOrder(IQueryable<Socio> query)
             => query

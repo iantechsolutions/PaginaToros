@@ -2,9 +2,20 @@
 @inject ISocioServicio _socioServicio
 
 <style>
+    /* El layout centra el contenido a 1380px: en esta pagina lo liberamos para que la
+       tabla use todo el ancho disponible y no quede espacio muerto a los costados. */
+    .app-body .app-content {
+        max-width: none;
+    }
+
+    .page .app-body {
+        padding-left: .5rem;
+        padding-right: .5rem;
+    }
+
     .socios-page {
         width: 100%;
-        margin: 0 auto 2rem;
+        margin: 0 0 1rem;
         color: #172033;
     }
 
@@ -13,9 +24,8 @@
         align-items: flex-start;
         justify-content: space-between;
         gap: 1rem;
-        margin: 1rem 0;
-        width: 93.5%;
-        margin-left: 3.33%;
+        margin: .75rem 0;
+        width: 100%;
     }
 
     .socios-title {
@@ -30,8 +40,7 @@
     }
 
     .socios-card {
-        width: 93.5%;
-        margin-left: 3.33%;
+        width: 100%;
         border: 1px solid #dbe3cf;
         border-radius: 8px;
         background: #fffdf8;
@@ -122,12 +131,11 @@
         background: #fff;
     }
 
+    /* La barra lateral fija termina en 17.25rem, dejamos apenas un respiro. */
     @@media (min-width: 1200px) {
-        .socios-page {
-            width: calc(100vw - 20.75rem);
-            max-width: none;
-            margin-left: calc((100% - (100vw - 20.75rem)) / 2);
-            margin-right: 0;
+        .page .app-body {
+            padding-left: 17.9rem;
+            padding-right: .75rem;
         }
     }
 
@@ -184,10 +192,11 @@
                                 Data="@items"
                                 Count="@cantidad"
                                 LoadData="LoadData"
+                                Sort="OnSortChanged"
                                 IsLoading="@isLoading"
                                 AllowFiltering="false"
                                 AllowColumnResize="true"
-                                AllowSorting="false"
+                                AllowSorting="true"
                                 AllowPaging="true"
                                 ShowPagingSummary="true"
                                 PageSize="15"
@@ -208,7 +217,7 @@
                         <RadzenDataGridColumn TItem="SocioDTO" Property="Placod" Title="Plantel" Width="3%" />
                         <RadzenDataGridColumn TItem="SocioDTO" Property="Criador" Title="Activo?" Width="3.33%">
                             <Template Context="data">
-                                @if (data.Criador == "S")
+                                @if (EsActivo(data))
                                 {
                                     <a style="color:green">Si</a>
                                 }
@@ -225,7 +234,7 @@
                         <RadzenDataGridColumn TItem="SocioDTO" Property="Provincia.Nombre" Title="Provincia" Width="5%" />
                         <RadzenDataGridColumn TItem="SocioDTO" Property="Telefo1" Title="Telefono" Width="5%" />
                         <RadzenDataGridColumn TItem="SocioDTO" Property="Mail" Title="Mail" Width="6.6%" />
-                        <RadzenDataGridColumn TItem="SocioDTO" Property="FechaExistencia" Title="Fecha de Creacion" Width="6.6%">
+                        <RadzenDataGridColumn TItem="SocioDTO" Property="Fecing" Title="Fecha de Creacion" Width="6.6%">
                             <Template Context="data">
                                 @if (data.Fecing.HasValue)
                                 {
@@ -306,7 +315,14 @@
         try
         {
             currentPage = grid?.CurrentPage ?? 0;
-            var response = await _socioServicio.SearchPaged(args.Skip ?? 0, args.Top ?? 15, searchText);
+
+            var sort = args.Sorts?.FirstOrDefault();
+            var response = await _socioServicio.SearchPaged(
+                args.Skip ?? 0,
+                args.Top ?? 15,
+                searchText,
+                sort?.Property,
+                sort?.SortOrder == SortOrder.Descending);
 
             if (requestId != loadRequestVersion)
             {
@@ -338,6 +354,18 @@
             }
         }
     }
+
+    private async Task OnSortChanged(DataGridColumnSortEventArgs<SocioDTO> args)
+    {
+        // Radzen conserva la pagina actual al reordenar: volvemos al principio del listado.
+        if (grid != null && grid.CurrentPage > 0)
+        {
+            await grid.FirstPage(true);
+        }
+    }
+
+    private static bool EsActivo(SocioDTO socio)
+        => string.Equals(socio.Criador?.Trim(), "S", StringComparison.OrdinalIgnoreCase);
 
     private async Task<bool> UserHasAnyRoleAsync(params string[] roles)
     {

@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Implementacion;
@@ -49,6 +49,77 @@ public class SocioRepositorioSearchTests
 
         Assert.Empty(result.Items);
         Assert.Equal(0, result.TotalCount);
+    }
+
+    [Fact]
+    public async Task SearchPagedAsync_IncluyeInactivosAlFinal()
+    {
+        using var scope = CreateContext();
+        Seed(scope.Context);
+        SeedInactivo(scope.Context);
+
+        var repo = new SocioRepositorio(scope.Context);
+        var result = await repo.SearchPagedAsync(0, 10, null);
+
+        Assert.Equal(3, result.TotalCount);
+        Assert.Equal(new[] { 2, 1, 3 }, result.Items.Select(x => x.Id).ToArray());
+    }
+
+    [Theory]
+    [InlineData(false, new[] { 1, 2, 3 })]
+    [InlineData(true, new[] { 2, 1, 3 })]
+    public async Task SearchPagedAsync_OrdenaPorColumna_YDejaLosInactivosAlFinal(bool descending, int[] expectedIds)
+    {
+        using var scope = CreateContext();
+        Seed(scope.Context);
+        SeedInactivo(scope.Context);
+
+        var repo = new SocioRepositorio(scope.Context);
+        var result = await repo.SearchPagedAsync(0, 10, sortBy: "Nombre", sortDescending: descending);
+
+        Assert.Equal(expectedIds, result.Items.Select(x => x.Id).ToArray());
+    }
+
+    [Fact]
+    public async Task SearchPagedAsync_OrdenandoPorActivo_PermiteVerLosInactivosPrimero()
+    {
+        using var scope = CreateContext();
+        Seed(scope.Context);
+        SeedInactivo(scope.Context);
+
+        var repo = new SocioRepositorio(scope.Context);
+        var result = await repo.SearchPagedAsync(0, 10, sortBy: "Criador");
+
+        Assert.Equal(3, result.Items.First().Id);
+    }
+
+    [Fact]
+    public async Task SearchPagedAsync_OrdenaElNroDeSocioComoNumero()
+    {
+        using var scope = CreateContext();
+        Seed(scope.Context);
+        SeedInactivo(scope.Context);
+        scope.Context.Socios.Add(new Socio { Id = 4, Scod = "0004", Codpos2 = "999", Nombre = "Corto", Criador = "S" });
+        scope.Context.SaveChanges();
+        scope.Context.ChangeTracker.Clear();
+
+        var repo = new SocioRepositorio(scope.Context);
+        var result = await repo.SearchPagedAsync(0, 10, sortBy: "Codpos2");
+
+        Assert.Equal(new[] { "999", "1001", "1002", "1003" }, result.Items.Select(x => x.Codpos2).ToArray());
+    }
+
+    [Fact]
+    public async Task SearchPagedAsync_IgnoraColumnasNoPermitidas()
+    {
+        using var scope = CreateContext();
+        Seed(scope.Context);
+        SeedInactivo(scope.Context);
+
+        var repo = new SocioRepositorio(scope.Context);
+        var result = await repo.SearchPagedAsync(0, 10, sortBy: "Mail.Substring(0)");
+
+        Assert.Equal(new[] { 2, 1, 3 }, result.Items.Select(x => x.Id).ToArray());
     }
 
     private static TestContextScope CreateContext()
@@ -174,6 +245,24 @@ public class SocioRepositorioSearchTests
                 Created = DateTime.UtcNow,
                 SocioId = socioDos.Id
             });
+
+        context.SaveChanges();
+        context.ChangeTracker.Clear();
+    }
+
+    private static void SeedInactivo(hereford_prContext context)
+    {
+        context.Socios.Add(new Socio
+        {
+            Id = 3,
+            Scod = "0003",
+            Codpos2 = "1003",
+            Prenom = "Aaa",
+            Nombre = "Aaa",
+            Posnom = "Inactivo",
+            Criador = "N",
+            Fecing = new DateTime(2030, 1, 1)
+        });
 
         context.SaveChanges();
         context.ChangeTracker.Clear();

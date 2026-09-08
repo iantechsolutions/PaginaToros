@@ -273,7 +273,7 @@ namespace PaginaToros.Server.Controllers
 
         [HttpGet]
         [Route("SearchPaged")]
-        public async Task<IActionResult> SearchPaged(int skip, int take, string? searchText = null)
+        public async Task<IActionResult> SearchPaged(int skip, int take, string? searchText = null, string? sortBy = null, bool sortDescending = false)
         {
             Respuesta<SocioPagedResponse> _ResponseDTO = new Respuesta<SocioPagedResponse>();
 
@@ -291,7 +291,9 @@ namespace PaginaToros.Server.Controllers
                         skip,
                         take,
                         searchText,
-                        new[] { accessContext.ActiveSocioId.Value });
+                        new[] { accessContext.ActiveSocioId.Value },
+                        sortBy,
+                        sortDescending);
 
                     _ResponseDTO = new Respuesta<SocioPagedResponse>
                     {
@@ -307,7 +309,13 @@ namespace PaginaToros.Server.Controllers
                     return StatusCode(StatusCodes.Status200OK, _ResponseDTO);
                 }
 
-                var result = await _SocioRepositorio.SearchPagedAsync(skip, take, searchText);
+                var result = await _SocioRepositorio.SearchPagedAsync(
+                    skip,
+                    take,
+                    searchText,
+                    null,
+                    sortBy,
+                    sortDescending);
 
                 _ResponseDTO = new Respuesta<SocioPagedResponse>
                 {
