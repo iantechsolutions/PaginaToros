@@ -161,20 +161,39 @@ static async Task EnsureTransferAuditSchemaAsync(IServiceProvider services)
     using var scope = services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<hereford_prContext>();
 
-    const string sql = @"
+    const string auditsSql = @"
         ALTER TABLE `TRANSAN_TRANSFER_AUDITS`
             ADD COLUMN IF NOT EXISTS `plantel_origen_codigo` VARCHAR(20) NULL,
             ADD COLUMN IF NOT EXISTS `plantel_destino_codigo` VARCHAR(20) NULL,
             ADD COLUMN IF NOT EXISTS `plantel_origen_anioex` VARCHAR(4) NULL,
             ADD COLUMN IF NOT EXISTS `plantel_destino_anioex` VARCHAR(4) NULL;";
 
+    // La cola de mails se escribe dentro de la misma transacción que la
+    // transferencia: si le falta una columna, la transferencia entera se
+    // revierte. En producción TRANSAN_MAIL_OUTBOX se creó a mano sin
+    // `ultimo_intento` y eso rompió todos los guardados sin dejar rastro
+    // visible, así que la aseguramos igual que la tabla de auditoría.
+    const string outboxSql = @"
+        ALTER TABLE `TRANSAN_MAIL_OUTBOX`
+            ADD COLUMN IF NOT EXISTS `ultimo_intento` DATETIME NULL;";
+
     try
     {
-        await db.Database.ExecuteSqlRawAsync(sql);
+        await db.Database.ExecuteSqlRawAsync(auditsSql);
     }
     catch (Exception ex)
     {
         Console.Error.WriteLine($"No se pudo asegurar el esquema de TRANSAN_TRANSFER_AUDITS: {ex.Message}");
+        throw;
+    }
+
+    try
+    {
+        await db.Database.ExecuteSqlRawAsync(outboxSql);
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"No se pudo asegurar el esquema de TRANSAN_MAIL_OUTBOX: {ex.Message}");
         throw;
     }
 }

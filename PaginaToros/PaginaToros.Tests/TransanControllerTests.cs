@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -158,12 +158,62 @@ public class TransanControllerTests
         Assert.Equal(118, buyer.Vqcsrp);
     }
 
-    private static TransanController CreateController(hereford_prContext context)
+    [Fact]
+    public async Task Guardar_RejectsPlantelThatBelongsToAnotherSocio()
+    {
+        // El lookup de planteles filtra por socio en el cliente, pero el server
+        // recibe PlantOrigenId crudo: sin revalidar, un request armado a mano movia
+        // stock del plantel de otra razon social.
+        using var scope = CreateContext();
+        Seed(scope.Context);
+
+        var controller = CreateController(scope.Context);
+        var request = BuildCreateRequest();
+        // P002 pertenece al socio 2000, pero el vendedor declarado es el 1000.
+        request.Transan.Plant = "P002";
+        request.Transan.PlantOrigenId = 2;
+        request.PlantOrigenId = 2;
+        request.Transan.NvoPla = "P001";
+        request.Transan.PlantDestinoId = 1;
+        request.PlantDestinoId = 1;
+
+        var result = await controller.Guardar(request);
+
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        var response = Assert.IsType<Respuesta<TransanDTO>>(badRequest.Value);
+        Assert.Equal(0, response.Exito);
+        Assert.Contains("no pertenece", response.Mensaje);
+
+        Assert.False(await scope.Context.Transans.AnyAsync(x => x.Id != 1));
+        var untouched = await scope.Context.Planteles.FirstAsync(x => x.Id == 2);
+        Assert.Equal(5, untouched.Varede);
+    }
+
+    [Fact]
+    public async Task Guardar_DeniesUnauthenticatedCaller()
+    {
+        // Sin [Authorize] y con CanAccessTransfer devolviendo true para contextos
+        // anonimos, Guardar quedaba abierto a cualquiera que llamara la API.
+        using var scope = CreateContext();
+        Seed(scope.Context);
+
+        var controller = CreateController(scope.Context, new UserSocioAccessContext());
+
+        var result = await controller.Guardar(BuildCreateRequest());
+
+        var denied = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status403Forbidden, denied.StatusCode);
+        Assert.False(await scope.Context.Transans.AnyAsync(x => x.Id != 1));
+    }
+
+    private static TransanController CreateController(
+        hereford_prContext context,
+        UserSocioAccessContext? accessContext = null)
     {
         var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile<AutoMapperProfile>());
         var mapper = mapperConfig.CreateMapper();
         var repo = new TransanRepositorio(context);
-        var accessService = new TestUserSocioContextService();
+        var accessService = new TestUserSocioContextService(accessContext);
 
         return new TransanController(
             context,
@@ -338,14 +388,21 @@ public class TransanControllerTests
 
     private sealed class TestUserSocioContextService : IUserSocioContextService
     {
-        public Task<UserSocioAccessContext> ResolveAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
-            => Task.FromResult(new UserSocioAccessContext
+        private readonly UserSocioAccessContext _context;
+
+        public TestUserSocioContextService(UserSocioAccessContext? context = null)
+        {
+            _context = context ?? new UserSocioAccessContext
             {
                 IsAuthenticated = true,
                 IsSocioUser = false,
                 IsPrivilegedUser = true,
                 AllowedSocioIds = Array.Empty<int>()
-            });
+            };
+        }
+
+        public Task<UserSocioAccessContext> ResolveAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
+            => Task.FromResult(_context);
 
         public Task<bool> CanAccessSocioAsync(ClaimsPrincipal principal, int socioId, CancellationToken cancellationToken = default)
             => Task.FromResult(true);

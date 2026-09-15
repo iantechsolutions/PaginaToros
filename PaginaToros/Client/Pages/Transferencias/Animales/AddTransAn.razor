@@ -119,7 +119,7 @@
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
                         <label class="col-sm">Nro Certificado</label>
-                        <InputText @bind-Value="@oTransan.NroCert" class="form-control" placeholder="" />
+                        <InputText @bind-Value="@oTransan.NroCert" class="form-control" maxlength="10" placeholder="" />
                     </div>
                     <div class="col-sm">
                         <label>Fecha de venta</label><br />
@@ -327,8 +327,10 @@
             </div>
             <br />
 
-            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
-            <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
+            <button type="submit" class="btn btn-primary mr-2" disabled="@guardando">
+                @(guardando ? "Guardando..." : "Aceptar")
+            </button>
+            <button type="button" @onclick="cancel" class="btn btn-light" disabled="@guardando">Cancelar</button>
         </EditForm>
     </div>
 </div>
@@ -361,6 +363,9 @@ else
     PlantelDTO? plantelDestino = null;
     PlantelDTO? plantelPanelSeleccionado = null;
     bool plantelPanelAbierto = false;
+    // Sin esto, dos clicks seguidos en Aceptar mandan dos POST y se cargan dos
+    // transferencias que descuentan el stock del plantel origen dos veces.
+    bool guardando = false;
 
 
     private ClaimsPrincipal? user;
@@ -457,6 +462,11 @@ else
     }
     async Task Guardar()
     {
+        if (guardando)
+        {
+            return;
+        }
+
         var errores = new List<string>();
 
         if (oTransan.Fecvta == null) errores.Add("La fecha de venta es obligatoria.");
@@ -565,6 +575,7 @@ else
         // Sin este try/catch, una respuesta que no sea JSON (500 sin cuerpo, sesión
         // vencida, timeout) rompe el modal con el error genérico de Blazor y el
         // usuario pierde todo lo que cargó.
+        guardando = true;
         try
         {
             if (Id == 0)
@@ -593,6 +604,10 @@ else
         catch (Exception ex)
         {
             await MostrarErrorGuardado($"Ocurrió un error inesperado al comunicarse con el servidor: {ex.Message}");
+        }
+        finally
+        {
+            guardando = false;
         }
     }
 

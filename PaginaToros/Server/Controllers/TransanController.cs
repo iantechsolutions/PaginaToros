@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PaginaToros.Client.Pages.Socios;
@@ -20,6 +21,7 @@ namespace PaginaToros.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TransanController : ControllerBase
     {
         private readonly hereford_prContext db;
@@ -467,6 +469,12 @@ namespace PaginaToros.Server.Controllers
 
                 return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Transan.Eliminar falló por DbUpdateException. TransanId={TransanId}", id);
+                _Respuesta = new Respuesta<string>() { Exito = 0, Mensaje = BuildDbUpdateMessage(ex) };
+                return BadRequest(_Respuesta);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Transan.Eliminar falló. TransanId={TransanId}", id);
@@ -535,6 +543,7 @@ namespace PaginaToros.Server.Controllers
                     var sellerPlant = await ResolveTransferPlantelAsync(request.Transan.PlantOrigenId, request.Transan.Plant, "de origen");
                     var buyerPlant = await ResolveTransferPlantelAsync(request.Transan.PlantDestinoId, request.Transan.NvoPla, "de destino");
                     ApplyTransferPlantelMetadata(transan, sellerPlant, buyerPlant);
+                    ApplyTransferPlantelMetadata(request.Transan, sellerPlant, buyerPlant);
                     _logger.LogInformation("Transan.Guardar impacto calculado. Bucket={Bucket} OrigenAntes={OrigenAntes} OrigenDespues={OrigenDespues} DestinoAntes={DestinoAntes} DestinoDespues={DestinoDespues}",
                         impacto.FieldName,
                         impacto.OrigenAntes,
@@ -669,6 +678,7 @@ namespace PaginaToros.Server.Controllers
                     var sellerPlant = await ResolveTransferPlantelAsync(request.Transan.PlantOrigenId, request.Transan.Plant, "de origen");
                     var buyerPlant = await ResolveTransferPlantelAsync(request.Transan.PlantDestinoId, request.Transan.NvoPla, "de destino");
                     ApplyTransferPlantelMetadata(existing, sellerPlant, buyerPlant);
+                    ApplyTransferPlantelMetadata(request.Transan, sellerPlant, buyerPlant);
                     _logger.LogInformation("Transan.Editar nuevo impacto calculado. TransanId={TransanId} Bucket={Bucket} OrigenAntes={OrigenAntes} OrigenDespues={OrigenDespues} DestinoAntes={DestinoAntes} DestinoDespues={DestinoDespues}",
                         request.Transan.Id,
                         impacto.FieldName,
@@ -814,6 +824,9 @@ namespace PaginaToros.Server.Controllers
             if (transan.Fecvta == null)
                 errores.Add("La fecha de venta es obligatoria.");
 
+            if (!string.IsNullOrWhiteSpace(transan.NroCert) && transan.NroCert.Length > TransferenciaCampoLimites.NroCertificado)
+                errores.Add($"El nro. de certificado supera el largo permitido (máx {TransferenciaCampoLimites.NroCertificado} caracteres).");
+
             if (request.VendedorId <= 0)
                 errores.Add("Debés seleccionar un socio vendedor válido.");
 
@@ -847,9 +860,13 @@ namespace PaginaToros.Server.Controllers
                 errores.Add("El plantel de origen y el plantel de destino no pueden ser el mismo.");
             }
 
+            // El cliente manda PlantOrigenId/PlantDestinoId elegidos de un lookup ya
+            // filtrado por socio, pero el server nunca lo revalidaba: un request armado
+            // a mano podía mover stock del plantel de cualquier otra razón social.
+            Plantel? sellerPlant = null;
             try
             {
-                await ResolveTransferPlantelAsync(
+                sellerPlant = await ResolveTransferPlantelAsync(
                     request.PlantOrigenId ?? transan.PlantOrigenId,
                     transan.Plant,
                     "de origen");
@@ -859,9 +876,10 @@ namespace PaginaToros.Server.Controllers
                 errores.Add(ex.Message);
             }
 
+            Plantel? buyerPlant = null;
             try
             {
-                await ResolveTransferPlantelAsync(
+                buyerPlant = await ResolveTransferPlantelAsync(
                     request.PlantDestinoId ?? transan.PlantDestinoId,
                     transan.NvoPla,
                     "de destino");
@@ -870,6 +888,13 @@ namespace PaginaToros.Server.Controllers
             {
                 errores.Add(ex.Message);
             }
+
+            if (sellerPlant != null && !PlantelPerteneceASocio(sellerPlant, transan.Sven))
+                errores.Add("El plantel de origen no pertenece al socio vendedor seleccionado.");
+
+            if (buyerPlant != null && !string.IsNullOrWhiteSpace(transan.Scom) &&
+                !PlantelPerteneceASocio(buyerPlant, transan.Scom))
+                errores.Add("El plantel de destino no pertenece al socio comprador seleccionado.");
 
             var cantidades = new[]
             {
@@ -974,6 +999,31 @@ namespace PaginaToros.Server.Controllers
                 return "La tabla de auditoría de transferencias está desactualizada. Ejecutá la actualización de esquema para agregar los campos plantel_origen_anioex y plantel_destino_anioex.";
             }
 
+            // Cualquier otro desfasaje entre el modelo y el esquema tiene que nombrar
+            // la columna o la tabla. El mensaje genérico manda a revisar el formulario,
+            // que no es donde está el problema, y deja el error invisible para quien
+            // opera: así se perdió el caso de 'ultimo_intento' en TRANSAN_MAIL_OUTBOX.
+            var columnaDesconocida = TryGetUnknownColumn(innerMessage);
+            if (columnaDesconocida != null)
+            {
+                return $"La base de datos no tiene la columna '{columnaDesconocida}' que el sistema necesita para " +
+                       "guardar la transferencia. El esquema quedó desactualizado: ejecutá los scripts pendientes de Server/Sql.";
+            }
+
+            var tablaFaltante = TryGetMissingTable(innerMessage);
+            if (tablaFaltante != null)
+            {
+                return $"Falta la tabla '{tablaFaltante}' en la base de datos. El esquema quedó desactualizado: " +
+                       "ejecutá los scripts pendientes de Server/Sql.";
+            }
+
+            var columnaObligatoria = TryGetNotNullColumn(innerMessage);
+            if (columnaObligatoria != null)
+            {
+                return $"El valor de '{DescribirColumna(columnaObligatoria)}' no puede quedar vacío " +
+                       $"(columna {columnaObligatoria}).";
+            }
+
             return "No se pudo guardar la transferencia por un error de datos. Revisá los campos ingresados.";
         }
 
@@ -981,9 +1031,39 @@ namespace PaginaToros.Server.Controllers
             @"Data too long for column '(?<col>[^']+)'",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        private static readonly Regex UnknownColumnRegex = new(
+            @"Unknown column '(?<col>[^']+)'",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static readonly Regex MissingTableRegex = new(
+            @"Table '(?<table>[^']+)' doesn'?t exists?",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static readonly Regex ColumnCannotBeNullRegex = new(
+            @"Column '(?<col>[^']+)' cannot be null",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private static string? TryGetOverflowedColumn(string message)
         {
             var match = DataTooLongRegex.Match(message);
+            return match.Success ? match.Groups["col"].Value : null;
+        }
+
+        private static string? TryGetUnknownColumn(string message)
+        {
+            var match = UnknownColumnRegex.Match(message);
+            return match.Success ? match.Groups["col"].Value : null;
+        }
+
+        private static string? TryGetMissingTable(string message)
+        {
+            var match = MissingTableRegex.Match(message);
+            return match.Success ? match.Groups["table"].Value : null;
+        }
+
+        private static string? TryGetNotNullColumn(string message)
+        {
+            var match = ColumnCannotBeNullRegex.Match(message);
             return match.Success ? match.Groups["col"].Value : null;
         }
 
@@ -1235,6 +1315,17 @@ namespace PaginaToros.Server.Controllers
             existing.CodUsu = request.CodUsu;
         }
 
+        // La auditoría se arma desde el DTO, no desde la entidad, así que si el
+        // snapshot sólo se aplica a la entidad el audit queda sin código ni año de
+        // plantel. Se aplica a los dos.
+        private static void ApplyTransferPlantelMetadata(TransanDTO target, Plantel sellerPlant, Plantel buyerPlant)
+        {
+            target.PlantOrigenCodigo = sellerPlant.Placod;
+            target.PlantOrigenAnioex = sellerPlant.Anioex;
+            target.PlantDestinoCodigo = buyerPlant.Placod;
+            target.PlantDestinoAnioex = buyerPlant.Anioex;
+        }
+
         private static void ApplyTransferPlantelMetadata(Transan target, Plantel sellerPlant, Plantel buyerPlant)
         {
             // Guardamos un snapshot mínimo del plantel asociado para que la transferencia
@@ -1474,11 +1565,27 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
+        private static bool PlantelPerteneceASocio(Plantel plantel, string? socioCode)
+        {
+            if (string.IsNullOrWhiteSpace(socioCode))
+                return false;
+
+            return string.Equals(plantel.Nrocri?.Trim(), socioCode.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+
         private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
             => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
 
         private static bool CanAccessTransfer(UserSocioAccessContext accessContext, string? sellerCode, string? buyerCode)
         {
+            // Un contexto anónimo no es "socio con scope", así que antes caía por el
+            // camino del usuario privilegiado y devolvía true: sin [Authorize] eso
+            // dejaba Guardar/Editar/Eliminar abiertos a cualquiera. Falla cerrado.
+            if (!accessContext.IsAuthenticated)
+            {
+                return false;
+            }
+
             if (!RequiresActiveSocioScope(accessContext))
             {
                 return true;
@@ -1495,6 +1602,11 @@ namespace PaginaToros.Server.Controllers
 
         private static bool CanAccessTransfer(UserSocioAccessContext accessContext, int? sellerId, int? buyerId)
         {
+            if (!accessContext.IsAuthenticated)
+            {
+                return false;
+            }
+
             if (!RequiresActiveSocioScope(accessContext))
             {
                 return true;
