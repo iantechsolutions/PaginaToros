@@ -181,7 +181,19 @@
             </div>
             <br />
 
-            <br />
+            @if (Id != 0)
+            {
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="avisoEdicionMail" @bind="enviarAvisoPorMail" />
+                    <label class="form-check-label" for="avisoEdicionMail">
+                        Enviar aviso de edición de certificado por mail al socio
+                    </label>
+                    @if (enviarAvisoPorMail)
+                    {
+                        <div class="text-muted" style="font-size:13px;">@DescribirDestinatarioAviso()</div>
+                    }
+                </div>
+            }
 
             <button type="submit" class="btn btn-primary mr-2" disabled="@isBusy">Aceptar</button>
             <button type="button" @onclick="cancel" class="btn btn-light" disabled="@isBusy">Cancelar</button>
@@ -217,6 +229,13 @@ else
     private string? formMessage;
     private string formMessageCss = "alert alert-danger";
     private bool isBusy;
+    // Copia del certificado tal como vino de la base. Sirve para dos cosas: no
+    // exigirle al usuario datos que ya estaban vacíos y listar en el mail qué
+    // cambió realmente.
+    private CertifsemanDTO? estadoOriginal;
+    // El aviso por mail es opcional y arranca apagado: editar un certificado no
+    // deberia notificar al socio salvo que se lo pida explicitamente.
+    private bool enviarAvisoPorMail;
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int Id { get; set; }
 
@@ -242,6 +261,7 @@ else
 
                 centroSeleccionado = FindCentroByCode(oCertifseman.Nrocen);
                 socioSeleccionado = FindSocioByCode(oCertifseman.Nrocri);
+                estadoOriginal = ClonarCertificado(oCertifseman);
             }
             catch (Exception ex)
             {
@@ -301,31 +321,28 @@ else
                     return;
                 }
 
-                var mail = $"Aviso de edición a un certificado\n" +
-                           $"certificado: {oCertifseman.Nrocri}\n" +
-                           $"Socio: {socioSeleccionado?.Nombre}\n" +
-                           $"Tipo: Edición\n";
+                // El mail es un extra: si falla, la edición ya quedó guardada y no
+                // tiene sentido retener al usuario en el formulario.
+                var errorAviso = enviarAvisoPorMail ? await EnviarAvisoEdicionAsync() : null;
 
-                var request = new
+                if (errorAviso != null)
                 {
-                    Vendedor = socioSeleccionado?.Id ?? 0,
-                    Comprador = socioSeleccionado?.Id ?? 0,
-                    Mail = mail,
-                    Direccion = (string?)null
-                };
-
-                HttpResponseMessage response = await http.PostAsJsonAsync($"api/Transan/SendMail", request);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var serverMessage = await response.Content.ReadAsStringAsync();
-                    SetFormError(string.IsNullOrWhiteSpace(serverMessage)
-                        ? "El certificado se guardó, pero falló el envío del mail."
-                        : $"El certificado se guardó, pero falló el envío del mail. {serverMessage}");
+                    SetFormSuccess("Certificado editado correctamente.");
+                    await Swal.FireAsync(
+                        "Certificado guardado",
+                        $"El certificado se editó correctamente, pero no se pudo enviar el aviso por mail. {errorAviso}",
+                        SweetAlertIcon.Warning);
+                    await ModalInstance.CloseAsync(ModalResult.Ok("Certificado guardado."));
                     return;
                 }
 
                 SetFormSuccess("Certificado editado correctamente.");
-                await Swal.FireAsync("Éxito", "Certificado editado correctamente.", SweetAlertIcon.Success);
+                await Swal.FireAsync(
+                    "Éxito",
+                    enviarAvisoPorMail
+                        ? "Certificado editado correctamente y aviso enviado por mail."
+                        : "Certificado editado correctamente.",
+                    SweetAlertIcon.Success);
                 await ModalInstance.CloseAsync(ModalResult.Ok("Certificado guardado."));
             }
         }
@@ -369,34 +386,71 @@ else
         return await Task.FromResult(result);
     }
 
+    /// <summary>
+    /// El alta pide solamente los datos que identifican al certificado. La edición
+    /// no los vuelve a reclamar: muchos certificados históricos llegaron incompletos
+    /// desde el sistema viejo y exigirlos impedía, por ejemplo, corregir las dosis.
+    /// En edición solo se avisa si el usuario vació un dato que estaba cargado.
+    /// </summary>
     private bool ValidateForm()
     {
         validationErrors.Clear();
 
         SyncSelectionsToModel();
 
+        var esAlta = Id == 0;
         int? dosisOriginales = null;
 
-        if (socioSeleccionado == null || string.IsNullOrWhiteSpace(oCertifseman.Nrocri))
+        void Requerido(string? actual, string? original, string mensajeAlta, string campo)
         {
-            validationErrors.Add(DescribirSeleccionFaltante("socio", ultimaBusquedaSocio));
+            if (!string.IsNullOrWhiteSpace(actual))
+            {
+                return;
+            }
+
+            if (esAlta)
+            {
+                validationErrors.Add(mensajeAlta);
+            }
+            else if (!string.IsNullOrWhiteSpace(original))
+            {
+                validationErrors.Add(MensajeDatoBorrado(campo));
+            }
         }
 
-        if (centroSeleccionado == null)
+        void NoVaciar(string? actual, string? original, string campo)
         {
-            validationErrors.Add(DescribirSeleccionFaltante("centro", ultimaBusquedaCentro));
-        }
-        else if (string.IsNullOrWhiteSpace(oCertifseman.Nrocen))
-        {
-            validationErrors.Add($"El centro \"{centroSeleccionado.Nombre}\" no tiene cargado el número de centro, que es el dato con el que se vincula el certificado. Hay que completarlo en el centro antes de poder usarlo.");
+            if (!esAlta && string.IsNullOrWhiteSpace(actual) && !string.IsNullOrWhiteSpace(original))
+            {
+                validationErrors.Add(MensajeDatoBorrado(campo));
+            }
         }
 
-        AddIfMissing(oCertifseman.TipoCert, "Seleccioná el tipo de certificado.");
-        AddIfMissing(oCertifseman.NroCert, "Ingresá el número de certificado.");
-        AddIfMissing(oCertifseman.Hba, "Ingresá el HBA.");
-        AddIfMissing(oCertifseman.NomDad, "Ingresá el nombre.");
-        AddIfMissing(oCertifseman.Apodo, "Seleccioná el tipo de toro.");
-        AddIfMissing(oCertifseman.NrDosiOr, "Ingresá la cantidad original de dosis.");
+        Requerido(oCertifseman.Nrocri, estadoOriginal?.Nrocri,
+            DescribirSeleccionFaltante("socio", ultimaBusquedaSocio), "el socio");
+
+        if (string.IsNullOrWhiteSpace(oCertifseman.Nrocen) && centroSeleccionado != null)
+        {
+            // El centro existe pero le falta el NROCEN, que es el dato con el que
+            // se vincula el certificado. Solo molesta si lo está eligiendo ahora.
+            if (esAlta || !string.IsNullOrWhiteSpace(estadoOriginal?.Nrocen))
+            {
+                validationErrors.Add($"El centro \"{centroSeleccionado.Nombre}\" no tiene cargado el número de centro, que es el dato con el que se vincula el certificado. Hay que completarlo en el centro antes de poder usarlo.");
+            }
+        }
+        else
+        {
+            Requerido(oCertifseman.Nrocen, estadoOriginal?.Nrocen,
+                DescribirSeleccionFaltante("centro", ultimaBusquedaCentro), "el centro");
+        }
+
+        Requerido(oCertifseman.NroCert, estadoOriginal?.NroCert, "Ingresá el número de certificado.", "el número de certificado");
+        Requerido(oCertifseman.Hba, estadoOriginal?.Hba, "Ingresá el HBA.", "el HBA");
+
+        NoVaciar(oCertifseman.TipoCert, estadoOriginal?.TipoCert, "el tipo de certificado");
+        NoVaciar(oCertifseman.NomDad, estadoOriginal?.NomDad, "el nombre");
+        NoVaciar(oCertifseman.Apodo, estadoOriginal?.Apodo, "el tipo de toro");
+        NoVaciar(oCertifseman.NrDosiOr, estadoOriginal?.NrDosiOr, "la cantidad original de dosis");
 
         if (!string.IsNullOrWhiteSpace(oCertifseman.NrDosiOr))
         {
@@ -416,13 +470,32 @@ else
             {
                 validationErrors.Add("La cantidad de dosis remanentes no puede ser negativa.");
             }
-            else if (dosisOriginales.HasValue && oCertifseman.NrDosi.Value > dosisOriginales.Value)
+            else if (dosisOriginales.HasValue && oCertifseman.NrDosi.Value > dosisOriginales.Value && DosisTocadas())
             {
                 validationErrors.Add("La cantidad de dosis remanentes no puede ser mayor a la cantidad original.");
             }
         }
 
         return validationErrors.Count == 0;
+    }
+
+    /// <summary>
+    /// Hay certificados viejos guardados con más dosis remanentes que originales.
+    /// Si el usuario no tocó ninguno de los dos números, no lo trabamos por un
+    /// desajuste que no generó él.
+    /// </summary>
+    private bool DosisTocadas()
+    {
+        if (Id == 0 || estadoOriginal == null)
+        {
+            return true;
+        }
+
+        var originalCantidad = (estadoOriginal.NrDosiOr ?? string.Empty).Trim();
+        var actualCantidad = (oCertifseman.NrDosiOr ?? string.Empty).Trim();
+
+        return oCertifseman.NrDosi != estadoOriginal.NrDosi
+            || !string.Equals(originalCantidad, actualCantidad, StringComparison.Ordinal);
     }
 
     private void OnCentroChanged(CentrosiumDTO? centro)
@@ -579,12 +652,9 @@ else
         oCertifseman.Nrocen = centroSeleccionado?.Nrocen?.Trim() ?? oCertifseman.Nrocen?.Trim();
     }
 
-    private (int dosisOriginales, int? dosisRemanentes) ParseDosisValues()
+    private (int? dosisOriginales, int? dosisRemanentes) ParseDosisValues()
     {
-        if (!int.TryParse(oCertifseman.NrDosiOr, out var dosisOriginales))
-        {
-            throw new InvalidOperationException("La cantidad original de dosis debe ser un número válido.");
-        }
+        int? dosisOriginales = int.TryParse(oCertifseman.NrDosiOr, out var parsed) ? parsed : null;
 
         return (dosisOriginales, oCertifseman.NrDosi);
     }
@@ -642,12 +712,164 @@ else
             : $"\"{textoTipeado.Trim()}\" no coincide con un único {campo} de la lista. Elegí uno del desplegable.";
     }
 
-    private void AddIfMissing(string? value, string message)
+    private string DescribirDestinatarioAviso()
     {
-        if (string.IsNullOrWhiteSpace(value))
+        if (socioSeleccionado == null)
         {
-            validationErrors.Add(message);
+            return "No se pudo identificar al socio del certificado, así que el aviso no se va a poder enviar.";
+        }
+
+        var destino = string.IsNullOrWhiteSpace(socioSeleccionado.Mail)
+            ? "el socio no tiene mail cargado"
+            : socioSeleccionado.Mail.Trim();
+
+        return $"Se envía a {socioSeleccionado.Nombre} ({destino}) con copia a planteles@hereford.org.ar.";
+    }
+
+    /// <summary>
+    /// Devuelve null si el aviso salió bien, o el motivo de la falla.
+    /// </summary>
+    private async Task<string?> EnviarAvisoEdicionAsync()
+    {
+        if (socioSeleccionado == null)
+        {
+            return "No se pudo identificar al socio del certificado para saber a qué dirección enviarlo.";
+        }
+
+        var datos = new CertificadoEmailDatos
+        {
+            NroCert = oCertifseman.NroCert,
+            TipoCert = oCertifseman.TipoCert,
+            SocioNombre = socioSeleccionado.Nombre,
+            SocioCodigo = oCertifseman.Nrocri,
+            CentroNombre = centroSeleccionado?.Nombre ?? oCertifseman.Nrocen,
+            ToroNombre = oCertifseman.NomDad,
+            ToroHba = oCertifseman.Hba,
+            ToroTatuaje = oCertifseman.Tatpart,
+            DosisOriginales = oCertifseman.NrDosiOr,
+            DosisRemanentes = oCertifseman.NrDosi?.ToString(),
+            TipoEnvase = oCertifseman.TipEnv
+        };
+
+        var request = new
+        {
+            Vendedor = socioSeleccionado.Id,
+            Comprador = socioSeleccionado.Id,
+            Mail = CertificadoEmailTemplates.BuildEdicionCertificadoHtml(datos, ConstruirCambios(), DateTime.Now),
+            Direccion = (string?)null,
+            Asunto = CertificadoEmailTemplates.BuildAsunto(oCertifseman.NroCert)
+        };
+
+        try
+        {
+            var response = await http.PostAsJsonAsync("api/Transan/SendMail", request);
+            if (response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            var serverMessage = (await response.Content.ReadAsStringAsync())?.Trim();
+            return string.IsNullOrWhiteSpace(serverMessage) ? "El servidor rechazó el envío." : serverMessage;
+        }
+        catch (Exception ex)
+        {
+            return ex.Message;
         }
     }
+
+    private List<CambioCertificado> ConstruirCambios()
+    {
+        var cambios = new List<CambioCertificado>();
+        if (estadoOriginal == null)
+        {
+            return cambios;
+        }
+
+        void Comparar(string etiqueta, string? antes, string? ahora)
+        {
+            var a = (antes ?? string.Empty).Trim();
+            var b = (ahora ?? string.Empty).Trim();
+            if (!string.Equals(a, b, StringComparison.Ordinal))
+            {
+                cambios.Add(new CambioCertificado(etiqueta, a, b));
+            }
+        }
+
+        Comparar("Tipo de certificado", estadoOriginal.TipoCert, oCertifseman.TipoCert);
+        Comparar("Nro. de certificado", estadoOriginal.NroCert, oCertifseman.NroCert);
+        Comparar("Socio", NombreSocio(estadoOriginal.Nrocri), NombreSocio(oCertifseman.Nrocri));
+        Comparar("Centro", NombreCentro(estadoOriginal.Nrocen), NombreCentro(oCertifseman.Nrocen));
+        Comparar("Fecha de venta", FormatoFecha(estadoOriginal.Fecvta), FormatoFecha(oCertifseman.Fecvta));
+        Comparar("HBA", estadoOriginal.Hba, oCertifseman.Hba);
+        Comparar("Tatuaje", estadoOriginal.Tatpart, oCertifseman.Tatpart);
+        Comparar("Nombre", estadoOriginal.NomDad, oCertifseman.NomDad);
+        Comparar("Apodo", estadoOriginal.Apodacion, oCertifseman.Apodacion);
+        Comparar("Tipo de toro", estadoOriginal.Apodo, oCertifseman.Apodo);
+        Comparar("Tip/ADN", estadoOriginal.NrTsan, oCertifseman.NrTsan);
+        Comparar("Macho dador", estadoOriginal.NrInsd, oCertifseman.NrInsd);
+        Comparar("Variedad", estadoOriginal.Variedad, oCertifseman.Variedad);
+        Comparar("Tipo de envase", estadoOriginal.TipEnv, oCertifseman.TipEnv);
+        Comparar("Cantidad original de dosis", estadoOriginal.NrDosiOr, oCertifseman.NrDosiOr);
+        Comparar("Dosis remanentes", estadoOriginal.NrDosi?.ToString(), oCertifseman.NrDosi?.ToString());
+
+        return cambios;
+    }
+
+    private string? NombreSocio(string? scod)
+    {
+        if (string.IsNullOrWhiteSpace(scod))
+        {
+            return null;
+        }
+
+        var socio = FindSocioByCode(scod);
+        return socio?.Nombre ?? scod.Trim();
+    }
+
+    private string? NombreCentro(string? nrocen)
+    {
+        if (string.IsNullOrWhiteSpace(nrocen))
+        {
+            return null;
+        }
+
+        var centro = FindCentroByCode(nrocen);
+        return centro?.Nombre ?? nrocen.Trim();
+    }
+
+    private static string? FormatoFecha(DateTime? fecha)
+        => fecha?.ToString("dd/MM/yyyy");
+
+    private static CertifsemanDTO ClonarCertificado(CertifsemanDTO origen) => new()
+    {
+        Id = origen.Id,
+        TipoCert = origen.TipoCert,
+        NroConst = origen.NroConst,
+        NroCert = origen.NroCert,
+        Nrocen = origen.Nrocen,
+        Fecvta = origen.Fecvta,
+        FchConst = origen.FchConst,
+        Nven = origen.Nven,
+        Nrocri = origen.Nrocri,
+        CategSc = origen.CategSc,
+        Scod = origen.Scod,
+        Tatpart = origen.Tatpart,
+        Hba = origen.Hba,
+        NomDad = origen.NomDad,
+        NrInsc = origen.NrInsc,
+        NrTsan = origen.NrTsan,
+        NrInsd = origen.NrInsd,
+        NrDosi = origen.NrDosi,
+        NrDosiOr = origen.NrDosiOr,
+        TipEnv = origen.TipEnv,
+        Variedad = origen.Variedad,
+        FchUsu = origen.FchUsu,
+        CodUsu = origen.CodUsu,
+        Apodo = origen.Apodo,
+        Apodacion = origen.Apodacion
+    };
+
+    private static string MensajeDatoBorrado(string campo)
+        => $"Borraste {campo}, que estaba cargado. Completalo de nuevo o cancelá la edición para dejarlo como estaba.";
 
 }

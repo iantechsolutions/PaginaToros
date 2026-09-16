@@ -174,7 +174,7 @@ namespace PaginaToros.Server.Controllers
                     var socioVendedor = await db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.Vendedor);
                     if (socioVendedor != null && IsValidEmail(socioVendedor.Mail))
                     {
-                        mail.To.Add(socioVendedor.Mail); // Se agrega el correo del vendedor si es válido
+                        TryAddRecipient(mail, socioVendedor.Mail); // Se agrega el correo del vendedor si es válido
                     }
                     else
                     {
@@ -188,7 +188,7 @@ namespace PaginaToros.Server.Controllers
                         var socioComprador = await db.Socios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.Comprador);
                         if (socioComprador != null && IsValidEmail(socioComprador.Mail))
                         {
-                            mail.To.Add(socioComprador.Mail); // Se agrega el correo del comprador si es válido
+                            TryAddRecipient(mail, socioComprador.Mail); // Se agrega el correo del comprador si es válido
                         }
                         else
                         {
@@ -199,7 +199,7 @@ namespace PaginaToros.Server.Controllers
                     {
                         if (IsValidEmail(request.Direccion))
                         {
-                            mail.To.Add(request.Direccion); // Se agrega la dirección de correo proporcionada si es válida
+                            TryAddRecipient(mail, request.Direccion); // Se agrega la dirección de correo proporcionada si es válida
                         }
                         else
                         {
@@ -212,7 +212,7 @@ namespace PaginaToros.Server.Controllers
                     string correoPuroRegistrado = "planteles@hereford.org.ar";
                     if (IsValidEmail(correoPuroRegistrado))
                     {
-                        mail.To.Add(correoPuroRegistrado); // Se agrega el correo de "puroregistrado" si es válido
+                        TryAddRecipient(mail, correoPuroRegistrado); // Se agrega el correo de "puroregistrado" si es válido
                     }
                     else
                     {
@@ -229,7 +229,9 @@ namespace PaginaToros.Server.Controllers
                         : WebUtility.HtmlEncode(rawBody).Replace("\r\n", "\n").Replace("\n", "<br/>");
 
                     mail.From = new MailAddress(correoPuroRegistrado);
-                    mail.Subject = "Nueva transferencia animal";
+                    mail.Subject = string.IsNullOrWhiteSpace(request.Asunto)
+                        ? "Nueva transferencia animal"
+                        : request.Asunto.Trim();
                     mail.Body = body;
                     mail.IsBodyHtml = true;
 
@@ -1661,6 +1663,11 @@ namespace PaginaToros.Server.Controllers
             public int Comprador { get; set; }
             public string Mail { get; set; }
             public string? Direccion { get; set; }
+            /// <summary>
+            /// Asunto opcional. Si no viene, se usa el de transferencias para no
+            /// cambiar el comportamiento de los avisos que ya existian.
+            /// </summary>
+            public string? Asunto { get; set; }
 
         }
     }

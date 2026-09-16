@@ -246,7 +246,7 @@ namespace PaginaToros.Server.Controllers
                     return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<CertifsemanDTO>());
                 }
 
-                var validationErrors = ValidateRequest(request, accessContext.ActiveSocioCode);
+                var validationErrors = ValidateRequest(request, accessContext.ActiveSocioCode, esAlta: true);
                 if (validationErrors.Count > 0)
                 {
                     return BadRequest(new Respuesta<CertifsemanDTO>
@@ -322,7 +322,7 @@ namespace PaginaToros.Server.Controllers
                     return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<CertifsemanDTO>());
                 }
 
-                var validationErrors = ValidateRequest(request, accessContext.ActiveSocioCode);
+                var validationErrors = ValidateRequest(request, accessContext.ActiveSocioCode, esAlta: false);
                 if (validationErrors.Count > 0)
                 {
                     return BadRequest(new Respuesta<CertifsemanDTO>
@@ -336,18 +336,31 @@ namespace PaginaToros.Server.Controllers
                 var hba = NormalizeKeyPart(request.Hba);
                 request.NroCert = nroCert;
                 request.Hba = hba;
-                var duplicate = await _certifsemanRepositorio.ObtenerPorClave(nroCert, hba, request.Id);
-                if (duplicate != null)
-                {
-                    return Conflict(new Respuesta<CertifsemanDTO>
-                    {
-                        Exito = 0,
-                        Mensaje = $"Ya existe otro certificado con Nro. certificado '{nroCert}' y HBA '{hba}'."
-                    });
-                }
 
                 var entity = _mapper.Map<Certifseman>(request);
                 var entityToEdit = await _certifsemanRepositorio.Obtener(u => u.Id == entity.Id);
+
+                // La base arrastra certificados repetidos del sistema viejo. El control
+                // de duplicados solo corre si el usuario está cambiando la clave: si ya
+                // venía repetida, bloquearlo no le deja corregir el resto del registro.
+                // Y con nro. de certificado y HBA vacíos la clave no distingue nada.
+                var claveCambio = entityToEdit == null
+                    || !string.Equals(NormalizeKeyPart(entityToEdit.NroCert), nroCert, StringComparison.OrdinalIgnoreCase)
+                    || !string.Equals(NormalizeKeyPart(entityToEdit.Hba), hba, StringComparison.OrdinalIgnoreCase);
+                var tieneClave = !string.IsNullOrWhiteSpace(nroCert) || !string.IsNullOrWhiteSpace(hba);
+
+                if (claveCambio && tieneClave)
+                {
+                    var duplicate = await _certifsemanRepositorio.ObtenerPorClave(nroCert, hba, request.Id);
+                    if (duplicate != null)
+                    {
+                        return Conflict(new Respuesta<CertifsemanDTO>
+                        {
+                            Exito = 0,
+                            Mensaje = $"Ya existe otro certificado con Nro. certificado '{nroCert}' y HBA '{hba}'."
+                        });
+                    }
+                }
 
                 if (entityToEdit != null)
                 {
@@ -488,7 +501,14 @@ namespace PaginaToros.Server.Controllers
         private static string NormalizeKeyPart(string? value)
             => (value ?? string.Empty).Trim();
 
-        private static List<string> ValidateRequest(CertifsemanDTO? request, string? activeSocioCode)
+        /// <summary>
+        /// El alta exige los datos que identifican al certificado (socio, centro,
+        /// nro. de certificado y HBA). La edición no los vuelve a exigir: hay
+        /// certificados históricos que llegaron incompletos desde el sistema viejo
+        /// y bloquearlos impediría corregir, por ejemplo, las dosis remanentes.
+        /// En edición solo se validan los datos que romperían el registro.
+        /// </summary>
+        private static List<string> ValidateRequest(CertifsemanDTO? request, string? activeSocioCode, bool esAlta)
         {
             var errors = new List<string>();
 
@@ -498,43 +518,38 @@ namespace PaginaToros.Server.Controllers
                 return errors;
             }
 
-            if (string.IsNullOrWhiteSpace(request.TipoCert))
+            if (esAlta)
             {
-                errors.Add("El tipo de certificado es obligatorio.");
+                if (string.IsNullOrWhiteSpace(request.NroCert))
+                {
+                    errors.Add("El número de certificado es obligatorio.");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Hba))
+                {
+                    errors.Add("El HBA es obligatorio.");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Nrocen))
+                {
+                    errors.Add("El centro es obligatorio.");
+                }
+
+                if (string.IsNullOrWhiteSpace(activeSocioCode) && string.IsNullOrWhiteSpace(request.Nrocri))
+                {
+                    errors.Add("El socio es obligatorio.");
+                }
             }
 
-            if (string.IsNullOrWhiteSpace(request.NroCert))
-            {
-                errors.Add("El número de certificado es obligatorio.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Hba))
-            {
-                errors.Add("El HBA es obligatorio.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Nrocen))
-            {
-                errors.Add("El centro es obligatorio.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Apodo))
-            {
-                errors.Add("El tipo de toro es obligatorio.");
-            }
-
-            if (string.IsNullOrWhiteSpace(activeSocioCode) && string.IsNullOrWhiteSpace(request.Nrocri))
-            {
-                errors.Add("El socio es obligatorio.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.NrDosiOr))
-            {
-                errors.Add("La cantidad original de dosis es obligatoria.");
-            }
-            else if (!int.TryParse(request.NrDosiOr.Trim(), out var parsedDosi) || parsedDosi < 0)
+            if (!string.IsNullOrWhiteSpace(request.NrDosiOr)
+                && (!int.TryParse(request.NrDosiOr.Trim(), out var parsedDosi) || parsedDosi < 0))
             {
                 errors.Add("La cantidad original de dosis debe ser un número válido y no negativo.");
+            }
+
+            if (request.NrDosi.HasValue && request.NrDosi.Value < 0)
+            {
+                errors.Add("La cantidad de dosis remanentes no puede ser negativa.");
             }
 
             return errors;
