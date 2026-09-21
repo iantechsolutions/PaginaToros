@@ -315,7 +315,11 @@ else
                                            Disabled="@((Id != 0) || esSocio || isLoadingDependencias || isSavingReporte || isUpdatingPlantel)"
                                            placeholder="Busque plantel por número"
                                            EnableDropDown="true"
-                                           @bind-Value="Plantelseleccionado">
+                                           TItem="PlantelDTO"
+                                           TValue="PlantelDTO"
+                                           Value="Plantelseleccionado"
+                                           ValueChanged="OnPlantelChanged"
+                                           ValueExpression="@(() => Plantelseleccionado)">
                             <SelectedTemplate Context="eleccion">
                                 @FormatoPlantel(eleccion)
                             </SelectedTemplate>
@@ -682,8 +686,6 @@ else
                 </Tabs>
             </RadzenTabs>
 
-    }
-    }
             }
         }
     </div>
@@ -771,6 +773,11 @@ else
 
     bool activo = true;
     bool loadingSolicitudes, loadingMovs, loadingHemyma, loadingProms, loadingRech;
+
+    // El trabajo que dispara una seleccion de typeahead corre fuera del handler: si no,
+    // el desplegable queda abierto hasta que termina y el usuario cree que el click fallo.
+    private readonly SeleccionTypeahead _seleccionSocio = new();
+    private readonly SeleccionTypeahead _seleccionPlantel = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -968,47 +975,156 @@ else
         }
     }
 
-    private async Task OnSocioChanged(SocioDTO? socio)
+    private Task OnSocioChanged(SocioDTO? socio)
     {
+        // Parte sincronica: el typeahead cierra el desplegable y pinta el socio al instante.
+        socioSeleccionado = socio;
         isLoadingDependencias = true;
         loadingMessage = socio != null ? "Cargando datos del socio seleccionado..." : "Limpiando selección...";
-        await InvokeAsync(StateHasChanged);
-        await Task.Yield();
 
-        socioSeleccionado = socio;
+        _seleccionSocio.Ejecutar(() => AplicarSocioSeleccionadoAsync(socio),
+                                 () => InvokeAsync(StateHasChanged),
+                                 nameof(OnSocioChanged));
+        return Task.CompletedTask;
+    }
 
-        if (socio == null)
+    private Task AplicarSocioSeleccionadoAsync(SocioDTO? socio)
+    {
+        try
         {
-            solicitudSeleccionada = null;
-            Plantelseleccionado = null;
-            establecimientoSeleccionado = null;
-            inspectorSeleccionado = null;
-            confirmado = false;
-            oResin1 = new Resin1DTO();
-            RefreshDerivedLists();
-        }
-        else
-        {
-            if (Id == 0)
+            if (socio == null)
             {
                 solicitudSeleccionada = null;
-                oResin1 = new Resin1DTO
-                {
-                    Freali = fechaTemp,
-                    Scod = socio.Scod
-                };
-                establecimientoSeleccionado = establecimientos.FirstOrDefault(x => string.Equals(x.Codsoc, socio.Scod, StringComparison.OrdinalIgnoreCase));
-                Plantelseleccionado = Planteles.FirstOrDefault(x => string.Equals(x.Nrocri, socio.Scod, StringComparison.OrdinalIgnoreCase));
+                Plantelseleccionado = null;
+                establecimientoSeleccionado = null;
                 inspectorSeleccionado = null;
-                confirmado = true;
+                confirmado = false;
+                oResin1 = new Resin1DTO();
+                mtos = new();
+                entradasFinal = new();
+                salidasFinal = new();
+                AplicarEstadoDesdePlantel(null);
+                RefreshDerivedLists();
             }
+            else
+            {
+                if (Id == 0)
+                {
+                    solicitudSeleccionada = null;
+                    oResin1 = new Resin1DTO
+                    {
+                        Freali = fechaTemp,
+                        Scod = socio.Scod
+                    };
+                    establecimientoSeleccionado = establecimientos.FirstOrDefault(x => string.Equals(x.Codsoc, socio.Scod, StringComparison.OrdinalIgnoreCase));
+                    Plantelseleccionado = ElegirPlantelPorDefecto(socio.Scod);
+                    inspectorSeleccionado = null;
+                    confirmado = true;
+                    // Existencia anterior visible ya mismo, sin esperar a confirmar.
+                    mtos = new();
+                    entradasFinal = new();
+                    salidasFinal = new();
+                    AplicarEstadoDesdePlantel(null);
+                }
 
-            RefreshDerivedLists();
+                RefreshDerivedLists();
+            }
+        }
+        finally
+        {
+            isLoadingDependencias = false;
         }
 
-        isLoadingDependencias = false;
-        await InvokeAsync(StateHasChanged);
+        return Task.CompletedTask;
     }
+
+    private Task OnPlantelChanged(PlantelDTO? plantel)
+    {
+        Plantelseleccionado = plantel;
+        _seleccionPlantel.Ejecutar(PreviewPlantelAsync,
+                                   () => InvokeAsync(StateHasChanged),
+                                   nameof(OnPlantelChanged));
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Refleja en la grilla de movimientos el plantel elegido ANTES de confirmar, sin
+    /// persistir nada: son los mismos campos que despues copia <see cref="crearHistorico"/>,
+    /// asi que lo que se ve es lo que va a quedar grabado como existencia anterior.
+    /// </summary>
+    private async Task PreviewPlantelAsync()
+    {
+        if (Id != 0)
+        {
+            // El reporte ya existe: la existencia anterior la manda el historico guardado.
+            return;
+        }
+
+        var nrores = solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
+        AplicarEstadoDesdePlantel(nrores);
+
+        if (string.IsNullOrWhiteSpace(nrores))
+        {
+            mtos = new();
+            entradasFinal = new();
+            salidasFinal = new();
+            RecalcularEstadoFinal();
+            return;
+        }
+
+        await updateMovimientos(nrores, "no");
+    }
+
+    private PlantelDTO? ElegirPlantelPorDefecto(string? scod)
+    {
+        if (string.IsNullOrWhiteSpace(scod))
+        {
+            return null;
+        }
+
+        // Planteles ya viene ordenado por año descendente, asi que el First() es el mas reciente.
+        var delSocio = Planteles.Where(x => MismoCodigo(x.Nrocri, scod)).ToList();
+        if (delSocio.Count == 0)
+        {
+            return null;
+        }
+
+        var anio = GetInspectionYear().ToString();
+        return delSocio.FirstOrDefault(x => string.Equals((x.Anioex ?? "").Trim(), anio, StringComparison.Ordinal))
+               ?? delSocio.First();
+    }
+
+    private void AplicarEstadoDesdePlantel(string? nrores)
+    {
+        estadoAnterior = EstadoDesdePlantel(Plantelseleccionado, nrores);
+        RecalcularEstadoFinal();
+    }
+
+    private static Resin2DTO EstadoDesdePlantel(PlantelDTO? plantel, string? nrores)
+        => new Resin2DTO
+            {
+                Ea1 = Convert.ToInt32(plantel?.Varede ?? 0),
+                Ea2 = Convert.ToInt32(plantel?.Vqcsrd ?? 0),
+                Ea3 = Convert.ToInt32(plantel?.Vqssrd ?? 0),
+                Ea4 = Convert.ToInt32(plantel?.Varepr ?? 0),
+                Ea5 = Convert.ToInt32(plantel?.Vqcsrp ?? 0),
+                Ea6 = Convert.ToInt32(plantel?.Vqssrp ?? 0),
+                Nrores = nrores
+            };
+
+    private void RecalcularEstadoFinal()
+    {
+        estadoFinal.Ea1 = estadoAnterior.Ea1 - salidasFinal.Ea1 + entradasFinal.Ea1;
+        estadoFinal.Ea2 = estadoAnterior.Ea2 - salidasFinal.Ea2 + entradasFinal.Ea2;
+        estadoFinal.Ea3 = estadoAnterior.Ea3 - salidasFinal.Ea3 + entradasFinal.Ea3;
+        estadoFinal.Ea4 = estadoAnterior.Ea4 - salidasFinal.Ea4 + entradasFinal.Ea4;
+        estadoFinal.Ea5 = estadoAnterior.Ea5 - salidasFinal.Ea5 + entradasFinal.Ea5;
+        estadoFinal.Ea6 = estadoAnterior.Ea6 - salidasFinal.Ea6 + entradasFinal.Ea6;
+    }
+
+    // Los codigos legacy (SCOD / NROCRI) vienen con padding y en mayusculas segun el registro.
+    private static bool MismoCodigo(string? a, string? b)
+        => string.Equals((a ?? string.Empty).Trim(), (b ?? string.Empty).Trim(), StringComparison.OrdinalIgnoreCase);
 
     private Solici1DTO? SelectedSolicitud => solicitudSeleccionada?.FirstOrDefault();
 
@@ -1320,12 +1436,7 @@ else
                     entradasFinal.Ea6 += Convert.ToInt32(mov.Rpvaqss);
                 }
             }
-            estadoFinal.Ea1 = estadoAnterior.Ea1 - salidasFinal.Ea1 + entradasFinal.Ea1;
-            estadoFinal.Ea2 = estadoAnterior.Ea2 - salidasFinal.Ea2 + entradasFinal.Ea2;
-            estadoFinal.Ea3 = estadoAnterior.Ea3 - salidasFinal.Ea3 + entradasFinal.Ea3;
-            estadoFinal.Ea4 = estadoAnterior.Ea4 - salidasFinal.Ea4 + entradasFinal.Ea4;
-            estadoFinal.Ea5 = estadoAnterior.Ea5 - salidasFinal.Ea5 + entradasFinal.Ea5;
-            estadoFinal.Ea6 = estadoAnterior.Ea6 - salidasFinal.Ea6 + entradasFinal.Ea6;
+            RecalcularEstadoFinal();
         }
         finally
         {
@@ -1396,17 +1507,20 @@ else
 
     async Task onSolicitudChange(IList<Solici1DTO?> lista){
         solicitudSeleccionada = lista;
-        var plantel = Planteles
-        .Where(x => x.Nrocri == socioSeleccionado?.Scod)
-        .FirstOrDefault();
 
-        if (plantel != null)
+        // Solo completar el plantel si el usuario todavia no eligio uno: antes esto pisaba
+        // la seleccion manual cada vez que se tocaba una solicitud.
+        if (Plantelseleccionado == null)
         {
-            Plantelseleccionado = plantel;
-        }
-        else
-        {
-            Console.WriteLine("No se encontró plantel para el socio seleccionado.");
+            var plantel = ElegirPlantelPorDefecto(socioSeleccionado?.Scod);
+            if (plantel != null)
+            {
+                Plantelseleccionado = plantel;
+            }
+            else
+            {
+                Console.WriteLine("No se encontró plantel para el socio seleccionado.");
+            }
         }
         // Plantelseleccionado = Planteles.Where(x => x.Nrocri == socioSeleccionado.Scod).OrderByDescending(x => x.Id).First();
         // oResinAnterior = repor
@@ -1423,7 +1537,7 @@ else
             Console.WriteLine(" No se encontró resultado anterior para esa combinación de establecimiento y socio.");
         }
 
-
+        await PreviewPlantelAsync();
     }
     async Task confirmar(bool shouldRedirect)
     {
@@ -2282,7 +2396,7 @@ async Task ResultWithoutSolicitud()
             var term = (searchText ?? string.Empty).Trim();
             var scod = socioSeleccionado?.Scod;
             var result = OrderPlantelesByYear(Planteles)
-                .Where(x => !string.IsNullOrEmpty(x.Placod) && x.Placod.Contains(term, StringComparison.OrdinalIgnoreCase) && x.Nrocri == scod)
+                .Where(x => !string.IsNullOrEmpty(x.Placod) && x.Placod.Contains(term, StringComparison.OrdinalIgnoreCase) && MismoCodigo(x.Nrocri, scod))
                 .ToList();
             return await Task.FromResult(result);
         }

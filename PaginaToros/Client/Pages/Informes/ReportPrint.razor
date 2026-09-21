@@ -227,15 +227,23 @@ else if (seleccion && !terminado)
         return await Task.FromResult(socios.Where(x => x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
-    private async Task OnSocioChanged(SocioDTO? socio)
+    private readonly SeleccionTypeahead seleccionSocio = new();
+
+    private Task OnSocioChanged(SocioDTO? socio)
     {
         socioSeleccionado = socio;
         LimpiarReporte();
-        if (socioSeleccionado != null)
-        {
-            await Generate();
-        }
+
+        // El reporte se genera fuera del handler: si lo esperamos aca, BlazoredTypeahead
+        // no cierra el desplegable hasta que vuelven los datos (ver SeleccionTypeahead).
+        seleccionSocio.Ejecutar(GenerarSiHaySocio,
+                                () => InvokeAsync(StateHasChanged),
+                                nameof(OnSocioChanged));
+        return Task.CompletedTask;
     }
+
+    private Task GenerarSiHaySocio()
+        => socioSeleccionado != null ? Generate() : Task.CompletedTask;
 
     private void LimpiarReporte()
     {

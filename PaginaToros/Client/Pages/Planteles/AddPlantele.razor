@@ -94,7 +94,7 @@
             </div>
             <br />
             <br />
-            <button type="submit" class="btn btn-primary mr-2" disabled="@isSaving">
+            <button type="submit" class="btn btn-primary mr-2" disabled="@(isSaving || seleccionSocio.EnCurso)">
                 @if (isSaving)
                 {
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -412,7 +412,9 @@
         return await Task.FromResult(socios.Where(x => x.Criador=="S" &&  x.Nombre.ToLower().Contains(searchText.ToLower())).ToList());
     }
 
-    private async Task HandleSocioSeleccion(SocioDTO socio)
+    private readonly SeleccionTypeahead seleccionSocio = new();
+
+    private Task HandleSocioSeleccion(SocioDTO socio)
     {
         socioSeleccionado = socio;
         // set Nrocri on model and clear validation for it
@@ -420,6 +422,22 @@
         var fiNrocri = new FieldIdentifier(oPlantel, nameof(oPlantel.Nrocri));
         messageStore.Clear(fiNrocri);
         editContext.NotifyValidationStateChanged();
+
+        // El proximo numero de plantel se calcula fuera del handler: si esperamos el
+        // request aca, BlazoredTypeahead no cierra el desplegable hasta que vuelve
+        // (ver SeleccionTypeahead). Mientras tanto "Aceptar" queda deshabilitado.
+        seleccionSocio.Ejecutar(() => AsignarProximoPlacodAsync(socio),
+                                () => InvokeAsync(StateHasChanged),
+                                nameof(HandleSocioSeleccion));
+        return Task.CompletedTask;
+    }
+
+    private async Task AsignarProximoPlacodAsync(SocioDTO socio)
+    {
+        if (socio == null)
+        {
+            return;
+        }
 
         var planteles = await _plantelServicio.GetBySocioId(socio.Id);
 

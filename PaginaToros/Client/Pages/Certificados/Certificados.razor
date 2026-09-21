@@ -449,17 +449,26 @@
         return await Task.FromResult(result);
     }
 
-    private async Task OnSocioSeleccionadoChanged(SocioDTO? socio)
+    private readonly SeleccionTypeahead seleccionSocio = new();
+
+    private Task OnSocioSeleccionadoChanged(SocioDTO? socio)
     {
         socioSeleccionado = socio;
 
         if (grid is null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         currentPage = 0;
-        await grid.FirstPage(true);
+
+        // La recarga de la grilla corre fuera del handler: si la esperamos aca,
+        // BlazoredTypeahead no cierra el desplegable hasta que vuelve el request
+        // (ver SeleccionTypeahead).
+        seleccionSocio.Ejecutar(() => grid.FirstPage(true),
+                                () => InvokeAsync(StateHasChanged),
+                                nameof(OnSocioSeleccionadoChanged));
+        return Task.CompletedTask;
     }
 
     public async Task RecargarDatos()

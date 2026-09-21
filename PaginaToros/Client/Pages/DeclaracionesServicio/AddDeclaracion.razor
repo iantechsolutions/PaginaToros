@@ -230,7 +230,7 @@ else if (socios.Count > 0)
                                     Eliminar declaración
                                 </button>
                             }
-                        <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+                        <button type="submit" class="btn btn-primary mr-2" disabled="@seleccionSocio.EnCurso">Aceptar</button>
                         
 
                     </div> 
@@ -2040,8 +2040,21 @@ else
     }
 
 
-    protected async Task UpdateValores(SocioDTO socio)
-        => await LoadSocioDataAsync(socio, preserveCabecera: _isEdit, refreshUi: true);
+    // La carga de planteles/toros/certificados corre fuera del handler de ValueChanged:
+    // si la esperamos ahi, BlazoredTypeahead no cierra el desplegable hasta que vuelven
+    // los tres requests y el usuario cree que el click no funciono (ver SeleccionTypeahead).
+    private readonly SeleccionTypeahead seleccionSocio = new();
+
+    protected Task UpdateValores(SocioDTO socio)
+    {
+        // El socio se asigna aca (sincronico) para que el typeahead muestre el elegido
+        // apenas cierra; LoadSocioDataAsync lo vuelve a setear sin efecto.
+        socioSeleccionado = socio;
+        seleccionSocio.Ejecutar(() => LoadSocioDataAsync(socio, preserveCabecera: _isEdit, refreshUi: true),
+                                () => InvokeAsync(StateHasChanged),
+                                nameof(UpdateValores));
+        return Task.CompletedTask;
+    }
 
     private async Task LoadSocioDataAsync(SocioDTO socio, bool preserveCabecera, bool refreshUi)
     {

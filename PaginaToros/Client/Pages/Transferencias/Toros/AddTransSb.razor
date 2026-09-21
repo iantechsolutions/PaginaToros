@@ -103,7 +103,7 @@
 
                 <br /><br />
 
-                <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+                <button type="submit" class="btn btn-primary mr-2" disabled="@(seleccionVendedor.EnCurso || seleccionComprador.EnCurso)">Aceptar</button>
                 <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
             </EditForm>
         </div>
@@ -400,21 +400,33 @@ else
         return result;
     }
 
-    protected async Task updateComprador(SocioDTO? socio)
+    // Los lookups dependientes corren fuera del handler de ValueChanged: si los esperamos
+    // ahi, BlazoredTypeahead no cierra el desplegable hasta que vuelve el request y el
+    // usuario cree que el click no funciono (ver SeleccionTypeahead).
+    private readonly SeleccionTypeahead seleccionVendedor = new();
+    private readonly SeleccionTypeahead seleccionComprador = new();
+
+    protected Task updateComprador(SocioDTO? socio)
     {
         socioComprador = socio;
         direccionCompra = socio?.Mail ?? string.Empty;
         establecimientoSeleccionado = null;
         establecimientoSeleccionadoEcod = null;
-        await EnsureEstablecimientosCompradorLoadedAsync();
+        seleccionComprador.Ejecutar(EnsureEstablecimientosCompradorLoadedAsync,
+                                    () => InvokeAsync(StateHasChanged),
+                                    nameof(updateComprador));
+        return Task.CompletedTask;
     }
 
-    protected async Task updateVendedor(SocioDTO? socio)
+    protected Task updateVendedor(SocioDTO? socio)
     {
         socioVendedor = socio;
         toroSeleccionado = null;
         oTranssb.NroOrden = null;
-        await EnsureTorosVendedorLoadedAsync();
+        seleccionVendedor.Ejecutar(EnsureTorosVendedorLoadedAsync,
+                                   () => InvokeAsync(StateHasChanged),
+                                   nameof(updateVendedor));
+        return Task.CompletedTask;
     }
 
     protected Task updateToro(TorosuniDTO? toro)

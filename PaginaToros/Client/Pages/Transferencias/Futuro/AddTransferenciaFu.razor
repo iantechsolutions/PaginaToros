@@ -126,7 +126,7 @@
                 </div>
             <br />
 
-            <button type="submit" class="btn btn-primary mr-2">Aceptar</button>
+            <button type="submit" class="btn btn-primary mr-2" disabled="@(seleccionVendedor.EnCurso || seleccionComprador.EnCurso)">Aceptar</button>
             <button type="button" @onclick="cancel" class="btn btn-light">Cancelar</button>
         </EditForm>
     </div>
@@ -218,17 +218,25 @@ else
     }
 
     // ===== Handlers de selección =====
-    private async Task OnVendedorChanged(SocioDTO socio)
+    // Los lookups dependientes corren fuera del handler de ValueChanged: si los esperamos
+    // ahi, BlazoredTypeahead no cierra el desplegable hasta que vuelve el request y el
+    // usuario cree que el click no funciono (ver SeleccionTypeahead).
+    private readonly SeleccionTypeahead seleccionVendedor = new();
+    private readonly SeleccionTypeahead seleccionComprador = new();
+
+    private Task OnVendedorChanged(SocioDTO socio)
     {
         socioVendedor = socio;
         oFutcontrol.Sven = socio?.Scod;
         oFutcontrol.Vnom = socio?.Nombre;
-        await EnsurePlantelesVendedorLoadedAsync();
-        StateHasChanged();
+        seleccionVendedor.Ejecutar(EnsurePlantelesVendedorLoadedAsync,
+                                   () => InvokeAsync(StateHasChanged),
+                                   nameof(OnVendedorChanged));
+        return Task.CompletedTask;
     }
 
 
-    private async Task OnCompradorChanged(SocioDTO socio)
+    private Task OnCompradorChanged(SocioDTO socio)
     {
         socioComprador = socio;
         oFutcontrol.Scom = socio?.Scod;     // opcional
@@ -239,8 +247,10 @@ else
         else
             direccionCompra = string.Empty;
 
-        await EnsurePlantelesCompradorLoadedAsync();
-        StateHasChanged();
+        seleccionComprador.Ejecutar(EnsurePlantelesCompradorLoadedAsync,
+                                    () => InvokeAsync(StateHasChanged),
+                                    nameof(OnCompradorChanged));
+        return Task.CompletedTask;
     }
 
     private Task OnPlantelOrigenChanged(PlantelDTO p)

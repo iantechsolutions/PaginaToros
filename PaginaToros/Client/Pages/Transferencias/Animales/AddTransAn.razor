@@ -327,7 +327,7 @@
             </div>
             <br />
 
-            <button type="submit" class="btn btn-primary mr-2" disabled="@guardando">
+            <button type="submit" class="btn btn-primary mr-2" disabled="@(guardando || seleccionVendedor.EnCurso || seleccionComprador.EnCurso)">
                 @(guardando ? "Guardando..." : "Aceptar")
             </button>
             <button type="button" @onclick="cancel" class="btn btn-light" disabled="@guardando">Cancelar</button>
@@ -770,26 +770,35 @@ else
             });
     }
 
-    protected async Task updateComprador(SocioDTO? socio)
+    // Los lookups dependientes corren fuera del handler de ValueChanged: si los esperamos
+    // ahi, BlazoredTypeahead no cierra el desplegable hasta que vuelve el request y el
+    // usuario cree que el click no funciono (ver SeleccionTypeahead).
+    private readonly SeleccionTypeahead seleccionVendedor = new();
+    private readonly SeleccionTypeahead seleccionComprador = new();
+
+    protected Task updateComprador(SocioDTO? socio)
     {
         socioComprador = socio;
         direccionCompra = socio?.Mail ?? string.Empty;
         plantelDestino = null;
         plantelesComprador = new List<PlantelDTO>();
         plantelesCompradorSocioCode = null;
-        await EnsurePlantelesCompradorLoadedAsync();
-
-        StateHasChanged();
+        seleccionComprador.Ejecutar(EnsurePlantelesCompradorLoadedAsync,
+                                    () => InvokeAsync(StateHasChanged),
+                                    nameof(updateComprador));
+        return Task.CompletedTask;
     }
 
-    private async Task OnVendedorChanged(SocioDTO? socio)
+    private Task OnVendedorChanged(SocioDTO? socio)
     {
         socioVendedor = socio;
         plantelOrigen = null;
         plantelesVendedor = new List<PlantelDTO>();
         plantelesVendedorSocioCode = null;
-        await EnsurePlantelesVendedorLoadedAsync();
-        StateHasChanged();
+        seleccionVendedor.Ejecutar(EnsurePlantelesVendedorLoadedAsync,
+                                   () => InvokeAsync(StateHasChanged),
+                                   nameof(OnVendedorChanged));
+        return Task.CompletedTask;
     }
 
     private Task OnPlantelOrigenChanged(PlantelDTO? plantel)

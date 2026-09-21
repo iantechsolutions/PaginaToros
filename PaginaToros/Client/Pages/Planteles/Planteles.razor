@@ -197,6 +197,7 @@ else
     public RadzenDataGrid<PlantelDTO>? grid;
     int currentPage;
     bool isLoading = false;
+    readonly SeleccionTypeahead seleccionSocio = new();
     bool updatingCreationDates = false;
     int cantidad;
     SocioDTO socioSeleccionado;
@@ -424,76 +425,97 @@ else
             await grid.GoToPage(currentPage);
         }
     }
-    private async Task OnSocioSeleccionadoChanged(SocioDTO value)
+    private Task OnSocioSeleccionadoChanged(SocioDTO value)
     {
         socioSeleccionado = value;
-        await BuscarPorSocio();
+
+        // La busqueda corre fuera del handler: si la esperamos aca, BlazoredTypeahead no
+        // cierra el desplegable hasta que vuelve el request (ver SeleccionTypeahead).
+        seleccionSocio.Ejecutar(BuscarPorSocio,
+                                () => InvokeAsync(StateHasChanged),
+                                nameof(OnSocioSeleccionadoChanged));
+        return Task.CompletedTask;
     }
 
     async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
-        if (socioSeleccionado == null)
+        StateHasChanged();
+        try
         {
-            if (!string.IsNullOrEmpty(args.Filter))
+            if (socioSeleccionado == null)
             {
-                oRespuesta = await _plantelServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
-                EnsureNoDuplicates(oRespuesta);
-                LogDuplicatesIfAny(oRespuesta, $"LoadData - LimitadosFiltrados skip={args.Skip} top={args.Top}");
+                if (!string.IsNullOrEmpty(args.Filter))
+                {
+                    oRespuesta = await _plantelServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
+                    EnsureNoDuplicates(oRespuesta);
+                    LogDuplicatesIfAny(oRespuesta, $"LoadData - LimitadosFiltrados skip={args.Skip} top={args.Top}");
+                }
+                else
+                {
+                    oRespuesta = await _plantelServicio.Lista(args.Skip.Value, args.Top.Value);
+                    EnsureNoDuplicates(oRespuesta);
+                    LogDuplicatesIfAny(oRespuesta, $"LoadData - Lista skip={args.Skip} top={args.Top}");
+                }
             }
             else
             {
-                oRespuesta = await _plantelServicio.Lista(args.Skip.Value, args.Top.Value);
-                EnsureNoDuplicates(oRespuesta);
-                LogDuplicatesIfAny(oRespuesta, $"LoadData - Lista skip={args.Skip} top={args.Top}");
+                if (args != null && !string.IsNullOrEmpty(args.Filter))
+                {
+                    // Preserve paging when filtering for a selected socio
+                    var skip = args.Skip ?? 0;
+                    var top = args.Top ?? 15;
+                    oRespuesta = await _plantelServicio.LimitadosFiltrados(skip, top, args.Filter);
+                     // oRespuesta.List = oRespuesta.List.Where(args.Filter)
+                }
+                else
+                {
+                    string filtro = $"Socio.Id={socioSeleccionado.Id}";
+                    // Use paged call so backend applies filter + ordering consistently
+                    oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
+                     EnsureNoDuplicates(oRespuesta);
+                     LogDuplicatesIfAny(oRespuesta, "LoadData - LimitadosFiltrados for socio");
+                }
             }
         }
-        else
+        finally
         {
-            if (args != null && !string.IsNullOrEmpty(args.Filter))
-            {
-                // Preserve paging when filtering for a selected socio
-                var skip = args.Skip ?? 0;
-                var top = args.Top ?? 15;
-                oRespuesta = await _plantelServicio.LimitadosFiltrados(skip, top, args.Filter);
-                 // oRespuesta.List = oRespuesta.List.Where(args.Filter)
-            }
-            else
-            {
-                string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                // Use paged call so backend applies filter + ordering consistently
-                oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
-                 EnsureNoDuplicates(oRespuesta);
-                 LogDuplicatesIfAny(oRespuesta, "LoadData - LimitadosFiltrados for socio");
-            }
+            isLoading = false;
+            StateHasChanged();
         }
-
-
-
-        isLoading = false;
     }
 
-    private async Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
+    private Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
     {
-        var result = socios.Where(x => x.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
-        return await Task.FromResult(result);
+        if (socios == null)
+        {
+            return Task.FromResult(Enumerable.Empty<SocioDTO>());
+        }
+
+        var texto = searchText ?? string.Empty;
+        var result = socios
+            .Where(x => !string.IsNullOrEmpty(x.Nombre)
+                     && x.Nombre.Contains(texto, StringComparison.OrdinalIgnoreCase))
+            .Take(20)
+            .ToList();
+
+        return Task.FromResult<IEnumerable<SocioDTO>>(result);
     }
 
     private async Task BuscarPorSocio()
     {
+        var coso = new LoadDataArgs();
         if (socioSeleccionado != null)
         {
-            var coso = new LoadDataArgs();
             coso.Filter = "";
-            await LoadData(coso);
         }
         else
         {
-            var coso = new LoadDataArgs();
             coso.Skip = 0;
             coso.Top = 15;
-            await LoadData(coso);
         }
+
+        await LoadData(coso);
     }
 
     void EnsureNoDuplicates(Respuesta<List<PlantelDTO>> respuesta)
