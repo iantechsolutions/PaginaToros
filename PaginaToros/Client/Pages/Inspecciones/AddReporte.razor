@@ -725,6 +725,9 @@ else
     // Plantel que creo el tilde "Crear nuevo plantel" en esta pantalla. Si el circuito vuelve a pasar
     // por updatePlantel se reutiliza, en vez de crear otro con codigo alternativo.
     PlantelDTO? plantelCreadoEnPantalla = null;
+    // Plantel de ORIGEN: el que aporta la existencia anterior. Es distinto de Plantelseleccionado,
+    // que updatePlantel reapunta al plantel DESTINO despues de volcarle el estado final.
+    PlantelDTO? plantelOrigen = null;
     string loadingMessage = "Preparando formulario de inspección...";
     Resin1DTO? oResin1 = new();
     DateTime fechaTemp = DateTime.Now;
@@ -839,7 +842,7 @@ else
                 }
 
                 inspectorSeleccionado = null;
-                Plantelseleccionado = null;
+                SeleccionarPlantel(null);
                 establecimientoSeleccionado = null;
             }
             else
@@ -882,11 +885,11 @@ else
                     }
                 }
 
-                Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla);
+                SeleccionarPlantel(Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla));
                 if (Plantelseleccionado == null && oResin1?.Freali.HasValue == true)
                 {
                     var anio = oResin1.Freali.Value.Year.ToString();
-                    Plantelseleccionado = Planteles.FirstOrDefault(x => x.Anioex == anio && x.Nrocri == socioSeleccionado?.Scod);
+                    SeleccionarPlantel(Planteles.FirstOrDefault(x => x.Anioex == anio && x.Nrocri == socioSeleccionado?.Scod));
                 }
             }
             else
@@ -915,7 +918,7 @@ else
         if (resetSelections)
         {
             solicitudSeleccionada = null;
-            Plantelseleccionado = null;
+            SeleccionarPlantel(null);
             establecimientoSeleccionado = null;
         }
 
@@ -993,7 +996,7 @@ else
             if (socio == null)
             {
                 solicitudSeleccionada = null;
-                Plantelseleccionado = null;
+                SeleccionarPlantel(null);
                 establecimientoSeleccionado = null;
                 inspectorSeleccionado = null;
                 confirmado = false;
@@ -1015,7 +1018,7 @@ else
                         Scod = socio.Scod
                     };
                     establecimientoSeleccionado = establecimientos.FirstOrDefault(x => string.Equals(x.Codsoc, socio.Scod, StringComparison.OrdinalIgnoreCase));
-                    Plantelseleccionado = ElegirPlantelPorDefecto(socio.Scod);
+                    SeleccionarPlantel(ElegirPlantelPorDefecto(socio.Scod));
                     inspectorSeleccionado = null;
                     confirmado = true;
                     // Existencia anterior visible ya mismo, sin esperar a confirmar.
@@ -1038,7 +1041,7 @@ else
 
     private Task OnPlantelChanged(PlantelDTO? plantel)
     {
-        Plantelseleccionado = plantel;
+        SeleccionarPlantel(plantel);
         _seleccionPlantel.Ejecutar(PreviewPlantelAsync,
                                    () => InvokeAsync(StateHasChanged),
                                    nameof(OnPlantelChanged));
@@ -1092,9 +1095,28 @@ else
                ?? delSocio.First();
     }
 
+    /// <summary>
+    /// Fija el plantel elegido y, con el, el plantel de ORIGEN del que sale la existencia anterior.
+    /// Se usa solo donde hay una eleccion real (socio, plantel, solicitud, carga del reporte), nunca
+    /// donde updatePlantel reapunta <see cref="Plantelseleccionado"/> al plantel DESTINO.
+    ///
+    /// Mezclar los dos roles era el origen de los totales negativos que aparecieron en produccion:
+    /// updatePlantel volcaba el estado final en el plantel destino y dejaba ese mismo plantel como
+    /// seleccionado, asi que la siguiente pasada por AplicarEstadoDesdePlantel tomaba el estado
+    /// final como existencia anterior y el recalculo restaba los mismos movimientos dos veces.
+    /// </summary>
+    private void SeleccionarPlantel(PlantelDTO? plantel)
+    {
+        Plantelseleccionado = plantel;
+        plantelOrigen = plantel;
+    }
+
+    /// <summary>Plantel del que se lee la existencia anterior.</summary>
+    private PlantelDTO? PlantelDeOrigen => plantelOrigen ?? Plantelseleccionado;
+
     private void AplicarEstadoDesdePlantel(string? nrores)
     {
-        estadoAnterior = EstadoDesdePlantel(Plantelseleccionado, nrores);
+        estadoAnterior = EstadoDesdePlantel(PlantelDeOrigen, nrores);
         RecalcularEstadoFinal();
     }
 
@@ -1364,7 +1386,7 @@ else
             return;
         }
 
-        var temp = EstadoDesdePlantel(Plantelseleccionado, nrores);
+        var temp = EstadoDesdePlantel(PlantelDeOrigen, nrores);
         estadoAnterior = temp;
         RecalcularEstadoFinal();
 
@@ -1488,26 +1510,17 @@ else
             else
             {
                 // Fallback al plantel seleccionado
-                if (Plantelseleccionado is null)
+                if (PlantelDeOrigen is null)
                 {
                     // como último recurso, intentá recuperar el plantel del socio (ya lo hacés en otros lados)
                     var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
                     Planteles = OrderPlantelesByYear(plan.List);
-                    Plantelseleccionado = Planteles
+                    SeleccionarPlantel(Planteles
                         .Where(x => x.Nrocri == socioSeleccionado?.Scod)
-                        .FirstOrDefault();
+                        .FirstOrDefault());
                 }
 
-                estadoAnterior = new Resin2DTO
-                    {
-                        Ea1 = Convert.ToInt32(Plantelseleccionado?.Varede ?? 0),
-                        Ea2 = Convert.ToInt32(Plantelseleccionado?.Vqcsrd ?? 0),
-                        Ea3 = Convert.ToInt32(Plantelseleccionado?.Vqssrd ?? 0),
-                        Ea4 = Convert.ToInt32(Plantelseleccionado?.Varepr ?? 0),
-                        Ea5 = Convert.ToInt32(Plantelseleccionado?.Vqcsrp ?? 0),
-                        Ea6 = Convert.ToInt32(Plantelseleccionado?.Vqssrp ?? 0),
-                        Nrores = nrores
-                    };
+                estadoAnterior = EstadoDesdePlantel(PlantelDeOrigen, nrores);
 
                 // Opcional pero recomendado: persistirlo para no recalcular cada vez
                 await _resin2Servicio.Crear(estadoAnterior);
@@ -1529,7 +1542,7 @@ else
             var plantel = ElegirPlantelPorDefecto(socioSeleccionado?.Scod);
             if (plantel != null)
             {
-                Plantelseleccionado = plantel;
+                SeleccionarPlantel(plantel);
             }
             else
             {
@@ -1628,10 +1641,10 @@ else
             {
                 try
                 {
-                    Plantelseleccionado = Planteles
+                    SeleccionarPlantel(Planteles
                         .Where(x => x.Nrocri == socioSeleccionado?.Scod)
                         .OrderByDescending(x => int.TryParse(x.Anioex, out var a) ? a : -1)
-                        .FirstOrDefault();
+                        .FirstOrDefault());
                 }
                 catch
                 {
@@ -1650,11 +1663,15 @@ else
             if (!string.IsNullOrWhiteSpace(nrores))
             {
                 await LoadReportSectionsAsync(nrores);
-                if (debeCrearPlantel)
+
+                // Unico punto donde el estado final se vuelca al plantel: el reporte ya existe, asi
+                // que no quedan planteles colgados de formularios abandonados.
+                isUpdatingPlantel = true;
+                await InvokeAsync(StateHasChanged);
+
+                var destino = await updatePlantel(forzarCreacion: debeCrearPlantel);
+                if (!string.Equals((oResin1.Nropla ?? "").Trim(), (destino.Placod ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
                 {
-                    isUpdatingPlantel = true;
-                    await InvokeAsync(StateHasChanged);
-                    var destino = await updatePlantel(forzarCreacion: true);
                     oResin1.Nropla = destino.Placod;
                     await _resin1Servicio.Editar(oResin1);
                     await EsperarActualizacionNropla(Id, destino.Placod);
@@ -1662,8 +1679,10 @@ else
                     var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
                     oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
                     Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
-                    await InvokeAsync(StateHasChanged);
                 }
+
+                isUpdatingPlantel = false;
+                await InvokeAsync(StateHasChanged);
 
 
                 var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
@@ -1783,22 +1802,13 @@ else
             // Recalcular totales (estadoFinal)
             await updateMovimientos(nrores, "si");
 
-            // Persistir en plantel: solo subir de año si todavía está tildado
-        var destino = await updatePlantel(forzarCreacion: createNewPlantel);
-
-            // Si acabo de crear/migrar, apunto el informe al NUEVO plantel y APAGO el flag
-            if (createNewPlantel && !string.IsNullOrWhiteSpace(oResin1?.Nrores))
+            // El plantel se persiste al guardar el reporte, no en cada movimiento. Mientras el
+            // reporte no existe, escribirlo (y con el tilde puesto, crearlo) dejaba un plantel
+            // colgado si el usuario abandonaba el formulario, y era la vuelta que alimentaba la
+            // cascada de planteles duplicados.
+            if (Id != 0)
             {
-                oResin1.Nropla = destino.Placod;
-                await _resin1Servicio.Editar(oResin1);
-
-                await EsperarActualizacionNropla(Id, destino.Placod);
-
-            var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
-            oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
-            Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
-            await InvokeAsync(StateHasChanged);
-                createNewPlantel = false; // <- clave para no seguir saltando a 2026, 2027, ...
+                await updatePlantel(forzarCreacion: false);
             }
 
             await InvokeAsync(StateHasChanged);
@@ -1872,7 +1882,9 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
     else
     {
         // Forzar creación de uno nuevo o no se encontró
-        var planViejo = Plantelseleccionado ?? Planteles.FirstOrDefault(x => x.Nrocri == socio.Scod) ?? throw new InvalidOperationException("No hay plantel base.");
+        // Se deriva del plantel de ORIGEN, no del destino: si se derivaba del recien creado, cada
+        // vuelta recortaba el codigo distinto y salia la cascada 6RJ01 -> 6RJ011 -> 6J011 -> ...
+        var planViejo = PlantelDeOrigen ?? Planteles.FirstOrDefault(x => x.Nrocri == socio.Scod) ?? throw new InvalidOperationException("No hay plantel base.");
         var tailAnterior = DerivarTailCodigo(planViejo.Placod);
         if (string.IsNullOrWhiteSpace(tailAnterior))
             tailAnterior = DerivarTailCodigo(socio.Placod);
@@ -2098,7 +2110,10 @@ async Task deleteMovimiento(int id)
     {
         await updateEstadoHistorico(nrores);
         await updateMovimientos(nrores, "si");
-        await updatePlantel(forzarCreacion: false);
+        if (Id != 0)
+        {
+            await updatePlantel(forzarCreacion: false);
+        }
     }
 }
 
@@ -2178,7 +2193,7 @@ async Task<bool> ResultWithoutSolicitud()
             return false;
         }
 
-        Plantelseleccionado = plantel;
+        SeleccionarPlantel(plantel);
 
         // 2.1) Mostrar tabs y loaders ya mismo
         loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
