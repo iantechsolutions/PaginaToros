@@ -45,10 +45,17 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             }
         }
 
-        public async Task<Certifseman?> ObtenerPorClave(string nroCert, string hba, int? excludeId = null)
+        /// <summary>
+        /// Busca el certificado que ocupa la misma clave de negocio. La numeracion de
+        /// certificados la lleva cada centro, asi que el mismo NRO_CERT + HBA emitido
+        /// por dos centros distintos son dos certificados distintos: sin NROCEN en la
+        /// busqueda el alta rechazaba certificados validos por duplicados ajenos.
+        /// </summary>
+        public async Task<Certifseman?> ObtenerPorClave(string? nrocen, string nroCert, string hba, int? excludeId = null)
         {
             try
             {
+                var normalizedNrocen = NormalizeKeyPart(nrocen);
                 var normalizedNroCert = NormalizeKeyPart(nroCert);
                 var normalizedHba = NormalizeKeyPart(hba);
 
@@ -56,7 +63,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     .AsNoTracking()
                     .Include(x => x.Socio)
                     .Include(x => x.Centro)
-                    .Where(x => (x.NroCert ?? string.Empty).Trim() == normalizedNroCert
+                    .Where(x => (x.Nrocen ?? string.Empty).Trim() == normalizedNrocen
+                             && (x.NroCert ?? string.Empty).Trim() == normalizedNroCert
                              && (x.Hba ?? string.Empty).Trim() == normalizedHba);
 
                 if (excludeId.HasValue)

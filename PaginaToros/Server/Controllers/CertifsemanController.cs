@@ -256,17 +256,23 @@ namespace PaginaToros.Server.Controllers
                     });
                 }
 
+                var nrocen = NormalizeKeyPart(request.Nrocen);
                 var nroCert = NormalizeKeyPart(request.NroCert);
                 var hba = NormalizeKeyPart(request.Hba);
+                request.Nrocen = nrocen;
                 request.NroCert = nroCert;
                 request.Hba = hba;
-                var duplicate = await _certifsemanRepositorio.ObtenerPorClave(nroCert, hba);
+
+                // El duplicado se busca dentro del mismo centro: la numeracion de
+                // certificados es propia de cada centro, asi que el mismo nro. + HBA
+                // emitido por otro centro no es el mismo certificado.
+                var duplicate = await _certifsemanRepositorio.ObtenerPorClave(nrocen, nroCert, hba);
                 if (duplicate != null)
                 {
                     return Conflict(new Respuesta<CertifsemanDTO>
                     {
                         Exito = 0,
-                        Mensaje = $"Ya existe un certificado con Nro. certificado '{nroCert}' y HBA '{hba}'."
+                        Mensaje = BuildDuplicateMessage(duplicate, nrocen, nroCert, hba)
                     });
                 }
 
@@ -332,8 +338,10 @@ namespace PaginaToros.Server.Controllers
                     });
                 }
 
+                var nrocen = NormalizeKeyPart(request.Nrocen);
                 var nroCert = NormalizeKeyPart(request.NroCert);
                 var hba = NormalizeKeyPart(request.Hba);
+                request.Nrocen = nrocen;
                 request.NroCert = nroCert;
                 request.Hba = hba;
 
@@ -343,21 +351,25 @@ namespace PaginaToros.Server.Controllers
                 // La base arrastra certificados repetidos del sistema viejo. El control
                 // de duplicados solo corre si el usuario está cambiando la clave: si ya
                 // venía repetida, bloquearlo no le deja corregir el resto del registro.
-                // Y con nro. de certificado y HBA vacíos la clave no distingue nada.
+                // Sin centro la clave no identifica un certificado (la numeración es por
+                // centro), así que los registros históricos sin NROCEN quedan fuera del
+                // control para poder seguir corrigiéndoles las dosis y el resto.
                 var claveCambio = entityToEdit == null
+                    || !string.Equals(NormalizeKeyPart(entityToEdit.Nrocen), nrocen, StringComparison.OrdinalIgnoreCase)
                     || !string.Equals(NormalizeKeyPart(entityToEdit.NroCert), nroCert, StringComparison.OrdinalIgnoreCase)
                     || !string.Equals(NormalizeKeyPart(entityToEdit.Hba), hba, StringComparison.OrdinalIgnoreCase);
-                var tieneClave = !string.IsNullOrWhiteSpace(nroCert) || !string.IsNullOrWhiteSpace(hba);
+                var tieneClave = !string.IsNullOrWhiteSpace(nrocen)
+                    && (!string.IsNullOrWhiteSpace(nroCert) || !string.IsNullOrWhiteSpace(hba));
 
                 if (claveCambio && tieneClave)
                 {
-                    var duplicate = await _certifsemanRepositorio.ObtenerPorClave(nroCert, hba, request.Id);
+                    var duplicate = await _certifsemanRepositorio.ObtenerPorClave(nrocen, nroCert, hba, request.Id);
                     if (duplicate != null)
                     {
                         return Conflict(new Respuesta<CertifsemanDTO>
                         {
                             Exito = 0,
-                            Mensaje = $"Ya existe otro certificado con Nro. certificado '{nroCert}' y HBA '{hba}'."
+                            Mensaje = BuildDuplicateMessage(duplicate, nrocen, nroCert, hba)
                         });
                     }
                 }
@@ -500,6 +512,60 @@ namespace PaginaToros.Server.Controllers
 
         private static string NormalizeKeyPart(string? value)
             => (value ?? string.Empty).Trim();
+
+        /// <summary>
+        /// El mensaje viejo ("Ya existe un certificado con Nro. X y HBA Y") se leía como
+        /// que el sistema repetía numeración. El caso real es otro: el certificado ya está
+        /// cargado, normalmente porque se está reingresando una tanda que ya entró. Por eso
+        /// el mensaje describe el registro existente (socio, centro, toro, fecha de venta)
+        /// para que el usuario lo reconozca y vaya a editarlo en vez de recargarlo.
+        /// </summary>
+        private static string BuildDuplicateMessage(Certifseman duplicate, string nrocen, string nroCert, string hba)
+        {
+            var detalle = new List<string>();
+
+            var socio = Describir(duplicate.Socio?.Nombre, duplicate.Nrocri);
+            if (socio != null)
+            {
+                detalle.Add($"socio {socio}");
+            }
+
+            var centro = Describir(duplicate.Centro?.Nombre, nrocen);
+            if (centro != null)
+            {
+                detalle.Add($"centro {centro}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(duplicate.NomDad))
+            {
+                detalle.Add($"toro {duplicate.NomDad.Trim()}");
+            }
+
+            if (duplicate.Fecvta.HasValue)
+            {
+                detalle.Add($"fecha de venta {duplicate.Fecvta.Value:dd/MM/yyyy}");
+            }
+
+            var descripcion = detalle.Count > 0
+                ? $" El que ya está cargado es de {string.Join(", ", detalle)}."
+                : string.Empty;
+
+            return $"El certificado Nro. '{nroCert}' con HBA '{hba}' ya está cargado.{descripcion} "
+                 + "Buscalo en el listado: si necesitás corregirlo, editá el que ya está cargado.";
+        }
+
+        /// <summary>
+        /// Devuelve "Nombre (codigo)", o solo lo que haya. null si no hay ninguno de los dos.
+        /// </summary>
+        private static string? Describir(string? nombre, string? codigo)
+        {
+            var n = (nombre ?? string.Empty).Trim();
+            var c = (codigo ?? string.Empty).Trim();
+
+            if (n.Length > 0 && c.Length > 0) return $"{n} ({c})";
+            if (n.Length > 0) return n;
+            return c.Length > 0 ? c : null;
+        }
 
         /// <summary>
         /// El alta exige los datos que identifican al certificado (socio, centro,

@@ -171,22 +171,13 @@ else
             </div>
             <div class="col-md-3" />
             <div class="col-md-2">
-                @if (solicitudSeleccionada != null)
+                @if (socioSeleccionado != null)
                 {
                     <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
                             style="position:relative;left:126px;"
-                            disabled="@(isLoadingDependencias || isSavingReporte || isUpdatingPlantel)"
-                            @onclick="()=>confirmarNuevo()">
-                        @(Id == 0 ? "Crear resultado de inspección" : "Actualizar datos")
-                    </button>
-                }
-                else if (socioSeleccionado != null)
-                {
-                    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                            style="position:relative"
-                            disabled="@(solicitudSeleccionada != null || isLoadingDependencias || isSavingReporte || isUpdatingPlantel)"
-                            @onclick="()=>{ResultWithoutSolicitud();}">
-                        Resultado sin solicitud
+                            disabled="@BotonGuardarDeshabilitado"
+                            @onclick="GuardarYVolver">
+                        @TextoBotonGuardar
                     </button>
                 }
             </div>
@@ -727,6 +718,13 @@ else
     bool isLoadingDependencias = false;
     bool isSavingReporte = false;
     bool isUpdatingPlantel = false;
+    // Guard sincronico del guardado: el atributo disabled recien llega al DOM despues del re-render,
+    // asi que un doble click rapido entraba dos veces al circuito y duplicaba resultado y plantel.
+    bool guardando = false;
+    bool procesandoMovimiento = false;
+    // Plantel que creo el tilde "Crear nuevo plantel" en esta pantalla. Si el circuito vuelve a pasar
+    // por updatePlantel se reutiliza, en vez de crear otro con codigo alternativo.
+    PlantelDTO? plantelCreadoEnPantalla = null;
     string loadingMessage = "Preparando formulario de inspección...";
     Resin1DTO? oResin1 = new();
     DateTime fechaTemp = DateTime.Now;
@@ -1342,17 +1340,33 @@ else
         await ModalInstance.CloseAsync(ModalResult.Ok($"Form was cancelled"));
 
     }
+    /// <summary>
+    /// Deja grabada la existencia anterior del reporte. Es idempotente: si ya hay un Resin2 para ese
+    /// nrores se reutiliza, porque antes cada guardado creaba otro historico y el mismo numero de
+    /// reporte terminaba con varias filas de existencia anterior.
+    /// </summary>
     async Task crearHistorico(string nrores)
     {
-        var temp = new Resin2DTO();
-        temp.Ea1 = Convert.ToInt32(Plantelseleccionado.Varede);
-        temp.Ea2 = Convert.ToInt32(Plantelseleccionado.Vqcsrd);
-        temp.Ea3 = Convert.ToInt32(Plantelseleccionado.Vqssrd);
-        temp.Ea4 = Convert.ToInt32(Plantelseleccionado.Varepr);
-        temp.Ea5 = Convert.ToInt32(Plantelseleccionado.Vqcsrp);
-        temp.Ea6 = Convert.ToInt32(Plantelseleccionado.Vqssrp);
-        temp.Nrores = nrores;
+        if (string.IsNullOrWhiteSpace(nrores))
+        {
+            return;
+        }
+
+        string filtro = $"(Nrores == null ? \"\" : Nrores).Trim().ToUpper() == \"{EscapeForFilter(nrores).Trim().ToUpper()}\"";
+        var existentes = await _resin2Servicio.LimitadosFiltrados(0, 1, filtro);
+        var existente = existentes.List
+            .FirstOrDefault(x => string.Equals((x.Nrores ?? "").Trim(), nrores.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        if (existente != null)
+        {
+            estadoAnterior = existente;
+            RecalcularEstadoFinal();
+            return;
+        }
+
+        var temp = EstadoDesdePlantel(Plantelseleccionado, nrores);
         estadoAnterior = temp;
+        RecalcularEstadoFinal();
 
         await _resin2Servicio.Crear(temp);
     }
@@ -1539,18 +1553,76 @@ else
 
         await PreviewPlantelAsync();
     }
-    async Task confirmar(bool shouldRedirect)
+    private bool TieneSolicitudSeleccionada
+        => !string.IsNullOrWhiteSpace(SelectedSolicitud?.Nrosol);
+
+    private bool BotonGuardarDeshabilitado
+        => guardando || isLoadingDependencias || isSavingReporte || isUpdatingPlantel;
+
+    private string TextoBotonGuardar
+        => guardando
+            ? "Guardando..."
+            : (Id == 0 ? "Generar reporte" : "Guardar cambios");
+
+    /// <summary>
+    /// Unico punto de entrada del guardado. Decide solo si el reporte nace de una solicitud o no, y
+    /// cuando termina bien vuelve al listado. Antes habia dos botones y el de alta dejaba al usuario
+    /// en la misma pantalla con el boton cambiado a "Actualizar datos": eso invitaba a apretarlo de
+    /// nuevo y cada click extra generaba otro resultado y otro plantel.
+    /// </summary>
+    async Task GuardarYVolver()
+    {
+        if (guardando)
+        {
+            return;
+        }
+
+        guardando = true;
+        await InvokeAsync(StateHasChanged);
+
+        var esAlta = Id == 0;
+        try
+        {
+            var ok = (Id != 0 || TieneSolicitudSeleccionada)
+                ? await confirmarNuevo()
+                : await ResultWithoutSolicitud();
+
+            if (!ok)
+            {
+                return;
+            }
+
+            await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = esAlta ? "Reporte generado" : "Reporte actualizado",
+                    Icon = SweetAlertIcon.Success,
+                    Timer = 1500,
+                    ShowConfirmButton = false
+                });
+
+            NavigationManager.NavigateTo("/reportes");
+        }
+        finally
+        {
+            guardando = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    async Task<bool> confirmar()
     {
         isSavingReporte = true;
         confirmado = true;
+        // El tilde se consume de forma sincronica: cuando se apagaba recien despues de los awaits,
+        // una segunda pasada por el circuito entraba con el tilde todavia prendido y forzaba la
+        // creacion de otro plantel para el mismo socio y año.
+        var debeCrearPlantel = createNewPlantel;
+        createNewPlantel = false;
+        var ok = false;
         loadingMovs = loadingHemyma = loadingProms = loadingRech = true;
         await InvokeAsync(StateHasChanged);
         try
         {
-            Console.WriteLine($"Plantelseleccionado: {Plantelseleccionado}");
-            Console.WriteLine($"socioSeleccionado: {socioSeleccionado}");
-            Console.WriteLine($"solicitudSeleccionada: {solicitudSeleccionada?.Count()}");
-
             // Asegurar plantel seleccionado por las dudas
             if (Plantelseleccionado == null)
             {
@@ -1570,7 +1642,7 @@ else
             var guardado = await guardarReporte();
             if (guardado == null)
             {
-                return;
+                return false;
             }
 
             var nrores = guardado.Nrores ?? solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
@@ -1578,16 +1650,15 @@ else
             if (!string.IsNullOrWhiteSpace(nrores))
             {
                 await LoadReportSectionsAsync(nrores);
-                if (createNewPlantel)
+                if (debeCrearPlantel)
                 {
                     isUpdatingPlantel = true;
                     await InvokeAsync(StateHasChanged);
-                    var destino = await updatePlantel(_subirDeAnioNoSeUsa: true);
+                    var destino = await updatePlantel(forzarCreacion: true);
                     oResin1.Nropla = destino.Placod;
                     await _resin1Servicio.Editar(oResin1);
                     await EsperarActualizacionNropla(Id, destino.Placod);
 
-                    createNewPlantel = false;
                     var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
                     oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
                     Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
@@ -1600,6 +1671,7 @@ else
                 RefreshDerivedLists();
             }
 
+            ok = true;
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
@@ -1609,16 +1681,19 @@ else
         }
         finally
         {
+            // Si el guardado no llego a buen puerto, el tilde vuelve a quedar disponible.
+            if (!ok)
+            {
+                createNewPlantel = debeCrearPlantel;
+            }
+
             isSavingReporte = false;
             isUpdatingPlantel = false;
             loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
             await InvokeAsync(StateHasChanged);
         }
 
-        if (shouldRedirect)
-        {
-            NavigationManager.NavigateTo("/reportes");
-        }
+        return ok;
     }
  
      async Task ComeBack()
@@ -1640,10 +1715,8 @@ else
 
 
 
-    async Task confirmarNuevo()
+    async Task<bool> confirmarNuevo()
     {
-        bool shouldRedirect = (Id != 0);
-
         if (inspectorSeleccionado == null)
         {
 
@@ -1655,7 +1728,7 @@ else
                     ShowCancelButton = true,
                     ConfirmButtonText = "Aceptar",
                 });
-            return;
+            return false;
         }
         if(Plantelseleccionado == null)
         {
@@ -1667,27 +1740,28 @@ else
                     ShowCancelButton = true,
                     ConfirmButtonText = "Aceptar",
                 });
-            return;
+            return false;
         }
 
-        if (solicitudSeleccionada != null && solicitudSeleccionada.Any() &&
-            !string.IsNullOrWhiteSpace(solicitudSeleccionada.First().Nrosol))
+        if (TieneSolicitudSeleccionada)
         {
-            Console.WriteLine(solicitudSeleccionada.First().Nrosol);
-            await crearHistorico(solicitudSeleccionada.First().Nrosol);
+            await crearHistorico(SelectedSolicitud!.Nrosol!);
         }
 
-        await confirmar(shouldRedirect);
-
-
-        // if(shouldRedirect){
-        //send back to /reportes
-        // }
+        return await confirmar();
     }
 
 
     async Task agregarMov(int id)
     {
+        // Sin este guard, dos clicks seguidos abrian dos modales y cada uno volvia a pasar por
+        // updatePlantel, que con el tilde prendido creaba un plantel nuevo por vuelta.
+        if (procesandoMovimiento)
+        {
+            return;
+        }
+
+        procesandoMovimiento = true;
         try
         {
             var nrores = solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
@@ -1710,7 +1784,7 @@ else
             await updateMovimientos(nrores, "si");
 
             // Persistir en plantel: solo subir de año si todavía está tildado
-        var destino = await updatePlantel(_subirDeAnioNoSeUsa: createNewPlantel);
+        var destino = await updatePlantel(forzarCreacion: createNewPlantel);
 
             // Si acabo de crear/migrar, apunto el informe al NUEVO plantel y APAGO el flag
             if (createNewPlantel && !string.IsNullOrWhiteSpace(oResin1?.Nrores))
@@ -1734,11 +1808,15 @@ else
             Console.WriteLine(ex.Message);
             await Swal.FireAsync("Error", $"Ocurrió un error al agregar/editar el movimiento: {ex.Message}", SweetAlertIcon.Error);
         }
+        finally
+        {
+            procesandoMovimiento = false;
+        }
     }
 
 
 
-async Task<PlantelDTO> updatePlantel(bool _subirDeAnioNoSeUsa)
+async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
  {
     if (socioSeleccionado is null)
         throw new InvalidOperationException("No hay socio seleccionado.");
@@ -1752,9 +1830,19 @@ async Task<PlantelDTO> updatePlantel(bool _subirDeAnioNoSeUsa)
     Planteles = plan.List;
 
     PlantelDTO? planDestino = null;
+    var crearNuevo = forzarCreacion;
 
-    // Si no pedimos forzar la creación, intentar localizar un plantel existente
-    if (!_subirDeAnioNoSeUsa)
+    if (forzarCreacion && plantelCreadoEnPantalla != null)
+    {
+        // El tilde "Crear nuevo plantel" ya creo uno en esta pantalla: se actualiza ese mismo.
+        // Sin esta rama, cada vuelta extra del circuito creaba otro plantel del mismo socio y año
+        // con codigo alternativo (62711, 6I2711, 6I271, ...), porque el bucle anticolision de mas
+        // abajo le inventaba un codigo libre en vez de reconocer el plantel recien creado.
+        planDestino = Planteles.FirstOrDefault(x => x.Placod == plantelCreadoEnPantalla.Placod)
+                      ?? plantelCreadoEnPantalla;
+        crearNuevo = false;
+    }
+    else if (!forzarCreacion)
     {
         // 1) PRIORIDAD: plantel asociado al resultado
         if (!string.IsNullOrWhiteSpace(oResin1?.Nropla))
@@ -1767,13 +1855,15 @@ async Task<PlantelDTO> updatePlantel(bool _subirDeAnioNoSeUsa)
         {
             planDestino = Planteles.FirstOrDefault(x => x.Anioex == anioDestino && x.Nrocri == socio.Scod);
         }
+
+        crearNuevo = planDestino == null;
     }
 
     var ultimoDigito = anioDestino.Last();
     var fechaCreacionPlantel = (oResin1?.Freali ?? fechaTemp).ToString("yyyy/MM/dd");
     var fechaAltaPlantel = DateTime.Now.ToString("yyyy/MM/dd");
 
-    if (planDestino != null && !_subirDeAnioNoSeUsa)
+    if (!crearNuevo && planDestino != null)
     {
         // Actualizar plantel existente (solo si no se forza creación)
         planDestino.Varede = estadoFinal.Ea1;
@@ -1827,6 +1917,11 @@ async Task<PlantelDTO> updatePlantel(bool _subirDeAnioNoSeUsa)
 
         var creado = await _plantelServicio.Crear(planDestino);
         planDestino = creado?.List ?? planDestino;
+
+        if (forzarCreacion)
+        {
+            plantelCreadoEnPantalla = planDestino;
+        }
     }
 
     Plantelseleccionado = planDestino;
@@ -1953,7 +2048,9 @@ async Task<PlantelDTO> updatePlantel(bool _subirDeAnioNoSeUsa)
 
         if (!string.IsNullOrEmpty(result.Value))
         {
-            deleteMovimiento(id);
+            // Sin await, el refresco de la grilla corria antes de que el borrado terminara y habia
+            // que volver a tocar algo para ver el resultado.
+            await deleteMovimiento(id);
         }
         else if (result.Dismiss == DismissReason.Cancel)
         {
@@ -1969,7 +2066,7 @@ async Task deleteMovimiento(int id)
     {
         await updateEstadoHistorico(nrores);
         await updateMovimientos(nrores, "si");
-        await updatePlantel(_subirDeAnioNoSeUsa: false);
+        await updatePlantel(forzarCreacion: false);
     }
 }
 
@@ -1996,9 +2093,15 @@ async Task deleteMovimiento(int id)
 
     }
 
-async Task ResultWithoutSolicitud()
+async Task<bool> ResultWithoutSolicitud()
 {
     Console.WriteLine("ResultWithoutSolicitud");
+
+    // El tilde se consume de forma sincronica: si quedaba prendido durante los awaits, una segunda
+    // pasada por el circuito volvia a forzar la creacion de otro plantel para el mismo socio y año.
+    var debeCrearPlantel = createNewPlantel;
+    createNewPlantel = false;
+    var ok = false;
 
     try
     {
@@ -2006,20 +2109,20 @@ async Task ResultWithoutSolicitud()
         if (socioSeleccionado is null)
         {
             await Swal.FireAsync("Error", "Debe seleccionar un socio.", SweetAlertIcon.Error);
-            return;
+            return false;
         }
 
         var codEst = establecimientos.FirstOrDefault(x => x.Codsoc == socioSeleccionado.Scod)?.Ecod;
         if (string.IsNullOrWhiteSpace(codEst))
         {
             await Swal.FireAsync("Error", "El socio no tiene establecimientos cargados.", SweetAlertIcon.Error);
-            return;
+            return false;
         }
 
         if (inspectorSeleccionado is null)
         {
             await Swal.FireAsync("Error", "Debe seleccionar un inspector.", SweetAlertIcon.Error);
-            return;
+            return false;
         }
 
         // 2) Tomar plantel base (para 'Existencia anterior'), pero SIN pisar selección del usuario
@@ -2040,7 +2143,7 @@ async Task ResultWithoutSolicitud()
         if (plantel is null)
         {
             await Swal.FireAsync("Error", "El socio no tiene plantel registrado.", SweetAlertIcon.Error);
-            return;
+            return false;
         }
 
         Plantelseleccionado = plantel;
@@ -2070,7 +2173,7 @@ async Task ResultWithoutSolicitud()
             loadingMovs = loadingHemyma = loadingProms = loadingRech = false;
             isSavingReporte = false;
             await InvokeAsync(StateHasChanged);
-            return;
+            return false;
         }
 
         Id = guardado.Id;
@@ -2086,11 +2189,11 @@ async Task ResultWithoutSolicitud()
         await RefreshAll(guardado.Nrores);
 
         // 5) Crear/actualizar plantel si corresponde
-        if (createNewPlantel)
+        if (debeCrearPlantel)
         {
             isUpdatingPlantel = true;
             await InvokeAsync(StateHasChanged);
-            var destino = await updatePlantel(_subirDeAnioNoSeUsa: true); // crea/actualiza 2025D1D1
+            var destino = await updatePlantel(forzarCreacion: true);
             Plantelseleccionado = destino;                         // reflejar en UI
 
             // Forzar asociación del RESULTADO al NUEVO plantel
@@ -2105,7 +2208,6 @@ async Task ResultWithoutSolicitud()
             oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
             Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
 
-            createNewPlantel = false; // evitar saltos a 2026, 2027...
             isUpdatingPlantel = false;
             await InvokeAsync(StateHasChanged);
         }
@@ -2114,6 +2216,8 @@ async Task ResultWithoutSolicitud()
         var rtRes = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 0);
         resultados = rtRes.List;
         RefreshDerivedLists();
+
+        ok = true;
 
         // 7) Render final
         await InvokeAsync(StateHasChanged);
@@ -2128,8 +2232,17 @@ async Task ResultWithoutSolicitud()
     }
     finally
     {
+        // Si no se llego a crear nada, el tilde queda disponible para el proximo intento.
+        if (!ok)
+        {
+            createNewPlantel = debeCrearPlantel;
+        }
+
         isSavingReporte = false;
+        isUpdatingPlantel = false;
     }
+
+    return ok;
 }
 
 
@@ -2156,8 +2269,9 @@ async Task ResultWithoutSolicitud()
 
             if (!string.IsNullOrEmpty(result.Value))
             {
-                deleteRechazo(id);
-                await confirmar(false);
+                // Idem movimientos: sin await, confirmar() volvia a guardar contra datos viejos.
+                await deleteRechazo(id);
+                await confirmar();
             }
             else if (result.Dismiss == DismissReason.Cancel)
             {
