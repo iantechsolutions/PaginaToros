@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -84,6 +84,7 @@ builder.Services.AddScoped<IEstableRepositorio, EstableRepositorio>();
 builder.Services.AddScoped<IFutcontrolRepositorio, FutcontrolRepositorio>();
 builder.Services.AddScoped<IInspectRepositorio, InspectRepositorio>();
 builder.Services.AddScoped<IPlantelRepositorio, PlantelRepositorio>();
+builder.Services.AddScoped<IPlantelDiagnosticoRepositorio, PlantelDiagnosticoRepositorio>();
 builder.Services.AddScoped<IResin1Repositorio, Resin1Repositorio>();
 builder.Services.AddScoped<IResin2Repositorio, Resin2Repositorio>();
 builder.Services.AddScoped<IResin3Repositorio, Resin3Repositorio>();

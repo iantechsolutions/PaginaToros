@@ -1,4 +1,4 @@
-using Blazored.Modal;
+﻿using Blazored.Modal;
 using Blazored.SessionStorage;
 using CurrieTechnologies.Razor.SweetAlert2;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -32,6 +32,7 @@ builder.Services.AddScoped<IEstableServicio, EstableServicio>();
 builder.Services.AddScoped<IFutcontrolServicio, FutcontrolServicio>();
 builder.Services.AddScoped<IInspectServicio, InspectServicio>();
 builder.Services.AddScoped<IPlantelServicio, PlantelServicio>();
+builder.Services.AddScoped<IPlantelDiagnosticoServicio, PlantelDiagnosticoServicio>();
 builder.Services.AddScoped<IResin1Servicio, Resin1Servicio>();
 builder.Services.AddScoped<IResin2Servicio, Resin2Servicio>();
 builder.Services.AddScoped<IResin3Servicio, Resin3Servicio>();

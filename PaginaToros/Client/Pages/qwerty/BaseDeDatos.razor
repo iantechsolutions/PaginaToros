@@ -1,0 +1,459 @@
+@attribute [Authorize(Roles = "USUARIOMAESTRO, ADMINISTRADOR")]
+@page "/qwerty/basededatos"
+@using PaginaToros.Shared.Models
+@using PaginaToros.Shared.Models.Response
+@using PaginaToros.Client.Servicios.Contrato
+@inject IPlantelDiagnosticoServicio _diagnostico
+@inject SweetAlertService Swal
+
+<div class="container-fluid py-3">
+
+    <h3>Mantenimiento de base — Planteles duplicados</h3>
+    <p class="text-muted" style="max-width:62rem;">
+        Detecta socios que quedaron con más de un plantel para el mismo año de existencia. Nada se
+        modifica hasta que simulés el cambio y después lo apliques: la simulación te muestra
+        exactamente qué se va a tocar. Las eliminaciones se bloquean si todavía hay reportes o
+        declaraciones colgando del plantel.
+    </p>
+
+    <button class="btn btn-primary" @onclick="Analizar" disabled="@cargando">
+        @(cargando ? "Analizando..." : "Analizar base")
+    </button>
+
+    @if (analizado && !cargando)
+    {
+        <span class="ms-3">
+            @if (grupos.Count == 0)
+            {
+                <span class="text-success fw-bold">No hay planteles duplicados.</span>
+            }
+            else
+            {
+                <span class="fw-bold">@grupos.Count grupo(s) con duplicados.</span>
+            }
+        </span>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(errorCarga))
+    {
+        <div class="alert alert-danger mt-3">@errorCarga</div>
+    }
+
+    @foreach (var grupo in grupos)
+    {
+        var estado = EstadoDe(grupo);
+
+        <div class="card mt-4 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>@(string.IsNullOrWhiteSpace(grupo.SocioNombre) ? "(socio sin nombre)" : grupo.SocioNombre)</strong>
+                    <span class="text-muted ms-2">socio @grupo.Nrocri · año @grupo.Anioex · @grupo.Planteles.Count planteles</span>
+                </div>
+                @if (estado.Resultado?.Aplicado == true)
+                {
+                    <span class="badge bg-success">Consolidado</span>
+                }
+            </div>
+
+            <div class="card-body">
+
+                @if (grupo.Advertencias.Count > 0)
+                {
+                    <div class="alert alert-warning py-2">
+                        <ul class="mb-0">
+                            @foreach (var a in grupo.Advertencias)
+                            {
+                                <li>@a</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:9rem;">Conservar</th>
+                                <th>Código</th>
+                                <th>id</th>
+                                <th>Alta</th>
+                                <th>Origen del código</th>
+                                <th>PR (vacas / c.s. / s.s.)</th>
+                                <th>VIP (vacas / c.s. / s.s.)</th>
+                                <th>Cuelga de él</th>
+                                <th style="width:7rem;">Eliminar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in grupo.Planteles)
+                            {
+                                var cod = p.Placod ?? "";
+                                <tr class="@(estado.Sobreviviente == cod ? "table-success" : "")">
+                                    <td>
+                                        <input type="radio"
+                                               name="@($"sobrev-{grupo.Clave}")"
+                                               checked="@(estado.Sobreviviente == cod)"
+                                               disabled="@estado.Bloqueado"
+                                               @onchange="() => ElegirSobreviviente(grupo, cod)" />
+                                        @if (p.EsSugerido)
+                                        {
+                                            <span class="badge bg-info text-dark ms-1">sugerido</span>
+                                        }
+                                    </td>
+                                    <td><code>@cod</code></td>
+                                    <td class="text-muted">@p.Id</td>
+                                    <td class="text-muted">@p.Fecing</td>
+                                    <td>
+                                        @if (p.DerivadoDeOtroDelGrupo)
+                                        {
+                                            <span class="text-danger">derivado de <code>@p.DerivadoDe</code></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success">raíz</span>
+                                        }
+                                    </td>
+                                    <td class="@(TieneNegativo(p.Totales, true) ? "text-danger fw-bold" : "")">
+                                        @p.Totales.Varede / @p.Totales.Vqcsrd / @p.Totales.Vqssrd
+                                    </td>
+                                    <td class="@(TieneNegativo(p.Totales, false) ? "text-danger fw-bold" : "")">
+                                        @p.Totales.Varepr / @p.Totales.Vqcsrp / @p.Totales.Vqssrp
+                                    </td>
+                                    <td>
+                                        @if (p.Referencias.Total == 0)
+                                        {
+                                            <span class="text-muted">nada</span>
+                                        }
+                                        else
+                                        {
+                                            <details>
+                                                <summary>@p.Referencias.Total registro(s)</summary>
+                                                <ul class="mb-0 small">
+                                                    @foreach (var d in p.Referencias.Detalle)
+                                                    {
+                                                        <li>@d</li>
+                                                    }
+                                                </ul>
+                                            </details>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (estado.Sobreviviente == cod)
+                                        {
+                                            <span class="text-muted small">se conserva</span>
+                                        }
+                                        else
+                                        {
+                                            <input type="checkbox"
+                                                   checked="@estado.AEliminar.Contains(cod)"
+                                                   disabled="@estado.Bloqueado"
+                                                   @onchange="e => MarcarEliminar(grupo, cod, e)" />
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="small text-muted mb-3">
+                    <strong>Criterio sugerido:</strong> @grupo.MotivoSugerencia
+                </div>
+
+                @if (grupo.TotalesRecalculados != null)
+                {
+                    <div class="alert @(grupo.TotalesRecalculados.TieneNegativos ? "alert-danger" : "alert-secondary") py-2">
+                        <div>
+                            <strong>Totales recalculados:</strong>
+                            PR @grupo.TotalesRecalculados.Varede / @grupo.TotalesRecalculados.Vqcsrd / @grupo.TotalesRecalculados.Vqssrd
+                            · VIP @grupo.TotalesRecalculados.Varepr / @grupo.TotalesRecalculados.Vqcsrp / @grupo.TotalesRecalculados.Vqssrp
+                        </div>
+                        <div class="small">@grupo.OrigenTotalesRecalculados</div>
+                        @if (grupo.TotalesRecalculados.TieneNegativos)
+                        {
+                            <div class="small fw-bold mt-1">
+                                Dan negativo. Una categoría no puede tener cantidad negativa: revisá el reporte
+                                antes de grabar esto en el plantel.
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="d-flex flex-wrap gap-3 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="@($"rep-{grupo.Clave}")"
+                               checked="@estado.RepuntarReferencias" disabled="@estado.Bloqueado"
+                               @onchange="e => { estado.RepuntarReferencias = LeerBool(e); estado.Resultado = null; }" />
+                        <label class="form-check-label" for="@($"rep-{grupo.Clave}")">
+                            Repuntar referencias al plantel que se conserva
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="@($"rec-{grupo.Clave}")"
+                               checked="@estado.RecalcularTotales" disabled="@estado.Bloqueado"
+                               @onchange="e => { estado.RecalcularTotales = LeerBool(e); estado.Resultado = null; }" />
+                        <label class="form-check-label" for="@($"rec-{grupo.Clave}")">
+                            Recalcular totales
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="@($"del-{grupo.Clave}")"
+                               checked="@estado.EliminarSobrantes" disabled="@estado.Bloqueado"
+                               @onchange="e => { estado.EliminarSobrantes = LeerBool(e); estado.Resultado = null; }" />
+                        <label class="form-check-label" for="@($"del-{grupo.Clave}")">
+                            Eliminar los marcados
+                        </label>
+                    </div>
+                    @if (grupo.TotalesRecalculados?.TieneNegativos == true)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="@($"neg-{grupo.Clave}")"
+                                   checked="@estado.AceptarNegativos" disabled="@estado.Bloqueado"
+                                   @onchange="e => { estado.AceptarNegativos = LeerBool(e); estado.Resultado = null; }" />
+                            <label class="form-check-label text-danger" for="@($"neg-{grupo.Clave}")">
+                                Acepto grabar totales negativos
+                            </label>
+                        </div>
+                    }
+                </div>
+
+                <button class="btn btn-outline-secondary me-2"
+                        disabled="@(estado.Trabajando || estado.Bloqueado)"
+                        @onclick="() => Simular(grupo)">
+                    @(estado.Trabajando ? "Procesando..." : "Simular")
+                </button>
+
+                <button class="btn btn-danger"
+                        disabled="@(estado.Trabajando || estado.Bloqueado || estado.Resultado == null || !estado.Resultado.PuedeAplicarse || estado.Resultado.Aplicado)"
+                        @onclick="() => Aplicar(grupo)">
+                    Aplicar cambios
+                </button>
+
+                @if (estado.Resultado != null)
+                {
+                    <div class="mt-3">
+                        @if (estado.Resultado.Errores.Count > 0)
+                        {
+                            <div class="alert alert-danger py-2 mb-2">
+                                <strong>No se puede aplicar:</strong>
+                                <ul class="mb-0">
+                                    @foreach (var e in estado.Resultado.Errores)
+                                    {
+                                        <li>@e</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        @if (estado.Resultado.Acciones.Count > 0)
+                        {
+                            <div class="alert @(estado.Resultado.Aplicado ? "alert-success" : "alert-info") py-2 mb-2">
+                                <strong>@(estado.Resultado.Aplicado ? "Aplicado:" : "Se va a hacer:")</strong>
+                                <ul class="mb-0">
+                                    @foreach (var a in estado.Resultado.Acciones)
+                                    {
+                                        <li>@a</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        @foreach (var a in estado.Resultado.Advertencias)
+                        {
+                            <div class="alert alert-warning py-1 mb-1 small">@a</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private class EstadoGrupo
+    {
+        public string Sobreviviente { get; set; } = "";
+        public HashSet<string> AEliminar { get; set; } = new();
+        public bool RepuntarReferencias { get; set; } = true;
+        public bool RecalcularTotales { get; set; } = true;
+        public bool EliminarSobrantes { get; set; } = true;
+        public bool AceptarNegativos { get; set; }
+        public bool Trabajando { get; set; }
+        public bool Bloqueado { get; set; }
+        public ConsolidarPlantelesResultado? Resultado { get; set; }
+    }
+
+    private List<PlantelDuplicadoGrupoDTO> grupos = new();
+    private readonly Dictionary<string, EstadoGrupo> estados = new();
+    private bool cargando;
+    private bool analizado;
+    private string? errorCarga;
+
+    private EstadoGrupo EstadoDe(PlantelDuplicadoGrupoDTO grupo) => estados[grupo.Clave];
+
+    private static bool TieneNegativo(PlantelTotalesDTO t, bool bloquePr)
+        => bloquePr
+            ? (t.Varede < 0 || t.Vqcsrd < 0 || t.Vqssrd < 0)
+            : (t.Varepr < 0 || t.Vqcsrp < 0 || t.Vqssrp < 0);
+
+    private static bool LeerBool(ChangeEventArgs e) => e.Value is bool b && b;
+
+    private async Task Analizar()
+    {
+        cargando = true;
+        errorCarga = null;
+        try
+        {
+            var respuesta = await _diagnostico.Duplicados();
+            if (respuesta?.Exito != 1)
+            {
+                errorCarga = respuesta?.Mensaje ?? "No se pudo analizar la base.";
+                grupos = new();
+                return;
+            }
+
+            grupos = respuesta.List ?? new();
+            estados.Clear();
+
+            foreach (var g in grupos)
+            {
+                // Por defecto se propone lo que dicta el criterio: conservar la raíz de la cascada
+                // y marcar el resto. El usuario puede cambiarlo antes de simular.
+                var estado = new EstadoGrupo
+                {
+                    Sobreviviente = g.PlacodSugerido ?? g.Planteles.First().Placod ?? ""
+                };
+                foreach (var p in g.Planteles.Where(p => p.Placod != estado.Sobreviviente))
+                {
+                    estado.AEliminar.Add(p.Placod ?? "");
+                }
+                estados[g.Clave] = estado;
+            }
+
+            analizado = true;
+        }
+        catch (Exception ex)
+        {
+            errorCarga = $"No se pudo analizar la base: {ex.Message}";
+            grupos = new();
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void ElegirSobreviviente(PlantelDuplicadoGrupoDTO grupo, string cod)
+    {
+        var estado = EstadoDe(grupo);
+        estado.Sobreviviente = cod;
+        estado.AEliminar.Remove(cod);
+        estado.Resultado = null;
+    }
+
+    private void MarcarEliminar(PlantelDuplicadoGrupoDTO grupo, string cod, ChangeEventArgs e)
+    {
+        var estado = EstadoDe(grupo);
+        if (LeerBool(e))
+        {
+            estado.AEliminar.Add(cod);
+        }
+        else
+        {
+            estado.AEliminar.Remove(cod);
+        }
+        estado.Resultado = null;
+    }
+
+    private ConsolidarPlantelesRequest ArmarRequest(PlantelDuplicadoGrupoDTO grupo, bool aplicar)
+    {
+        var estado = EstadoDe(grupo);
+        return new ConsolidarPlantelesRequest
+        {
+            Nrocri = grupo.Nrocri,
+            Anioex = grupo.Anioex,
+            PlacodSobreviviente = estado.Sobreviviente,
+            PlacodsAEliminar = estado.AEliminar.ToList(),
+            RepuntarReferencias = estado.RepuntarReferencias,
+            RecalcularTotales = estado.RecalcularTotales,
+            EliminarSobrantes = estado.EliminarSobrantes,
+            AceptarTotalesNegativos = estado.AceptarNegativos,
+            Aplicar = aplicar
+        };
+    }
+
+    private async Task Simular(PlantelDuplicadoGrupoDTO grupo)
+    {
+        var estado = EstadoDe(grupo);
+        estado.Trabajando = true;
+        estado.Resultado = null;
+        try
+        {
+            var respuesta = await _diagnostico.Consolidar(ArmarRequest(grupo, aplicar: false));
+            estado.Resultado = respuesta?.List;
+            if (estado.Resultado == null)
+            {
+                await Swal.FireAsync("Error", respuesta?.Mensaje ?? "No se pudo simular.", SweetAlertIcon.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            await Swal.FireAsync("Error", $"No se pudo simular: {ex.Message}", SweetAlertIcon.Error);
+        }
+        finally
+        {
+            estado.Trabajando = false;
+        }
+    }
+
+    private async Task Aplicar(PlantelDuplicadoGrupoDTO grupo)
+    {
+        var estado = EstadoDe(grupo);
+        if (estado.Resultado == null || !estado.Resultado.PuedeAplicarse)
+        {
+            return;
+        }
+
+        var detalle = string.Join("\n• ", estado.Resultado.Acciones);
+        var confirmacion = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "¿Aplicar los cambios?",
+                Text = $"Socio {grupo.SocioNombre} ({grupo.Nrocri}), año {grupo.Anioex}.\n\n• {detalle}\n\nEsto modifica la base y no se puede deshacer desde acá.",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Aplicar",
+                CancelButtonText = "Cancelar"
+            });
+
+        if (string.IsNullOrEmpty(confirmacion.Value))
+        {
+            return;
+        }
+
+        estado.Trabajando = true;
+        try
+        {
+            var respuesta = await _diagnostico.Consolidar(ArmarRequest(grupo, aplicar: true));
+            estado.Resultado = respuesta?.List;
+
+            if (estado.Resultado?.Aplicado == true)
+            {
+                estado.Bloqueado = true;
+                await Swal.FireAsync("Listo", "Los cambios se aplicaron.", SweetAlertIcon.Success);
+            }
+            else
+            {
+                var motivo = estado.Resultado?.Errores.FirstOrDefault() ?? respuesta?.Mensaje ?? "No se aplicó ningún cambio.";
+                await Swal.FireAsync("No se aplicó", motivo, SweetAlertIcon.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            await Swal.FireAsync("Error", $"No se pudieron aplicar los cambios: {ex.Message}", SweetAlertIcon.Error);
+        }
+        finally
+        {
+            estado.Trabajando = false;
+        }
+    }
+}
