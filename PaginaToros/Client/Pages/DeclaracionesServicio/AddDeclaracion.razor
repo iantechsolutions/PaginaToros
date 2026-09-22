@@ -743,7 +743,12 @@ else
     private static string Q(string? value) => value is null ? "<null>" : $"'{value}' (len={value.Length})";
     private static string T(string? value) => (value ?? string.Empty).Trim();
     private static string DisplayOrNoInformado(string? value) => string.IsNullOrWhiteSpace(value) ? NoInformado : value.Trim();
-    private static string EscapeForFilter(string? value) => (value ?? string.Empty).Replace("\"", "\\\"");
+    // La barra invertida se escapa PRIMERO: si no, el escape de la comilla metia un `\` que a su
+    // vez quedaba sin escapar y rompia (o dejaba abierta) la expresion Dynamic LINQ que arma el
+    // filtro, que despues el server pasa tal cual a .Where(filtro).
+    private static string EscapeForFilter(string? value) => (value ?? string.Empty)
+        .Replace("\\", "\\\\")
+        .Replace("\"", "\\\"");
     private static DateTime KeepDayWithinMonth(DateTime current, DateTime selected)
     {
         var year = selected.Year;

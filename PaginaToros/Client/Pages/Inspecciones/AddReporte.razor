@@ -433,7 +433,7 @@ else
                                                                 <td></td>
                                                         }
                                                         else{
-                                                            <td><button class="btn" title="Editar info" @onclick='() => (agregarMov(mov.Id))' disabled="@esSocio" ><FeatherEdit Size="16" Color="green" /></button><button class="btn" title="Borrar" @onclick='() => (alertaDeleteMovimiento(mov.Id))'><FeatherDelete Size="16" Color="red" /></button></td>
+                                                            <td><button class="btn" title="Editar info" @onclick='() => (agregarMov(mov.Id))' disabled="@esSocio" ><FeatherEdit Size="16" Color="green" /></button><button class="btn" title="Borrar" disabled="@esSocio" @onclick='() => (alertaDeleteMovimiento(mov.Id))'><FeatherDelete Size="16" Color="red" /></button></td>
                                                         }
                                                     
                                                     </tr>
@@ -525,7 +525,7 @@ else
                                                         <td/>
                                                     }
                                                     else{
-                                                            <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqpr"))'><FeatherEdit Color="green" /></button></td>
+                                                            <td><button class="btn" title="Ver info" disabled="@esSocio" @onclick='() => (agregarHembraMacho("vaqpr"))'><FeatherEdit Color="green" /></button></td>
                                                     }
                                                 </tr>
                                                 <!-- Otros PR -->
@@ -543,7 +543,7 @@ else
                                                     }
                                                     else
                                                     {
-                                                        <td><button class="btn" title="Ver info @hemyma.Id" @onclick='() => (agregarHembraMacho("otrospr"))'><FeatherEdit Color="green" /></button></td>
+                                                        <td><button class="btn" title="Ver info @hemyma.Id" disabled="@esSocio" @onclick='() => (agregarHembraMacho("otrospr"))'><FeatherEdit Color="green" /></button></td>
                                                     }
                                                 </tr>
                                                 <!-- Vacas VIP -->
@@ -561,7 +561,7 @@ else
                                                     }
                                                     else
                                                     {
-                                                        <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vacvip"))'><FeatherEdit Color="green" /></button></td>
+                                                        <td><button class="btn" title="Ver info" disabled="@esSocio" @onclick='() => (agregarHembraMacho("vacvip"))'><FeatherEdit Color="green" /></button></td>
                                                     }
                                                 </tr>
                                                 <!-- Vaq VIP -->
@@ -579,7 +579,7 @@ else
                                                     }
                                                     else
                                                     {
-                                                            <td><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("vaqvip"))'><FeatherEdit Color="green" /></button></td>
+                                                            <td><button class="btn" title="Ver info" disabled="@esSocio" @onclick='() => (agregarHembraMacho("vaqvip"))'><FeatherEdit Color="green" /></button></td>
                                                         }
                                                 </tr>
                                                 <!-- TOTALES -->
@@ -632,7 +632,7 @@ else
                                                     }
                                                     else
                                                     {
-                                                        <td style="background-color: #fff;"><button class="btn" title="Ver info" @onclick='() => (agregarHembraMacho("scp"))'><FeatherEdit Color="green" /></button></td>
+                                                        <td style="background-color: #fff;"><button class="btn" title="Ver info" disabled="@esSocio" @onclick='() => (agregarHembraMacho("scp"))'><FeatherEdit Color="green" /></button></td>
                                                     }
                                                 
                                                 </tr>
@@ -722,6 +722,10 @@ else
     // asi que un doble click rapido entraba dos veces al circuito y duplicaba resultado y plantel.
     bool guardando = false;
     bool procesandoMovimiento = false;
+    bool procesandoBorrado = false;
+    // Se pregunta una sola vez por pantalla: si el usuario ya decidio seguir con totales en
+    // negativo, no tiene sentido interrumpirlo en cada movimiento.
+    bool totalesNegativosConfirmados = false;
     // Plantel que creo el tilde "Crear nuevo plantel" en esta pantalla. Si el circuito vuelve a pasar
     // por updatePlantel se reutiliza, en vez de crear otro con codigo alternativo.
     PlantelDTO? plantelCreadoEnPantalla = null;
@@ -901,7 +905,11 @@ else
         }
         catch (Exception ex)
         {
+            // Antes esto solo escribia en oRespuesta.Mensaje, que no se renderiza en ningun lado:
+            // si fallaba la carga, la pantalla quedaba vacia sin ninguna explicacion.
             oRespuesta.Mensaje = ex.Message;
+            Console.WriteLine("Error al cargar el reporte: " + ex.Message);
+            await Swal.FireAsync("Error", $"No se pudieron cargar los datos del reporte: {ex.Message}", SweetAlertIcon.Error);
         }
         finally
         {
@@ -911,7 +919,12 @@ else
         }
     }
 
-    private static string EscapeForFilter(string? value) => (value ?? string.Empty).Replace("\"", "\\\"");
+    // La barra invertida se escapa PRIMERO: si no, el escape de la comilla metia un `\` que a su
+    // vez quedaba sin escapar y rompia (o dejaba abierta) la expresion Dynamic LINQ que arma el
+    // filtro, que despues el server pasa tal cual a .Where(filtro).
+    private static string EscapeForFilter(string? value) => (value ?? string.Empty)
+        .Replace("\\", "\\\\")
+        .Replace("\"", "\\\"");
 
     private void LoadSocioDerivedState(bool resetSelections)
     {
@@ -1528,7 +1541,10 @@ else
         }
         catch (Exception ex)
         {
+            // Si esto falla en silencio, la existencia anterior queda con datos viejos y todos los
+            // totales derivados salen mal sin que nadie lo note.
             Console.WriteLine(ex.Message);
+            await Swal.FireAsync("Error", $"No se pudo cargar la existencia anterior: {ex.Message}", SweetAlertIcon.Error);
         }
     }
 
@@ -1583,43 +1599,93 @@ else
     /// en la misma pantalla con el boton cambiado a "Actualizar datos": eso invitaba a apretarlo de
     /// nuevo y cada click extra generaba otro resultado y otro plantel.
     /// </summary>
-    async Task GuardarYVolver()
+    /// <summary>
+    /// Guarda el reporte (alta o edicion) SIN navegar. Devuelve true solo si quedo guardado.
+    /// </summary>
+    async Task<bool> GuardarReporteAsync()
     {
         if (guardando)
         {
-            return;
+            return false;
         }
 
         guardando = true;
         await InvokeAsync(StateHasChanged);
-
-        var esAlta = Id == 0;
         try
         {
-            var ok = (Id != 0 || TieneSolicitudSeleccionada)
+            return (Id != 0 || TieneSolicitudSeleccionada)
                 ? await confirmarNuevo()
                 : await ResultWithoutSolicitud();
-
-            if (!ok)
-            {
-                return;
-            }
-
-            await Swal.FireAsync(new SweetAlertOptions
-                {
-                    Title = esAlta ? "Reporte generado" : "Reporte actualizado",
-                    Icon = SweetAlertIcon.Success,
-                    Timer = 1500,
-                    ShowConfirmButton = false
-                });
-
-            NavigationManager.NavigateTo("/reportes");
         }
         finally
         {
             guardando = false;
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    async Task GuardarYVolver()
+    {
+        var esAlta = Id == 0;
+
+        if (!await GuardarReporteAsync())
+        {
+            return;
+        }
+
+        await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = esAlta ? "Reporte generado" : "Reporte actualizado",
+                Icon = SweetAlertIcon.Success,
+                Timer = 1500,
+                ShowConfirmButton = false
+            });
+
+        NavigationManager.NavigateTo("/reportes");
+    }
+
+    /// <summary>
+    /// Numero de reporte (NRORES) con el que se graban movimientos, rechazos, promedios y
+    /// hembras/machos. Si el reporte todavia no existe lo crea: ese numero lo asigna el servidor
+    /// al dar de alta el Resin1, asi que cuando no habia solicitud previa no existia y las solapas
+    /// quedaban inutilizables — movimientos cortaba con "No hay solicitud seleccionada" y las otras
+    /// tres reventaban con una NullReferenceException que el catch se tragaba en silencio.
+    /// </summary>
+    async Task<string?> ObtenerNroresGarantizadoAsync()
+    {
+        var nrores = SelectedSolicitud?.Nrosol;
+        if (!string.IsNullOrWhiteSpace(nrores))
+        {
+            return nrores;
+        }
+
+        if (Id == 0)
+        {
+            // GuardarReporteAsync ya avisa por su cuenta si falta el inspector o el plantel.
+            if (!await GuardarReporteAsync())
+            {
+                return null;
+            }
+
+            nrores = oResin1?.Nrores ?? SelectedSolicitud?.Nrosol;
+
+            if (!string.IsNullOrWhiteSpace(nrores))
+            {
+                await Swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Reporte generado",
+                        Text = $"N° {nrores}. Ya podés cargar los datos.",
+                        Icon = SweetAlertIcon.Success,
+                        Timer = 1800,
+                        ShowConfirmButton = false
+                    });
+
+                return nrores;
+            }
+        }
+
+        await Swal.FireAsync("Error", "No se pudo determinar el número de reporte.", SweetAlertIcon.Error);
+        return null;
     }
 
     async Task<bool> confirmar()
@@ -1669,16 +1735,19 @@ else
                 isUpdatingPlantel = true;
                 await InvokeAsync(StateHasChanged);
 
-                var destino = await updatePlantel(forzarCreacion: debeCrearPlantel);
-                if (!string.Equals((oResin1.Nropla ?? "").Trim(), (destino.Placod ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
+                if (await PuedePersistirEstadoFinalAsync())
                 {
-                    oResin1.Nropla = destino.Placod;
-                    await _resin1Servicio.Editar(oResin1);
-                    await EsperarActualizacionNropla(Id, destino.Placod);
+                    var destino = await updatePlantel(forzarCreacion: debeCrearPlantel);
+                    if (!string.Equals((oResin1.Nropla ?? "").Trim(), (destino.Placod ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        oResin1.Nropla = destino.Placod;
+                        await _resin1Servicio.Editar(oResin1);
+                        await EsperarActualizacionNropla(Id, destino.Placod);
 
-                    var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
-                    oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
-                    Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
+                        var actualizado = await _resin1Servicio.LimitadosFiltradosNoInclude(0, 1, $"Id = {Id}");
+                        oResin1 = actualizado.List.FirstOrDefault() ?? oResin1;
+                        Plantelseleccionado = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla) ?? Plantelseleccionado;
+                    }
                 }
 
                 isUpdatingPlantel = false;
@@ -1783,10 +1852,9 @@ else
         procesandoMovimiento = true;
         try
         {
-            var nrores = solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
+            var nrores = await ObtenerNroresGarantizadoAsync();
             if (string.IsNullOrWhiteSpace(nrores))
             {
-                await Swal.FireAsync("Error", "No hay solicitud seleccionada.", SweetAlertIcon.Error);
                 return;
             }
 
@@ -1806,7 +1874,7 @@ else
             // reporte no existe, escribirlo (y con el tilde puesto, crearlo) dejaba un plantel
             // colgado si el usuario abandonaba el formulario, y era la vuelta que alimentaba la
             // cascada de planteles duplicados.
-            if (Id != 0)
+            if (Id != 0 && await PuedePersistirEstadoFinalAsync())
             {
                 await updatePlantel(forzarCreacion: false);
             }
@@ -1825,6 +1893,41 @@ else
     }
 
 
+
+    /// <summary>
+    /// Impide volcar al plantel existencias negativas sin que nadie se entere. Una categoria no
+    /// puede tener cantidad negativa: cuando aparecieron en produccion (-77, -34, -3) fue por el
+    /// arrastre mal calculado de la existencia anterior, y quedaron grabadas en el plantel en
+    /// silencio. Devuelve true si se puede persistir.
+    /// </summary>
+    async Task<bool> PuedePersistirEstadoFinalAsync()
+    {
+        var negativos = new List<string>();
+        if (estadoFinal.Ea1 < 0) negativos.Add("PR Vacas");
+        if (estadoFinal.Ea2 < 0) negativos.Add("PR Vaq. c/Servicio");
+        if (estadoFinal.Ea3 < 0) negativos.Add("PR Vaq. s/Servicio");
+        if (estadoFinal.Ea4 < 0) negativos.Add("VIP Vacas");
+        if (estadoFinal.Ea5 < 0) negativos.Add("VIP Vaq. c/Servicio o preñadas");
+        if (estadoFinal.Ea6 < 0) negativos.Add("VIP Vaq. s/Servicio");
+
+        if (negativos.Count == 0 || totalesNegativosConfirmados)
+        {
+            return true;
+        }
+
+        var result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Existencia actual negativa",
+                Text = $"Quedan en negativo: {string.Join(", ", negativos)}. Revisá la existencia anterior y los movimientos cargados. ¿Grabar igual en el plantel?",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Grabar igual",
+                CancelButtonText = "No grabar"
+            });
+
+        totalesNegativosConfirmados = !string.IsNullOrEmpty(result.Value);
+        return totalesNegativosConfirmados;
+    }
 
 async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
  {
@@ -1988,10 +2091,16 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
     {
         try
         {
-            var parameters = new ModalParameters(); 
+            var nrores = await ObtenerNroresGarantizadoAsync();
+            if (string.IsNullOrWhiteSpace(nrores))
+            {
+                return;
+            }
+
+            var parameters = new ModalParameters();
             parameters.Add(nameof(AddHembraMachoRe.Id), hemyma.Id);
             parameters.Add(nameof(AddHembraMachoRe.botonclick), parametro);
-            parameters.Add(nameof(AddMovimientoRe.numeroRes), solicitudSeleccionada.FirstOrDefault().Nrosol);
+            parameters.Add(nameof(AddMovimientoRe.numeroRes), nrores);
             var options = new ModalOptions()
                 {
                     Size = ModalSize.ExtraLarge
@@ -2013,12 +2122,13 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
             }
             else
             {
-                await updateHembrasMachos(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                await updateHembrasMachos(nrores);
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
+            await Swal.FireAsync("Error", $"Ocurrió un error al editar hembras y machos: {ex.Message}", SweetAlertIcon.Error);
         }
     }
 
@@ -2026,9 +2136,15 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
     {
         try
         {
+            var nrores = await ObtenerNroresGarantizadoAsync();
+            if (string.IsNullOrWhiteSpace(nrores))
+            {
+                return;
+            }
+
             var parameters = new ModalParameters();
             parameters.Add(nameof(AddEdadMesPromedioRe.Id), id);
-            parameters.Add(nameof(AddEdadMesPromedioRe.nrores), solicitudSeleccionada.FirstOrDefault().Nrosol);
+            parameters.Add(nameof(AddEdadMesPromedioRe.nrores), nrores);
             parameters.Add(nameof(AddEdadMesPromedioRe.sexo), sexo);
             var options = new ModalOptions()
                 {
@@ -2042,21 +2158,28 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
             }
             else
             {
-                await updatePromedios(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                await updatePromedios(nrores);
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
+            await Swal.FireAsync("Error", $"Ocurrió un error al editar el promedio: {ex.Message}", SweetAlertIcon.Error);
         }
     }
     async Task agregarRechazo(int id)
     {
         try
         {
+            var nrores = await ObtenerNroresGarantizadoAsync();
+            if (string.IsNullOrWhiteSpace(nrores))
+            {
+                return;
+            }
+
             var parameters = new ModalParameters();
             parameters.Add(nameof(AddRechazoRe.Id), id);
-            parameters.Add(nameof(AddRechazoRe.nrores), solicitudSeleccionada.FirstOrDefault().Nrosol);
+            parameters.Add(nameof(AddRechazoRe.nrores), nrores);
             var options = new ModalOptions()
                 {
                     Size = ModalSize.ExtraLarge
@@ -2069,12 +2192,13 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
             }
             else
             {
-                await updateRechazos(solicitudSeleccionada.FirstOrDefault().Nrosol);
+                await updateRechazos(nrores);
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
+            await Swal.FireAsync("Error", $"Ocurrió un error al editar el causal de rechazo: {ex.Message}", SweetAlertIcon.Error);
         }
     }
 
@@ -2096,32 +2220,80 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
             // que volver a tocar algo para ver el resultado.
             await deleteMovimiento(id);
         }
-        else if (result.Dismiss == DismissReason.Cancel)
-        {
-
-        }
     }
 
 async Task deleteMovimiento(int id)
 {
-    await _resin3Servicio.Eliminar(id);
-    var nrores = oResin1?.Nrores ?? solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
-    if (!string.IsNullOrWhiteSpace(nrores))
+    // No tenia guard ni manejo de error: dos clicks disparaban dos Eliminar y el segundo reventaba
+    // con una excepcion sin capturar, que en Blazor WASM tumba la pantalla entera.
+    if (procesandoBorrado)
     {
-        await updateEstadoHistorico(nrores);
-        await updateMovimientos(nrores, "si");
-        if (Id != 0)
+        return;
+    }
+
+    procesandoBorrado = true;
+    try
+    {
+        await _resin3Servicio.Eliminar(id);
+        var nrores = oResin1?.Nrores ?? solicitudSeleccionada?.FirstOrDefault()?.Nrosol;
+        if (!string.IsNullOrWhiteSpace(nrores))
         {
-            await updatePlantel(forzarCreacion: false);
+            await updateEstadoHistorico(nrores);
+            await updateMovimientos(nrores, "si");
+            if (Id != 0 && await PuedePersistirEstadoFinalAsync())
+            {
+                await updatePlantel(forzarCreacion: false);
+            }
         }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.Message);
+        await Swal.FireAsync("Error", $"No se pudo eliminar el movimiento: {ex.Message}", SweetAlertIcon.Error);
+    }
+    finally
+    {
+        procesandoBorrado = false;
+        await InvokeAsync(StateHasChanged);
     }
 }
 
 
     async Task deleteRechazo(int id)
     {
-        await Http.DeleteAsync($"/api/Resin8/Eliminar/{id}");
-        await updateRechazos(solicitudSeleccionada.FirstOrDefault().Nrosol);
+        if (procesandoBorrado)
+        {
+            return;
+        }
+
+        procesandoBorrado = true;
+        try
+        {
+            // La respuesta no se miraba: si el server devolvia 404 o 500, la fila seguia en
+            // pantalla y el usuario creia que la habia borrado.
+            var respuesta = await Http.DeleteAsync($"/api/Resin8/Eliminar/{id}");
+            if (!respuesta.IsSuccessStatusCode)
+            {
+                await Swal.FireAsync("Error", $"No se pudo eliminar el causal de rechazo (HTTP {(int)respuesta.StatusCode}).", SweetAlertIcon.Error);
+                return;
+            }
+
+            var nrores = SelectedSolicitud?.Nrosol;
+            if (!string.IsNullOrWhiteSpace(nrores))
+            {
+                await updateRechazos(nrores);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await Swal.FireAsync("Error", $"No se pudo eliminar el causal de rechazo: {ex.Message}", SweetAlertIcon.Error);
+        }
+        finally
+        {
+            procesandoBorrado = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     async Task saveObservations()
@@ -2316,13 +2488,10 @@ async Task<bool> ResultWithoutSolicitud()
 
             if (!string.IsNullOrEmpty(result.Value))
             {
-                // Idem movimientos: sin await, confirmar() volvia a guardar contra datos viejos.
+                // Antes llamaba a confirmar() despues de borrar, o sea que eliminar un causal
+                // reguardaba el reporte entero y volvia a escribir el plantel. Alcanza con
+                // refrescar la grilla, que ya lo hace deleteRechazo.
                 await deleteRechazo(id);
-                await confirmar();
-            }
-            else if (result.Dismiss == DismissReason.Cancel)
-            {
-
             }
         }
 
