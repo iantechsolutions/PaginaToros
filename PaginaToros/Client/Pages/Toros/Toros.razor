@@ -744,11 +744,11 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="TorosuniDTO" Property="CreatedAt" Title="Alta" Width="92px">
+                <RadzenDataGridColumn TItem="TorosuniDTO" Property="Fechasba" Title="Alta" Width="92px">
                     <Template Context="data">
-                        @if (data.CreatedAt != default)
+                        @if (!string.IsNullOrWhiteSpace(data.Fechasba))
                         {
-                            @data.CreatedAt.ToString("dd/MM/yyyy")
+                            @data.Fechasba
                         }
                     </Template>
                 </RadzenDataGridColumn>
