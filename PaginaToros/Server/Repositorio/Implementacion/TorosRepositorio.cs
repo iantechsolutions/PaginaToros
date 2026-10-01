@@ -14,6 +14,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
     {
         private static readonly string[] ActiveEstadoCodes = new[] { "1", "2", "3", "4", "5" };
         private static readonly string[] TipoToroCodes = new[] { "P", "S", "GP", "A" };
+        private static readonly Regex SearchChipPrefixRegex = new(@"^(?:(?:buscar|socio|propietario)\s*:\s*)+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private readonly hereford_prContext _dbContext;
 
@@ -505,10 +506,20 @@ namespace PaginaToros.Server.Repositorio.Implementacion
 
         private IQueryable<Torosuni> ApplySearchFilter(IQueryable<Torosuni> query, string searchText)
         {
-            var normalized = searchText.Trim();
+            // El texto puede venir copiado de un chip ("Socio: 5474 - JORGE BUSTILLO") o persistido en ?q= de la URL.
+            var normalized = SearchChipPrefixRegex.Replace(searchText.Trim(), string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                return query;
+            }
+
             var isNumber = int.TryParse(normalized, out var numericValue);
 
             query = query.Where(t =>
+                (t.Socio != null && t.Socio.Nombre != null && t.Socio.Codpos2 != null &&
+                    EF.Functions.Like(t.Socio.Codpos2.Trim() + " - " + t.Socio.Nombre.Trim(), $"%{normalized}%")) ||
+                (t.Socio != null && t.Socio.Nombre != null && t.Socio.Scod != null &&
+                    EF.Functions.Like(t.Socio.Scod.Trim() + " - " + t.Socio.Nombre.Trim(), $"%{normalized}%")) ||
                 (t.NomDad != null && EF.Functions.Like(t.NomDad, $"%{normalized}%")) ||
                 (t.Hba != null && EF.Functions.Like(t.Hba, $"%{normalized}%")) ||
                 (t.Tatpart != null && EF.Functions.Like(t.Tatpart, $"%{normalized}%")) ||

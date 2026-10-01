@@ -812,6 +812,7 @@
     private bool showFilterPanel;
     private bool showSocioSelectorSocio;
     private bool initialGridLoadTriggered;
+    private bool pageInitialized;
     private int cantidad;
     private int metadataRequestVersion;
     private int tableRequestVersion;
@@ -834,11 +835,14 @@
         SyncStateLabelsFromMetadata(appliedFilters);
         draftFilters.CopyFrom(appliedFilters);
         BuildActiveChips();
+        pageInitialized = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || initialGridLoadTriggered || grid == null)
+        // El primer render ocurre antes de que OnInitializedAsync termine de leer los filtros de la URL;
+        // la carga inicial espera a que el estado esté completo para no traer resultados sin filtrar.
+        if (!pageInitialized || initialGridLoadTriggered || grid == null)
         {
             return;
         }
@@ -849,6 +853,12 @@
 
     private async Task LoadData(LoadDataArgs args)
     {
+        if (!pageInitialized)
+        {
+            tableLoading = true;
+            return;
+        }
+
         var requestId = ++tableRequestVersion;
         tableLoading = true;
         StateHasChanged();
