@@ -584,6 +584,25 @@ namespace PaginaToros.Server.Controllers
             return Ok(response);
         }
 
+        // Única fuente de la plantilla en blanco: Server/Plantillas/SolicitudInspeccion.xls.
+        // Para actualizarla (ej. cambio de valor UC) alcanza con reemplazar ese archivo.
+        private const string PlantillaSolicitudArchivo = "SolicitudInspeccion.xls";
+        private const string PlantillaSolicitudNombreDescarga = "Solicitud de Inspeccion.xls";
+
+        [HttpGet("Plantilla")]
+        public IActionResult Plantilla()
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "Plantillas", PlantillaSolicitudArchivo);
+            if (!System.IO.File.Exists(path))
+            {
+                return NotFound("No se encontró la plantilla de solicitud de inspección.");
+            }
+
+            // Sin caché: cuando se reemplaza la plantilla, nadie debe seguir bajando la versión vieja.
+            Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+            return PhysicalFile(path, "application/vnd.ms-excel", PlantillaSolicitudNombreDescarga);
+        }
+
         [HttpPost("SendExcel/{socioId}")]
         public async Task<IActionResult> SendExcel(int socioId, [FromForm] IFormFile file)
         {

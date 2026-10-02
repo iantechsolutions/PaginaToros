@@ -65,6 +65,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Plantillas descargables (ej. Solicitud de Inspección). Para actualizar una, reemplazar el archivo acá. -->
+    <None Update="Plantillas\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="appsettings.Local.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
