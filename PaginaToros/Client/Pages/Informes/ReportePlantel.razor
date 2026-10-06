@@ -1,230 +1,385 @@
-﻿@page "/reporteplantel"
-@using PaginaToros.Client.Servicios.Contrato;
+@page "/reporteplantel"
+@using PaginaToros.Client.Servicios.Contrato
+@using PaginaToros.Client.Shared.Informes
 @inject IJSRuntime js
 @inject IPlantelServicio _plantelServicio
+@inject IEstableServicio _estableServicio
 @inject HttpClient http
 
-<div class="rp-page">
+<PageTitle>Informe de Planteles</PageTitle>
 
-<h2 class="font-bold text-2xl mb-4 text-center rp-title">Informe de Planteles</h2>
-
-<div class="rp-filter-card no-print">
-    <DataAnnotationsValidator />
-    <div>
-        <div class="rp-field-label"><FeatherCalendar Size="14" Color="#475467" /> Fecha inicial</div>
-        <RadzenDatePicker TValue="DateTime?" @bind-Value="@fechaInicial"
-                          ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Style="width:100%"
-                          @onchange="OnFechaInicialChanged" />
-    </div>
-    <div>
-        <div class="rp-field-label"><FeatherCalendar Size="14" Color="#475467" /> Fecha final</div>
-        <RadzenDatePicker TValue="DateTime?" @bind-Value="@fechaFinal"
-                          ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Style="width:100%"
-                          @onchange="OnFechaFinalChanged" />
-    </div>
-    <div>
-        <div class="rp-field-label"><FeatherFilter Size="14" Color="#475467" /> Estado de los planteles</div>
-        <RadzenDropDown @bind-Value="@seleccion" Data="@opciones" Style="width:100%"
-                        Change="OnSeleccionChanged" />
-    </div>
-</div>
-
-<div class="rp-actions no-print">
-    <button class="rp-btn rp-btn-ghost" @onclick="ReiniciarFiltros" disabled="@isLoading">
-        <span><FeatherRotateCcw Color="currentColor" Size="16" /> Reiniciar filtros</span>
-    </button>
-
-    <button class="rp-btn rp-btn-primary" @onclick="Generate" disabled="@(!CanGenerate)">
-        @if (isLoading)
-        {
-            <span><i class="fa fa-spinner fa-spin"></i> Generando...</span>
-        }
-        else
-        {
-            <span>Generar</span>
-        }
-    </button>
-
-    <button class="rp-btn rp-btn-secondary" @onclick="DescargarExcel" disabled="@(isLoading || !terminado || !plantelesConAnio.Any() && !plantelesSinAnio.Any())">
-        <span><FeatherDownload Color="currentColor" Size="16" /> Exportar Excel</span>
-    </button>
-
-    <button class="rp-btn rp-btn-secondary" title="Exportar PDF" @onclick="Print" disabled="@(isLoading || !terminado)">
-        <span><FeatherPrinter Color="currentColor" Size="16" /> Exportar PDF</span>
-    </button>
-</div>
-
-@if (terminado)
-{
-    <div class="rp-results">
-    <div class="rp-section-title">Total general</div>
-    <table class="rp-table">
-        <thead>
-        <tr>
-            <th rowspan="2">Plantel</th>
-            <th colspan="3">PR</th>
-            <th colspan="3">VIP</th>
-            <th rowspan="2">Socio</th>
-            <th rowspan="2">Estado</th>
-        </tr>
-        <tr>
-            <th>Vacas</th>
-            <th>Vaquill. c/servicio</th>
-            <th>Vaquill. s/servicio</th>
-            <th>Vacas</th>
-            <th>Vaquill. c/servicio</th>
-            <th>Vaquill. s/servicio</th>
-        </tr>
-        </thead>
-        <tfoot>
-        <tr>
-            <td></td>
-            <td>@plantelesConAnio.Sum(x => x.Varede ?? 0)</td>
-            <td>@plantelesConAnio.Sum(x => x.Vqcsrd ?? 0)</td>
-            <td>@plantelesConAnio.Sum(x => x.Vqssrd ?? 0)</td>
-            <td>@plantelesConAnio.Sum(x => x.Varepr ?? 0)</td>
-            <td>@plantelesConAnio.Sum(x => x.Vqcsrp ?? 0)</td>
-            <td>@plantelesConAnio.Sum(x => x.Vqssrp ?? 0)</td>
-            <td></td>
-            <td></td>
-        </tr>
-        </tfoot>
-    </table>
-
-    @foreach (int i in anios)
-    {
-        var datosAnio = plantelesConAnio
-            .Where(x => int.TryParse(x.Anioex, out var yy) && yy == i)
-            .ToList();
-
-        <div class="rp-section-title">Año @i</div>
-
-        <table class="rp-table">
-            <thead>
-            <tr>
-                <th>Plantel</th>
-                <th>Vacas PR</th>
-                <th>Vaq. PR C/S</th>
-                <th>Vaq. PR S/S</th>
-                <th>Vacas</th>
-                <th>Vaq. VIP C/S o preñadas</th>
-                <th>Vaq. VIP S/S</th>
-                <th>Socio</th>
-                <th>Estado</th>
-            </tr>
-            </thead>
-            <tbody>
-            @if (datosAnio.Any())
+<ReportShell Title="Informe de Planteles"
+             Description="Stock de vacas y vaquillonas por plantel, establecimiento o razón social según el período seleccionado.">
+    <Actions>
+        <button type="button" class="rp-btn rp-btn-ghost" @onclick="ReiniciarFiltros" disabled="@isLoading">
+            <FeatherRotateCcw Size="16" Color="currentColor" /> Reiniciar filtros
+        </button>
+        <button type="button" class="rp-btn rp-btn-primary" @onclick="OnGenerarClick" disabled="@(!CanGenerate)">
+            @if (isLoading)
             {
-                @foreach (var plan in datosAnio)
-                {
-                    <tr>
-                        <td>@plan.Placod</td>
-                        <td>@plan.Varede</td>
-                        <td>@plan.Vqcsrd</td>
-                        <td>@plan.Vqssrd</td>
-                        <td>@plan.Varepr</td>
-                        <td>@plan.Vqcsrp</td>
-                        <td>@plan.Vqssrp</td>
-                        <td>@plan.Socio?.Nombre</td>
-                        <td>
-                            @if (!string.IsNullOrEmpty(plan.Estado) && plan.Estado == "S")
-                            {
-                                <span class="rp-estado-activo">Activo</span>
-                            }
-                            else
-                            {
-                                <span class="rp-estado-inactivo">Inactivo</span>
-                            }
-                        </td>
-                    </tr>
-                }
+                <span class="rp-spinner" aria-hidden="true"></span>
+                <span>Generando…</span>
             }
             else
             {
-                <tr>
-                    <td colspan="9">No hay datos para este año.</td>
-                </tr>
+                <FeatherBarChart2 Size="16" Color="currentColor" />
+                <span>Generar</span>
             }
-            </tbody>
-            <tfoot>
-            <tr>
-                <td>TOTAL del año @i</td>
-                <td>@datosAnio.Sum(x => x.Varede ?? 0)</td>
-                <td>@datosAnio.Sum(x => x.Vqcsrd ?? 0)</td>
-                <td>@datosAnio.Sum(x => x.Vqssrd ?? 0)</td>
-                <td>@datosAnio.Sum(x => x.Varepr ?? 0)</td>
-                <td>@datosAnio.Sum(x => x.Vqcsrp ?? 0)</td>
-                <td>@datosAnio.Sum(x => x.Vqssrp ?? 0)</td>
-                <td></td>
-                <td></td>
-            </tr>
-            </tfoot>
-        </table>
-    }
+        </button>
+        <ReportExportMenu Disabled="@(!terminado || isLoading)"
+                          Busy="@download"
+                          ExcelDisabled="@(download || !HayFilas)"
+                          PdfDisabled="@(printing || !HayFilas)"
+                          OnExcel="DescargarExcel"
+                          OnPdf="Print" />
+    </Actions>
 
-    @* Separate section for planteles without Anioex *@
-    @if (plantelesSinAnio.Any())
-    {
-        <div class="rp-section-title">Planteles sin año</div>
-        <table class="rp-table">
-            <thead>
-            <tr>
-                <th>Plantel</th>
-                <th>Vacas PR</th>
-                <th>Vaq. PR C/S</th>
-                <th>Vaq. PR S/S</th>
-                <th>Vacas VIP</th>
-                <th>Vaq. VIP C/S</th>
-                <th>Vaq. VIP S/S</th>
-                <th>Socio</th>
-                <th>Estado</th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach (var plan in plantelesSinAnio)
+    <Filters>
+        <div class="rp-filter-grid">
+            <div class="rp-field rp-col-4">
+                <div class="rp-field-label" id="rp-lbl-periodo">
+                    <span><FeatherCalendar Size="13" Color="currentColor" /> Período</span>
+                </div>
+                <div class="rp-field-group">
+                    <div>
+                        <span class="rp-field-sub" id="rp-lbl-desde">Fecha inicial</span>
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="fechaInicial" ShowTime="false" ShowSeconds="false"
+                                          DateFormat="dd/MM/yyyy" Name="rp-desde" aria-labelledby="rp-lbl-periodo rp-lbl-desde"
+                                          Change="OnFechaChanged" />
+                    </div>
+                    <div>
+                        <span class="rp-field-sub" id="rp-lbl-hasta">Fecha final</span>
+                        <RadzenDatePicker TValue="DateTime?" @bind-Value="fechaFinal" ShowTime="false" ShowSeconds="false"
+                                          DateFormat="dd/MM/yyyy" Name="rp-hasta" aria-labelledby="rp-lbl-periodo rp-lbl-hasta"
+                                          Change="OnFechaChanged" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="rp-field rp-col-2">
+                <div class="rp-field-label"><span id="rp-lbl-estado"><FeatherFilter Size="13" Color="currentColor" /> Estado</span></div>
+                <RadzenDropDown @bind-Value="seleccion" Data="@opciones" Name="rp-estado"
+                                aria-labelledby="rp-lbl-estado" Change="OnSeleccionChanged" />
+            </div>
+
+            <div class="rp-field rp-col-4">
+                <div class="rp-field-label"><span id="rp-lbl-vista"><FeatherLayers Size="13" Color="currentColor" /> Vista</span></div>
+                <div class="rp-segmented rp-block" role="group" aria-labelledby="rp-lbl-vista">
+                    @foreach (var opcionVista in vistas)
+                    {
+                        var valor = opcionVista;
+                        <button type="button" aria-pressed="@(vista == valor ? "true" : "false")" @onclick="() => OnVistaChanged(valor)">@valor</button>
+                    }
+                </div>
+            </div>
+
+            @if (MostrarFiltroEstablecimiento)
             {
-                <tr>
-                    <td>@plan.Placod</td>
-                    <td>@plan.Varede</td>
-                    <td>@plan.Vqcsrd</td>
-                    <td>@plan.Vqssrd</td>
-                    <td>@plan.Varepr</td>
-                    <td>@plan.Vqcsrp</td>
-                    <td>@plan.Vqssrp</td>
-                    <td>@plan.Socio?.Nombre</td>
-                    <td>
-                        @if (!string.IsNullOrEmpty(plan.Estado) && plan.Estado == "S")
-                        {
-                            <span class="rp-estado-activo">Activo</span>
-                        }
-                        else
-                        {
-                            <span class="rp-estado-inactivo">Inactivo</span>
-                        }
-                    </td>
-                </tr>
+                <div class="rp-field rp-col-2">
+                    <div class="rp-field-label"><span id="rp-lbl-estab"><FeatherHome Size="13" Color="currentColor" /> Establecimiento</span></div>
+                    <RadzenDropDown TValue="int"
+                                    Data="@opcionesEstablecimiento"
+                                    TextProperty="Etiqueta"
+                                    ValueProperty="Valor"
+                                    @bind-Value="establecimientoFiltro"
+                                    Disabled="@(vista == VistaPorSocio)"
+                                    Name="rp-establecimiento"
+                                    aria-labelledby="rp-lbl-estab"
+                                    Change="OnEstablecimientoChanged" />
+                    @if (vista == VistaPorSocio)
+                    {
+                        <div class="rp-field-hint">No aplica en la vista por razón social (suma todos los establecimientos).</div>
+                    }
+                </div>
             }
-            </tbody>
-            <tfoot>
-            <tr>
-                <td>TOTAL (Sin año)</td>
-                <td>@plantelesSinAnio.Sum(x => x.Varede ?? 0)</td>
-                <td>@plantelesSinAnio.Sum(x => x.Vqcsrd ?? 0)</td>
-                <td>@plantelesSinAnio.Sum(x => x.Vqssrd ?? 0)</td>
-                <td>@plantelesSinAnio.Sum(x => x.Varepr ?? 0)</td>
-                <td>@plantelesSinAnio.Sum(x => x.Vqcsrp ?? 0)</td>
-                <td>@plantelesSinAnio.Sum(x => x.Vqssrp ?? 0)</td>
-                <td></td>
-                <td></td>
-            </tr>
-            </tfoot>
-        </table>
-    }
-    </div>
-}
+        </div>
 
-</div>
+        <div class="rp-filter-footer">
+            <div style="display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;">
+                @if (EsUsuarioSocio)
+                {
+                    <span class="rp-context-chip" title="Razón social activa">
+                        <small>Razón social</small>
+                        <span>@NombreSocioActivo</span>
+                    </span>
+                }
+                else
+                {
+                    <span>Todas las razones sociales.</span>
+                }
+                <span>Los cambios de período, estado o establecimiento actualizan el informe solos.</span>
+            </div>
+            @if (validationError != null)
+            {
+                <span class="rp-alert rp-alert-error" role="alert" style="padding:.3rem .6rem;">
+                    <FeatherAlertCircle Size="14" Color="currentColor" /> @validationError
+                </span>
+            }
+        </div>
+    </Filters>
+
+    <ChildContent>
+        @if (errorMessage != null)
+        {
+            <div class="rp-alert rp-alert-error" role="alert">
+                <FeatherAlertCircle Size="16" Color="currentColor" />
+                <span>@errorMessage</span>
+                <button type="button" class="rp-btn rp-btn-sm" @onclick="OnGenerarClick" disabled="@isLoading">
+                    <FeatherRefreshCw Size="14" Color="currentColor" /> Reintentar
+                </button>
+            </div>
+        }
+
+        @if (!terminado && isLoading)
+        {
+            <div class="rp-results" aria-busy="true" aria-live="polite">
+                <div class="rp-skeleton" aria-label="Generando el informe">
+                    <span></span><span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+        }
+        else if (!terminado)
+        {
+            <div class="rp-empty">
+                Elegí el período y el estado de los planteles; después presioná <strong>Generar</strong>.
+            </div>
+        }
+        else
+        {
+            <div class="rp-results @(isLoading ? "rp-busy" : string.Empty)" aria-busy="@(isLoading ? "true" : "false")">
+                @if (isLoading)
+                {
+                    <span class="rp-busy-badge"><span class="rp-spinner dark" aria-hidden="true"></span> Actualizando…</span>
+                }
+
+                <div class="rp-meta">
+                    <span>Período <strong>@ReportFormat.Fecha(resultadoDesde) – @ReportFormat.Fecha(resultadoHasta)</strong></span>
+                    <span>Estado <strong>@seleccion</strong></span>
+                    <span>Vista <strong>@vista</strong></span>
+                    @if (MostrarFiltroEstablecimiento && vista != VistaPorSocio)
+                    {
+                        <span>Establecimiento <strong>@EtiquetaEstablecimientoFiltro</strong></span>
+                    }
+                    <span><strong>@ReportFormat.N0(plantelesAll.Count)</strong> planteles</span>
+                    <span><strong>@ReportFormat.N0(cantidadEstablecimientos)</strong> establecimientos</span>
+                    @if (!EsUsuarioSocio)
+                    {
+                        <span><strong>@ReportFormat.N0(cantidadSocios)</strong> razones sociales</span>
+                    }
+                </div>
+
+                @if (!HayFilas)
+                {
+                    <div class="rp-empty">No se encontraron resultados para los filtros seleccionados.</div>
+                }
+                else
+                {
+                    <div class="rp-section">
+                        <div class="rp-section-head">
+                            <h2 class="rp-section-title">Total general</h2>
+                            <span class="rp-section-note">Suma de los planteles con año informado; los registros sin año se listan aparte.</span>
+                        </div>
+                        <div class="rp-table-wrap">
+                            <table class="rp-table rp-table-fit">
+                                <thead>
+                                    <tr>
+                                        <th colspan="3" class="rp-th-group">PR</th>
+                                        <th colspan="3" class="rp-th-group rp-sep">VIP</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="rp-num">Vacas</th>
+                                        <th class="rp-num"><abbr title="Vaquillonas con servicio">Vaq. c/serv.</abbr></th>
+                                        <th class="rp-num"><abbr title="Vaquillonas sin servicio">Vaq. s/serv.</abbr></th>
+                                        <th class="rp-num rp-sep">Vacas</th>
+                                        <th class="rp-num"><abbr title="Vaquillonas con servicio o preñadas">Vaq. c/serv.</abbr></th>
+                                        <th class="rp-num"><abbr title="Vaquillonas sin servicio">Vaq. s/serv.</abbr></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="rp-num"><strong>@ReportFormat.N0(totalGeneral.Varede)</strong></td>
+                                        <td class="rp-num"><strong>@ReportFormat.N0(totalGeneral.Vqcsrd)</strong></td>
+                                        <td class="rp-num"><strong>@ReportFormat.N0(totalGeneral.Vqssrd)</strong></td>
+                                        <td class="rp-num rp-sep"><strong>@ReportFormat.N0(totalGeneral.Varepr)</strong></td>
+                                        <td class="rp-num"><strong>@ReportFormat.N0(totalGeneral.Vqcsrp)</strong></td>
+                                        <td class="rp-num"><strong>@ReportFormat.N0(totalGeneral.Vqssrp)</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="rp-section">
+                        <div class="rp-section-head">
+                            <h2 class="rp-section-title">
+                                @(vista == VistaPorSocio ? "Detalle por razón social" : "Detalle por establecimiento")
+                                <span class="rp-count">@ReportFormat.N0(secciones.Count) @(secciones.Count == 1 ? "sección" : "secciones")</span>
+                            </h2>
+                            <div class="rp-section-tools no-print">
+                                @if (secciones.Count > 2)
+                                {
+                                    <button type="button" class="rp-link-btn" @onclick="ExpandirTodos">Expandir todos</button>
+                                    <button type="button" class="rp-link-btn" @onclick="ContraerTodos">Contraer todos</button>
+                                }
+                                <div class="rp-search">
+                                    <FeatherSearch Size="14" Color="currentColor" />
+                                    <input type="search"
+                                           aria-label="Buscar plantel, establecimiento o razón social"
+                                           placeholder="Buscar plantel, establecimiento o razón social..."
+                                           value="@busqueda"
+                                           @oninput="OnBusquedaInput" />
+                                    @if (busqueda.Length > 0)
+                                    {
+                                        <button type="button" class="rp-search-clear" aria-label="Limpiar búsqueda" @onclick="LimpiarBusqueda">
+                                            <FeatherX Size="14" Color="currentColor" />
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (HayBusqueda && secciones.All(s => s.Visibles.Count == 0))
+                        {
+                            <div class="rp-empty">Sin coincidencias para “@busqueda”.</div>
+                        }
+
+                        @foreach (var sec in secciones)
+                        {
+                            var expandida = printing || expandidas.Contains(sec.Id);
+                            if (HayBusqueda && sec.Visibles.Count == 0)
+                            {
+                                continue;
+                            }
+
+                            <section class="rp-year" aria-labelledby="rp-year-@sec.Id">
+                                <button type="button"
+                                        class="rp-year-head"
+                                        aria-expanded="@(expandida ? "true" : "false")"
+                                        aria-controls="rp-year-body-@sec.Id"
+                                        @onclick="() => Alternar(sec.Id)">
+                                    <span class="rp-year-chevron"><FeatherChevronDown Size="16" Color="currentColor" /></span>
+                                    <span class="rp-year-title" id="rp-year-@sec.Id">@sec.Titulo</span>
+                                    <span class="rp-year-meta">
+                                        <span>
+                                            @ReportFormat.N0(sec.Visibles.Count)@(HayBusqueda ? $" de {ReportFormat.N0(sec.Filas.Count)}" : string.Empty)
+                                            @EtiquetaFilas(HayBusqueda ? sec.Filas.Count : sec.Visibles.Count)
+                                        </span>
+                                    </span>
+                                </button>
+
+                                @if (expandida)
+                                {
+                                    <div class="rp-year-body" id="rp-year-body-@sec.Id">
+                                        <div class="rp-table-wrap @(FilasPagina(sec).Count > 30 && !printing ? "rp-scroll" : string.Empty)">
+                                            <table class="rp-table">
+                                                <thead>
+                                                    <tr>
+                                                        @if (vista == VistaPorSocio)
+                                                        {
+                                                            <th rowspan="2" class="rp-th-text">Razón social</th>
+                                                            <th rowspan="2" class="rp-num">Planteles</th>
+                                                            <th rowspan="2" class="rp-th-text">Establecimientos</th>
+                                                        }
+                                                        else
+                                                        {
+                                                            <th rowspan="2" class="rp-th-text">Plantel</th>
+                                                            <th rowspan="2" class="rp-th-text">Establecimiento</th>
+                                                            @if (MostrarColumnaSocio)
+                                                            {
+                                                                <th rowspan="2" class="rp-th-text">Razón social</th>
+                                                            }
+                                                        }
+                                                        <th colspan="3" class="rp-th-group rp-sep">PR</th>
+                                                        <th colspan="3" class="rp-th-group rp-sep">VIP</th>
+                                                        <th rowspan="2" class="rp-sep">Estado</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="rp-num rp-sep">Vacas</th>
+                                                        <th class="rp-num"><abbr title="Vaquillonas con servicio">Vaq. c/serv.</abbr></th>
+                                                        <th class="rp-num"><abbr title="Vaquillonas sin servicio">Vaq. s/serv.</abbr></th>
+                                                        <th class="rp-num rp-sep">Vacas</th>
+                                                        <th class="rp-num"><abbr title="Vaquillonas con servicio o preñadas">Vaq. c/serv.</abbr></th>
+                                                        <th class="rp-num"><abbr title="Vaquillonas sin servicio">Vaq. s/serv.</abbr></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var fila in FilasPagina(sec))
+                                                    {
+                                                        <tr>
+                                                            @if (vista == VistaPorSocio)
+                                                            {
+                                                                <td class="rp-text rp-wrap">@fila.Socio</td>
+                                                                <td class="rp-num" title="@fila.Codigos">@ReportFormat.N0(fila.CantidadPlanteles)</td>
+                                                                <td class="rp-text rp-wrap">@fila.Establecimiento</td>
+                                                            }
+                                                            else
+                                                            {
+                                                                <td class="rp-text"><strong>@fila.Plantel</strong></td>
+                                                                <td class="rp-text rp-wrap">@fila.Establecimiento</td>
+                                                                @if (MostrarColumnaSocio)
+                                                                {
+                                                                    <td class="rp-text rp-wrap">@fila.Socio</td>
+                                                                }
+                                                            }
+                                                            <td class="rp-num rp-sep @Dim(fila.Varede)">@ReportFormat.N0(fila.Varede)</td>
+                                                            <td class="rp-num @Dim(fila.Vqcsrd)">@ReportFormat.N0(fila.Vqcsrd)</td>
+                                                            <td class="rp-num @Dim(fila.Vqssrd)">@ReportFormat.N0(fila.Vqssrd)</td>
+                                                            <td class="rp-num rp-sep @Dim(fila.Varepr)">@ReportFormat.N0(fila.Varepr)</td>
+                                                            <td class="rp-num @Dim(fila.Vqcsrp)">@ReportFormat.N0(fila.Vqcsrp)</td>
+                                                            <td class="rp-num @Dim(fila.Vqssrp)">@ReportFormat.N0(fila.Vqssrp)</td>
+                                                            <td class="rp-center rp-sep">
+                                                                @if (fila.Activo == true)
+                                                                {
+                                                                    <span class="rp-estado rp-estado-activo">Activo</span>
+                                                                }
+                                                                else if (fila.Activo == false)
+                                                                {
+                                                                    <span class="rp-estado rp-estado-inactivo">Inactivo</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="rp-estado rp-estado-mixto" title="La razón social tiene planteles activos e inactivos">Mixto</span>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th scope="row" class="rp-text" colspan="@ColumnasTexto">
+                                                            @(HayBusqueda ? "Total (coincidencias)" : $"Total {sec.Titulo}")
+                                                        </th>
+                                                        <td class="rp-num rp-sep">@ReportFormat.N0(sec.TotalesVisibles.Varede)</td>
+                                                        <td class="rp-num">@ReportFormat.N0(sec.TotalesVisibles.Vqcsrd)</td>
+                                                        <td class="rp-num">@ReportFormat.N0(sec.TotalesVisibles.Vqssrd)</td>
+                                                        <td class="rp-num rp-sep">@ReportFormat.N0(sec.TotalesVisibles.Varepr)</td>
+                                                        <td class="rp-num">@ReportFormat.N0(sec.TotalesVisibles.Vqcsrp)</td>
+                                                        <td class="rp-num">@ReportFormat.N0(sec.TotalesVisibles.Vqssrp)</td>
+                                                        <td class="rp-sep"></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+
+                                        @if (!printing)
+                                        {
+                                            <ReportPager Total="@sec.Visibles.Count"
+                                                         Page="@sec.Pagina"
+                                                         PageChanged="@(p => sec.Pagina = p)"
+                                                         PageSize="@pageSize"
+                                                         PageSizeChanged="@CambiarPageSize"
+                                                         ItemLabel="@EtiquetaFilas(sec.Visibles.Count)" />
+                                        }
+                                    </div>
+                                }
+                            </section>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </ChildContent>
+</ReportShell>
 
 @code {
     public DateTime? fechaInicial { get; set; } = new DateTime(2020, 1, 1);
@@ -239,91 +394,448 @@
     List<string> opciones = new() { "Activos", "Inactivos", "Todos" };
     List<int> anios = new();
 
+    // Con varios establecimientos por razon social, cada plantel es el stock de UN campo. La vista
+    // "Por razon social" vuelve a sumar los planteles del socio en cada año (la consolidada de antes).
+    const string VistaPorEstablecimiento = "Por establecimiento";
+    const string VistaPorSocio = "Por razón social";
+    List<string> vistas = new() { VistaPorEstablecimiento, VistaPorSocio };
+    string vista = VistaPorEstablecimiento;
+
+    private sealed class FilaInforme
+    {
+        public string Plantel { get; set; } = string.Empty;
+        public double Varede { get; set; }
+        public double Vqcsrd { get; set; }
+        public double Vqssrd { get; set; }
+        public double Varepr { get; set; }
+        public double Vqcsrp { get; set; }
+        public double Vqssrp { get; set; }
+        public string? Socio { get; set; }
+        public string Establecimiento { get; set; } = string.Empty;
+        /// <summary>true activo, false inactivo, null mixto (consolidado con ambos estados).</summary>
+        public bool? Activo { get; set; }
+        public int CantidadPlanteles { get; set; } = 1;
+        /// <summary>Códigos de los planteles agrupados (vista por razón social), para el tooltip.</summary>
+        public string Codigos { get; set; } = string.Empty;
+        /// <summary>Texto normalizado para el buscador local (plantel + razón social + establecimiento).</summary>
+        public string TextoBusqueda { get; set; } = string.Empty;
+    }
+
+    private sealed class Totales
+    {
+        public double Varede, Vqcsrd, Vqssrd, Varepr, Vqcsrp, Vqssrp;
+
+        public static Totales De(IEnumerable<FilaInforme> filas)
+        {
+            var t = new Totales();
+            foreach (var f in filas)
+            {
+                t.Varede += f.Varede; t.Vqcsrd += f.Vqcsrd; t.Vqssrd += f.Vqssrd;
+                t.Varepr += f.Varepr; t.Vqcsrp += f.Vqcsrp; t.Vqssrp += f.Vqssrp;
+            }
+            return t;
+        }
+    }
+
+    /// <summary>Un año (o "Sin año informado") con sus filas ya calculadas para la vista actual.</summary>
+    private sealed class SeccionInforme
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Titulo { get; set; } = string.Empty;
+        public List<FilaInforme> Filas { get; set; } = new();
+        public List<FilaInforme> Visibles { get; set; } = new();
+        public Totales TotalesVisibles { get; set; } = new();
+        public int Pagina { get; set; } = 1;
+    }
+
+    private sealed class OpcionEstablecimiento
+    {
+        public int Valor { get; set; }
+        public string Etiqueta { get; set; } = string.Empty;
+    }
+
+    private IEnumerable<FilaInforme> Filas(List<PlantelDTO> planteles)
+    {
+        if (vista != VistaPorSocio)
+        {
+            return planteles.Select(p =>
+            {
+                var establecimiento = p.Establecimiento != null
+                    ? EstablecimientoPlantelHelper.DescribirEstablecimiento(p.Establecimiento)
+                    : "Sin asignar";
+                return new FilaInforme
+                {
+                    Plantel = p.Placod ?? string.Empty,
+                    Varede = p.Varede ?? 0,
+                    Vqcsrd = p.Vqcsrd ?? 0,
+                    Vqssrd = p.Vqssrd ?? 0,
+                    Varepr = p.Varepr ?? 0,
+                    Vqcsrp = p.Vqcsrp ?? 0,
+                    Vqssrp = p.Vqssrp ?? 0,
+                    Socio = p.Socio?.Nombre,
+                    Establecimiento = establecimiento,
+                    Activo = p.Estado == "S",
+                    CantidadPlanteles = 1,
+                    Codigos = p.Placod ?? string.Empty,
+                    TextoBusqueda = ReportFormat.Normalize($"{p.Placod} {p.Socio?.Nombre} {establecimiento}")
+                };
+            });
+        }
+
+        return planteles
+            .GroupBy(p => (p.Nrocri ?? string.Empty).Trim(), StringComparer.OrdinalIgnoreCase)
+            .Select(g =>
+            {
+                // Los planteles sin establecimiento no cuentan como un establecimiento mas: se
+                // informan aparte ("sin asignar") para no inflar el consolidado.
+                var conEstablecimiento = g.Where(p => p.EstablecimientoId.HasValue).ToList();
+                var establecimientos = conEstablecimiento.Select(p => p.EstablecimientoId).Distinct().Count();
+                var haySinAsignar = g.Any(p => !p.EstablecimientoId.HasValue);
+                var activos = g.Count(p => p.Estado == "S");
+                var socio = g.Select(p => p.Socio?.Nombre).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n)) ?? g.Key;
+                var establecimiento = establecimientos == 0
+                    ? "Sin asignar"
+                    : establecimientos == 1 && !haySinAsignar
+                        ? EstablecimientoPlantelHelper.DescribirEstablecimiento(conEstablecimiento[0].Establecimiento, $"#{conEstablecimiento[0].EstablecimientoId}")
+                        : $"{establecimientos} {(establecimientos == 1 ? "establecimiento" : "establecimientos")}{(haySinAsignar ? " + sin asignar" : string.Empty)}";
+                var codigos = string.Join(", ", g.Select(p => p.Placod).Where(c => !string.IsNullOrWhiteSpace(c)));
+                return new FilaInforme
+                {
+                    Plantel = g.Count() == 1 ? (g.First().Placod ?? string.Empty) : $"{g.Count()} planteles",
+                    Varede = g.Sum(p => p.Varede ?? 0),
+                    Vqcsrd = g.Sum(p => p.Vqcsrd ?? 0),
+                    Vqssrd = g.Sum(p => p.Vqssrd ?? 0),
+                    Varepr = g.Sum(p => p.Varepr ?? 0),
+                    Vqcsrp = g.Sum(p => p.Vqcsrp ?? 0),
+                    Vqssrp = g.Sum(p => p.Vqssrp ?? 0),
+                    Socio = socio,
+                    Establecimiento = establecimiento,
+                    Activo = activos == g.Count() ? true : (activos == 0 ? false : null),
+                    CantidadPlanteles = g.Count(),
+                    Codigos = codigos,
+                    TextoBusqueda = ReportFormat.Normalize($"{codigos} {socio} {string.Join(" ", conEstablecimiento.Select(p => EstablecimientoPlantelHelper.DescribirEstablecimiento(p.Establecimiento)).Distinct())}")
+                };
+            })
+            .OrderBy(f => f.Socio);
+    }
+
     bool terminado = false;
     bool isLoading = false;
+    bool download = false;
+    bool printing = false;
     string seleccion = "Activos";
+    string? validationError = null;
+    string? errorMessage = null;
+    int requestSeq = 0;
+
+    // Cache de la consulta por rango: cambiar estado, vista o establecimiento no vuelve a pedir datos.
+    List<PlantelDTO>? rawLista;
+    DateTime rawDesde, rawHasta;
+    DateTime resultadoDesde, resultadoHasta;
+
+    // Contexto de razón social activa / establecimientos (solo usuarios socio).
+    UserContextDTO? contexto;
+    List<EstableDTO> establecimientosSocio = new();
+    List<OpcionEstablecimiento> opcionesEstablecimiento = new();
+    // 0 = todos, EstablecimientoPlantelHelper.FiltroSinEstablecimiento = sin asignar, >0 = ese establecimiento.
+    int establecimientoFiltro = 0;
+
+    // Secciones por año ya calculadas para la vista actual + estado de la UI.
+    List<SeccionInforme> secciones = new();
+    Totales totalGeneral = new();
+    int cantidadEstablecimientos = 0;
+    int cantidadSocios = 0;
+    readonly HashSet<string> expandidas = new();
+    string busqueda = string.Empty;
+    int pageSize = 25;
 
     // Debounce
     private CancellationTokenSource? debounceCts;
     private readonly int debounceMs = 700;
 
     private bool CanGenerate => !isLoading && fechaInicial != null && fechaFinal != null && fechaInicial <= fechaFinal;
+    private bool HayFilas => plantelesConAnio.Any() || plantelesSinAnio.Any();
+    private bool HayBusqueda => busqueda.Trim().Length > 0;
+    private bool EsUsuarioSocio => contexto?.IsSocioUser == true && contexto.ActiveSocioId.HasValue;
+    private bool MostrarFiltroEstablecimiento => EsUsuarioSocio && establecimientosSocio.Count > 1;
+    private bool MostrarColumnaSocio => !EsUsuarioSocio;
+    private int ColumnasTexto => vista == VistaPorSocio ? 3 : (MostrarColumnaSocio ? 3 : 2);
+    private string NombreSocioActivo => contexto?.ActiveSocioDisplayName ?? contexto?.AllowedSocios.FirstOrDefault(s => s.Id == contexto.ActiveSocioId)?.DisplayName ?? "Razón social activa";
+    private string EtiquetaEstablecimientoFiltro => opcionesEstablecimiento.FirstOrDefault(o => o.Valor == establecimientoFiltro)?.Etiqueta ?? "Todos";
+    private int? EstablecimientoFiltroEfectivo => vista == VistaPorSocio || establecimientoFiltro == 0 ? null : establecimientoFiltro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            contexto = await http.GetFromJsonAsync<UserContextDTO>("api/Account/context");
+        }
+        catch
+        {
+            contexto = null;
+        }
+
+        if (EsUsuarioSocio)
+        {
+            try
+            {
+                var rta = await _estableServicio.GetBySocioId(contexto!.ActiveSocioId!.Value);
+                establecimientosSocio = (rta?.List ?? new List<EstableDTO>()).OrderBy(x => x.Nombre).ToList();
+            }
+            catch
+            {
+                establecimientosSocio = new List<EstableDTO>();
+            }
+
+            opcionesEstablecimiento = new List<OpcionEstablecimiento> { new() { Valor = 0, Etiqueta = "Todos" } };
+            opcionesEstablecimiento.AddRange(establecimientosSocio.Select(e => new OpcionEstablecimiento
+            {
+                Valor = e.Id,
+                Etiqueta = EstablecimientoPlantelHelper.DescribirEstablecimiento(e)
+            }));
+            opcionesEstablecimiento.Add(new OpcionEstablecimiento
+            {
+                Valor = EstablecimientoPlantelHelper.FiltroSinEstablecimiento,
+                Etiqueta = "Sin establecimiento (históricos)"
+            });
+        }
+    }
+
+    private static string Dim(double value) => value == 0 ? "rp-dim" : string.Empty;
+
+    private string EtiquetaFilas(int cantidad) => vista == VistaPorSocio
+        ? (cantidad == 1 ? "razón social" : "razones sociales")
+        : (cantidad == 1 ? "plantel" : "planteles");
+
+    private IReadOnlyList<FilaInforme> FilasPagina(SeccionInforme sec)
+    {
+        if (printing || pageSize <= 0)
+        {
+            return sec.Visibles;
+        }
+
+        var skip = (Math.Max(sec.Pagina, 1) - 1) * pageSize;
+        if (skip >= sec.Visibles.Count)
+        {
+            skip = 0;
+        }
+
+        return sec.Visibles.Skip(skip).Take(pageSize).ToList();
+    }
+
+    private Task OnGenerarClick() => Generate();
 
     private async Task Generate()
     {
-        if (isLoading) return; // *** evita dobles clics
-
-        // *** Validación de fechas
+        validationError = null;
         if (fechaInicial == null || fechaFinal == null)
         {
-            Console.WriteLine("Fechas inválidas");
+            validationError = "Completá la fecha inicial y la fecha final.";
             return;
         }
         if (fechaInicial > fechaFinal)
         {
-            Console.WriteLine("La fecha inicial no puede ser mayor que la final.");
+            validationError = "La fecha inicial no puede ser mayor que la final.";
             return;
         }
 
+        var seq = ++requestSeq; // *** evita dobles clics y respuestas viejas
+        var desde = fechaInicial.Value.Date;
+        var hasta = fechaFinal.Value.Date;
         isLoading = true;
-        terminado = false;
-        plantelesAll.Clear();
-        plantelesConAnio.Clear();
-        plantelesSinAnio.Clear();
-        anios.Clear();
-        StateHasChanged();
+        errorMessage = null;
+        await InvokeAsync(StateHasChanged);
 
         try
         {
-            var rtaa = await _plantelServicio.ObtenerPorRangoFechas(fechaInicial.Value, fechaFinal.Value);
-            var lista = rtaa?.List ?? new List<PlantelDTO>();
-
-            // Apply state selection filter
-            plantelesAll = seleccion switch
+            if (rawLista == null || rawDesde != desde || rawHasta != hasta)
             {
-                "Activos" => lista.Where(x => x.Estado == "S").ToList(),
-                "Inactivos" => lista.Where(x => x.Estado == "N").ToList(),
-                _ => lista
-            };
+                var rtaa = await _plantelServicio.ObtenerPorRangoFechas(desde, hasta);
+                if (seq != requestSeq) return; // el usuario cambió los filtros mientras se consultaba
+                if (rtaa == null || (rtaa.Exito != 1 && rtaa.List == null))
+                {
+                    throw new InvalidOperationException(rtaa?.Mensaje ?? "El servidor no devolvió datos.");
+                }
 
-            // Split by Anioex
-            plantelesConAnio = plantelesAll
-                .Where(x => !string.IsNullOrEmpty(x.Anioex) && int.TryParse(x.Anioex, out _))
-                .ToList();
+                rawLista = rtaa.List ?? new List<PlantelDTO>();
+                rawDesde = desde;
+                rawHasta = hasta;
+            }
 
-            plantelesSinAnio = plantelesAll
-                .Where(x => string.IsNullOrEmpty(x.Anioex) || !int.TryParse(x.Anioex, out _))
-                .ToList();
-
-            anios = plantelesConAnio
-                .Select(x => int.Parse(x.Anioex!))
-                .Distinct()
-                .OrderBy(x => x)
-                .ToList();
-
+            resultadoDesde = desde;
+            resultadoHasta = hasta;
+            AplicarFiltros();
+            ConstruirSecciones();
             terminado = true;
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            if (seq == requestSeq)
+            {
+                errorMessage = "No se pudo generar el informe. " + ex.Message;
+            }
         }
         finally
         {
-            isLoading = false;
-            await InvokeAsync(StateHasChanged);
+            if (seq == requestSeq)
+            {
+                isLoading = false;
+                await InvokeAsync(StateHasChanged);
+            }
         }
+    }
+
+    /// <summary>Estado + establecimiento sobre la lista traída del servidor, y separación por año (misma regla de siempre).</summary>
+    private void AplicarFiltros()
+    {
+        var lista = rawLista ?? new List<PlantelDTO>();
+
+        // Apply state selection filter
+        plantelesAll = seleccion switch
+        {
+            "Activos" => lista.Where(x => x.Estado == "S").ToList(),
+            "Inactivos" => lista.Where(x => x.Estado == "N").ToList(),
+            _ => lista
+        };
+
+        plantelesAll = EstablecimientoPlantelHelper.FiltrarPorEstablecimiento(plantelesAll, EstablecimientoFiltroEfectivo).ToList();
+
+        // Split by Anioex
+        plantelesConAnio = plantelesAll
+            .Where(x => !string.IsNullOrEmpty(x.Anioex) && int.TryParse(x.Anioex, out _))
+            .ToList();
+
+        plantelesSinAnio = plantelesAll
+            .Where(x => string.IsNullOrEmpty(x.Anioex) || !int.TryParse(x.Anioex, out _))
+            .ToList();
+
+        anios = plantelesConAnio
+            .Select(x => int.Parse(x.Anioex!))
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList();
+
+        totalGeneral = new Totales
+        {
+            Varede = plantelesConAnio.Sum(x => x.Varede ?? 0),
+            Vqcsrd = plantelesConAnio.Sum(x => x.Vqcsrd ?? 0),
+            Vqssrd = plantelesConAnio.Sum(x => x.Vqssrd ?? 0),
+            Varepr = plantelesConAnio.Sum(x => x.Varepr ?? 0),
+            Vqcsrp = plantelesConAnio.Sum(x => x.Vqcsrp ?? 0),
+            Vqssrp = plantelesConAnio.Sum(x => x.Vqssrp ?? 0)
+        };
+        cantidadEstablecimientos = plantelesAll.Where(x => x.EstablecimientoId.HasValue).Select(x => x.EstablecimientoId).Distinct().Count();
+        cantidadSocios = plantelesAll.Select(x => (x.Nrocri ?? string.Empty).Trim().ToUpperInvariant()).Distinct().Count();
+    }
+
+    /// <summary>Arma las filas de cada año para la vista actual una sola vez (no en cada render).</summary>
+    private void ConstruirSecciones()
+    {
+        var nuevas = new List<SeccionInforme>();
+        foreach (var anio in anios.OrderByDescending(a => a))
+        {
+            var datosAnio = plantelesConAnio
+                .Where(x => int.TryParse(x.Anioex, out var yy) && yy == anio)
+                .ToList();
+            nuevas.Add(new SeccionInforme
+            {
+                Id = anio.ToString(),
+                Titulo = anio.ToString(),
+                Filas = Filas(datosAnio).ToList()
+            });
+        }
+
+        if (plantelesSinAnio.Any())
+        {
+            nuevas.Add(new SeccionInforme
+            {
+                Id = "sin-anio",
+                Titulo = "Sin año informado",
+                Filas = Filas(plantelesSinAnio).ToList()
+            });
+        }
+
+        // Si las secciones son las mismas de antes se respeta lo que el usuario expandió; si no,
+        // queda abierta la más reciente (todas cuando son pocas).
+        var idsNuevos = nuevas.Select(s => s.Id).ToHashSet();
+        var idsViejos = secciones.Select(s => s.Id).ToHashSet();
+        if (!idsNuevos.SetEquals(idsViejos) || expandidas.Count == 0)
+        {
+            expandidas.Clear();
+            if (nuevas.Count <= 2)
+            {
+                foreach (var s in nuevas) expandidas.Add(s.Id);
+            }
+            else if (nuevas.Count > 0)
+            {
+                expandidas.Add(nuevas[0].Id);
+            }
+        }
+
+        secciones = nuevas;
+        AplicarBusqueda();
+    }
+
+    private void AplicarBusqueda()
+    {
+        var q = ReportFormat.Normalize(busqueda);
+        foreach (var sec in secciones)
+        {
+            sec.Visibles = q.Length == 0 ? sec.Filas : sec.Filas.Where(f => f.TextoBusqueda.Contains(q)).ToList();
+            sec.TotalesVisibles = Totales.De(sec.Visibles);
+            sec.Pagina = 1;
+        }
+    }
+
+    private void OnBusquedaInput(ChangeEventArgs e)
+    {
+        busqueda = e.Value?.ToString() ?? string.Empty;
+        AplicarBusqueda();
+    }
+
+    private void LimpiarBusqueda()
+    {
+        busqueda = string.Empty;
+        AplicarBusqueda();
+    }
+
+    private void Alternar(string id)
+    {
+        if (!expandidas.Add(id))
+        {
+            expandidas.Remove(id);
+        }
+    }
+
+    private void ExpandirTodos()
+    {
+        foreach (var s in secciones) expandidas.Add(s.Id);
+    }
+
+    private void ContraerTodos() => expandidas.Clear();
+
+    private void CambiarPageSize(int size)
+    {
+        pageSize = size;
+        foreach (var s in secciones) s.Pagina = 1;
     }
 
     private async Task DescargarExcel()
     {
         // Request server to generate and return the Excel
-        if (!plantelesConAnio.Any() && !plantelesSinAnio.Any()) return;
+        if (!HayFilas || download) return;
 
+        download = true;
+        errorMessage = null;
         try
         {
-            var desde = fechaInicial?.ToString("yyyy-MM-dd");
-            var hasta = fechaFinal?.ToString("yyyy-MM-dd");
+            var desde = resultadoDesde.ToString("yyyy-MM-dd");
+            var hasta = resultadoHasta.ToString("yyyy-MM-dd");
             var url = $"api/plantel/ExportarExcel?desde={desde}&hasta={hasta}&seleccion={Uri.EscapeDataString(seleccion ?? "Todos")}";
+            if (EstablecimientoFiltroEfectivo.HasValue)
+            {
+                url += $"&establecimientoId={EstablecimientoFiltroEfectivo.Value}";
+            }
 
             var bytes = await http.GetByteArrayAsync(url);
             var fileName = $"reporte-planteles_{DateTime.Now:yyyyMMdd}.xlsx";
@@ -334,29 +846,57 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error descargando Excel: {ex.Message}");
+            errorMessage = "No se pudo descargar el Excel. " + ex.Message;
+        }
+        finally
+        {
+            download = false;
         }
     }
 
     private void ReiniciarFiltros()
     {
+        debounceCts?.Cancel();
+        requestSeq++;
+
         fechaInicial = new DateTime(2020, 1, 1); // *** restauro default
         fechaFinal = DateTime.Now;               // *** restauro default
         seleccion = "Activos";
+        vista = VistaPorEstablecimiento;
+        establecimientoFiltro = 0;
+        busqueda = string.Empty;
 
         plantelesAll.Clear();
         plantelesConAnio.Clear();
         plantelesSinAnio.Clear();
         anios.Clear();
+        secciones = new();
+        expandidas.Clear();
         terminado = false;
-
-        StateHasChanged();
-        // Opcional: llamar a Generate() automáticamente:
-        // _ = Generate();
+        isLoading = false;
+        validationError = null;
+        errorMessage = null;
     }
 
+    /// <summary>
+    /// PDF vía impresión del navegador: mientras se imprime se expanden todos los años con todas sus
+    /// filas y después se vuelve al estado anterior.
+    /// </summary>
     private async Task Print()
-        => await js.InvokeVoidAsync("window.print");
+    {
+        if (!terminado || printing) return;
+        printing = true;
+        StateHasChanged();
+        await Task.Delay(80);
+        try
+        {
+            await js.InvokeVoidAsync("window.print");
+        }
+        finally
+        {
+            printing = false;
+        }
+    }
 
     // Debounced auto-regenerate
     private async Task DebouncedGenerate()
@@ -376,18 +916,44 @@
         }
     }
 
-    private async Task OnFechaInicialChanged(ChangeEventArgs e)
+    private async Task OnFechaChanged(DateTime? value)
     {
         await DebouncedGenerate(); // regenerate after debounce
     }
 
-    private async Task OnFechaFinalChanged(ChangeEventArgs e)
+    /// <summary>Estado y establecimiento se aplican sobre los datos ya cargados: sin nueva consulta ni espera.</summary>
+    private async Task RecalcularLocal()
     {
+        if (rawLista != null && fechaInicial.HasValue && fechaFinal.HasValue
+            && rawDesde == fechaInicial.Value.Date && rawHasta == fechaFinal.Value.Date)
+        {
+            AplicarFiltros();
+            ConstruirSecciones();
+            return;
+        }
+
         await DebouncedGenerate();
     }
 
-    private async Task OnSeleccionChanged(object args)
+    private Task OnSeleccionChanged(object args) => RecalcularLocal();
+
+    private Task OnEstablecimientoChanged(object args) => RecalcularLocal();
+
+    private async Task OnVistaChanged(string nuevaVista)
     {
-        await DebouncedGenerate();
+        if (vista == nuevaVista) return;
+        vista = nuevaVista;
+
+        // El filtro de establecimiento no aplica a la vista consolidada por razón social: se
+        // vuelve a "Todos" para que el selector (deshabilitado) no muestre una elección que no rige.
+        if (vista == VistaPorSocio)
+        {
+            establecimientoFiltro = 0;
+        }
+
+        if (terminado)
+        {
+            await RecalcularLocal();
+        }
     }
 }

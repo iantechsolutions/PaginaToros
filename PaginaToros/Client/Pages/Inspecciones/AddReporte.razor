@@ -281,45 +281,66 @@ else
             <br />
 
             <div class="row" style="width=100%;">
-                @if (SelectedSolicitud != null)
-                {
-                    <div class="col-sm-1" />
-                    <div class="col-sm">
-                        <label class="col-sm">Establecimiento</label>
-                        <br />
-                        <RadzenTextBox Value="@SelectedSolicitud.Codest" Disabled="true" placeholder="Establecimiento"></RadzenTextBox>
-                    </div>
-                    <div class="col-sm">
-                        <label class="col-sm">Localidad</label>
-                        <br />
-                        <RadzenTextBox Value="@SelectedLocalidad" Disabled="true" placeholder="Localidad"></RadzenTextBox>
-                    </div>
-                    <div class="col-sm-1" />
-                }
+                <div class="col-sm-1" />
+                <div class="col-sm">
+                    <label class="col-sm">Establecimiento</label>
+                    <br />
+                    @if (DebeElegirEstablecimiento)
+                    {
+                        @* Sin solicitud previa y con varios establecimientos, el lugar de la inspeccion
+                           lo tiene que decir el usuario: de el depende que plantel se lee y se actualiza. *@
+                        <RadzenDropDown TValue="int?"
+                                        Data="@opcionesEstablecimiento"
+                                        TextProperty="Label"
+                                        ValueProperty="IntValue"
+                                        Value="@establecimientoSeleccionado?.Id"
+                                        Change="@(args => OnEstablecimientoSeleccionadoChanged(args as int?))"
+                                        Placeholder="Seleccioná el establecimiento inspeccionado"
+                                        Disabled="@(isLoadingDependencias || isSavingReporte || isUpdatingPlantel)"
+                                        Style="width: 100%;" />
+                        <small class="text-muted">La razón social tiene @establecimientosDelSocio.Count establecimientos: el stock de hembras se lleva por establecimiento.</small>
+                    }
+                    else
+                    {
+                        <RadzenTextBox Value="@EstablecimientoTexto" Disabled="true" placeholder="Establecimiento"></RadzenTextBox>
+                        @if (Id == 0 && SelectedSolicitud == null && establecimientosDelSocio.Count == 0)
+                        {
+                            <br />
+                            <small class="text-danger">El socio no tiene establecimientos cargados.</small>
+                        }
+                    }
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Localidad</label>
+                    <br />
+                    <RadzenTextBox Value="@SelectedLocalidad" Disabled="true" placeholder="Localidad"></RadzenTextBox>
+                </div>
+                <div class="col-sm-1" />
 
-                @if (socioSeleccionado != null)
-                {
-                    <div class="col-sm-1" />
-                    <div class="col-sm">
-                        <label>Plantel</label>
-                        <BlazoredTypeahead SearchMethod="BusquedaPlanteles"
-                                           Disabled="@((Id != 0) || esSocio || isLoadingDependencias || isSavingReporte || isUpdatingPlantel)"
-                                           placeholder="Busque plantel por número"
-                                           EnableDropDown="true"
-                                           TItem="PlantelDTO"
-                                           TValue="PlantelDTO"
-                                           Value="Plantelseleccionado"
-                                           ValueChanged="OnPlantelChanged"
-                                           ValueExpression="@(() => Plantelseleccionado)">
-                            <SelectedTemplate Context="eleccion">
-                                @FormatoPlantel(eleccion)
-                            </SelectedTemplate>
-                            <ResultTemplate Context="eleccion">
-                                @FormatoPlantel(eleccion)
-                            </ResultTemplate>
-                        </BlazoredTypeahead>
-                    </div>
-                }
+                <div class="col-sm-1" />
+                <div class="col-sm">
+                    <label>Plantel</label>
+                    <BlazoredTypeahead SearchMethod="BusquedaPlanteles"
+                                       Disabled="@((Id != 0) || esSocio || isLoadingDependencias || isSavingReporte || isUpdatingPlantel)"
+                                       placeholder="Busque plantel por número"
+                                       EnableDropDown="true"
+                                       TItem="PlantelDTO"
+                                       TValue="PlantelDTO"
+                                       Value="Plantelseleccionado"
+                                       ValueChanged="OnPlantelChanged"
+                                       ValueExpression="@(() => Plantelseleccionado)">
+                        <SelectedTemplate Context="eleccion">
+                            @FormatoPlantel(eleccion)
+                        </SelectedTemplate>
+                        <ResultTemplate Context="eleccion">
+                            @FormatoPlantel(eleccion)
+                        </ResultTemplate>
+                    </BlazoredTypeahead>
+                    @if (!string.IsNullOrWhiteSpace(AyudaPlantel))
+                    {
+                        <small class="@(Plantelseleccionado == null ? "text-warning" : "text-muted")">@AyudaPlantel</small>
+                    }
+                </div>
             </div>
             <br />
 
@@ -708,6 +729,15 @@ else
     PlantelDTO? Plantelseleccionado = null;
     bool primerMov = true;
     EstableDTO? establecimientoSeleccionado = null;
+    // Establecimientos de la razon social seleccionada. El stock de hembras se lleva por
+    // establecimiento, asi que de este dato dependen que planteles se ofrecen y cual se actualiza.
+    List<EstableDTO> establecimientosDelSocio = new();
+    List<TorosFilterOptionDTO> opcionesEstablecimiento = new();
+    Dictionary<int, EstableDTO> establecimientosPorId = new();
+    // Decision del usuario sobre el plantel del mismo año que quedo sin establecimiento asignado
+    // (dato historico): true = asignarlo a este establecimiento y actualizarlo, false = crear uno
+    // nuevo. Se pregunta una sola vez por pantalla.
+    bool? asignarPlantelHistoricoAlEstablecimiento = null;
     List<Resin4DTO> promedios = new();
     List<Solici1DTO> solicitudes = new();
     List<Solici1DTO> solicitudesVisibles = new();
@@ -889,11 +919,18 @@ else
                     }
                 }
 
-                SeleccionarPlantel(Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla));
+                // El inspector del reporte no se restauraba al editar: "Guardar cambios" pedia volver a
+                // elegirlo, lo que bloqueaba la actualizacion del plantel desde un resultado existente.
+                inspectorSeleccionado ??= Inspects.FirstOrDefault(x => MismoCodigo(x.Icod, oResin1.Icod));
+
+                SeleccionarPlantel(Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla && MismoCodigo(x.Nrocri, socioSeleccionado?.Scod))
+                                   ?? Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla));
                 if (Plantelseleccionado == null && oResin1?.Freali.HasValue == true)
                 {
                     var anio = oResin1.Freali.Value.Year.ToString();
-                    SeleccionarPlantel(Planteles.FirstOrDefault(x => x.Anioex == anio && x.Nrocri == socioSeleccionado?.Scod));
+                    var delEstablecimiento = EstablecimientoPlantelHelper.BuscarPlantelDestino(
+                        Planteles, socioSeleccionado?.Scod, EstablecimientoActualId, anio, out var historico);
+                    SeleccionarPlantel(delEstablecimiento ?? historico);
                 }
             }
             else
@@ -940,13 +977,24 @@ else
 
     private void RefreshDerivedLists()
     {
-        var codigosSocio = socioSeleccionado?.Scod == null
-            ? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        establecimientosDelSocio = socioSeleccionado?.Scod == null
+            ? new List<EstableDTO>()
             : establecimientos
-                .Where(x => string.Equals(x.Codsoc, socioSeleccionado.Scod, StringComparison.OrdinalIgnoreCase))
-                .Select(x => x.Ecod)
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                .Where(x => MismoCodigo(x.Codsoc, socioSeleccionado.Scod))
+                .OrderByDescending(x => string.Equals(x.Activo, "S", StringComparison.OrdinalIgnoreCase))
+                .ThenBy(x => x.Nombre)
+                .ToList();
+        opcionesEstablecimiento = establecimientosDelSocio
+            .Select(x => new TorosFilterOptionDTO { IntValue = x.Id, Value = x.Id.ToString(), Label = DescribirEstablecimiento(x) })
+            .ToList();
+        establecimientosPorId = establecimientos
+            .GroupBy(x => x.Id)
+            .ToDictionary(x => x.Key, x => x.First());
+
+        var codigosSocio = establecimientosDelSocio
+            .Select(x => x.Ecod)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var resultadosNrores = resultados
             .Where(x => !string.IsNullOrWhiteSpace(x.Nrores))
@@ -1030,7 +1078,11 @@ else
                         Freali = fechaTemp,
                         Scod = socio.Scod
                     };
-                    establecimientoSeleccionado = establecimientos.FirstOrDefault(x => string.Equals(x.Codsoc, socio.Scod, StringComparison.OrdinalIgnoreCase));
+                    // Se recalculan antes de elegir plantel: de los establecimientos del socio depende
+                    // cual se toma por defecto (solo cuando hay uno) y que planteles son candidatos.
+                    RefreshDerivedLists();
+                    asignarPlantelHistoricoAlEstablecimiento = null;
+                    establecimientoSeleccionado = establecimientosDelSocio.Count == 1 ? establecimientosDelSocio[0] : null;
                     SeleccionarPlantel(ElegirPlantelPorDefecto(socio.Scod));
                     inspectorSeleccionado = null;
                     confirmado = true;
@@ -1089,23 +1141,112 @@ else
         await updateMovimientos(nrores, "no");
     }
 
+    /// <summary>
+    /// Plantel de origen por defecto: el del establecimiento inspeccionado (ese año, si no el mas
+    /// reciente). Si la razon social tiene varios establecimientos y los planteles existentes no
+    /// tienen establecimiento asignado, no se elige ninguno: tomar el stock de toda la razon
+    /// social como existencia anterior de un campo seria mezclar establecimientos.
+    /// </summary>
     private PlantelDTO? ElegirPlantelPorDefecto(string? scod)
+        => EstablecimientoPlantelHelper.ElegirPlantelPorDefecto(
+            Planteles,
+            scod,
+            EstablecimientoActualId,
+            establecimientosDelSocio.Count,
+            GetInspectionYear());
+
+    /// <summary>Establecimiento con el que opera la pantalla: el elegido, o el del reporte/solicitud.</summary>
+    private int? EstablecimientoActualId
+        => establecimientoSeleccionado?.Id
+           ?? EstablecimientoPorCodigo(SelectedSolicitud?.Codest ?? oResin1?.Estcod)?.Id;
+
+    private EstableDTO? EstablecimientoPorCodigo(string? codest)
     {
-        if (string.IsNullOrWhiteSpace(scod))
+        if (string.IsNullOrWhiteSpace(codest))
         {
             return null;
         }
 
-        // Planteles ya viene ordenado por año descendente, asi que el First() es el mas reciente.
-        var delSocio = Planteles.Where(x => MismoCodigo(x.Nrocri, scod)).ToList();
-        if (delSocio.Count == 0)
+        return establecimientosPorCodigo.TryGetValue(codest.Trim(), out var est)
+            ? est
+            : establecimientos.FirstOrDefault(x => MismoCodigo(x.Ecod, codest));
+    }
+
+    private bool DebeElegirEstablecimiento
+        => Id == 0 && socioSeleccionado != null && SelectedSolicitud == null && establecimientosDelSocio.Count > 1;
+
+    private string EstablecimientoTexto
+    {
+        get
         {
-            return null;
+            var est = establecimientoSeleccionado ?? EstablecimientoPorCodigo(SelectedSolicitud?.Codest ?? oResin1?.Estcod);
+            if (est != null)
+            {
+                return DescribirEstablecimiento(est);
+            }
+
+            var codigo = SelectedSolicitud?.Codest ?? oResin1?.Estcod;
+            return string.IsNullOrWhiteSpace(codigo) ? string.Empty : codigo;
+        }
+    }
+
+    private string AyudaPlantel
+    {
+        get
+        {
+            if (socioSeleccionado == null || Id != 0)
+            {
+                return string.Empty;
+            }
+
+            if (Plantelseleccionado != null)
+            {
+                return Plantelseleccionado.EstablecimientoId.HasValue
+                    ? $"Existencia anterior del plantel de {DescribirEstablecimiento(EstablecimientoDePlantel(Plantelseleccionado))}."
+                    : "Plantel histórico sin establecimiento asignado: al guardar se te va a preguntar si corresponde a este establecimiento.";
+            }
+
+            if (establecimientosDelSocio.Count > 1 && EstablecimientoActualId == null)
+            {
+                return "Elegí primero el establecimiento inspeccionado.";
+            }
+
+            var compatibles = EstablecimientoPlantelHelper.PlantelesCompatibles(Planteles, socioSeleccionado.Scod, EstablecimientoActualId);
+            if (compatibles.Count > 0 && establecimientosDelSocio.Count > 1)
+            {
+                return "No hay plantel de este establecimiento: elegí el plantel de origen de la existencia anterior (se va a crear uno nuevo para este establecimiento).";
+            }
+
+            return compatibles.Count == 0 ? "El socio no tiene planteles para este establecimiento." : string.Empty;
+        }
+    }
+
+    private EstableDTO? EstablecimientoDePlantel(PlantelDTO? plantel)
+        => plantel?.EstablecimientoId is int id && establecimientosPorId.TryGetValue(id, out var est) ? est : null;
+
+    private static string DescribirEstablecimiento(EstableDTO? est)
+        => EstablecimientoPlantelHelper.DescribirEstablecimiento(est);
+
+    private Task OnEstablecimientoSeleccionadoChanged(int? establecimientoId)
+    {
+        establecimientoSeleccionado = establecimientoId.HasValue && establecimientosPorId.TryGetValue(establecimientoId.Value, out var est)
+            ? est
+            : null;
+        asignarPlantelHistoricoAlEstablecimiento = null;
+
+        // Si el plantel elegido no es de este establecimiento se vuelve a elegir: la existencia
+        // anterior tiene que salir del campo inspeccionado.
+        if (Plantelseleccionado == null
+            || !EstablecimientoPlantelHelper.EsCompatible(Plantelseleccionado.EstablecimientoId, EstablecimientoActualId)
+            || (Plantelseleccionado.EstablecimientoId == null && EstablecimientoActualId.HasValue))
+        {
+            SeleccionarPlantel(ElegirPlantelPorDefecto(socioSeleccionado?.Scod));
         }
 
-        var anio = GetInspectionYear().ToString();
-        return delSocio.FirstOrDefault(x => string.Equals((x.Anioex ?? "").Trim(), anio, StringComparison.Ordinal))
-               ?? delSocio.First();
+        _seleccionPlantel.Ejecutar(PreviewPlantelAsync,
+                                   () => InvokeAsync(StateHasChanged),
+                                   nameof(OnEstablecimientoSeleccionadoChanged));
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -1311,17 +1452,14 @@ else
             oResin1.Icod = inspectorSeleccionado.Icod;
             oResin1.Scod = socioSeleccionado.Scod;
 
-            var soli = solicitudSeleccionada.FirstOrDefault();
+            var soli = solicitudSeleccionada?.FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(soli?.Codest))
             {
-                try
-                {
-                    oResin1.Estcod = soli.Codest;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error al asignar Estcod: " + ex.Message);
-                }
+                oResin1.Estcod = soli.Codest;
+            }
+            else if (!string.IsNullOrWhiteSpace(establecimientoSeleccionado?.Ecod))
+            {
+                oResin1.Estcod = establecimientoSeleccionado.Ecod;
             }
 
             if (Id == 0)
@@ -1528,9 +1666,7 @@ else
                     // como último recurso, intentá recuperar el plantel del socio (ya lo hacés en otros lados)
                     var plan = await _plantelServicio.LimitadosFiltradosNoInclude(0, 0);
                     Planteles = OrderPlantelesByYear(plan.List);
-                    SeleccionarPlantel(Planteles
-                        .Where(x => x.Nrocri == socioSeleccionado?.Scod)
-                        .FirstOrDefault());
+                    SeleccionarPlantel(ElegirPlantelPorDefecto(socioSeleccionado?.Scod));
                 }
 
                 estadoAnterior = EstadoDesdePlantel(PlantelDeOrigen, nrores);
@@ -1551,8 +1687,23 @@ else
     async Task onSolicitudChange(IList<Solici1DTO?> lista){
         solicitudSeleccionada = lista;
 
-        // Solo completar el plantel si el usuario todavia no eligio uno: antes esto pisaba
-        // la seleccion manual cada vez que se tocaba una solicitud.
+        // La solicitud fija el establecimiento inspeccionado: los planteles candidatos y el que se
+        // actualiza son los de ese campo.
+        var estDeSolicitud = EstablecimientoPorCodigo(SelectedSolicitud?.Codest);
+        if (estDeSolicitud != null)
+        {
+            establecimientoSeleccionado = estDeSolicitud;
+            asignarPlantelHistoricoAlEstablecimiento = null;
+        }
+
+        // Solo completar el plantel si el usuario todavia no eligio uno (o si el que eligio es de
+        // otro establecimiento): antes esto pisaba la seleccion manual cada vez que se tocaba una solicitud.
+        if (Plantelseleccionado != null
+            && !EstablecimientoPlantelHelper.EsCompatible(Plantelseleccionado.EstablecimientoId, EstablecimientoActualId))
+        {
+            SeleccionarPlantel(null);
+        }
+
         if (Plantelseleccionado == null)
         {
             var plantel = ElegirPlantelPorDefecto(socioSeleccionado?.Scod);
@@ -1702,20 +1853,10 @@ else
         await InvokeAsync(StateHasChanged);
         try
         {
-            // Asegurar plantel seleccionado por las dudas
+            // Asegurar plantel seleccionado por las dudas (del establecimiento inspeccionado).
             if (Plantelseleccionado == null)
             {
-                try
-                {
-                    SeleccionarPlantel(Planteles
-                        .Where(x => x.Nrocri == socioSeleccionado?.Scod)
-                        .OrderByDescending(x => int.TryParse(x.Anioex, out var a) ? a : -1)
-                        .FirstOrDefault());
-                }
-                catch
-                {
-                    Console.WriteLine("No se pudo resolver Plantelseleccionado.");
-                }
+                SeleccionarPlantel(ElegirPlantelPorDefecto(socioSeleccionado?.Scod));
             }
 
             var guardado = await guardarReporte();
@@ -1944,6 +2085,8 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
 
     PlantelDTO? planDestino = null;
     var crearNuevo = forzarCreacion;
+    // Establecimiento inspeccionado: el plantel que se escribe tiene que ser de este campo.
+    var estId = EstablecimientoActualId;
 
     if (forzarCreacion && plantelCreadoEnPantalla != null)
     {
@@ -1957,16 +2100,44 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
     }
     else if (!forzarCreacion)
     {
-        // 1) PRIORIDAD: plantel asociado al resultado
+        // 1) PRIORIDAD: plantel asociado al resultado, siempre que sea de este socio y de este
+        //    establecimiento (o sin asignar). Un NROPLA que apunte al plantel de OTRO campo de la
+        //    misma razon social no se pisa: se busca o crea el de este campo.
         if (!string.IsNullOrWhiteSpace(oResin1?.Nropla))
         {
-            planDestino = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla);
+            planDestino = Planteles.FirstOrDefault(x => x.Placod == oResin1.Nropla && MismoCodigo(x.Nrocri, socio.Scod));
+            if (planDestino != null && !EstablecimientoPlantelHelper.EsCompatible(planDestino.EstablecimientoId, estId))
+            {
+                Console.WriteLine($"El plantel {planDestino.Placod} del reporte es de otro establecimiento; se busca el del establecimiento {estId}.");
+                planDestino = null;
+            }
+            else if (planDestino != null && planDestino.EstablecimientoId == null && estId.HasValue)
+            {
+                // Plantel historico sin establecimiento (el usuario lo eligio como origen): o se lo
+                // asigna a este establecimiento y se actualiza, o se deja como esta y se crea uno
+                // nuevo para este campo. Con un solo establecimiento no hay nada que preguntar.
+                if (await DebeAdoptarPlantelHistoricoAsync(planDestino))
+                {
+                    planDestino.EstablecimientoId = estId;
+                }
+                else
+                {
+                    planDestino = null;
+                }
+            }
         }
 
-        // 2) Si no se encontró, usar Año + Socio
+        // 2) Si no se encontró: socio + año + establecimiento.
         if (planDestino == null)
         {
-            planDestino = Planteles.FirstOrDefault(x => x.Anioex == anioDestino && x.Nrocri == socio.Scod);
+            planDestino = EstablecimientoPlantelHelper.BuscarPlantelDestino(Planteles, socio.Scod, estId, anioDestino, out var historico);
+
+            // 3) Hay un plantel de ese año pero sin establecimiento asignado (dato historico).
+            if (planDestino == null && historico != null && await DebeAdoptarPlantelHistoricoAsync(historico))
+            {
+                historico.EstablecimientoId = estId;
+                planDestino = historico;
+            }
         }
 
         crearNuevo = planDestino == null;
@@ -1980,14 +2151,17 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
     {
         // Actualizar plantel existente (solo si no se forza creación)
         VolcarEstadoFinalEn(planDestino, fechaCreacionPlantel);
-        await _plantelServicio.Editar(planDestino);
+        await EditarPlantelOLanzarAsync(planDestino);
     }
     else
     {
         // Forzar creación de uno nuevo o no se encontró
         // Se deriva del plantel de ORIGEN, no del destino: si se derivaba del recien creado, cada
         // vuelta recortaba el codigo distinto y salia la cascada 6RJ01 -> 6RJ011 -> 6J011 -> ...
-        var planViejo = PlantelDeOrigen ?? Planteles.FirstOrDefault(x => x.Nrocri == socio.Scod) ?? throw new InvalidOperationException("No hay plantel base.");
+        var planViejo = PlantelDeOrigen
+            ?? EstablecimientoPlantelHelper.PlantelesCompatibles(Planteles, socio.Scod, estId).FirstOrDefault()
+            ?? Planteles.FirstOrDefault(x => MismoCodigo(x.Nrocri, socio.Scod))
+            ?? throw new InvalidOperationException("No hay plantel base.");
         var tailAnterior = DerivarTailCodigo(planViejo.Placod);
         if (string.IsNullOrWhiteSpace(tailAnterior))
             tailAnterior = DerivarTailCodigo(socio.Placod);
@@ -2004,15 +2178,18 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
         // daba un codigo alternativo, ese pasaba a ser Plantelseleccionado, y en la vuelta siguiente
         // DerivarTailCodigo lo recortaba distinto y generaba OTRO codigo libre. Asi salian cadenas
         // como 5RJ01 -> 6RJ01 -> 6RJ011 -> 6J011 -> 6J0111 -> 60111, un plantel por vuelta.
+        // Con varios establecimientos, el mismo codigo del mismo año en OTRO establecimiento (o sin
+        // asignar) si es una colision: cada campo tiene su plantel.
         var propioDelAnio = Planteles.FirstOrDefault(p =>
             string.Equals((p.Placod ?? "").Trim(), nuevoPlacod, StringComparison.OrdinalIgnoreCase)
             && MismoCodigo(p.Nrocri, socio.Scod)
-            && string.Equals((p.Anioex ?? "").Trim(), anioDestino, StringComparison.Ordinal));
+            && string.Equals((p.Anioex ?? "").Trim(), anioDestino, StringComparison.Ordinal)
+            && p.EstablecimientoId == estId);
 
         if (propioDelAnio != null)
         {
             VolcarEstadoFinalEn(propioDelAnio, fechaCreacionPlantel);
-            await _plantelServicio.Editar(propioDelAnio);
+            await EditarPlantelOLanzarAsync(propioDelAnio);
 
             if (forzarCreacion)
             {
@@ -2023,14 +2200,10 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
             return propioDelAnio;
         }
 
-        // El bucle anticolision queda solo para choques con planteles de OTRO socio u OTRO año.
-        var candidate = nuevoPlacod;
-        int suffix = 1;
-        while (Planteles.Any(p => p.Placod == candidate))
-        {
-            candidate = nuevoPlacod + suffix.ToString();
-            suffix++;
-        }
+        // El sufijo anticolision queda para choques con planteles de OTRO socio, OTRO año u OTRO
+        // establecimiento (misma regla que PlantelController.GetOrCreate). Nunca se trunca: si el
+        // codigo no entra en PLACOD se corta con error en vez de grabar uno que podria repetirse.
+        var candidate = EstablecimientoPlantelHelper.GenerarCodigoDisponible(anioDestino, tailAnterior, Planteles.Select(p => p.Placod));
 
         planDestino = new PlantelDTO
         {
@@ -2043,13 +2216,18 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
             Vqcsrp = estadoFinal.Ea5,
             Vqssrp = estadoFinal.Ea6,
             Nrocri = planViejo.Nrocri,
+            EstablecimientoId = estId,
             Estado = planViejo.Estado,
             Fecing = fechaAltaPlantel,
             Nroins = planViejo.Nroins
         };
 
         var creado = await _plantelServicio.Crear(planDestino);
-        planDestino = creado?.List ?? planDestino;
+        if (creado == null || creado.Exito != 1 || creado.List == null)
+        {
+            throw new InvalidOperationException(creado?.Mensaje ?? $"No se pudo crear el plantel {candidate}.");
+        }
+        planDestino = creado.List;
 
         if (forzarCreacion)
         {
@@ -2086,6 +2264,62 @@ async Task<PlantelDTO> updatePlantel(bool forzarCreacion)
 
 
 
+
+    /// <summary>
+    /// Decide que hacer con un plantel del mismo año que no tiene establecimiento asignado (dato
+    /// historico) cuando la inspeccion es de un establecimiento concreto. Con un solo
+    /// establecimiento se asigna sin preguntar (no hay otra opcion). Con varios se pregunta UNA vez
+    /// por pantalla: asignarlo a este establecimiento y actualizarlo, o dejarlo como esta y crear
+    /// un plantel nuevo para este campo. Nunca se decide solo: seria inventar la asociacion.
+    /// </summary>
+    async Task<bool> DebeAdoptarPlantelHistoricoAsync(PlantelDTO historico)
+    {
+        var estId = EstablecimientoActualId;
+        if (!estId.HasValue)
+        {
+            return false;
+        }
+
+        if (establecimientosDelSocio.Count <= 1)
+        {
+            return true;
+        }
+
+        if (asignarPlantelHistoricoAlEstablecimiento.HasValue)
+        {
+            return asignarPlantelHistoricoAlEstablecimiento.Value;
+        }
+
+        var est = establecimientosPorId.TryGetValue(estId.Value, out var e) ? e : null;
+        var nombreEst = est?.Nombre ?? est?.Ecod ?? "este establecimiento";
+        var result = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Plantel sin establecimiento asignado",
+                Text = $"El plantel {historico.Placod} ({historico.Anioex}) no tiene establecimiento y la razón social tiene {establecimientosDelSocio.Count}. " +
+                       $"¿Corresponde a {nombreEst}? Si corresponde, se lo asigna y se actualiza con esta inspección. " +
+                       "Si no, queda como está y se crea un plantel nuevo para este establecimiento.",
+                Icon = SweetAlertIcon.Question,
+                ShowCancelButton = true,
+                ConfirmButtonText = $"Sí, es de {nombreEst}",
+                CancelButtonText = "No, crear plantel nuevo"
+            });
+
+        asignarPlantelHistoricoAlEstablecimiento = !string.IsNullOrEmpty(result.Value);
+        return asignarPlantelHistoricoAlEstablecimiento.Value;
+    }
+
+    /// <summary>
+    /// Antes el resultado de Editar se ignoraba: si el servidor rechazaba el plantel (por ejemplo,
+    /// establecimiento de otra razon social) la pantalla seguia como si se hubiera grabado.
+    /// </summary>
+    async Task EditarPlantelOLanzarAsync(PlantelDTO plantel)
+    {
+        var rta = await _plantelServicio.EditarConRespuesta(plantel);
+        if (rta == null || rta.Exito != 1)
+        {
+            throw new InvalidOperationException(rta?.Mensaje ?? $"No se pudo actualizar el plantel {plantel.Placod}.");
+        }
+    }
 
     async Task agregarHembraMacho(string parametro)
     {
@@ -2331,10 +2565,30 @@ async Task<bool> ResultWithoutSolicitud()
             return false;
         }
 
-        var codEst = establecimientos.FirstOrDefault(x => x.Codsoc == socioSeleccionado.Scod)?.Ecod;
-        if (string.IsNullOrWhiteSpace(codEst))
+        // El establecimiento inspeccionado lo define el usuario (o es el unico del socio). Antes se
+        // tomaba el primero que apareciera, asi que una razon social con varios campos registraba
+        // todas las inspecciones sin solicitud contra el mismo establecimiento y el mismo plantel.
+        if (establecimientoSeleccionado == null && establecimientosDelSocio.Count == 1)
+        {
+            establecimientoSeleccionado = establecimientosDelSocio[0];
+        }
+
+        if (establecimientosDelSocio.Count == 0)
         {
             await Swal.FireAsync("Error", "El socio no tiene establecimientos cargados.", SweetAlertIcon.Error);
+            return false;
+        }
+
+        if (establecimientoSeleccionado == null)
+        {
+            await Swal.FireAsync("Falta el establecimiento", "Seleccioná el establecimiento donde se hizo la inspección.", SweetAlertIcon.Warning);
+            return false;
+        }
+
+        var codEst = establecimientoSeleccionado.Ecod;
+        if (string.IsNullOrWhiteSpace(codEst))
+        {
+            await Swal.FireAsync("Error", "El establecimiento seleccionado no tiene código cargado.", SweetAlertIcon.Error);
             return false;
         }
 
@@ -2347,21 +2601,37 @@ async Task<bool> ResultWithoutSolicitud()
         // 2) Tomar plantel base (para 'Existencia anterior'), pero SIN pisar selección del usuario
         PlantelDTO? plantel = Plantelseleccionado;
 
-        if (plantel is null)
+        if (plantel != null && !EstablecimientoPlantelHelper.EsCompatible(plantel.EstablecimientoId, establecimientoSeleccionado.Id))
         {
-            // Primero buscar por el mismo año de la fecha de inspección
-            var anio = fechaTemp.Year.ToString();
-            plantel = Planteles
-                .Where(x => x.Nrocri == socioSeleccionado.Scod && x.Anioex == anio)
-                .FirstOrDefault()
-                ?? Planteles
-                    .Where(x => x.Nrocri == socioSeleccionado.Scod)
-                    .FirstOrDefault();
+            await Swal.FireAsync("Plantel de otro establecimiento",
+                $"El plantel {plantel.Placod} pertenece a {DescribirEstablecimiento(EstablecimientoDePlantel(plantel))}. " +
+                $"Elegí un plantel de {DescribirEstablecimiento(establecimientoSeleccionado)}.",
+                SweetAlertIcon.Warning);
+            return false;
         }
 
         if (plantel is null)
         {
-            await Swal.FireAsync("Error", "El socio no tiene plantel registrado.", SweetAlertIcon.Error);
+            // Del establecimiento inspeccionado. Con varios establecimientos y planteles sin asignar
+            // no hay default: la existencia anterior de un campo la tiene que elegir el usuario.
+            plantel = ElegirPlantelPorDefecto(socioSeleccionado.Scod);
+        }
+
+        if (plantel is null)
+        {
+            var hayCompatibles = EstablecimientoPlantelHelper
+                .PlantelesCompatibles(Planteles, socioSeleccionado.Scod, establecimientoSeleccionado.Id).Count > 0;
+            if (hayCompatibles)
+            {
+                await Swal.FireAsync("Falta el plantel de origen",
+                    "La razón social tiene varios establecimientos y sus planteles no tienen establecimiento asignado: " +
+                    "elegí el plantel del que sale la existencia anterior.",
+                    SweetAlertIcon.Warning);
+            }
+            else
+            {
+                await Swal.FireAsync("Error", "El socio no tiene plantel registrado para este establecimiento.", SweetAlertIcon.Error);
+            }
             return false;
         }
 
@@ -2725,13 +2995,15 @@ async Task<bool> ResultWithoutSolicitud()
         {
             var term = (searchText ?? string.Empty).Trim();
             var scod = socioSeleccionado?.Scod;
-            var result = OrderPlantelesByYear(Planteles)
-                .Where(x => !string.IsNullOrEmpty(x.Placod) && x.Placod.Contains(term, StringComparison.OrdinalIgnoreCase) && MismoCodigo(x.Nrocri, scod))
+            // Solo planteles del establecimiento inspeccionado o sin establecimiento asignado: los de
+            // otro campo de la misma razon social no pueden ser la existencia anterior de este.
+            var result = EstablecimientoPlantelHelper.PlantelesCompatibles(Planteles, scod, EstablecimientoActualId)
+                .Where(x => !string.IsNullOrEmpty(x.Placod) && x.Placod.Contains(term, StringComparison.OrdinalIgnoreCase))
                 .ToList();
             return await Task.FromResult(result);
         }
 
-        private static string FormatoPlantel(PlantelDTO? plantel)
+        private string FormatoPlantel(PlantelDTO? plantel)
         {
             if (plantel is null)
             {
@@ -2741,17 +3013,30 @@ async Task<bool> ResultWithoutSolicitud()
             var placod = plantel.Placod?.Trim() ?? string.Empty;
             var anio = plantel.Anioex?.Trim() ?? string.Empty;
 
+            string texto;
             if (string.IsNullOrWhiteSpace(anio))
             {
-                return placod;
+                texto = placod;
             }
-
-            if (string.IsNullOrWhiteSpace(placod))
+            else if (string.IsNullOrWhiteSpace(placod))
             {
-                return anio;
+                texto = anio;
+            }
+            else
+            {
+                texto = $"{placod} - {anio}";
             }
 
-            return $"{placod} - {anio}";
+            // Con mas de un establecimiento, el codigo solo no alcanza para saber de que campo es.
+            if (establecimientosDelSocio.Count > 1 || plantel.EstablecimientoId.HasValue)
+            {
+                var est = EstablecimientoDePlantel(plantel);
+                texto += est != null
+                    ? $" · {est.Nombre ?? est.Ecod}"
+                    : " · sin establecimiento";
+            }
+
+            return texto;
         }
 
     }

@@ -1,4 +1,4 @@
-@inject ITorosServicio _torosServicio
+﻿@inject ITorosServicio _torosServicio
 @inject ISocioServicio _sociosServicio
 @inject IEstableServicio _estableServicio
 
@@ -99,6 +99,10 @@
                         {
                             <small class="text-muted">@establecimientoAyuda</small>
                         }
+                        else if (establecimientoObligatorio && !establecimientoSelection.HasValue)
+                        {
+                            <small class="text-muted">El socio tiene @cantidadEstablecimientosSocio establecimientos: indicá en cuál está el toro.</small>
+                        }
                     </div>
                 </div>
 
@@ -164,10 +168,13 @@ else
     private DateTime? dateTemp;
     private int? establecimientoSelection;
     private bool isReady;
+    // Cantidad real de establecimientos del socio (sin contar la opcion "Sin establecimiento").
+    private int cantidadEstablecimientosSocio;
 
     private bool establecimientoDisabled => !EsSocio && socioSeleccionado == null;
     private string establecimientoPlaceholder => establecimientoDisabled ? "Seleccioná un socio primero" : "Seleccionar establecimiento";
     private string establecimientoAyuda => "Los establecimientos disponibles se cargan según el socio seleccionado.";
+    private bool establecimientoObligatorio => cantidadEstablecimientosSocio > 1;
 
     protected override async Task OnInitializedAsync()
     {
@@ -246,10 +253,26 @@ else
             oTorosuni.TipToro = tipoToro;
         }
 
+        // El stock de toros se distingue por establecimiento: con varios campos hay que decir en
+        // cual esta el toro. Con uno solo ya quedo preseleccionado; sin establecimientos cargados
+        // se permite guardar sin asignar.
+        if (establecimientoObligatorio && !(establecimientoSelection.HasValue && establecimientoSelection.Value > 0))
+        {
+            await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Falta el establecimiento",
+                Text = $"El socio tiene {cantidadEstablecimientosSocio} establecimientos: indicá en cuál está el toro.",
+                Icon = SweetAlertIcon.Warning,
+                ConfirmButtonText = "Entendido"
+            });
+            return;
+        }
+
         oTorosuni.Fechasba = dateTemp?.ToString("dd/MM/yyyy");
         oTorosuni.EstablecimientoId = establecimientoSelection.HasValue && establecimientoSelection.Value > 0
             ? establecimientoSelection
             : null;
+        oTorosuni.Establecimiento = null;
         oTorosuni.Fecing ??= string.Empty;
 
         if (Id == 0)
@@ -298,16 +321,29 @@ else
 
         var response = await _estableServicio.Search(socioId: socioId, socioIds: socioIds, take: 100);
         establecimientosDisponibles = response.List ?? new List<TorosFilterOptionDTO>();
-        establecimientosDisponibles.Insert(0, new TorosFilterOptionDTO
+        cantidadEstablecimientosSocio = (socioId.HasValue || EsSocio) ? establecimientosDisponibles.Count : 0;
+
+        // "Sin establecimiento" solo tiene sentido cuando el socio no tiene establecimientos
+        // cargados (o cuando todavia no se eligio socio): con establecimientos, el toro va en uno.
+        if (cantidadEstablecimientosSocio == 0)
         {
-            IntValue = null,
-            Value = string.Empty,
-            Label = "Sin establecimiento"
-        });
+            establecimientosDisponibles.Insert(0, new TorosFilterOptionDTO
+            {
+                IntValue = null,
+                Value = string.Empty,
+                Label = "Sin establecimiento"
+            });
+        }
 
         if (establecimientoSelection.HasValue && establecimientosDisponibles.All(x => x.IntValue != establecimientoSelection))
         {
             establecimientoSelection = null;
+        }
+
+        // Default inequivoco: el unico establecimiento del socio.
+        if (!establecimientoSelection.HasValue && cantidadEstablecimientosSocio == 1)
+        {
+            establecimientoSelection = establecimientosDisponibles.First(x => x.IntValue.HasValue).IntValue;
         }
     }
 

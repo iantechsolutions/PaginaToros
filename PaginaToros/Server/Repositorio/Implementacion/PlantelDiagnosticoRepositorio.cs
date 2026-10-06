@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Shared.Models;
@@ -69,13 +69,22 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         {
             var planteles = await _db.Planteles.AsNoTracking().ToListAsync();
 
+            // Un plantel por socio, año Y ESTABLECIMIENTO: dos planteles del mismo socio y año en
+            // establecimientos distintos son legitimos, no duplicados. Los que no tienen
+            // establecimiento asignado (historicos) forman su propio grupo.
             var grupos = planteles
                 .Where(p => !string.IsNullOrWhiteSpace(p.Nrocri) && !string.IsNullOrWhiteSpace(p.Anioex))
-                .GroupBy(p => new { Nrocri = Norm(p.Nrocri), Anioex = Norm(p.Anioex) })
+                .GroupBy(p => new { Nrocri = Norm(p.Nrocri), Anioex = Norm(p.Anioex), p.EstablecimientoId })
                 .Where(g => g.Count() > 1)
                 .ToList();
 
             if (grupos.Count == 0) return new List<PlantelDuplicadoGrupoDTO>();
+
+            var establecimientos = await _db.Estables.AsNoTracking()
+                .Select(e => new { e.Id, e.Ecod, e.Nombre }).ToListAsync();
+            var nombreEstablecimiento = establecimientos.ToDictionary(
+                e => e.Id,
+                e => string.IsNullOrWhiteSpace(e.Ecod) ? (e.Nombre ?? string.Empty) : $"{e.Ecod} - {e.Nombre}");
 
             var codigos = grupos.SelectMany(g => g).Select(p => p.Placod ?? string.Empty).ToList();
             var codigosNorm = codigos.Select(Norm).ToHashSet();
@@ -127,6 +136,11 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 {
                     Nrocri = items.First().Nrocri?.Trim() ?? grupo.Key.Nrocri,
                     Anioex = items.First().Anioex?.Trim() ?? anioex,
+                    EstablecimientoId = grupo.Key.EstablecimientoId,
+                    EstablecimientoNombre = grupo.Key.EstablecimientoId.HasValue
+                        && nombreEstablecimiento.TryGetValue(grupo.Key.EstablecimientoId.Value, out var nombreEst)
+                        ? nombreEst
+                        : null,
                     SocioNombre = nombrePorScod.TryGetValue(grupo.Key.Nrocri, out var nombre) ? nombre : null
                 };
 
@@ -161,6 +175,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                         Placod = cod,
                         Anioex = p.Anioex,
                         Nrocri = p.Nrocri,
+                        EstablecimientoId = p.EstablecimientoId,
                         Fecing = p.Fecing,
                         Totales = new PlantelTotalesDTO
                         {
@@ -283,11 +298,15 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 .Where(p => p.Nrocri != null && p.Anioex != null)
                 .ToListAsync();
 
-            grupo = grupo.Where(p => Norm(p.Nrocri) == nrocri && Norm(p.Anioex) == anioex).ToList();
+            // El grupo se acota al mismo establecimiento (o a los sin asignar): consolidar planteles
+            // de establecimientos distintos mezclaria el stock de dos campos.
+            grupo = grupo
+                .Where(p => Norm(p.Nrocri) == nrocri && Norm(p.Anioex) == anioex && p.EstablecimientoId == request.EstablecimientoId)
+                .ToList();
 
             if (grupo.Count == 0)
             {
-                res.Errores.Add($"No hay planteles para el socio {request.Nrocri} en {request.Anioex}.");
+                res.Errores.Add($"No hay planteles para el socio {request.Nrocri} en {request.Anioex} con ese establecimiento.");
                 return res;
             }
 
@@ -365,7 +384,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             if (request.RecalcularTotales)
             {
                 var diagnostico = (await ListarGruposDuplicadosAsync())
-                    .FirstOrDefault(g => Norm(g.Nrocri) == nrocri && Norm(g.Anioex) == anioex);
+                    .FirstOrDefault(g => Norm(g.Nrocri) == nrocri && Norm(g.Anioex) == anioex && g.EstablecimientoId == request.EstablecimientoId);
 
                 nuevosTotales = diagnostico?.TotalesRecalculados;
 

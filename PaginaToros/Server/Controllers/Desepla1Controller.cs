@@ -458,7 +458,8 @@ namespace PaginaToros.Server.Controllers
                         Anioex = p.Anioex,
                         Fecing = p.Fecing,
                         FchUsu = p.FchUsu,
-                        Nrocri = p.Nrocri
+                        Nrocri = p.Nrocri,
+                        EstablecimientoId = p.EstablecimientoId
                     })
                     .ToListAsync();
 
@@ -596,7 +597,29 @@ namespace PaginaToros.Server.Controllers
             foreach (var header in headers.Where(x => !string.IsNullOrWhiteSpace(x.Nroplan)))
             {
                 var fechaDeclaracion = header.Fchrecepcion ?? header.Fecdecl ?? header.FchUsu;
-                var resolved = DeclaracionServicioHelper.ResolvePlantelHistorico(planteles, header.Nroplan, fechaDeclaracion, out var warning);
+
+                // Solo se consideran planteles de la MISMA razon social que la declaracion. El codigo
+                // de plantel no es unico entre socios (hay PLACOD repetidos), asi que resolver contra
+                // todos los planteles podia asociar la declaracion al plantel de otro socio.
+                if (string.IsNullOrWhiteSpace(header.Nrocri))
+                {
+                    result.DeclaracionesPendientes++;
+                    result.Pendientes.Add(new Desepla1PlantelAmbiguityPendingItem
+                    {
+                        Id = header.Id,
+                        Nrodec = header.Nrodec,
+                        Nroplan = header.Nroplan,
+                        FechaDeclaracion = fechaDeclaracion,
+                        Nrocri = header.Nrocri,
+                        Motivo = "La declaración no tiene razón social (NROCRI): no se puede resolver el plantel sin inventar la asociación."
+                    });
+                    continue;
+                }
+
+                var candidatos = planteles
+                    .Where(p => EstablecimientoPlantelHelper.MismoCodigo(p.Nrocri, header.Nrocri))
+                    .ToList();
+                var resolved = DeclaracionServicioHelper.ResolvePlantelHistorico(candidatos, header.Nroplan, fechaDeclaracion, out var warning);
 
                 if (resolved == null)
                 {

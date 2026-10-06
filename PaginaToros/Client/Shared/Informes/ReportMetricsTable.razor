@@ -1,0 +1,220 @@
+@* Tabla de desglose del Resumen General de Inspecciones (PR / VIP / SCP / CP + total presentados),
+   con buscador local, paginación y fila de totales. Mantiene su búsqueda/página mientras el
+   usuario cambia de tab; cuando llegan filas nuevas vuelve a la página 1. *@
+
+<div class="rp-section">
+    <div class="rp-section-head">
+        <h3 class="rp-section-title">
+            @Title
+            <span class="rp-count">@ReportFormat.N0(Rows.Count)</span>
+        </h3>
+        @if (Searchable && !Printing)
+        {
+            <div class="rp-section-tools">
+                <div class="rp-search">
+                    <FeatherSearch Size="14" Color="currentColor" />
+                    <input type="search"
+                           aria-label="@SearchPlaceholder"
+                           placeholder="@SearchPlaceholder"
+                           value="@query"
+                           @oninput="OnSearch" />
+                    @if (query.Length > 0)
+                    {
+                        <button type="button" class="rp-search-clear" aria-label="Limpiar búsqueda" @onclick="ClearSearch">
+                            <FeatherX Size="14" Color="currentColor" />
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (Rows.Count == 0)
+    {
+        <div class="rp-empty">Sin datos para este desglose.</div>
+    }
+    else if (filtered.Count == 0)
+    {
+        <div class="rp-empty">Sin coincidencias para “@query”.</div>
+    }
+    else
+    {
+        <div class="rp-table-wrap @(PageRows.Count > 30 && !Printing ? "rp-scroll" : string.Empty)">
+            <table class="rp-table rp-table-metrics">
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="rp-th-text">@KeyHeader</th>
+                        @if (SecondHeader != null)
+                        {
+                            <th rowspan="2" class="rp-th-text">@SecondHeader</th>
+                        }
+                        <th colspan="3" class="rp-th-group rp-sep">PR <small>Hembras</small></th>
+                        <th colspan="3" class="rp-th-group rp-sep">VIP <small>Hembras</small></th>
+                        <th colspan="3" class="rp-th-group rp-sep" title="Sin control de producción">SCP <small>Machos</small></th>
+                        <th colspan="4" class="rp-th-group rp-sep" title="Con control de producción">CP <small>Machos</small></th>
+                        <th rowspan="2" class="rp-num rp-sep"><abbr title="Total de animales presentados (PR + VIP + SCP + CP)">Total pres.</abbr></th>
+                    </tr>
+                    <tr>
+                        <th class="rp-num rp-sep"><abbr title="Presentadas">Pres.</abbr></th>
+                        <th class="rp-num"><abbr title="Marcadas">Marc.</abbr></th>
+                        <th class="rp-num"><abbr title="Rechazadas">Rech.</abbr></th>
+                        <th class="rp-num rp-sep"><abbr title="Presentadas">Pres.</abbr></th>
+                        <th class="rp-num"><abbr title="Marcadas">Marc.</abbr></th>
+                        <th class="rp-num"><abbr title="Rechazadas">Rech.</abbr></th>
+                        <th class="rp-num rp-sep"><abbr title="Presentados">Pres.</abbr></th>
+                        <th class="rp-num"><abbr title="Marcados">Marc.</abbr></th>
+                        <th class="rp-num"><abbr title="Rechazados">Rech.</abbr></th>
+                        <th class="rp-num rp-sep"><abbr title="Presentados">Pres.</abbr></th>
+                        <th class="rp-num"><abbr title="Marcados">Marc.</abbr></th>
+                        <th class="rp-num"><abbr title="Rechazados">Rech.</abbr></th>
+                        <th class="rp-num">S/</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in PageRows)
+                    {
+                        var c = row.C;
+                        <tr>
+                            <td class="rp-text">@row.Label</td>
+                            @if (SecondHeader != null)
+                            {
+                                <td class="rp-text">@row.Label2</td>
+                            }
+                            <td class="rp-num rp-sep @Dim(c.prPres)">@ReportFormat.N0(c.prPres)</td>
+                            <td class="rp-num @Dim(c.prMarc)">@ReportFormat.N0(c.prMarc)</td>
+                            <td class="rp-num @Dim(c.prRech)">@ReportFormat.N0(c.prRech)</td>
+                            <td class="rp-num rp-sep @Dim(c.vipPres)">@ReportFormat.N0(c.vipPres)</td>
+                            <td class="rp-num @Dim(c.vipMarc)">@ReportFormat.N0(c.vipMarc)</td>
+                            <td class="rp-num @Dim(c.vipRech)">@ReportFormat.N0(c.vipRech)</td>
+                            <td class="rp-num rp-sep @Dim(c.scpPres)">@ReportFormat.N0(c.scpPres)</td>
+                            <td class="rp-num @Dim(c.scpMarc)">@ReportFormat.N0(c.scpMarc)</td>
+                            <td class="rp-num @Dim(c.scpRech)">@ReportFormat.N0(c.scpRech)</td>
+                            <td class="rp-num rp-sep @Dim(c.cpPres)">@ReportFormat.N0(c.cpPres)</td>
+                            <td class="rp-num @Dim(c.cpMarc)">@ReportFormat.N0(c.cpMarc)</td>
+                            <td class="rp-num @Dim(c.cpRech)">@ReportFormat.N0(c.cpRech)</td>
+                            <td class="rp-num @Dim(c.cpSBarra)">@ReportFormat.N0(c.cpSBarra)</td>
+                            <td class="rp-num rp-sep"><strong>@ReportFormat.N0(c.TotalPresentadas)</strong></td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th scope="row" class="rp-text" colspan="@(SecondHeader != null ? 2 : 1)">
+                            @(query.Length > 0 ? "Total (coincidencias)" : TotalLabel)
+                        </th>
+                        <td class="rp-num rp-sep">@ReportFormat.N0(totals.prPres)</td>
+                        <td class="rp-num">@ReportFormat.N0(totals.prMarc)</td>
+                        <td class="rp-num">@ReportFormat.N0(totals.prRech)</td>
+                        <td class="rp-num rp-sep">@ReportFormat.N0(totals.vipPres)</td>
+                        <td class="rp-num">@ReportFormat.N0(totals.vipMarc)</td>
+                        <td class="rp-num">@ReportFormat.N0(totals.vipRech)</td>
+                        <td class="rp-num rp-sep">@ReportFormat.N0(totals.scpPres)</td>
+                        <td class="rp-num">@ReportFormat.N0(totals.scpMarc)</td>
+                        <td class="rp-num">@ReportFormat.N0(totals.scpRech)</td>
+                        <td class="rp-num rp-sep">@ReportFormat.N0(totals.cpPres)</td>
+                        <td class="rp-num">@ReportFormat.N0(totals.cpMarc)</td>
+                        <td class="rp-num">@ReportFormat.N0(totals.cpRech)</td>
+                        <td class="rp-num">@ReportFormat.N0(totals.cpSBarra)</td>
+                        <td class="rp-num rp-sep">@ReportFormat.N0(totals.TotalPresentadas)</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        @if (!Printing)
+        {
+            <ReportPager Total="@filtered.Count"
+                         Page="@currentPage"
+                         PageChanged="@(p => currentPage = p)"
+                         PageSize="@pageSize"
+                         PageSizeChanged="@(s => pageSize = s)"
+                         ItemLabel="@ItemLabel" />
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public IReadOnlyList<InspeccionRow> Rows { get; set; } = Array.Empty<InspeccionRow>();
+    [Parameter] public string KeyHeader { get; set; } = string.Empty;
+    [Parameter] public string? SecondHeader { get; set; }
+    [Parameter] public string ItemLabel { get; set; } = "filas";
+    [Parameter] public string TotalLabel { get; set; } = "Total";
+    [Parameter] public bool Searchable { get; set; } = true;
+    [Parameter] public string SearchPlaceholder { get; set; } = "Buscar...";
+    /// <summary>En modo impresión se listan todas las filas y se ocultan buscador y paginador.</summary>
+    [Parameter] public bool Printing { get; set; }
+    [Parameter] public int InitialPageSize { get; set; } = 25;
+
+    private IReadOnlyList<InspeccionRow>? lastRows;
+    private List<InspeccionRow> filtered = new();
+    private InspeccionCounters totals = new();
+    private string query = string.Empty;
+    private int currentPage = 1;
+    private int pageSize = 25;
+
+    private IReadOnlyList<InspeccionRow> PageRows
+    {
+        get
+        {
+            if (Printing || pageSize <= 0)
+            {
+                return filtered;
+            }
+
+            var skip = (Math.Max(currentPage, 1) - 1) * pageSize;
+            if (skip >= filtered.Count)
+            {
+                skip = 0;
+            }
+
+            return filtered.Skip(skip).Take(pageSize).ToList();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        pageSize = InitialPageSize;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!ReferenceEquals(lastRows, Rows))
+        {
+            lastRows = Rows;
+            currentPage = 1;
+            ApplyFilter();
+        }
+    }
+
+    private static string Dim(int value) => value == 0 ? "rp-dim" : string.Empty;
+
+    private void OnSearch(ChangeEventArgs args)
+    {
+        query = args.Value?.ToString() ?? string.Empty;
+        currentPage = 1;
+        ApplyFilter();
+    }
+
+    private void ClearSearch()
+    {
+        query = string.Empty;
+        currentPage = 1;
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        var q = ReportFormat.Normalize(query);
+        filtered = q.Length == 0
+            ? Rows.ToList()
+            : Rows.Where(r => ReportFormat.Normalize(r.Label).Contains(q) ||
+                              (r.Label2 != null && ReportFormat.Normalize(r.Label2).Contains(q))).ToList();
+
+        totals = new InspeccionCounters();
+        foreach (var r in filtered)
+        {
+            totals.Add(r.C);
+        }
+    }
+}

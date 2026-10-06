@@ -50,16 +50,56 @@ namespace PaginaToros.Client.Servicios.Implementacion
         public async Task<Respuesta<TranssbDTO>> Crear(TranssbDTO entidad)
         {
             var result = await _http.PostAsJsonAsync("api/Transsb/Guardar", entidad);
-            var response = await result.Content.ReadFromJsonAsync<Respuesta<TranssbDTO>>();
-            return response!;
+            return await LeerRespuestaAsync(result, "No se pudo guardar la transferencia");
         }
 
         public async Task<bool> Editar(TranssbDTO entidad)
         {
-            var result = await _http.PutAsJsonAsync("api/Transsb/Editar", entidad);
-            var response = await result.Content.ReadFromJsonAsync<Respuesta<TranssbDTO>>();
+            var response = await EditarConRespuesta(entidad);
+            return response.Exito == 1;
+        }
 
-            return response!.Exito == 1;
+        public async Task<Respuesta<TranssbDTO>> EditarConRespuesta(TranssbDTO entidad)
+        {
+            var result = await _http.PutAsJsonAsync("api/Transsb/Editar", entidad);
+            return await LeerRespuestaAsync(result, "No se pudo editar la transferencia");
+        }
+
+        /// <summary>
+        /// Un status HTTP de error NUNCA se interpreta como exito, diga lo que diga el cuerpo. Antes se
+        /// leia el JSON sin mirar el status y se comparaba Exito == 1: un 500 del servidor con
+        /// Exito = 1 en el cuerpo (contrato viejo del controller) se mostraba como transferencia hecha.
+        /// </summary>
+        private static async Task<Respuesta<TranssbDTO>> LeerRespuestaAsync(HttpResponseMessage result, string accionFallida)
+        {
+            Respuesta<TranssbDTO>? response = null;
+            try
+            {
+                response = await result.Content.ReadFromJsonAsync<Respuesta<TranssbDTO>>();
+            }
+            catch
+            {
+                // El cuerpo no era JSON (p. ej. un 500 con HTML o un 401 vacio): se informa el status.
+            }
+
+            if (response == null)
+            {
+                return new Respuesta<TranssbDTO>
+                {
+                    Exito = 0,
+                    Mensaje = $"{accionFallida} (HTTP {(int)result.StatusCode})."
+                };
+            }
+
+            if (!result.IsSuccessStatusCode && response.Exito == 1)
+            {
+                response.Exito = 0;
+                response.Mensaje = string.IsNullOrWhiteSpace(response.Mensaje)
+                    ? $"{accionFallida} (HTTP {(int)result.StatusCode})."
+                    : response.Mensaje;
+            }
+
+            return response;
         }
 
         public async Task<Respuesta<TranssbDTO>> Filtrar(string descripcion)

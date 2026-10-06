@@ -501,9 +501,16 @@ namespace PaginaToros.Server.Context
                     .HasMaxLength(2)
                     .HasColumnName("VARIEDAD");
 
+                entity.Property(e => e.EstablecimientoId)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("establecimientoId");
+
                 entity.HasIndex(e => new { e.NroCert, e.Hba })
                     .HasDatabaseName("UX_CERTIFSEMEN_NRO_CERT_HBA")
                     .IsUnique();
+
+                entity.HasIndex(e => e.EstablecimientoId)
+                    .HasDatabaseName("IX_CERTIFSEMEN_establecimientoId");
             });
 
             modelBuilder.Entity<Certifseman>()
@@ -517,6 +524,16 @@ namespace PaginaToros.Server.Context
                .WithMany(s => s.Certificados)
                .HasForeignKey(t => t.Nrocen)
                .HasPrincipalKey(s => s.Nrocen);
+
+            // Stock de dosis por establecimiento. Nullable por los mismos motivos que Plantel.
+            // La clave de negocio del certificado (NROCEN + NRO_CERT + HBA) no cambia: el
+            // establecimiento dice donde esta el stock, no identifica al certificado.
+            modelBuilder.Entity<Certifseman>()
+               .HasOne(t => t.Establecimiento)
+               .WithMany()
+               .HasForeignKey(t => t.EstablecimientoId)
+               .HasPrincipalKey(e => e.Id)
+               .OnDelete(DeleteBehavior.Restrict);
 
 
             modelBuilder.Entity<DeseUsada>(entity =>
@@ -631,7 +648,7 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("NRODEC");
 
                 entity.Property(e => e.Nroplan)
-                    .HasMaxLength(6)
+                    .HasMaxLength(15)
                     .HasColumnName("NROPLAN");
 
                 entity.Property(e => e.PastillasSincro)
@@ -1256,6 +1273,10 @@ namespace PaginaToros.Server.Context
                     .HasColumnType("datetime")
                     .HasColumnName("UREIN");
 
+                entity.Property(e => e.EstablecimientoId)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("establecimientoId");
+
                 entity.Property(e => e.Varede)
                     .HasColumnName("VAREDE")
                     .HasDefaultValueSql("'0'");
@@ -1286,6 +1307,24 @@ namespace PaginaToros.Server.Context
                .WithMany(s => s.Planteles)
                .HasForeignKey(t => t.Nrocri)
                .HasPrincipalKey(s => s.Scod);
+
+            // El plantel (stock de hembras) pertenece a un establecimiento de la razon social.
+            // Nullable: los planteles historicos de socios con mas de un establecimiento quedan sin
+            // asignar hasta que alguien los defina a mano (ver Server/Sql/20261006_establecimiento_plantel_certifsemen.sql).
+            modelBuilder.Entity<Plantel>()
+               .HasIndex(p => p.EstablecimientoId)
+               .HasDatabaseName("IX_PLANTEL_establecimientoId");
+
+            modelBuilder.Entity<Plantel>()
+               .HasIndex(p => new { p.Nrocri, p.Anioex, p.EstablecimientoId })
+               .HasDatabaseName("IX_PLANTEL_nrocri_anioex_establecimiento");
+
+            modelBuilder.Entity<Plantel>()
+               .HasOne(p => p.Establecimiento)
+               .WithMany()
+               .HasForeignKey(p => p.EstablecimientoId)
+               .HasPrincipalKey(e => e.Id)
+               .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Provin>(entity =>
             {
@@ -1369,7 +1408,7 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("NRODEC");
 
                 entity.Property(e => e.Nroplan)
-                    .HasMaxLength(5)
+                    .HasMaxLength(10)
                     .HasColumnName("NROPLAN");
 
                 entity.Property(e => e.Nrosol)
@@ -1462,7 +1501,7 @@ namespace PaginaToros.Server.Context
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.Nropla)
-                    .HasMaxLength(4)
+                    .HasMaxLength(15)
                     .HasColumnName("NROPLA");
 
                 entity.Property(e => e.Nrores)
@@ -1732,7 +1771,7 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("MOTIVO_RECHAZO");
 
                 entity.Property(e => e.Nropla)
-                    .HasMaxLength(4)
+                    .HasMaxLength(15)
                     .HasColumnName("NROPLA");
 
                 entity.Property(e => e.Nrores)
@@ -1836,7 +1875,7 @@ namespace PaginaToros.Server.Context
                     .HasColumnName("NRODEC");
 
                 entity.Property(e => e.Nroplan)
-                    .HasMaxLength(5)
+                    .HasMaxLength(10)
                     .HasColumnName("NROPLAN");
 
                 entity.Property(e => e.PastillasSincro)

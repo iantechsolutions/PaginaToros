@@ -5,6 +5,7 @@
 @using PaginaToros.Client.Servicios.Contrato;
 @inject ISocioServicio _socioServicio
 @inject IPlantelServicio _plantelServicio
+@inject IEstableServicio _estableServicio
 @inject HttpClient Http
 <style>
 
@@ -60,6 +61,21 @@
                             </ResultTemplate>
                         </BlazoredTypeahead>
 
+                        @if (socioSeleccionado != null && establecimientosSocio.Count > 1)
+                        {
+                            @* Solo aparece cuando la razon social tiene varios establecimientos: ahi
+                               si importa poder ver el stock de un campo por separado. *@
+                            <RadzenDropDown TValue="int?"
+                                            Data="@opcionesEstablecimiento"
+                                            TextProperty="Label"
+                                            ValueProperty="IntValue"
+                                            Value="@establecimientoFiltroId"
+                                            Change="@(args => OnEstablecimientoFiltroChanged(args as int?))"
+                                            AllowClear="true"
+                                            Placeholder="Todos los establecimientos"
+                                            Style="min-width: 260px;" />
+                        }
+
                         <button class="font-bold px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
                                 @onclick="()=>BuscarPorSocio()">
                             Buscar
@@ -95,6 +111,11 @@
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Anioex" Title="Año de Existencia" Width="4.6%" />
             @* <RadzenDataGridColumn TItem="PlantelDTO" Property="Nroins" Title="Nro ultima inspeccion" Width="6.6%" /> *@
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="6%">
+                <Template Context="data">
+                    @DescribirEstablecimientoPlantel(data)
+                </Template>
+            </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Varede" Title="Vacas PR" Width="4%" />
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaq. PR C/S" Width="5%" />
             <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaq. PR S/S" Width="5%" />
@@ -163,6 +184,11 @@ else
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Anioex" Title="Año de Existencia" Width="4.6%" />
                     @* <RadzenDataGridColumn TItem="PlantelDTO" Property="Nroins" Title="Nro ultima inspeccion" Width="6.6%" /> *@
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="6%">
+                        <Template Context="data">
+                            @DescribirEstablecimientoPlantel(data)
+                        </Template>
+                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Varede" Title="Vacas PR" Width="4%" />
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaq. PR C/S" Width="5%" />
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaq. PR S/S" Width="5%" />
@@ -203,6 +229,10 @@ else
     SocioDTO socioSeleccionado;
     public bool allowFiltering = false;
     List<SocioDTO> socios = new();
+    // Establecimientos del socio elegido en el filtro (solo se muestra el selector si tiene varios).
+    List<EstableDTO> establecimientosSocio = new();
+    List<TorosFilterOptionDTO> opcionesEstablecimiento = new();
+    int? establecimientoFiltroId = null;
     public Respuesta<List<PlantelDTO>> oRespuesta = new Respuesta<List<PlantelDTO>>();
     protected override async Task OnInitializedAsync()
     {
@@ -359,8 +389,7 @@ else
                     }
                     else
                     {
-                        string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                        oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
+                        oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, FiltroSocioActual());
                         EnsureNoDuplicates(oRespuesta);
                     }
                 }
@@ -393,8 +422,7 @@ else
                 }
                 else
                 {
-                    string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                    oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
+                    oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, FiltroSocioActual());
                     EnsureNoDuplicates(oRespuesta);
                 }
             }
@@ -428,14 +456,79 @@ else
     private Task OnSocioSeleccionadoChanged(SocioDTO value)
     {
         socioSeleccionado = value;
+        establecimientoFiltroId = null;
 
         // La busqueda corre fuera del handler: si la esperamos aca, BlazoredTypeahead no
         // cierra el desplegable hasta que vuelve el request (ver SeleccionTypeahead).
-        seleccionSocio.Ejecutar(BuscarPorSocio,
+        seleccionSocio.Ejecutar(async () =>
+                                {
+                                    await CargarEstablecimientosDelSocioAsync();
+                                    await BuscarPorSocio();
+                                },
                                 () => InvokeAsync(StateHasChanged),
                                 nameof(OnSocioSeleccionadoChanged));
         return Task.CompletedTask;
     }
+
+    private async Task CargarEstablecimientosDelSocioAsync()
+    {
+        establecimientosSocio = new List<EstableDTO>();
+        opcionesEstablecimiento = new List<TorosFilterOptionDTO>();
+        if (socioSeleccionado == null || socioSeleccionado.Id <= 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var rta = await _estableServicio.GetBySocioId(socioSeleccionado.Id);
+            establecimientosSocio = (rta?.List ?? new List<EstableDTO>()).OrderBy(x => x.Nombre).ToList();
+            opcionesEstablecimiento = establecimientosSocio
+                .Select(x => new TorosFilterOptionDTO
+                {
+                    IntValue = x.Id,
+                    Value = x.Id.ToString(),
+                    Label = EstablecimientoPlantelHelper.DescribirEstablecimiento(x)
+                })
+                .ToList();
+            // Opcion para ver los planteles historicos que todavia no tienen establecimiento.
+            opcionesEstablecimiento.Add(new TorosFilterOptionDTO { IntValue = -1, Value = "-1", Label = "Sin establecimiento asignado" });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"No se pudieron cargar los establecimientos del socio: {ex.Message}");
+        }
+    }
+
+    private Task OnEstablecimientoFiltroChanged(int? establecimientoId)
+    {
+        establecimientoFiltroId = establecimientoId;
+        seleccionSocio.Ejecutar(BuscarPorSocio,
+                                () => InvokeAsync(StateHasChanged),
+                                nameof(OnEstablecimientoFiltroChanged));
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Filtro Dynamic LINQ del socio elegido, acotado al establecimiento si se eligio uno.</summary>
+    private string FiltroSocioActual()
+    {
+        var filtro = $"Socio.Id={socioSeleccionado.Id}";
+        if (establecimientoFiltroId == -1)
+        {
+            filtro += " && EstablecimientoId == null";
+        }
+        else if (establecimientoFiltroId.HasValue)
+        {
+            filtro += $" && EstablecimientoId == {establecimientoFiltroId.Value}";
+        }
+
+        return filtro;
+    }
+
+    private static string DescribirEstablecimientoPlantel(PlantelDTO? plantel)
+        => plantel?.Establecimiento != null
+            ? EstablecimientoPlantelHelper.DescribirEstablecimiento(plantel.Establecimiento)
+            : (plantel?.EstablecimientoId.HasValue == true ? $"#{plantel.EstablecimientoId}" : "Sin asignar");
 
     async Task LoadData(LoadDataArgs args)
     {
@@ -470,9 +563,8 @@ else
                 }
                 else
                 {
-                    string filtro = $"Socio.Id={socioSeleccionado.Id}";
                     // Use paged call so backend applies filter + ordering consistently
-                    oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
+                    oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, FiltroSocioActual());
                      EnsureNoDuplicates(oRespuesta);
                      LogDuplicatesIfAny(oRespuesta, "LoadData - LimitadosFiltrados for socio");
                 }
@@ -529,7 +621,8 @@ else
                 var placod = p.Placod ?? string.Empty;
                 var anio = p.Anioex ?? string.Empty;
                 var nrocri = p.Nrocri ?? string.Empty;
-                var key = (placod + "|" + anio + "|" + nrocri).Trim();
+                var establecimiento = p.EstablecimientoId?.ToString() ?? string.Empty;
+                var key = (placod + "|" + anio + "|" + nrocri + "|" + establecimiento).Trim('|', ' ');
                 return string.IsNullOrEmpty(key) ? ("ID|" + p.Id.ToString()) : ("P|" + key);
             })
             .Select(g => g.First())

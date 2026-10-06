@@ -130,6 +130,7 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                     <th class="col-cert-type">Tipo cert.</th>
                     <th class="col-cert-date">Fecha de venta</th>
                     <th class="col-cert-socio">Socio</th>
+                    <th class="col-cert-socio">Establecimiento</th>
                     <th class="col-cert-short">Tatuaje</th>
                     <th class="col-cert-short">HBA</th>
                     <th class="col-cert-name">Nombre</th>
@@ -155,6 +156,7 @@ else if (opcion == 0 && socioSeleccionado != null && terminado)
                             }
                         </td>
                         <td>@cer.Socio.Nombre</td>
+                        <td>@EstablecimientoPlantelHelper.DescribirEstablecimiento(cer.Establecimiento, "-")</td>
                         <td>@cer.Tatpart</td>
                         <td>@cer.Hba</td>
                         <td>@cer.NomDad</td>

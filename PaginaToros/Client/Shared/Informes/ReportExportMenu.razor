@@ -1,0 +1,75 @@
+@* Menú "Exportar" compartido por los informes: Excel y PDF (impresión del navegador).
+   No depende del JS de Bootstrap: el estado abierto/cerrado vive en el componente. *@
+
+<div class="rp-menu" @onkeydown="OnKeyDown">
+    <button type="button"
+            class="rp-btn rp-btn-secondary"
+            aria-haspopup="menu"
+            aria-expanded="@(open ? "true" : "false")"
+            disabled="@Disabled"
+            @onclick="Toggle">
+        @if (Busy)
+        {
+            <span class="rp-spinner dark" aria-hidden="true"></span>
+        }
+        else
+        {
+            <FeatherDownload Size="16" Color="currentColor" />
+        }
+        <span>@Label</span>
+        <FeatherChevronDown Size="14" Color="currentColor" />
+    </button>
+
+    @if (open)
+    {
+        <div class="rp-menu-backdrop" @onclick="Close"></div>
+        <div class="rp-menu-panel" role="menu" aria-label="@Label">
+            <button type="button" role="menuitem" class="rp-menu-item" disabled="@ExcelDisabled" @onclick="ClickExcel">
+                <FeatherFileText Size="15" Color="currentColor" /> Excel (.xlsx)
+            </button>
+            @if (ShowPdf)
+            {
+                <button type="button" role="menuitem" class="rp-menu-item" disabled="@PdfDisabled" @onclick="ClickPdf">
+                    <FeatherPrinter Size="15" Color="currentColor" /> PDF (imprimir)
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "Exportar";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public bool ExcelDisabled { get; set; }
+    [Parameter] public bool PdfDisabled { get; set; }
+    [Parameter] public bool ShowPdf { get; set; } = true;
+    [Parameter] public EventCallback OnExcel { get; set; }
+    [Parameter] public EventCallback OnPdf { get; set; }
+
+    private bool open;
+
+    private void Toggle() => open = !open;
+
+    private void Close() => open = false;
+
+    private void OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape")
+        {
+            open = false;
+        }
+    }
+
+    private async Task ClickExcel()
+    {
+        open = false;
+        await OnExcel.InvokeAsync();
+    }
+
+    private async Task ClickPdf()
+    {
+        open = false;
+        await OnPdf.InvokeAsync();
+    }
+}

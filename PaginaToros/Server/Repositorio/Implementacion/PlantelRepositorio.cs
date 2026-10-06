@@ -25,6 +25,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 var items = await _dbContext.Planteles
                     .AsNoTracking()
                     .Include(t => t.Socio)
+                    .Include(t => t.Establecimiento)
                     .ToListAsync();
 
                 return ApplyOrdering(items, skip, take, preferYearOrdering: false);
@@ -42,7 +43,9 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 var yHasta = hasta.Year.ToString("0000");
 
                 return await _dbContext.Planteles
+                    .AsNoTracking()
                     .Include(p => p.Socio)
+                    .Include(p => p.Establecimiento)
                     .Where(p => p.Anioex != null
                              && p.Anioex.Length == 4
                              && string.Compare(p.Anioex, yDesde) >= 0
@@ -73,7 +76,10 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             try
             {
                 // Build query and apply filters on the database side
-                IQueryable<Plantel> query = _dbContext.Planteles.AsNoTracking().Include(x => x.Socio);
+                IQueryable<Plantel> query = _dbContext.Planteles
+                    .AsNoTracking()
+                    .Include(x => x.Socio)
+                    .Include(x => x.Establecimiento);
                 if (!string.IsNullOrWhiteSpace(filtro))
                 {
                     query = query.Where(filtro);
@@ -175,7 +181,9 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             try
             {
                 var todos = await _dbContext.Planteles
+                    .AsNoTracking()
                     .Include(p => p.Socio)
+                    .Include(p => p.Establecimiento)
                     .ToListAsync();
 
                 var filtrados = todos
@@ -223,7 +231,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             }
 
             return filtro.Contains("Socio.Id", StringComparison.OrdinalIgnoreCase)
-                || filtro.Contains("Nrocri", StringComparison.OrdinalIgnoreCase);
+                || filtro.Contains("Nrocri", StringComparison.OrdinalIgnoreCase)
+                || filtro.Contains("EstablecimientoId", StringComparison.OrdinalIgnoreCase);
         }
 
         private static DateTime? GetPlantelCreationDate(Plantel plantel)

@@ -1,4 +1,4 @@
-@page "/declaraciones"
+﻿@page "/declaraciones"
 
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
@@ -208,6 +208,11 @@
                             <RadzenDataGridColumn TItem="Desepla1DTO" Property="Nrodec" Title="Nro de declaracion" Width="6.6%" />
                             <RadzenDataGridColumn TItem="Desepla1DTO" Property="NrFolio" Title="Nro de folio" Width="3.33%" />
                             <RadzenDataGridColumn TItem="Desepla1DTO" Property="Nroplan" Title="Nro de plantel" Width="3.33%" />
+                            <RadzenDataGridColumn TItem="Desepla1DTO" Property="Plantel.Establecimiento.Nombre" Title="Establecimiento" Width="5%">
+                                <Template Context="data">
+                                    @(data.Plantel?.Establecimiento?.Nombre ?? (data.Plantel?.EstablecimientoId.HasValue == true ? $"#{data.Plantel.EstablecimientoId}" : "-"))
+                                </Template>
+                            </RadzenDataGridColumn>
 
                             <RadzenDataGridColumn TItem="Desepla1DTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" Visible="@(!esSocio)" />
 

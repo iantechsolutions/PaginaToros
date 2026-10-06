@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Server.Services;
+using PaginaToros.Shared.Helpers;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
 using System.Text.Json;
@@ -21,17 +22,20 @@ namespace PaginaPlantels.Server.Cont{
         private readonly IMapper _mapper;
         private readonly IPlantelRepositorio _plantelRepositorio;
         private readonly IResin1Repositorio _resin1Repositorio;
+        private readonly IEstableRepositorio _estableRepositorio;
         private readonly IUserSocioContextService _userSocioContextService;
 
         public PlantelController(
             IPlantelRepositorio plantelRepositorio,
             IResin1Repositorio resin1Repositorio,
+            IEstableRepositorio estableRepositorio,
             IMapper mapper,
             IUserSocioContextService userSocioContextService)
         {
             _mapper = mapper;
             _plantelRepositorio = plantelRepositorio;
             _resin1Repositorio = resin1Repositorio;
+            _estableRepositorio = estableRepositorio;
             _userSocioContextService = userSocioContextService;
         }
         [Route("Lista")]
@@ -467,9 +471,25 @@ namespace PaginaPlantels.Server.Cont{
                 }
 
                 var entidad = _mapper.Map<Plantel>(request);
+                entidad.Socio = null;
+                entidad.Establecimiento = null;
                 if (RequiresActiveSocioScope(accessContext))
                 {
                     entidad.Nrocri = accessContext.ActiveSocioCode;
+                }
+
+                // El codigo tiene que entrar en PLACOD y en todas las columnas que lo referencian:
+                // se rechaza, nunca se trunca (un codigo recortado podria repetir el de otro plantel).
+                var errorCodigo = EstablecimientoPlantelHelper.ValidarCodigo(entidad.Placod);
+                if (errorCodigo != null)
+                {
+                    return BadRequest(new Respuesta<PlantelDTO> { Exito = 0, Mensaje = errorCodigo });
+                }
+
+                var errorEstablecimiento = await ValidarEstablecimientoAsync(entidad.EstablecimientoId, entidad.Nrocri);
+                if (errorEstablecimiento != null)
+                {
+                    return BadRequest(new Respuesta<PlantelDTO> { Exito = 0, Mensaje = errorEstablecimiento });
                 }
 
                 if (string.IsNullOrWhiteSpace(entidad.Fecing))
@@ -535,6 +555,12 @@ namespace PaginaPlantels.Server.Cont{
                         return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<PlantelDTO>());
                     }
 
+                    var errorCodigo = EstablecimientoPlantelHelper.ValidarCodigo(_Plantel.Placod);
+                    if (errorCodigo != null)
+                    {
+                        return BadRequest(new Respuesta<PlantelDTO> { Exito = 0, Mensaje = errorCodigo });
+                    }
+
                     _PlantelParaEditar.Placod = _Plantel.Placod;
                     _PlantelParaEditar.Anioex = _Plantel.Anioex;
                     _PlantelParaEditar.Varede = _Plantel.Varede;
@@ -548,6 +574,13 @@ namespace PaginaPlantels.Server.Cont{
                     _PlantelParaEditar.Nrocri = RequiresActiveSocioScope(accessContext)
                         ? accessContext.ActiveSocioCode
                         : _Plantel.Nrocri;
+
+                    var errorEstablecimiento = await ValidarEstablecimientoAsync(_Plantel.EstablecimientoId, _PlantelParaEditar.Nrocri);
+                    if (errorEstablecimiento != null)
+                    {
+                        return BadRequest(new Respuesta<PlantelDTO> { Exito = 0, Mensaje = errorEstablecimiento });
+                    }
+                    _PlantelParaEditar.EstablecimientoId = _Plantel.EstablecimientoId;
                     _PlantelParaEditar.Catego = _Plantel.Catego;
                     _PlantelParaEditar.Aniopa = _Plantel.Aniopa;
                     _PlantelParaEditar.Urein = _Plantel.Urein;
@@ -595,24 +628,33 @@ namespace PaginaPlantels.Server.Cont{
                     ? accessContext.ActiveSocioCode!
                     : request.Nrocri.ToString();
 
-                // Try to find by Placod
+                var errorEstablecimiento = await ValidarEstablecimientoAsync(request.EstablecimientoId, requestSocioCode);
+                if (errorEstablecimiento != null)
+                {
+                    return BadRequest(new Respuesta<PlantelDTO> { Exito = 0, Mensaje = errorEstablecimiento });
+                }
+
+                // Try to find by Placod (del mismo socio y compatible con el establecimiento pedido)
                 Plantel? found = null;
                 if (!string.IsNullOrWhiteSpace(request.Placod))
                 {
-                    found = await _plantelRepositorio.Obtener(p => p.Placod == request.Placod);
-                    if (RequiresActiveSocioScope(accessContext) &&
-                        found != null &&
-                        !string.Equals(found.Nrocri, requestSocioCode, StringComparison.OrdinalIgnoreCase))
+                    found = await _plantelRepositorio.Obtener(p => p.Placod == request.Placod && p.Nrocri == requestSocioCode);
+                    if (found != null && !EstablecimientoPlantelHelper.EsCompatible(found.EstablecimientoId, request.EstablecimientoId))
                     {
                         found = null;
                     }
                 }
 
-                // If not found, try by Anioex + Nrocri
+                // If not found, try by Anioex + Nrocri + Establecimiento. Con varios establecimientos por
+                // razon social, socio + año ya no identifica un unico plantel: cada establecimiento
+                // tiene el suyo. Un plantel del mismo año sin establecimiento asignado (historico)
+                // solo se reutiliza cuando no se pidio establecimiento.
                 if (found == null)
                 {
-                    found = (await _plantelRepositorio.LimitadosFiltradosNoInclude(0, 0, $"Anioex == \"{request.Anioex}\" && Nrocri == \"{requestSocioCode}\""))
-                            .FirstOrDefault();
+                    var delAnio = await _plantelRepositorio.LimitadosFiltradosNoInclude(0, 0, $"Anioex == \"{request.Anioex}\" && Nrocri == \"{requestSocioCode}\"");
+                    found = request.EstablecimientoId.HasValue
+                        ? delAnio.FirstOrDefault(p => p.EstablecimientoId == request.EstablecimientoId)
+                        : delAnio.FirstOrDefault();
                 }
 
                 if (found != null)
@@ -636,14 +678,26 @@ namespace PaginaPlantels.Server.Cont{
                     return Ok(_Respuesta);
                 }
 
-                // Not found: create new using base tail
-                var tail = request.BasePlacod ?? string.Empty;
-                var nuevoPlacod = (!string.IsNullOrEmpty(request.Anioex) ? request.Anioex[^1].ToString() : "") + tail;
+                // Not found: create new using base tail. Misma regla que AddReporte: ultimo digito
+                // del año + cola, y sufijo numerico si ese codigo ya es de otro plantel de la razon
+                // social (p. ej. el del mismo año en otro establecimiento). Si no entra en PLACOD
+                // se rechaza en vez de truncar.
+                var existentes = (await _plantelRepositorio.LimitadosFiltradosNoInclude(0, 0, $"Nrocri == \"{requestSocioCode}\""))
+                    .Select(p => p.Placod);
+                string candidato;
+                try
+                {
+                    candidato = EstablecimientoPlantelHelper.GenerarCodigoDisponible(request.Anioex, request.BasePlacod, existentes);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new Respuesta<PlantelDTO> { Exito = 0, Mensaje = ex.Message });
+                }
 
                 var nuevo = new Plantel
                 {
                     Anioex = request.Anioex,
-                    Placod = nuevoPlacod,
+                    Placod = candidato,
                     Varede = request.Varede,
                     Vqcsrd = request.Vqcsrd,
                     Vqssrd = request.Vqssrd,
@@ -651,6 +705,7 @@ namespace PaginaPlantels.Server.Cont{
                     Vqcsrp = request.Vqcsrp,
                     Vqssrp = request.Vqssrp,
                     Nrocri = requestSocioCode,
+                    EstablecimientoId = request.EstablecimientoId,
                     Estado = "A",
                     Fecing = string.Empty
                 };
@@ -674,7 +729,7 @@ namespace PaginaPlantels.Server.Cont{
 
         [HttpGet]
         [Route("ExportarExcel")]
-        public async Task<IActionResult> ExportarExcel(string desde, string hasta, string seleccion = "Todos")
+        public async Task<IActionResult> ExportarExcel(string desde, string hasta, string seleccion = "Todos", int? establecimientoId = null)
         {
             // Parse dates
             if (!DateTime.TryParse(desde, out var dDesde) || !DateTime.TryParse(hasta, out var dHasta))
@@ -703,6 +758,10 @@ namespace PaginaPlantels.Server.Cont{
                 var listaDTO = _mapper.Map<List<PaginaToros.Shared.Models.PlantelDTO>>(lista);
                 var deduped = Deduplicate(listaDTO);
 
+                // Mismo filtro de establecimiento que aplica la pantalla del informe (null = todos,
+                // -1 = sin asignar), para que el Excel coincida con lo que el usuario ve.
+                deduped = EstablecimientoPlantelHelper.FiltrarPorEstablecimiento(deduped, establecimientoId).ToList();
+
                 // Apply seleccion filter
                 var filtrada = seleccion switch
                 {
@@ -730,8 +789,9 @@ namespace PaginaPlantels.Server.Cont{
                 resumen.Cells[1, 6].Value = "Vaq. VIP c/servicio";
                 resumen.Cells[1, 7].Value = "Vaq. VIP s/servicio";
                 resumen.Cells[1, 8].Value = "Socio";
-                resumen.Cells[1, 9].Value = "Estado";
-                resumen.Cells[1, 10].Value = "Año";
+                resumen.Cells[1, 9].Value = "Establecimiento";
+                resumen.Cells[1, 10].Value = "Estado";
+                resumen.Cells[1, 11].Value = "Año";
 
                 resumen.Cells[2, 1].Value = "TOTAL GENERAL";
                 resumen.Cells[2, 2].Value = conAnio.Sum(p => p.Varede ?? 0);
@@ -741,7 +801,7 @@ namespace PaginaPlantels.Server.Cont{
                 resumen.Cells[2, 6].Value = conAnio.Sum(p => p.Vqcsrp ?? 0);
                 resumen.Cells[2, 7].Value = conAnio.Sum(p => p.Vqssrp ?? 0);
 
-                resumen.Cells[1, 1, 2, 10].AutoFitColumns();
+                resumen.Cells[1, 1, 2, 11].AutoFitColumns();
 
                 // Hojas por año
                 foreach (var año in años)
@@ -755,7 +815,8 @@ namespace PaginaPlantels.Server.Cont{
                     hoja.Cells[1, 6].Value = "Vaq. VIP c/servicio";
                     hoja.Cells[1, 7].Value = "Vaq. VIP s/servicio";
                     hoja.Cells[1, 8].Value = "Socio";
-                    hoja.Cells[1, 9].Value = "Estado";
+                    hoja.Cells[1, 9].Value = "Establecimiento";
+                    hoja.Cells[1, 10].Value = "Estado";
 
                     var datosAnio = conAnio.Where(p => int.TryParse(p.Anioex, out var yy) && yy == año).ToList();
                     int r = 2;
@@ -769,7 +830,8 @@ namespace PaginaPlantels.Server.Cont{
                         hoja.Cells[r, 6].Value = p.Vqcsrp;
                         hoja.Cells[r, 7].Value = p.Vqssrp;
                         hoja.Cells[r, 8].Value = p.Socio?.Nombre;
-                        hoja.Cells[r, 9].Value = p.Estado == "S" ? "Activo" : "Inactivo";
+                        hoja.Cells[r, 9].Value = EstablecimientoPlantelHelper.DescribirEstablecimiento(p.Establecimiento, "Sin asignar");
+                        hoja.Cells[r, 10].Value = p.Estado == "S" ? "Activo" : "Inactivo";
                         r++;
                     }
 
@@ -781,7 +843,7 @@ namespace PaginaPlantels.Server.Cont{
                     hoja.Cells[r, 6].Value = datosAnio.Sum(x => x.Vqcsrp ?? 0);
                     hoja.Cells[r, 7].Value = datosAnio.Sum(x => x.Vqssrp ?? 0);
 
-                    hoja.Cells[1, 1, r, 9].AutoFitColumns();
+                    hoja.Cells[1, 1, r, 10].AutoFitColumns();
                 }
 
                 // Hoja sin año (no cuentan para el resumen general)
@@ -796,7 +858,8 @@ namespace PaginaPlantels.Server.Cont{
                     hojaSin.Cells[1, 6].Value = "Vaq. VIP c/servicio";
                     hojaSin.Cells[1, 7].Value = "Vaq. VIP s/servicio";
                     hojaSin.Cells[1, 8].Value = "Socio";
-                    hojaSin.Cells[1, 9].Value = "Estado";
+                    hojaSin.Cells[1, 9].Value = "Establecimiento";
+                    hojaSin.Cells[1, 10].Value = "Estado";
 
                     int r = 2;
                     foreach (var p in sinAnio)
@@ -809,7 +872,8 @@ namespace PaginaPlantels.Server.Cont{
                         hojaSin.Cells[r, 6].Value = p.Vqcsrp;
                         hojaSin.Cells[r, 7].Value = p.Vqssrp;
                         hojaSin.Cells[r, 8].Value = p.Socio?.Nombre;
-                        hojaSin.Cells[r, 9].Value = p.Estado == "S" ? "Activo" : "Inactivo";
+                        hojaSin.Cells[r, 9].Value = EstablecimientoPlantelHelper.DescribirEstablecimiento(p.Establecimiento, "Sin asignar");
+                        hojaSin.Cells[r, 10].Value = p.Estado == "S" ? "Activo" : "Inactivo";
                         r++;
                     }
 
@@ -821,7 +885,7 @@ namespace PaginaPlantels.Server.Cont{
                     hojaSin.Cells[r, 6].Value = sinAnio.Sum(x => x.Vqcsrp ?? 0);
                     hojaSin.Cells[r, 7].Value = sinAnio.Sum(x => x.Vqssrp ?? 0);
 
-                    hojaSin.Cells[1, 1, r, 9].AutoFitColumns();
+                    hojaSin.Cells[1, 1, r, 10].AutoFitColumns();
                 }
 
                 var bytes = package.GetAsByteArray();
@@ -844,12 +908,39 @@ namespace PaginaPlantels.Server.Cont{
                     var placod = p.Placod ?? string.Empty;
                     var anio = p.Anioex ?? string.Empty;
                     var nrocri = p.Nrocri ?? string.Empty;
-                    var key = (placod + "|" + anio + "|" + nrocri).Trim();
+                    var establecimiento = p.EstablecimientoId?.ToString() ?? string.Empty;
+                    var key = (placod + "|" + anio + "|" + nrocri + "|" + establecimiento).Trim('|', ' ');
                     return string.IsNullOrEmpty(key) ? ("ID|" + p.Id.ToString()) : ("P|" + key);
                 })
                 .Select(g => g.First())
                 .ToList();
             return grouped;
+        }
+
+        /// <summary>
+        /// El establecimiento de un plantel tiene que ser de la misma razon social que el plantel.
+        /// Devuelve el mensaje de error, o null si es valido (null = plantel sin asignar, permitido
+        /// para los datos historicos).
+        /// </summary>
+        private async Task<string?> ValidarEstablecimientoAsync(int? establecimientoId, string? nrocri)
+        {
+            if (!establecimientoId.HasValue)
+            {
+                return null;
+            }
+
+            var establecimiento = await _estableRepositorio.Obtener(e => e.Id == establecimientoId.Value);
+            if (establecimiento == null)
+            {
+                return "El establecimiento seleccionado no existe.";
+            }
+
+            if (!EstablecimientoPlantelHelper.MismoCodigo(establecimiento.Codsoc, nrocri))
+            {
+                return "El establecimiento seleccionado no pertenece a la razon social del plantel.";
+            }
+
+            return null;
         }
 
         private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)

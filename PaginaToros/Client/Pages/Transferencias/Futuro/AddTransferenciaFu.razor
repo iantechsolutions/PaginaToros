@@ -483,17 +483,32 @@ else
         var placod = plantel.Placod?.Trim() ?? string.Empty;
         var anio = plantel.Anioex?.Trim() ?? string.Empty;
 
+        string texto;
         if (string.IsNullOrWhiteSpace(anio))
         {
-            return placod;
+            texto = placod;
         }
-
-        if (string.IsNullOrWhiteSpace(placod))
+        else if (string.IsNullOrWhiteSpace(placod))
         {
-            return anio;
+            texto = anio;
+        }
+        else
+        {
+            texto = $"{placod} - {anio}";
         }
 
-        return $"{placod} - {anio}";
+        // El lookup trae el establecimiento del plantel: con varios campos por razon social el
+        // codigo solo no dice de donde sale (o a donde va) la hacienda.
+        if (plantel.Establecimiento != null)
+        {
+            texto += $" · {plantel.Establecimiento.Nombre ?? plantel.Establecimiento.Ecod}";
+        }
+        else if (plantel.EstablecimientoId.HasValue)
+        {
+            texto += $" · establecimiento #{plantel.EstablecimientoId}";
+        }
+
+        return texto;
     }
 
     private async Task EnsurePlantelesVendedorLoadedAsync()
@@ -528,8 +543,31 @@ else
             return;
         }
 
-        plantelesComprador = await GetPlantelesBySocioCodeAsync(socioComprador.Scod);
+        // El comprador puede ser otra razon social: sale de DestinoTransferencia, que verifica en el
+        // server que la razon social activa sea vendedor o comprador y devuelve solo codigos.
+        plantelesComprador = await GetPlantelesDestinoAsync(socioVendedor?.Scod, socioComprador.Scod);
         plantelesCompradorSocioCode = socioComprador.Scod;
+    }
+
+    private async Task<List<PlantelDTO>> GetPlantelesDestinoAsync(string? vendedorSocioCode, string compradorSocioCode)
+    {
+        try
+        {
+            var url = $"api/TransferenciasLookup/DestinoTransferencia?compradorSocioCode={Uri.EscapeDataString(compradorSocioCode)}";
+            if (!string.IsNullOrWhiteSpace(vendedorSocioCode))
+            {
+                url += $"&vendedorSocioCode={Uri.EscapeDataString(vendedorSocioCode)}";
+            }
+
+            var response = await http.GetFromJsonAsync<Respuesta<TransferenciaDestinoDTO>>(url);
+            return response?.List?.Planteles ?? new List<PlantelDTO>();
+        }
+        catch
+        {
+            // 403 (la razon social activa no participa de la transferencia) o lookup caido: lista
+            // vacia para que el combo no quede con los planteles del socio elegido antes.
+            return new List<PlantelDTO>();
+        }
     }
 
     private async Task<List<PlantelDTO>> GetPlantelesBySocioCodeAsync(string? socioCode)
@@ -539,10 +577,20 @@ else
             return new List<PlantelDTO>();
         }
 
-        var response = await http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>(
-            $"api/TransferenciasLookup/PlantelesBySocioCode?socioCode={Uri.EscapeDataString(socioCode)}");
+        try
+        {
+            var response = await http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>(
+                $"api/TransferenciasLookup/PlantelesBySocioCode?socioCode={Uri.EscapeDataString(socioCode)}");
 
-        return response?.List ?? new List<PlantelDTO>();
+            return response?.List ?? new List<PlantelDTO>();
+        }
+        catch
+        {
+            // Lookup rechazado (403: un usuario socio pidio planteles de otra razon social) o caido:
+            // lista vacia, igual que AddTransAn, para que el combo no quede con los planteles del
+            // socio elegido antes.
+            return new List<PlantelDTO>();
+        }
     }
 
     private async Task<List<SocioDTO>> GetSociosLookupAsync()

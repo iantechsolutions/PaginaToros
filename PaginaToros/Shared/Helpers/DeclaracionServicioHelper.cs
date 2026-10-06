@@ -1,4 +1,4 @@
-using PaginaToros.Shared.Models;
+﻿using PaginaToros.Shared.Models;
 
 namespace PaginaToros.Shared.Helpers
 {
@@ -216,8 +216,15 @@ namespace PaginaToros.Shared.Helpers
                 .ToList();
 
             var winner = best[0];
+
+            // Empate = mismo año efectivo: misma distancia al año de la declaracion y misma relacion
+            // anterior/posterior. Antes la comparacion incluia Id y fecha de alta, asi que NUNCA
+            // habia empate y entre dos planteles del mismo año (p. ej. uno por establecimiento, o
+            // los duplicados de la cascada) ganaba en silencio el de Id mayor. Ahora se avisa y
+            // quien llama decide (RepairAmbiguousPlantels deja la declaracion pendiente).
             var tied = best
-                .Where(x => x.Score.Equals(winner.Score))
+                .Where(x => x.Score.IsOnOrBeforeDeclaration == winner.Score.IsOnOrBeforeDeclaration
+                            && x.Score.YearDistance == winner.Score.YearDistance)
                 .ToList();
 
             if (tied.Count > 1)

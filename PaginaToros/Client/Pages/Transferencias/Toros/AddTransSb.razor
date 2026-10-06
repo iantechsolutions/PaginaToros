@@ -58,6 +58,10 @@
                         {
                             <small class="text-muted">No hay establecimientos disponibles para el comprador seleccionado.</small>
                         }
+                        else if (socioComprador is not null && socioVendedor is not null && string.Equals(socioComprador.Scod?.Trim(), socioVendedor.Scod?.Trim(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            <small class="text-muted">Misma razón social: movimiento interno, el toro pasa a este establecimiento@(toroSeleccionado?.Establecimiento != null ? $" (hoy está en {toroSeleccionado.Establecimiento.Nombre})" : "").</small>
+                        }
                     </div>
                 </div>
 
@@ -66,7 +70,7 @@
                 <div class="row" style="width=100%;">
                     <div class="col-sm">
                         <label class="col-sm">Nro Certificado</label>
-                        <InputText @bind-Value="@oTranssb.NroTrans" class="form-control" placeholder=""></InputText>
+                        <InputText @bind-Value="@oTranssb.NroTrans" class="form-control" placeholder="" maxlength="6"></InputText>
                         <ValidationMessage For="(()=> oTranssb.NroTrans)" style="color:red;" />
                     </div>
                     <div class="col-sm">
@@ -83,7 +87,7 @@
                             </SelectedTemplate>
                             <ResultTemplate Context="eleccion">
                                 <div>@(string.IsNullOrWhiteSpace(eleccion?.NomDad) ? "-" : eleccion.NomDad)</div>
-                                <small class="text-muted">HBA: @(string.IsNullOrWhiteSpace(eleccion?.Hba) ? "-" : eleccion.Hba) · Tatuaje: @(string.IsNullOrWhiteSpace(eleccion?.Tatpart) ? "-" : eleccion.Tatpart)</small>
+                                <small class="text-muted">HBA: @(string.IsNullOrWhiteSpace(eleccion?.Hba) ? "-" : eleccion.Hba) · Tatuaje: @(string.IsNullOrWhiteSpace(eleccion?.Tatpart) ? "-" : eleccion.Tatpart) · Estab.: @(eleccion?.Establecimiento?.Nombre ?? "sin asignar")</small>
                             </ResultTemplate>
                         </BlazoredTypeahead>
                         <p>*La busqueda del toro se realiza por Nro de Identificacion</p>
@@ -255,8 +259,9 @@ else
             }
             else
             {
-                okTransferencia = await _transsbServicio.Editar(oTranssb); // bool
-                if (!okTransferencia) errorTransferencia = "No se pudo editar la transferencia.";
+                var respEditar = await _transsbServicio.EditarConRespuesta(oTranssb); // Respuesta<TranssbDTO>
+                okTransferencia = EsOk<TranssbDTO>(respEditar);
+                if (!okTransferencia) errorTransferencia = MensajeError<TranssbDTO>(respEditar);
             }
 
             if (!okTransferencia)
@@ -459,12 +464,33 @@ else
             return;
         }
 
-        var response = await http.GetFromJsonAsync<Respuesta<List<EstableDTO>>>(
-            $"api/TransferenciasLookup/EstablecimientosBySocioCode?socioCode={Uri.EscapeDataString(socioComprador.Scod)}");
-
-        establecimientos = response?.List ?? new List<EstableDTO>();
+        // Los establecimientos del comprador (otra razon social) salen de DestinoTransferencia: el
+        // server verifica que la razon social activa sea vendedor o comprador de esta transferencia
+        // y, para otra razon social, devuelve solo codigo y nombre (sin direccion ni telefono).
+        establecimientos = await GetEstablecimientosDestinoAsync(socioVendedor?.Scod, socioComprador.Scod);
         establecimientosSocioCode = socioComprador.Scod;
         establecimientoSeleccionado = establecimientos.FirstOrDefault(x => x.Ecod == establecimientoSeleccionadoEcod);
+    }
+
+    private async Task<List<EstableDTO>> GetEstablecimientosDestinoAsync(string? vendedorSocioCode, string compradorSocioCode)
+    {
+        try
+        {
+            var url = $"api/TransferenciasLookup/DestinoTransferencia?compradorSocioCode={Uri.EscapeDataString(compradorSocioCode)}";
+            if (!string.IsNullOrWhiteSpace(vendedorSocioCode))
+            {
+                url += $"&vendedorSocioCode={Uri.EscapeDataString(vendedorSocioCode)}";
+            }
+
+            var response = await http.GetFromJsonAsync<Respuesta<TransferenciaDestinoDTO>>(url);
+            return response?.List?.Establecimientos ?? new List<EstableDTO>();
+        }
+        catch
+        {
+            // 403 (la razon social activa no participa) o lookup caido: sin establecimientos, el
+            // formulario avisa "No hay establecimientos disponibles" en vez de romper el modal.
+            return new List<EstableDTO>();
+        }
     }
 
     private async Task EnsureTorosVendedorLoadedAsync()
@@ -482,10 +508,20 @@ else
             return;
         }
 
-        var response = await http.GetFromJsonAsync<Respuesta<List<TorosuniDTO>>>(
-            $"api/TransferenciasLookup/TorosTransferiblesBySocioCode?socioCode={Uri.EscapeDataString(socioVendedor.Scod)}");
+        try
+        {
+            var response = await http.GetFromJsonAsync<Respuesta<List<TorosuniDTO>>>(
+                $"api/TransferenciasLookup/TorosTransferiblesBySocioCode?socioCode={Uri.EscapeDataString(socioVendedor.Scod)}");
 
-        toros = response?.List ?? new List<TorosuniDTO>();
+            toros = response?.List ?? new List<TorosuniDTO>();
+        }
+        catch
+        {
+            // Un usuario socio solo puede listar los toros de su razon social activa (403 para otra):
+            // lista vacia en vez de una excepcion sin manejar desde el typeahead.
+            toros = new List<TorosuniDTO>();
+        }
+
         torosSocioCode = socioVendedor.Scod;
     }
 

@@ -5,6 +5,7 @@
 @inject ICertifsemanServicio _certifsemanServicio
 @inject ISocioServicio _socioServicio
 @inject ICentrosiumServicio _centrosiumServicio
+@inject IEstableServicio _estableServicio
 @inject HttpClient http
 
 
@@ -95,6 +96,34 @@
                             @eleccion.Nombre
                         </ResultTemplate>
                     </BlazoredTypeahead>
+                </div>
+                <div class="col-sm">
+                    <label class="col-sm">Establecimiento (stock)</label>
+                    @if (cargandoEstablecimientos)
+                    {
+                        <div><small class="text-muted">Cargando establecimientos...</small></div>
+                    }
+                    else if (socioSeleccionado == null)
+                    {
+                        <div><small class="text-muted">Seleccioná primero el socio.</small></div>
+                    }
+                    else if (establecimientosSocio.Count == 0)
+                    {
+                        <div><small class="text-muted">El socio no tiene establecimientos cargados.</small></div>
+                    }
+                    else
+                    {
+                        @* El stock de dosis pertenece a un establecimiento: con uno solo se completa
+                           solo, con varios hay que indicar donde esta el semen. *@
+                        <RadzenDropDown TValue="int?"
+                                        Data="@opcionesEstablecimiento"
+                                        TextProperty="Label"
+                                        ValueProperty="IntValue"
+                                        @bind-Value="establecimientoSeleccionadoId"
+                                        AllowClear="@(establecimientosSocio.Count == 1)"
+                                        Placeholder="Seleccionar establecimiento"
+                                        Style="width: 100%;" />
+                    }
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Tipo de envase</label>
@@ -221,6 +250,12 @@ else
     List<SocioDTO> socios = new();
     CentrosiumDTO? centroSeleccionado = null;
     List<CentrosiumDTO> centros = new();
+    // Establecimiento donde esta el stock de dosis (dimension por establecimiento de la razon social).
+    private List<EstableDTO> establecimientosSocio = new();
+    private List<TorosFilterOptionDTO> opcionesEstablecimiento = new();
+    private int? establecimientoSeleccionadoId;
+    private int? establecimientosCargadosParaSocio;
+    private bool cargandoEstablecimientos;
     // El typeahead no expone el texto tipeado al padre. Lo guardamos para poder
     // resolver la seleccion aunque el usuario no haya clickeado un item de la lista.
     private string? ultimaBusquedaCentro;
@@ -261,6 +296,7 @@ else
 
                 centroSeleccionado = FindCentroByCode(oCertifseman.Nrocen);
                 socioSeleccionado = FindSocioByCode(oCertifseman.Nrocri);
+                establecimientoSeleccionadoId = oCertifseman.EstablecimientoId;
                 estadoOriginal = ClonarCertificado(oCertifseman);
             }
             catch (Exception ex)
@@ -271,6 +307,7 @@ else
 
         SyncSelectionsToModel();
         oCertifseman.TipEnv ??= "PAJUELAS";
+        await EnsureEstablecimientosAsync();
 
     }
     async Task Guardar()
@@ -283,6 +320,9 @@ else
         ClearMessages();
         NormalizeFormFields();
         SyncSelectionsToModel();
+        // El socio pudo resolverse recien ahora desde el texto tipeado: sus establecimientos tienen
+        // que estar cargados antes de validar.
+        await EnsureEstablecimientosAsync();
 
         if (!ValidateForm())
         {
@@ -295,6 +335,11 @@ else
         try
         {
             var (dosisOriginales, dosisRemanentes) = ParseDosisValues();
+
+            oCertifseman.EstablecimientoId = establecimientosSocio.Count == 0 ? null : establecimientoSeleccionadoId;
+            oCertifseman.Socio = null;
+            oCertifseman.Centro = null;
+            oCertifseman.Establecimiento = null;
 
             if (Id == 0)
             {
@@ -429,6 +474,11 @@ else
         Requerido(oCertifseman.Nrocri, estadoOriginal?.Nrocri,
             DescribirSeleccionFaltante("socio", ultimaBusquedaSocio), "el socio");
 
+        if (establecimientosSocio.Count > 1 && !establecimientoSeleccionadoId.HasValue)
+        {
+            validationErrors.Add($"El socio tiene {establecimientosSocio.Count} establecimientos: indicá en cuál está el stock de dosis de este certificado.");
+        }
+
         if (string.IsNullOrWhiteSpace(oCertifseman.Nrocen) && centroSeleccionado != null)
         {
             // El centro existe pero le falta el NROCEN, que es el dato con el que
@@ -511,7 +561,77 @@ else
         socioSeleccionado = socio;
         oCertifseman.Nrocri = socio?.Scod?.Trim();
         ultimaBusquedaSocio = null;
+        establecimientoSeleccionadoId = null;
         ClearMessages();
+        // Fuera del handler para que el typeahead cierre el desplegable sin esperar al request.
+        _ = CargarEstablecimientosYRefrescarAsync();
+    }
+
+    private async Task CargarEstablecimientosYRefrescarAsync()
+    {
+        try
+        {
+            await EnsureEstablecimientosAsync(forzar: true);
+        }
+        finally
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    /// <summary>Carga los establecimientos del socio seleccionado (una vez por socio) y aplica el default cuando hay uno solo.</summary>
+    private async Task EnsureEstablecimientosAsync(bool forzar = false)
+    {
+        var socioId = socioSeleccionado?.Id;
+        if (!socioId.HasValue || socioId.Value <= 0)
+        {
+            establecimientosSocio = new List<EstableDTO>();
+            opcionesEstablecimiento = new List<TorosFilterOptionDTO>();
+            establecimientosCargadosParaSocio = null;
+            return;
+        }
+
+        if (!forzar && establecimientosCargadosParaSocio == socioId)
+        {
+            return;
+        }
+
+        cargandoEstablecimientos = true;
+        try
+        {
+            var rta = await _estableServicio.GetBySocioId(socioId.Value);
+            establecimientosSocio = (rta?.List ?? new List<EstableDTO>())
+                .OrderByDescending(x => string.Equals(x.Activo, "S", StringComparison.OrdinalIgnoreCase))
+                .ThenBy(x => x.Nombre)
+                .ToList();
+            opcionesEstablecimiento = establecimientosSocio
+                .Select(x => new TorosFilterOptionDTO
+                {
+                    IntValue = x.Id,
+                    Value = x.Id.ToString(),
+                    Label = EstablecimientoPlantelHelper.DescribirEstablecimiento(x)
+                })
+                .ToList();
+            establecimientosCargadosParaSocio = socioId;
+
+            if (establecimientoSeleccionadoId.HasValue && establecimientosSocio.All(x => x.Id != establecimientoSeleccionadoId.Value))
+            {
+                establecimientoSeleccionadoId = null;
+            }
+
+            if (!establecimientoSeleccionadoId.HasValue && establecimientosSocio.Count == 1)
+            {
+                establecimientoSeleccionadoId = establecimientosSocio[0].Id;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"No se pudieron cargar los establecimientos del socio: {ex.Message}");
+        }
+        finally
+        {
+            cargandoEstablecimientos = false;
+        }
     }
 
     private static string DescribirCentro(CentrosiumDTO? centro)

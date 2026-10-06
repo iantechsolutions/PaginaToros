@@ -14,15 +14,18 @@ namespace PaginaToros.Server.Controllers
     {
         private readonly IMapper _mapper;
         private readonly ICertifsemanRepositorio _certifsemanRepositorio;
+        private readonly IEstableRepositorio _estableRepositorio;
         private readonly IUserSocioContextService _userSocioContextService;
 
         public CertifsemanController(
             ICertifsemanRepositorio certifsemanRepositorio,
+            IEstableRepositorio estableRepositorio,
             IMapper mapper,
             IUserSocioContextService userSocioContextService)
         {
             _mapper = mapper;
             _certifsemanRepositorio = certifsemanRepositorio;
+            _estableRepositorio = estableRepositorio;
             _userSocioContextService = userSocioContextService;
         }
 
@@ -277,9 +280,18 @@ namespace PaginaToros.Server.Controllers
                 }
 
                 var entity = _mapper.Map<Certifseman>(request);
+                entity.Socio = null;
+                entity.Centro = null;
+                entity.Establecimiento = null;
                 if (RequiresActiveSocioScope(accessContext))
                 {
                     entity.Nrocri = accessContext.ActiveSocioCode!;
+                }
+
+                var errorEstablecimiento = await ValidarEstablecimientoAsync(entity.EstablecimientoId, entity.Nrocri);
+                if (errorEstablecimiento != null)
+                {
+                    return BadRequest(new Respuesta<CertifsemanDTO> { Exito = 0, Mensaje = errorEstablecimiento });
                 }
 
                 // La fecha de creación del certificado debe quedar fijada en el alta.
@@ -392,6 +404,13 @@ namespace PaginaToros.Server.Controllers
                     entityToEdit.Nrocri = RequiresActiveSocioScope(accessContext)
                         ? accessContext.ActiveSocioCode!
                         : entity.Nrocri;
+
+                    var errorEstablecimiento = await ValidarEstablecimientoAsync(entity.EstablecimientoId, entityToEdit.Nrocri);
+                    if (errorEstablecimiento != null)
+                    {
+                        return BadRequest(new Respuesta<CertifsemanDTO> { Exito = 0, Mensaje = errorEstablecimiento });
+                    }
+                    entityToEdit.EstablecimientoId = entity.EstablecimientoId;
                     entityToEdit.CategSc = entity.CategSc;
                     entityToEdit.Scod = entity.Scod;
                     entityToEdit.Tatpart = entity.Tatpart;
@@ -485,6 +504,31 @@ namespace PaginaToros.Server.Controllers
                 var err = new Respuesta<CertifsemanDTO> { Exito = 0, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, err);
             }
+        }
+
+        /// <summary>
+        /// El establecimiento donde esta el stock de dosis tiene que ser de la razon social dueña del
+        /// certificado. Null (sin asignar) se admite por los datos historicos.
+        /// </summary>
+        private async Task<string?> ValidarEstablecimientoAsync(int? establecimientoId, string? nrocri)
+        {
+            if (!establecimientoId.HasValue)
+            {
+                return null;
+            }
+
+            var establecimiento = await _estableRepositorio.Obtener(e => e.Id == establecimientoId.Value);
+            if (establecimiento == null)
+            {
+                return "El establecimiento seleccionado no existe.";
+            }
+
+            if (!string.Equals((establecimiento.Codsoc ?? string.Empty).Trim(), (nrocri ?? string.Empty).Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                return "El establecimiento seleccionado no pertenece a la razon social del certificado.";
+            }
+
+            return null;
         }
 
         private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)

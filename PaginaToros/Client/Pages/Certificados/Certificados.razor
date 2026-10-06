@@ -1,4 +1,4 @@
-@page "/certificados"
+﻿@page "/certificados"
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
@@ -132,10 +132,16 @@
                         <Columns>
                             <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipoCert" Title="Tipo cert." Width="6%">
                                 <Template Context="data">
-                                    @data.TipoCert.ToUpper()
+                                    @* Certificados sin tipo cargado: antes tiraba NullReferenceException al renderizar la fila. *@
+                                    @(data.TipoCert?.ToUpper())
                                 </Template>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Centro.Nombre" Title="Nombre del centro" Width="7.34%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="7.34%">
+                                <Template Context="data">
+                                    @(data.Establecimiento?.Nombre ?? (data.EstablecimientoId.HasValue ? $"#{data.EstablecimientoId}" : "Sin asignar"))
+                                </Template>
+                            </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" />
                             <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="5.3%" />
                             <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="5.3%" />
@@ -200,6 +206,11 @@
                         <Columns>
                             <RadzenDataGridColumn TItem="CertifsemanDTO" Property="TipoCert" Title="Tipo cert." Width="6%" />
                             <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Centro.Nombre" Title="Nombre del centro" Width="7.34%" />
+                            <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="7.34%">
+                                <Template Context="data">
+                                    @(data.Establecimiento?.Nombre ?? (data.EstablecimientoId.HasValue ? $"#{data.EstablecimientoId}" : "Sin asignar"))
+                                </Template>
+                            </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Tatpart" Title="Tatuaje" Width="5.3%" />
                             <RadzenDataGridColumn TItem="CertifsemanDTO" Property="Hba" Title="HBA" Width="5.3%" />
                             <RadzenDataGridColumn TItem="CertifsemanDTO" Property="NomDad" Title="Nombre" Width="8.6%" />

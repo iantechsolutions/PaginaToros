@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace PaginaToros.Shared.Models
 {
@@ -38,6 +38,7 @@ namespace PaginaToros.Shared.Models
         public string? Placod { get; set; }
         public string? Anioex { get; set; }
         public string? Nrocri { get; set; }
+        public int? EstablecimientoId { get; set; }
         public string? Fecing { get; set; }
 
         public PlantelTotalesDTO Totales { get; set; } = new();
@@ -53,6 +54,9 @@ namespace PaginaToros.Shared.Models
     {
         public string Nrocri { get; set; } = string.Empty;
         public string Anioex { get; set; } = string.Empty;
+        /// <summary>Establecimiento del grupo. Null = planteles historicos sin establecimiento asignado.</summary>
+        public int? EstablecimientoId { get; set; }
+        public string? EstablecimientoNombre { get; set; }
         public string? SocioNombre { get; set; }
 
         public List<PlantelDuplicadoDTO> Planteles { get; set; } = new();
@@ -66,13 +70,15 @@ namespace PaginaToros.Shared.Models
 
         public List<string> Advertencias { get; set; } = new();
 
-        public string Clave => $"{Nrocri}|{Anioex}";
+        public string Clave => $"{Nrocri}|{Anioex}|{(EstablecimientoId.HasValue ? EstablecimientoId.Value.ToString() : "sin")}";
     }
 
     public class ConsolidarPlantelesRequest
     {
         public string Nrocri { get; set; } = string.Empty;
         public string Anioex { get; set; } = string.Empty;
+        /// <summary>Establecimiento del grupo a consolidar (null = grupo de planteles sin asignar).</summary>
+        public int? EstablecimientoId { get; set; }
         public string PlacodSobreviviente { get; set; } = string.Empty;
         public List<string> PlacodsAEliminar { get; set; } = new();
 

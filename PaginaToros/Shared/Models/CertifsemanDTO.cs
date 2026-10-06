@@ -34,7 +34,13 @@ namespace PaginaToros.Shared.Models
         public int Id { get; set; }
         public string? Apodo { get; set; }
         public string? Apodacion { get; set; }
+        /// <summary>
+        /// Establecimiento donde esta el stock de dosis de este certificado. Null en los certificados
+        /// historicos que no pudieron asignarse con certeza (socio con mas de un establecimiento).
+        /// </summary>
+        public int? EstablecimientoId { get; set; }
         public Socio? Socio { get; set; }
         public Centrosium? Centro { get; set; }
+        public Estable? Establecimiento { get; set; }
     }
 }

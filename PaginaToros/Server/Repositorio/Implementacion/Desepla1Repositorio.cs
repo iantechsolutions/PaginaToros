@@ -28,6 +28,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 var items = await _dbContext.Desepla1s
                     .AsNoTracking()
                     .Include(x => x.Plantel)
+                    .ThenInclude(p => p!.Establecimiento)
                     .Include(x => x.Socio)
                     .Where(x => pageKeys.Contains(x.Nrodec))
                     .ToListAsync();
@@ -67,6 +68,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     .AsNoTracking()
                     .Include(x => x.Socio)
                     .Include(x => x.Plantel)
+                    .ThenInclude(p => p!.Establecimiento)
                     .Where(x => pageKeys.Contains(x.Nrodec));
 
                 var items = await query.ToListAsync();

@@ -29,7 +29,9 @@ namespace PaginaToros.Shared.Models
         public string? Estado { get; set; } = null!;
         public string? Fecing { get; set; } = null!;
         public int Id { get; set; }
+        public int? EstablecimientoId { get; set; }
         public Socio? Socio { get; set; }
+        public Estable? Establecimiento { get; set; }
         [JsonIgnore]
         public List<Desepla1>? Declaraciones { get; set; }
     }

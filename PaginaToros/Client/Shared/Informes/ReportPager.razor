@@ -1,0 +1,110 @@
+@* Paginador compacto para las tablas de los informes. Solo se muestra cuando hay más filas que
+   el tamaño de página más chico; los estilos están en ReportShell.razor.css. *@
+
+@if (Total > MinPageSize)
+{
+    <nav class="rp-pager no-print" aria-label="Paginación de @ItemLabel">
+        <span class="rp-pager-info">
+            Mostrando @ReportFormat.N0(From)–@ReportFormat.N0(To) de @ReportFormat.N0(Total) @ItemLabel
+        </span>
+
+        @if (TotalPages > 1)
+        {
+            <div class="rp-pager-nav">
+                <button type="button" class="rp-pager-btn" disabled="@(Page <= 1)" aria-label="Página anterior"
+                        @onclick="() => Go(Page - 1)">‹</button>
+                @foreach (var p in VisiblePages())
+                {
+                    if (p == 0)
+                    {
+                        <span class="rp-pager-ellipsis" aria-hidden="true">…</span>
+                    }
+                    else
+                    {
+                        <button type="button"
+                                class="rp-pager-btn @(p == Page ? "active" : string.Empty)"
+                                aria-current="@(p == Page ? "page" : null)"
+                                aria-label="Página @p"
+                                @onclick="() => Go(p)">@p</button>
+                    }
+                }
+                <button type="button" class="rp-pager-btn" disabled="@(Page >= TotalPages)" aria-label="Página siguiente"
+                        @onclick="() => Go(Page + 1)">›</button>
+            </div>
+        }
+
+        <label class="rp-pager-size-label">
+            Filas por página
+            <select class="rp-pager-size" value="@PageSize" @onchange="OnSizeChanged">
+                @foreach (var option in PageSizeOptions)
+                {
+                    <option value="@option">@option</option>
+                }
+                @if (AllowAll)
+                {
+                    <option value="0">Todas</option>
+                }
+            </select>
+        </label>
+    </nav>
+}
+
+@code {
+    [Parameter] public int Total { get; set; }
+    [Parameter] public int Page { get; set; } = 1;
+    [Parameter] public EventCallback<int> PageChanged { get; set; }
+    /// <summary>0 = todas las filas.</summary>
+    [Parameter] public int PageSize { get; set; } = 25;
+    [Parameter] public EventCallback<int> PageSizeChanged { get; set; }
+    [Parameter] public string ItemLabel { get; set; } = "filas";
+    [Parameter] public int[] PageSizeOptions { get; set; } = new[] { 25, 50, 100 };
+    [Parameter] public bool AllowAll { get; set; } = true;
+
+    private int MinPageSize => PageSizeOptions.Length > 0 ? PageSizeOptions.Min() : 0;
+    private int EffectiveSize => PageSize <= 0 ? Math.Max(Total, 1) : PageSize;
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling(Total / (double)EffectiveSize));
+    private int From => Total == 0 ? 0 : (Page - 1) * EffectiveSize + 1;
+    private int To => Math.Min(Page * EffectiveSize, Total);
+
+    /// <summary>Páginas a mostrar: primera, última y una ventana alrededor de la actual (0 = puntos suspensivos).</summary>
+    private IEnumerable<int> VisiblePages()
+    {
+        var total = TotalPages;
+        if (total <= 7)
+        {
+            for (var i = 1; i <= total; i++) yield return i;
+            yield break;
+        }
+
+        var start = Math.Max(2, Page - 1);
+        var end = Math.Min(total - 1, Page + 1);
+        if (Page <= 3) { start = 2; end = 4; }
+        if (Page >= total - 2) { start = total - 3; end = total - 1; }
+
+        yield return 1;
+        if (start > 2) yield return 0;
+        for (var i = start; i <= end; i++) yield return i;
+        if (end < total - 1) yield return 0;
+        yield return total;
+    }
+
+    private Task Go(int page)
+    {
+        var target = Math.Clamp(page, 1, TotalPages);
+        return target == Page ? Task.CompletedTask : PageChanged.InvokeAsync(target);
+    }
+
+    private async Task OnSizeChanged(ChangeEventArgs args)
+    {
+        if (!int.TryParse(args.Value?.ToString(), out var size))
+        {
+            return;
+        }
+
+        await PageSizeChanged.InvokeAsync(size);
+        if (Page != 1)
+        {
+            await PageChanged.InvokeAsync(1);
+        }
+    }
+}

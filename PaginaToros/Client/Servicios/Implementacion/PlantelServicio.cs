@@ -68,10 +68,28 @@ namespace PaginaToros.Client.Servicios.Implementacion
 
         public async Task<bool> Editar(PlantelDTO entidad)
         {
-            var result = await _http.PutAsJsonAsync("api/plantel/Editar", entidad);
-            var response = await result.Content.ReadFromJsonAsync<Respuesta<PlantelDTO>>();
+            var response = await EditarConRespuesta(entidad);
+            return response.Exito == 1;
+        }
 
-            return response!.Exito == 1;
+        public async Task<Respuesta<PlantelDTO>> EditarConRespuesta(PlantelDTO entidad)
+        {
+            var result = await _http.PutAsJsonAsync("api/plantel/Editar", entidad);
+            Respuesta<PlantelDTO>? response = null;
+            try
+            {
+                response = await result.Content.ReadFromJsonAsync<Respuesta<PlantelDTO>>();
+            }
+            catch
+            {
+                // El cuerpo no era JSON (p. ej. un 500 con HTML): se informa el estado HTTP.
+            }
+
+            return response ?? new Respuesta<PlantelDTO>
+            {
+                Exito = 0,
+                Mensaje = $"No se pudo actualizar el plantel (HTTP {(int)result.StatusCode})."
+            };
         }
         public async Task<Respuesta<List<PlantelDTO>>> ObtenerPorRangoFechas(DateTime desde, DateTime hasta)
         {
@@ -94,7 +112,7 @@ namespace PaginaToros.Client.Servicios.Implementacion
         }
         public async Task<Respuesta<List<PlantelDTO>>> ObtenerPorAnios(int anio1, int anio2)
         {
-            var result = await _http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>("api/plantel/ObtenerPorAnios?anio1={anio1}&anio2={anio2}");
+            var result = await _http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>($"api/plantel/ObtenerPorAnios?anio1={anio1}&anio2={anio2}");
             return result!;
         }
 

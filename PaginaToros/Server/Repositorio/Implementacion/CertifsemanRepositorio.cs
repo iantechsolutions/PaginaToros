@@ -87,7 +87,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 IQueryable<Certifseman> query = _dbContext.Certifsemen
                     .AsNoTracking()
                     .Include(x => x.Socio)
-                    .Include(x => x.Centro);
+                    .Include(x => x.Centro)
+                    .Include(x => x.Establecimiento);
 
                 if (!string.IsNullOrWhiteSpace(filtro))
                     query = query.Where(filtro); 
@@ -262,7 +263,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             if (includeNavigation)
             {
                 query = query.Include(x => x.Socio)
-                             .Include(x => x.Centro);
+                             .Include(x => x.Centro)
+                             .Include(x => x.Establecimiento);
             }
 
             var ordered = ApplyCreationOrder(query);

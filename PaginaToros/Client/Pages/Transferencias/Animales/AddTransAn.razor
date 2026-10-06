@@ -198,6 +198,20 @@
                 </div>
                 <div class="col-sm">
                     <label>Plantel Destino</label>
+                    @if (establecimientosComprador.Count > 1)
+                    {
+                        @* Solo cuando el comprador tiene varios establecimientos: acota los planteles
+                           destino al campo que recibe la hacienda. *@
+                        <RadzenDropDown TValue="int?"
+                                        Data="@opcionesEstablecimientoComprador"
+                                        TextProperty="Label"
+                                        ValueProperty="IntValue"
+                                        Value="@establecimientoDestinoId"
+                                        Change="@(args => OnEstablecimientoDestinoChanged(args as int?))"
+                                        AllowClear="true"
+                                        Placeholder="Establecimiento destino (todos)"
+                                        Style="width: 100%; margin-bottom: 4px;" />
+                    }
                     <div class="d-flex align-items-end">
                         <BlazoredTypeahead class="plantel-typeahead flex-grow-1" SearchMethod="BusquedaPlantelesComprador" placeholder="Busque plantel por numero" EnableDropDown="true" TItem="PlantelDTO" TValue="PlantelDTO" Value="plantelDestino" ValueChanged="OnPlantelDestinoChanged" ValueExpression="@(() => plantelDestino)">
                             <SelectedTemplate Context="eleccion">
@@ -209,10 +223,10 @@
                         </BlazoredTypeahead>
                         <button type="button"
                                 class="plantel-info-btn ml-2"
-                                title="@(PuedeVerPlantel(plantelDestino) ? "Ver stock actual" : "Seleccione un plantel")"
-                                disabled="@(!PuedeVerPlantel(plantelDestino))"
+                                title="@TituloInfoPlantelDestino()"
+                                disabled="@(!PuedeVerExistenciasDestino())"
                                 @onclick="() => TogglePlantelPanel(plantelDestino)">
-                            @(PuedeVerPlantel(plantelDestino) ? "i" : "!")
+                            @(PuedeVerExistenciasDestino() ? "i" : "!")
                         </button>
                     </div>
                 </div>
@@ -308,9 +322,18 @@
                             </div>
                             <div>
                                 <span class="text-muted">Plantel Destino:</span>
-                                <span class="font-weight-bold">@preview.Impacto.DestinoAntes</span>
-                                <span class="text-muted mx-1">→</span>
-                                <span class="font-weight-bold">@preview.Impacto.DestinoDespues</span>
+                                @if (destinoConExistencias)
+                                {
+                                    <span class="font-weight-bold">@preview.Impacto.DestinoAntes</span>
+                                    <span class="text-muted mx-1">→</span>
+                                    <span class="font-weight-bold">@preview.Impacto.DestinoDespues</span>
+                                }
+                                else
+                                {
+                                    @* Las existencias del comprador no viajan al vendedor: solo se muestra lo que ingresa. *@
+                                    <span class="font-weight-bold ml-1">+@preview.Impacto.Cantidad</span>
+                                    <span class="text-muted ml-1">(existencias de otra razón social no visibles)</span>
+                                }
                             </div>
                         </div>
                     </div>
@@ -634,9 +657,31 @@ else
     private bool PuedeVerPlantel(PlantelDTO? plantel)
         => plantel != null && !string.IsNullOrWhiteSpace(plantel.Placod);
 
+    // El lookup de destino de otra razon social no trae existencias (ver TransferenciaDestinoDTO):
+    // sin esto el panel y el preview mostrarian ceros como si fueran el stock real del comprador.
+    private bool PuedeVerExistenciasDestino()
+        => PuedeVerPlantel(plantelDestino) && destinoConExistencias;
+
+    private string TituloInfoPlantelDestino()
+    {
+        if (!PuedeVerPlantel(plantelDestino))
+        {
+            return "Seleccione un plantel";
+        }
+
+        return destinoConExistencias
+            ? "Ver stock actual"
+            : "Las existencias de otra razón social no están disponibles";
+    }
+
     private void TogglePlantelPanel(PlantelDTO? plantel)
     {
         if (!PuedeVerPlantel(plantel))
+        {
+            return;
+        }
+
+        if (ReferenceEquals(plantel, plantelDestino) && !destinoConExistencias)
         {
             return;
         }
@@ -776,6 +821,24 @@ else
     private readonly SeleccionTypeahead seleccionVendedor = new();
     private readonly SeleccionTypeahead seleccionComprador = new();
 
+    // Establecimientos del comprador, para acotar el plantel destino cuando tiene varios.
+    private List<EstableDTO> establecimientosComprador = new();
+    private List<TorosFilterOptionDTO> opcionesEstablecimientoComprador = new();
+    private int? establecimientoDestinoId = null;
+    // false cuando el server devolvio datos minimos del comprador (usuario socio y otra razon social).
+    private bool destinoConExistencias = true;
+
+    private Task OnEstablecimientoDestinoChanged(int? establecimientoId)
+    {
+        establecimientoDestinoId = establecimientoId;
+        if (plantelDestino != null && !EstablecimientoPlantelHelper.EsCompatible(plantelDestino.EstablecimientoId, establecimientoDestinoId))
+        {
+            plantelDestino = null;
+        }
+
+        return Task.CompletedTask;
+    }
+
     protected Task updateComprador(SocioDTO? socio)
     {
         socioComprador = socio;
@@ -783,6 +846,10 @@ else
         plantelDestino = null;
         plantelesComprador = new List<PlantelDTO>();
         plantelesCompradorSocioCode = null;
+        establecimientosComprador = new List<EstableDTO>();
+        opcionesEstablecimientoComprador = new List<TorosFilterOptionDTO>();
+        establecimientoDestinoId = null;
+        destinoConExistencias = true;
         seleccionComprador.Ejecutar(EnsurePlantelesCompradorLoadedAsync,
                                     () => InvokeAsync(StateHasChanged),
                                     nameof(updateComprador));
@@ -834,6 +901,7 @@ else
             {
                 return await Task.FromResult(
                     OrderPlantelesByYear(plantelesComprador)
+                        .Where(x => EstablecimientoPlantelHelper.EsCompatible(x.EstablecimientoId, establecimientoDestinoId))
                         .Where(x => x.Placod.Contains(searchText ?? string.Empty, StringComparison.OrdinalIgnoreCase)).ToList()
                 );
             }
@@ -891,17 +959,32 @@ else
         var placod = plantel.Placod?.Trim() ?? string.Empty;
         var anio = plantel.Anioex?.Trim() ?? string.Empty;
 
+        string texto;
         if (string.IsNullOrWhiteSpace(anio))
         {
-            return placod;
+            texto = placod;
         }
-
-        if (string.IsNullOrWhiteSpace(placod))
+        else if (string.IsNullOrWhiteSpace(placod))
         {
-            return anio;
+            texto = anio;
+        }
+        else
+        {
+            texto = $"{placod} - {anio}";
         }
 
-        return $"{placod} - {anio}";
+        // El lookup trae el establecimiento del plantel: con varios campos por razon social el
+        // codigo solo no dice de donde sale (o a donde va) la hacienda.
+        if (plantel.Establecimiento != null)
+        {
+            texto += $" · {plantel.Establecimiento.Nombre ?? plantel.Establecimiento.Ecod}";
+        }
+        else if (plantel.EstablecimientoId.HasValue)
+        {
+            texto += $" · establecimiento #{plantel.EstablecimientoId}";
+        }
+
+        return texto;
     }
 
     private async Task EnsurePlantelesVendedorLoadedAsync()
@@ -922,12 +1005,21 @@ else
         plantelesVendedorSocioCode = socioVendedor.Scod;
     }
 
+    /// <summary>
+    /// Planteles y establecimientos del comprador. Salen de DestinoTransferencia, el unico lookup
+    /// que le muestra a un usuario socio datos de otra razon social: el server verifica que la
+    /// razon social activa sea vendedor o comprador de ESTA transferencia y, si el comprador es
+    /// otra razon social, devuelve solo codigos (sin existencias ni datos de contacto).
+    /// </summary>
     private async Task EnsurePlantelesCompradorLoadedAsync()
     {
         if (string.IsNullOrWhiteSpace(socioComprador?.Scod))
         {
             plantelesComprador = new List<PlantelDTO>();
             plantelesCompradorSocioCode = null;
+            establecimientosComprador = new List<EstableDTO>();
+            opcionesEstablecimientoComprador = new List<TorosFilterOptionDTO>();
+            destinoConExistencias = true;
             return;
         }
 
@@ -936,8 +1028,40 @@ else
             return;
         }
 
-        plantelesComprador = await GetPlantelesBySocioCodeAsync(socioComprador.Scod);
+        var destino = await GetDestinoTransferenciaAsync(socioVendedor?.Scod, socioComprador.Scod);
+        plantelesComprador = destino?.Planteles ?? new List<PlantelDTO>();
+        establecimientosComprador = destino?.Establecimientos ?? new List<EstableDTO>();
+        destinoConExistencias = destino?.IncluyeExistencias ?? true;
+        opcionesEstablecimientoComprador = establecimientosComprador
+            .Select(x => new TorosFilterOptionDTO
+            {
+                IntValue = x.Id,
+                Value = x.Id.ToString(),
+                Label = EstablecimientoPlantelHelper.DescribirEstablecimiento(x)
+            })
+            .ToList();
         plantelesCompradorSocioCode = socioComprador.Scod;
+    }
+
+    private async Task<TransferenciaDestinoDTO?> GetDestinoTransferenciaAsync(string? vendedorSocioCode, string compradorSocioCode)
+    {
+        try
+        {
+            var url = $"api/TransferenciasLookup/DestinoTransferencia?compradorSocioCode={Uri.EscapeDataString(compradorSocioCode)}";
+            if (!string.IsNullOrWhiteSpace(vendedorSocioCode))
+            {
+                url += $"&vendedorSocioCode={Uri.EscapeDataString(vendedorSocioCode)}";
+            }
+
+            var response = await http.GetFromJsonAsync<Respuesta<TransferenciaDestinoDTO>>(url);
+            return response?.List;
+        }
+        catch
+        {
+            // Lookup rechazado (403: la razon social activa no participa de la transferencia) o
+            // caido: destino vacio para que el combo no quede con los planteles del socio anterior.
+            return null;
+        }
     }
 
     private async Task<List<PlantelDTO>> GetPlantelesBySocioCodeAsync(string? socioCode)

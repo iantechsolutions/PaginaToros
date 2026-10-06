@@ -319,6 +319,12 @@ namespace PaginaToros.Server.Controllers
                     return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Resin1DTO>());
                 }
 
+                var errorPlantel = await ValidarPlantelDelEstablecimientoAsync(request.Nropla, request.Scod, request.Estcod);
+                if (errorPlantel != null)
+                {
+                    return BadRequest(new Respuesta<Resin1DTO> { Exito = 0, Mensaje = errorPlantel });
+                }
+
                 if (string.IsNullOrWhiteSpace(request.Nrores))
                 {
                     var ultimo = await _resin1Repositorio.ObtenerUltimoNrores();
@@ -393,6 +399,13 @@ namespace PaginaToros.Server.Controllers
                         return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<Resin1DTO>());
                     }
 
+                    var scodEfectivo = RequiresActiveSocioScope(accessContext) ? accessContext.ActiveSocioCode! : entity.Scod;
+                    var errorPlantel = await ValidarPlantelDelEstablecimientoAsync(entity.Nropla, scodEfectivo, entity.Estcod);
+                    if (errorPlantel != null)
+                    {
+                        return BadRequest(new Respuesta<Resin1DTO> { Exito = 0, Mensaje = errorPlantel });
+                    }
+
                     entityToEdit.Nrores = entity.Nrores;
                     entityToEdit.Nropla = entity.Nropla;
                     entityToEdit.Observ = entity.Observ;
@@ -429,6 +442,65 @@ namespace PaginaToros.Server.Controllers
                 response = new Respuesta<Resin1DTO> { Exito = 0, Mensaje = ex.Message };
                 return StatusCode(StatusCodes.Status500InternalServerError, response);
             }
+        }
+
+        /// <summary>
+        /// Un resultado de inspeccion hecho en el establecimiento <paramref name="estcod"/> solo puede
+        /// escribir el plantel de ese mismo establecimiento. Si el plantel referenciado por NROPLA
+        /// pertenece a OTRO establecimiento de la razon social, el guardado se rechaza: es la
+        /// garantia de persistencia de que una inspeccion no pisa el stock de otro campo.
+        /// Los planteles sin establecimiento asignado (historicos) no se bloquean.
+        /// Devuelve el mensaje de error o null si es consistente.
+        /// </summary>
+        private async Task<string?> ValidarPlantelDelEstablecimientoAsync(string? nropla, string? scod, string? estcod)
+        {
+            var codigoPlantel = (nropla ?? string.Empty).Trim();
+            var codigoEstablecimiento = (estcod ?? string.Empty).Trim();
+            if (codigoPlantel.Length == 0 || codigoEstablecimiento.Length == 0)
+            {
+                return null;
+            }
+
+            var planteles = await _db.Planteles
+                .AsNoTracking()
+                .Where(p => p.Placod == codigoPlantel)
+                .ToListAsync();
+
+            var codigoSocio = (scod ?? string.Empty).Trim();
+            if (codigoSocio.Length > 0)
+            {
+                var delSocio = planteles
+                    .Where(p => string.Equals((p.Nrocri ?? string.Empty).Trim(), codigoSocio, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                if (delSocio.Count > 0)
+                {
+                    planteles = delSocio;
+                }
+            }
+
+            var asignados = planteles.Where(p => p.EstablecimientoId.HasValue).ToList();
+            if (asignados.Count == 0)
+            {
+                return null;
+            }
+
+            var establecimiento = await _db.Estables
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Ecod == codigoEstablecimiento);
+            if (establecimiento == null)
+            {
+                return null;
+            }
+
+            if (asignados.Any(p => p.EstablecimientoId == establecimiento.Id))
+            {
+                return null;
+            }
+
+            var otroId = asignados.First().EstablecimientoId!.Value;
+            var otro = await _db.Estables.AsNoTracking().FirstOrDefaultAsync(e => e.Id == otroId);
+            var nombreOtro = otro == null ? $"#{otroId}" : $"{otro.Ecod} - {otro.Nombre}";
+            return $"El plantel {codigoPlantel} pertenece al establecimiento {nombreOtro} y la inspeccion es del establecimiento {establecimiento.Ecod} - {establecimiento.Nombre}. Elegi un plantel de ese establecimiento o crea uno nuevo.";
         }
 
         private async Task<bool> IsAllowedEstablecimientoAsync(string? estcod, UserSocioAccessContext accessContext)

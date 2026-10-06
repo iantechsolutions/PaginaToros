@@ -1,0 +1,42 @@
+@* Estructura visual compartida por los informes (Inspecciones y Planteles): encabezado compacto
+   con acciones, barra de filtros y cuerpo de resultados. Los estilos de tablas, tabs, paginador,
+   estados y botones viven en ReportShell.razor.css (con ::deep) para que las dos páginas compartan
+   exactamente el mismo sistema visual sin duplicar CSS. *@
+
+<div class="rp-shell @CssClass">
+    <header class="rp-header">
+        <div class="rp-header-copy">
+            <h1 class="rp-title">@Title</h1>
+            @if (!string.IsNullOrWhiteSpace(Description))
+            {
+                <p class="rp-subtitle">@Description</p>
+            }
+        </div>
+        @if (Actions != null)
+        {
+            <div class="rp-header-actions no-print">
+                @Actions
+            </div>
+        }
+    </header>
+
+    @if (Filters != null)
+    {
+        <section class="rp-filters no-print" aria-label="Filtros del informe">
+            @Filters
+        </section>
+    }
+
+    <div class="rp-body">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string? CssClass { get; set; }
+    [Parameter] public RenderFragment? Actions { get; set; }
+    [Parameter] public RenderFragment? Filters { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

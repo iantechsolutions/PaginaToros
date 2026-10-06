@@ -609,8 +609,8 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnName("NRODEC");
 
                     b.Property<string>("Nroplan")
-                        .HasMaxLength(5)
-                        .HasColumnType("varchar(5)")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
                         .HasColumnName("NROPLAN");
 
                     b.Property<string>("Nrosol")
@@ -781,8 +781,8 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnName("NRODEC");
 
                     b.Property<string>("Nroplan")
-                        .HasMaxLength(5)
-                        .HasColumnType("varchar(5)")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
                         .HasColumnName("NROPLAN");
 
                     b.Property<int?>("PastillasSincro")
@@ -1427,6 +1427,10 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnName("COD_USU")
                         .HasDefaultValueSql("'0'");
 
+                    b.Property<int?>("EstablecimientoId")
+                        .HasColumnType("int(10)")
+                        .HasColumnName("establecimientoId");
+
                     b.Property<DateTime?>("FchConst")
                         .HasColumnType("datetime")
                         .HasColumnName("FCH_CONST");
@@ -1527,13 +1531,16 @@ namespace PaginaToros.Server.Migrations.hereford_pr
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NroCert", "Hba")
-                        .HasDatabaseName("UX_CERTIFSEMEN_NRO_CERT_HBA")
-                        .IsUnique();
+                    b.HasIndex("EstablecimientoId")
+                        .HasDatabaseName("IX_CERTIFSEMEN_establecimientoId");
 
                     b.HasIndex("Nrocen");
 
                     b.HasIndex("Nrocri");
+
+                    b.HasIndex("NroCert", "Hba")
+                        .IsUnique()
+                        .HasDatabaseName("UX_CERTIFSEMEN_NRO_CERT_HBA");
 
                     b.ToTable("CERTIFSEMEN", (string)null);
 
@@ -1652,8 +1659,8 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnName("NRODEC");
 
                     b.Property<string>("Nroplan")
-                        .HasMaxLength(6)
-                        .HasColumnType("varchar(6)")
+                        .HasMaxLength(15)
+                        .HasColumnType("varchar(15)")
                         .HasColumnName("NROPLAN");
 
                     b.Property<int?>("PastillasSincro")
@@ -1947,8 +1954,8 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnName("CATEG_SV");
 
                     b.Property<string>("Cnom")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("CNOM");
 
                     b.Property<int?>("CodUsu")
@@ -1982,13 +1989,13 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnName("NRO_TRANS");
 
                     b.Property<string>("PlantDest")
-                        .HasMaxLength(5)
-                        .HasColumnType("varchar(5)")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
                         .HasColumnName("PLANT_DEST");
 
                     b.Property<string>("Plantel")
-                        .HasMaxLength(4)
-                        .HasColumnType("varchar(4)")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
                         .HasColumnName("PLANTEL");
 
                     b.Property<string>("Scom")
@@ -2002,8 +2009,8 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnName("SVEN");
 
                     b.Property<string>("Vnom")
-                        .HasMaxLength(35)
-                        .HasColumnType("varchar(35)")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("VNOM");
 
                     b.HasKey("Id");
@@ -2111,6 +2118,10 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnType("longtext")
                         .HasColumnName("comment");
 
+                    b.Property<int?>("EstablecimientoId")
+                        .HasColumnType("int(10)")
+                        .HasColumnName("establecimientoId");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -2190,7 +2201,11 @@ namespace PaginaToros.Server.Migrations.hereford_pr
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Nrocri");
+                    b.HasIndex("EstablecimientoId")
+                        .HasDatabaseName("IX_PLANTEL_establecimientoId");
+
+                    b.HasIndex("Nrocri", "Anioex", "EstablecimientoId")
+                        .HasDatabaseName("IX_PLANTEL_nrocri_anioex_establecimiento");
 
                     b.ToTable("PLANTEL", (string)null);
 
@@ -2290,8 +2305,8 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasDefaultValueSql("'0'");
 
                     b.Property<string>("Nropla")
-                        .HasMaxLength(4)
-                        .HasColumnType("varchar(4)")
+                        .HasMaxLength(15)
+                        .HasColumnType("varchar(15)")
                         .HasColumnName("NROPLA");
 
                     b.Property<string>("Nrores")
@@ -2659,8 +2674,8 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnName("MOTIVO_RECHAZO");
 
                     b.Property<string>("Nropla")
-                        .HasMaxLength(4)
-                        .HasColumnType("varchar(4)")
+                        .HasMaxLength(15)
+                        .HasColumnType("varchar(15)")
                         .HasColumnName("NROPLA");
 
                     b.Property<string>("Nrores")
@@ -3058,6 +3073,12 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnType("varchar(50)")
                         .HasColumnName("COMENTARIO");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasColumnName("createdAt")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
                     b.Property<string>("Criador")
                         .HasMaxLength(6)
                         .HasColumnType("varchar(6)")
@@ -3098,12 +3119,6 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasMaxLength(10)
                         .HasColumnType("varchar(10)")
                         .HasColumnName("FECING");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasColumnName("createdAt")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Frame")
                         .HasMaxLength(4)
@@ -3249,6 +3264,9 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                     b.HasIndex("Criador")
                         .HasDatabaseName("IX_TOROSUNI_CRIADOR");
 
+                    b.HasIndex("EstablecimientoId")
+                        .HasDatabaseName("IX_TOROSUNI_establecimientoId");
+
                     b.HasIndex("Hba")
                         .HasDatabaseName("IX_TOROSUNI_HBA");
 
@@ -3257,9 +3275,6 @@ namespace PaginaToros.Server.Migrations.hereford_pr
 
                     b.HasIndex("Tatpart")
                         .HasDatabaseName("IX_TOROSUNI_TATPART");
-
-                    b.HasIndex("EstablecimientoId")
-                        .HasDatabaseName("IX_TOROSUNI_establecimientoId");
 
                     b.HasIndex("CodEstado", "CreatedAt")
                         .HasDatabaseName("IX_TOROSUNI_estado_createdAt");
@@ -3338,14 +3353,42 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnName("NRO_CERT");
 
                     b.Property<string>("NvoPla")
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
                         .HasColumnName("NVO_PLA");
 
                     b.Property<string>("Plant")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("PLANT");
+
+                    b.Property<string>("PlantDestinoAnioex")
+                        .HasMaxLength(4)
+                        .HasColumnType("varchar(4)")
+                        .HasColumnName("PLANT_DESTINO_ANIOEX");
+
+                    b.Property<string>("PlantDestinoCodigo")
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)")
-                        .HasColumnName("PLANT");
+                        .HasColumnName("PLANT_DESTINO_CODIGO");
+
+                    b.Property<int?>("PlantDestinoId")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("PLANT_DESTINO_ID");
+
+                    b.Property<string>("PlantOrigenAnioex")
+                        .HasMaxLength(4)
+                        .HasColumnType("varchar(4)")
+                        .HasColumnName("PLANT_ORIGEN_ANIOEX");
+
+                    b.Property<string>("PlantOrigenCodigo")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("PLANT_ORIGEN_CODIGO");
+
+                    b.Property<int?>("PlantOrigenId")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("PLANT_ORIGEN_ID");
 
                     b.Property<string>("Scom")
                         .HasMaxLength(6)
@@ -3363,8 +3406,8 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasColumnName("TIPANI");
 
                     b.Property<string>("Tiphac")
-                        .HasMaxLength(4)
-                        .HasColumnType("varchar(4)")
+                        .HasMaxLength(8)
+                        .HasColumnType("varchar(8)")
                         .HasColumnName("TIPHAC");
 
                     b.Property<string>("Tipohem")
@@ -3380,6 +3423,284 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                     b.HasKey("Id");
 
                     b.ToTable("TRANSAN", (string)null);
+                });
+
+            modelBuilder.Entity("PaginaToros.Shared.Models.TransanMailOutbox", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int(11)")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)")
+                        .HasColumnName("accion");
+
+                    b.Property<string>("Asunto")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("asunto");
+
+                    b.Property<string>("CuerpoHtml")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("cuerpo_html");
+
+                    b.Property<string>("Destinatarios")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("destinatarios");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)")
+                        .HasColumnName("estado");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime")
+                        .HasColumnName("fecha_creacion");
+
+                    b.Property<DateTime?>("FechaEnvio")
+                        .HasColumnType("datetime")
+                        .HasColumnName("fecha_envio");
+
+                    b.Property<int>("Intentos")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("intentos");
+
+                    b.Property<string>("MailComprador")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("mail_comprador");
+
+                    b.Property<string>("MailVendedor")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("mail_vendedor");
+
+                    b.Property<string>("PlantelDestinoCodigo")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("plantel_destino_codigo");
+
+                    b.Property<int?>("PlantelDestinoId")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("plantel_destino_id");
+
+                    b.Property<string>("PlantelOrigenCodigo")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("plantel_origen_codigo");
+
+                    b.Property<int?>("PlantelOrigenId")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("plantel_origen_id");
+
+                    b.Property<DateTime?>("ProximoIntento")
+                        .HasColumnType("datetime")
+                        .HasColumnName("proximo_intento");
+
+                    b.Property<int>("TransanId")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("transan_id");
+
+                    b.Property<string>("UltimoError")
+                        .HasColumnType("longtext")
+                        .HasColumnName("ultimo_error");
+
+                    b.Property<DateTime?>("UltimoIntento")
+                        .HasColumnType("datetime")
+                        .HasColumnName("ultimo_intento");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TRANSAN_MAIL_OUTBOX", (string)null);
+                });
+
+            modelBuilder.Entity("PaginaToros.Shared.Models.TransanTransferAudit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int(11)")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)")
+                        .HasColumnName("accion");
+
+                    b.Property<string>("BucketCampo")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("bucket_campo");
+
+                    b.Property<string>("BucketEtiqueta")
+                        .HasMaxLength(120)
+                        .HasColumnType("varchar(120)")
+                        .HasColumnName("bucket_etiqueta");
+
+                    b.Property<int?>("CantChem")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("cant_chem");
+
+                    b.Property<int?>("CantCmach")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("cant_cmach");
+
+                    b.Property<int?>("CantHem")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("cant_hem");
+
+                    b.Property<int?>("CantMach")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("cant_mach");
+
+                    b.Property<string>("CompradorCodigo")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("comprador_codigo");
+
+                    b.Property<int?>("CompradorId")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("comprador_id");
+
+                    b.Property<double?>("DestinoAntes")
+                        .HasColumnType("double")
+                        .HasColumnName("destino_antes");
+
+                    b.Property<double?>("DestinoDespues")
+                        .HasColumnType("double")
+                        .HasColumnName("destino_despues");
+
+                    b.Property<string>("Detalle")
+                        .HasColumnType("longtext")
+                        .HasColumnName("detalle");
+
+                    b.Property<DateTime>("FechaEvento")
+                        .HasColumnType("datetime")
+                        .HasColumnName("fecha_evento");
+
+                    b.Property<string>("Hemsta")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("hemsta");
+
+                    b.Property<string>("MailComprador")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("mail_comprador");
+
+                    b.Property<string>("MailError")
+                        .HasColumnType("longtext")
+                        .HasColumnName("mail_error");
+
+                    b.Property<string>("MailEstado")
+                        .HasMaxLength(40)
+                        .HasColumnType("varchar(40)")
+                        .HasColumnName("mail_estado");
+
+                    b.Property<string>("MailVendedor")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("mail_vendedor");
+
+                    b.Property<double?>("OrigenAntes")
+                        .HasColumnType("double")
+                        .HasColumnName("origen_antes");
+
+                    b.Property<double?>("OrigenDespues")
+                        .HasColumnType("double")
+                        .HasColumnName("origen_despues");
+
+                    b.Property<string>("PlantelDestino")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("plantel_destino");
+
+                    b.Property<string>("PlantelDestinoAnioex")
+                        .HasMaxLength(4)
+                        .HasColumnType("varchar(4)")
+                        .HasColumnName("plantel_destino_anioex");
+
+                    b.Property<string>("PlantelDestinoCodigo")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("plantel_destino_codigo");
+
+                    b.Property<int?>("PlantelDestinoId")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("plantel_destino_id");
+
+                    b.Property<string>("PlantelOrigen")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("plantel_origen");
+
+                    b.Property<string>("PlantelOrigenAnioex")
+                        .HasMaxLength(4)
+                        .HasColumnType("varchar(4)")
+                        .HasColumnName("plantel_origen_anioex");
+
+                    b.Property<string>("PlantelOrigenCodigo")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("plantel_origen_codigo");
+
+                    b.Property<int?>("PlantelOrigenId")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("plantel_origen_id");
+
+                    b.Property<string>("Tiphac")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("tiphac");
+
+                    b.Property<string>("Tipohem")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)")
+                        .HasColumnName("tipohem");
+
+                    b.Property<int>("TransanId")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("transan_id");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("usuario_id");
+
+                    b.Property<string>("UsuarioNombre")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .HasColumnName("usuario_nombre");
+
+                    b.Property<string>("UsuarioRol")
+                        .HasMaxLength(60)
+                        .HasColumnType("varchar(60)")
+                        .HasColumnName("usuario_rol");
+
+                    b.Property<string>("VendedorCodigo")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("vendedor_codigo");
+
+                    b.Property<int?>("VendedorId")
+                        .HasColumnType("int(11)")
+                        .HasColumnName("vendedor_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FechaEvento")
+                        .HasDatabaseName("idx_transan_transfer_audits_fecha_evento");
+
+                    b.HasIndex("TransanId")
+                        .HasDatabaseName("idx_transan_transfer_audits_transan_id");
+
+                    b.ToTable("TRANSAN_TRANSFER_AUDITS", (string)null);
                 });
 
             modelBuilder.Entity("PaginaToros.Shared.Models.Transem", b =>
@@ -3788,6 +4109,11 @@ namespace PaginaToros.Server.Migrations.hereford_pr
 
             modelBuilder.Entity("PaginaToros.Shared.Models.Certifseman", b =>
                 {
+                    b.HasOne("PaginaToros.Shared.Models.Estable", "Establecimiento")
+                        .WithMany()
+                        .HasForeignKey("EstablecimientoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PaginaToros.Shared.Models.Centrosium", "Centro")
                         .WithMany("Certificados")
                         .HasForeignKey("Nrocen")
@@ -3799,6 +4125,8 @@ namespace PaginaToros.Server.Migrations.hereford_pr
                         .HasPrincipalKey("Scod");
 
                     b.Navigation("Centro");
+
+                    b.Navigation("Establecimiento");
 
                     b.Navigation("Socio");
                 });
@@ -3858,10 +4186,17 @@ namespace PaginaToros.Server.Migrations.hereford_pr
 
             modelBuilder.Entity("PaginaToros.Shared.Models.Plantel", b =>
                 {
+                    b.HasOne("PaginaToros.Shared.Models.Estable", "Establecimiento")
+                        .WithMany()
+                        .HasForeignKey("EstablecimientoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PaginaToros.Shared.Models.Socio", "Socio")
                         .WithMany("Planteles")
                         .HasForeignKey("Nrocri")
                         .HasPrincipalKey("Scod");
+
+                    b.Navigation("Establecimiento");
 
                     b.Navigation("Socio");
                 });

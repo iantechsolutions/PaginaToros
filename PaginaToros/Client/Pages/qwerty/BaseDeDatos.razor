@@ -1,4 +1,4 @@
-@attribute [Authorize(Roles = "USUARIOMAESTRO, ADMINISTRADOR")]
+﻿@attribute [Authorize(Roles = "USUARIOMAESTRO, ADMINISTRADOR")]
 @page "/qwerty/basededatos"
 @using PaginaToros.Shared.Models
 @using PaginaToros.Shared.Models.Response
@@ -47,7 +47,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div>
                     <strong>@(string.IsNullOrWhiteSpace(grupo.SocioNombre) ? "(socio sin nombre)" : grupo.SocioNombre)</strong>
-                    <span class="text-muted ms-2">socio @grupo.Nrocri · año @grupo.Anioex · @grupo.Planteles.Count planteles</span>
+                    <span class="text-muted ms-2">socio @grupo.Nrocri · año @grupo.Anioex · @(grupo.EstablecimientoId.HasValue ? $"establecimiento {grupo.EstablecimientoNombre}" : "sin establecimiento asignado") · @grupo.Planteles.Count planteles</span>
                 </div>
                 @if (estado.Resultado?.Aplicado == true)
                 {
@@ -372,6 +372,7 @@
         {
             Nrocri = grupo.Nrocri,
             Anioex = grupo.Anioex,
+            EstablecimientoId = grupo.EstablecimientoId,
             PlacodSobreviviente = estado.Sobreviviente,
             PlacodsAEliminar = estado.AEliminar.ToList(),
             RepuntarReferencias = estado.RepuntarReferencias,

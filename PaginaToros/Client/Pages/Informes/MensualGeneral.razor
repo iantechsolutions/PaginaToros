@@ -1,397 +1,389 @@
-﻿@page "/reportegeneral"
+@page "/reportegeneral"
 @using PaginaToros.Client.Servicios.Contrato
+@using PaginaToros.Client.Shared.Informes
 @using Radzen
 @using Radzen.Blazor
-@inject IResin1Servicio _resin1Servicio
+@using OfficeOpenXml
+@using OfficeOpenXml.Style
+@using System.Drawing
 @inject IResin6Servicio _resin6Servicio
 @inject IInspectServicio _inspectServicio
 @inject IJSRuntime _js
 
-@using OfficeOpenXml
-@using OfficeOpenXml.Style
-@using System.Drawing
+<PageTitle>Resumen General de Inspecciones</PageTitle>
 
-<div class="rp-page">
+<ReportShell Title="Resumen General de Inspecciones"
+             Description="Animales presentados, marcados y rechazados por inspector, provincia y período.">
+    <Actions>
+        <button type="button" class="rp-btn rp-btn-ghost" @onclick="ReiniciarFiltros" disabled="@loading">
+            <FeatherRotateCcw Size="16" Color="currentColor" /> Reiniciar filtros
+        </button>
+        <button type="button" class="rp-btn rp-btn-primary" @onclick="OnGenerarClick" disabled="@(loading || !listasCargadas)">
+            @if (loading)
+            {
+                <span class="rp-spinner" aria-hidden="true"></span>
+                <span>Generando…</span>
+            }
+            else
+            {
+                <FeatherBarChart2 Size="16" Color="currentColor" />
+                <span>Generar reporte</span>
+            }
+        </button>
+        <ReportExportMenu Disabled="@(!confirmado || loading)"
+                          Busy="@download"
+                          ExcelDisabled="@(download || !HayDatosParaExportar)"
+                          PdfDisabled="@printing"
+                          OnExcel="OnDescargarClick"
+                          OnPdf="Print" />
+    </Actions>
 
-<h2 class="font-bold text-2xl mb-4 text-center rp-title">
-    Resumen General de Inspecciones
-</h2>
+    <Filters>
+        <div class="rp-filter-grid">
+            <div class="rp-field rp-col-4">
+                <div class="rp-field-label" id="mg-lbl-periodo">
+                    <span><FeatherCalendar Size="13" Color="currentColor" /> Período</span>
+                </div>
+                <div class="rp-field-group">
+                    <div>
+                        <span class="rp-field-sub" id="mg-lbl-desde">Fecha inicial</span>
+                        <RadzenDatePicker TValue="DateTime" @bind-Value="FechaInicial" ShowTime="false" ShowSeconds="false"
+                                          DateFormat="dd/MM/yyyy" Name="mg-desde" aria-labelledby="mg-lbl-periodo mg-lbl-desde" />
+                    </div>
+                    <div>
+                        <span class="rp-field-sub" id="mg-lbl-hasta">Fecha final</span>
+                        <RadzenDatePicker TValue="DateTime" @bind-Value="FechaFinal" ShowTime="false" ShowSeconds="false"
+                                          DateFormat="dd/MM/yyyy" Name="mg-hasta" aria-labelledby="mg-lbl-periodo mg-lbl-hasta" />
+                    </div>
+                </div>
+            </div>
 
-<div class="rp-filter-card no-print">
-    <div>
-        <div class="rp-field-label"><FeatherCalendar Size="14" Color="#475467" /> Fecha inicial</div>
-        <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaInicial Disabled="terminado && confirmado" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Style="width:100%" />
-    </div>
-    <div>
-        <div class="rp-field-label"><FeatherCalendar Size="14" Color="#475467" /> Fecha final</div>
-        <RadzenDatePicker TValue="DateTime" @bind-Value=@FechaFinal Disabled="terminado && confirmado" ShowTime="false" ShowSeconds="false" DateFormat="dd/MM/yyyy" Style="width:100%" />
-    </div>
+            <div class="rp-field rp-col-4">
+                <div class="rp-field-label">
+                    <span id="mg-lbl-insp"><FeatherUsers Size="13" Color="currentColor" /> Inspectores</span>
+                    <span class="rp-field-aux">
+                        <button type="button" class="rp-link-btn" @onclick="SeleccionarTodosInspectores" disabled="@(!listasCargadas)">Todos</button>
+                        <button type="button" class="rp-link-btn" @onclick="DeseleccionarTodosInspectores" disabled="@(!listasCargadas)">Ninguno</button>
+                    </span>
+                </div>
+                <RadzenDropDown Data="@inspectOpts"
+                                Multiple="true"
+                                AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                TextProperty="Nombre"
+                                ValueProperty="Icod"
+                                TValue="IEnumerable<string>"
+                                @bind-Value="inspectoresSeleccionadosCods"
+                                MaxSelectedLabels="2"
+                                SelectedItemsText="inspectores seleccionados"
+                                Placeholder="Todos los inspectores"
+                                Disabled="@(!listasCargadas)"
+                                Name="mg-inspectores"
+                                aria-labelledby="mg-lbl-insp" />
+            </div>
 
-    <div class="rp-filter-row-full">
-        <!-- Inspectores -->
-        <div>
-            <div class="rp-field-label"><FeatherUsers Size="14" Color="#475467" /> Inspectores</div>
-            <RadzenDropDown Data="@inspectOpts"
-                            Multiple="true"
-                            AllowFiltering="true"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            TextProperty="Nombre"
-                            ValueProperty="Icod"
-                            Style="width:100%"
-                            TValue="IEnumerable<string>"
-                            @bind-Value="inspectoresSeleccionadosCods"
-                            Placeholder="Busque por nombre" />
-            <div class="rp-field-group">
-                <button class="rp-chip-btn rp-chip-ok" @onclick="SeleccionarTodosInspectores"><FeatherCheck Size="14" /> Todos</button>
-                <button class="rp-chip-btn rp-chip-clear" @onclick="DeseleccionarTodosInspectores"><FeatherX Size="14" /> Ninguno</button>
+            <div class="rp-field rp-col-4">
+                <div class="rp-field-label">
+                    <span id="mg-lbl-prov"><FeatherMapPin Size="13" Color="currentColor" /> Provincias</span>
+                    <span class="rp-field-aux">
+                        <button type="button" class="rp-link-btn" @onclick="SeleccionarTodasProvincias">Todas</button>
+                        <button type="button" class="rp-link-btn" @onclick="DeseleccionarTodasProvincias">Ninguna</button>
+                    </span>
+                </div>
+                <RadzenDropDown Data="@provinciasOpts"
+                                Multiple="true"
+                                AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                TextProperty="Name"
+                                ValueProperty="Code"
+                                TValue="IEnumerable<string>"
+                                @bind-Value="provinciasSeleccionadas"
+                                MaxSelectedLabels="2"
+                                SelectedItemsText="provincias seleccionadas"
+                                Placeholder="Todas las provincias"
+                                Name="mg-provincias"
+                                aria-labelledby="mg-lbl-prov" />
             </div>
         </div>
 
-        <!-- Provincias -->
-        <div>
-            <div class="rp-field-label"><FeatherMapPin Size="14" Color="#475467" /> Provincias</div>
-            <RadzenDropDown Data="@provinciasOpts"
-                            Multiple="true"
-                            AllowFiltering="true"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            TextProperty="Name"
-                            ValueProperty="Code"
-                            Style="width:100%"
-                            TValue="IEnumerable<string>"
-                            @bind-Value="provinciasSeleccionadas"
-                            Placeholder="Busque por nombre" />
-            <div class="rp-field-group">
-                <button class="rp-chip-btn rp-chip-ok" @onclick="SeleccionarTodasProvincias"><FeatherCheck Size="14" /> Todas</button>
-                <button class="rp-chip-btn rp-chip-clear" @onclick="DeseleccionarTodasProvincias"><FeatherX Size="14" /> Ninguna</button>
+        <div class="rp-filter-footer">
+            <span>Sin selección de inspectores o provincias se incluyen todos. Con un solo inspector seleccionado se agrega su resumen propio.</span>
+            @if (validationError != null)
+            {
+                <span class="rp-alert rp-alert-error" role="alert" style="padding:.3rem .6rem;">
+                    <FeatherAlertCircle Size="14" Color="currentColor" /> @validationError
+                </span>
+            }
+        </div>
+    </Filters>
+
+    <ChildContent>
+        @if (errorMessage != null)
+        {
+            <div class="rp-alert rp-alert-error" role="alert">
+                <FeatherAlertCircle Size="16" Color="currentColor" />
+                <span>@errorMessage</span>
+                <button type="button" class="rp-btn rp-btn-sm" @onclick="OnGenerarClick" disabled="@loading">
+                    <FeatherRefreshCw Size="14" Color="currentColor" /> Reintentar
+                </button>
             </div>
-        </div>
-    </div>
-</div>
+        }
 
-<div class="rp-actions no-print">
-    <button class="rp-btn rp-btn-ghost"
-            @onclick="ReiniciarFiltros"
-            disabled="@loading">
-        <span><FeatherRotateCcw Color="currentColor" Size="16" /> Reiniciar filtros</span>
-    </button>
-
-    <button class="rp-btn rp-btn-primary @(loading ? "busy" : "")"
-            @onclick="OnGenerarClick"
-            disabled="@(!terminado || confirmado || loading)">
-        @if (loading)
+        @if (!confirmado && loading)
         {
-            <span><i class="fa fa-spinner fa-spin"></i> Cargando...</span>
+            <div class="rp-results" aria-busy="true" aria-live="polite">
+                <div class="rp-skeleton" aria-label="Generando el informe">
+                    <span></span><span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+        }
+        else if (!confirmado)
+        {
+            <div class="rp-empty">
+                Elegí el período y, si querés, inspectores o provincias; después presioná <strong>Generar reporte</strong>.
+            </div>
         }
         else
         {
-            <span>Generar reporte</span>
-        }
-    </button>
-
-    <button class="rp-btn rp-btn-secondary @(download ? "busy" : "")"
-            @onclick="OnDescargarClick"
-            disabled="@(download || !(confirmado && (byProvince.Any() || byInspector.Any() || byMonth.Any())))">
-        @if (download)
-        {
-            <span><i class="fa fa-spinner fa-spin"></i> Cargando...</span>
-        }
-        else
-        {
-            <span><FeatherDownload Color="currentColor" Size="16" /> Exportar Excel</span>
-        }
-    </button>
-</div>
-
-@if (confirmado)
-{
-    <div class="rp-results">
-        <h3 class="rp-results-title text-base mb-3">
-            Resumen general — @FechaInicial.ToString("dd/MM/yyyy") a @FechaFinal.ToString("dd/MM/yyyy")
-            (@listaFiltrada.Count inspecciones)
-        </h3>
-
-        <!-- HEMBRAS: PR y VIP en una sola fila -->
-        <div class="rp-section-title">Hembras</div>
-        <div class="rp-table-grid">
-            <!-- PR -->
-            <table class="rp-table">
-                <caption>PR</caption>
-                <thead>
-                    <tr>
-                        <th>Presentadas</th>
-                        <th>Marcadas</th>
-                        <th>Rechazadas</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>@totalesGeneral.prPres</td>
-                        <td>@totalesGeneral.prMarc</td>
-                        <td>@totalesGeneral.prRech</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- VIP -->
-            <table class="rp-table">
-                <caption>VIP</caption>
-                <thead>
-                    <tr>
-                        <th>Presentadas</th>
-                        <th>Marcadas</th>
-                        <th>Rechazadas</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>@totalesGeneral.vipPres</td>
-                        <td>@totalesGeneral.vipMarc</td>
-                        <td>@totalesGeneral.vipRech</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- MACHOS: SCP y CP en una sola fila -->
-        <div class="rp-section-title">Machos</div>
-        <div class="rp-table-grid">
-            <!-- SCP -->
-            <table class="rp-table">
-                <caption>SCP (Sin Control de Producción)</caption>
-                <thead>
-                    <tr>
-                        <th>Presentados</th>
-                        <th>Marcados</th>
-                        <th>Rechazados</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>@totalesGeneral.scpPres</td>
-                        <td>@totalesGeneral.scpMarc</td>
-                        <td>@totalesGeneral.scpRech</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- CP con S/ -->
-            <table class="rp-table">
-                <caption>CP (Con Control de Producción)</caption>
-                <thead>
-                    <tr>
-                        <th>Presentados</th>
-                        <th>Marcados</th>
-                        <th>Rechazados</th>
-                        <th>S/</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>@totalesGeneral.cpPres</td>
-                        <td>@totalesGeneral.cpMarc</td>
-                        <td>@totalesGeneral.cpRech</td>
-                        <td>@totalesGeneral.cpSBarra</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- ===================== POR PROVINCIA ===================== -->
-        <div class="rp-section-title">Por provincia</div>
-        <table class="rp-table">
-            <thead>
-                <tr>
-                    <th>Provincia</th>
-                    <th>PR Pres</th>
-                    <th>PR Marc</th>
-                    <th>PR Rech</th>
-                    <th>VIP Pres</th>
-                    <th>VIP Marc</th>
-                    <th>VIP Rech</th>
-                    <th>SCP Pres</th>
-                    <th>SCP Marc</th>
-                    <th>SCP Rech</th>
-                    <th>CP Pres</th>
-                    <th>CP Marc</th>
-                    <th>CP Rech</th>
-                    <th>CP S/</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var kv in byProvince
-               .Where(kv => !kv.Value.IsAllZero)
-               .OrderByDescending(kv => kv.Value.TotalPresentadas))
+            <div class="rp-results @(loading ? "rp-busy" : string.Empty)" aria-busy="@(loading ? "true" : "false")">
+                @if (loading)
                 {
-                    var code = kv.Key;
-                    var c = kv.Value;
-                    <tr>
-                        <td>@SafeProvName(code)</td>
-                        <td>@c.prPres</td>
-                        <td>@c.prMarc</td>
-                        <td>@c.prRech</td>
-
-                        <td>@c.vipPres</td>
-                        <td>@c.vipMarc</td>
-                        <td>@c.vipRech</td>
-
-                        <td>@c.scpPres</td>
-                        <td>@c.scpMarc</td>
-                        <td>@c.scpRech</td>
-
-                        <td>@c.cpPres</td>
-                        <td>@c.cpMarc</td>
-                        <td>@c.cpRech</td>
-                        <td>@c.cpSBarra</td>
-                    </tr>
+                    <span class="rp-busy-badge"><span class="rp-spinner dark" aria-hidden="true"></span> Actualizando…</span>
                 }
-            </tbody>
-        </table>
 
-        <!-- ===================== POR INSPECTOR ===================== -->
-        <div class="rp-section-title">Por inspector</div>
-        <table class="rp-table">
-            <thead>
-                <tr>
-                    <th>Inspector</th>
-                    <th>PR Pres</th>
-                    <th>PR Marc</th>
-                    <th>PR Rech</th>
-                    <th>VIP Pres</th>
-                    <th>VIP Marc</th>
-                    <th>VIP Rech</th>
-                    <th>SCP Pres</th>
-                    <th>SCP Marc</th>
-                    <th>SCP Rech</th>
-                    <th>CP Pres</th>
-                    <th>CP Marc</th>
-                    <th>CP Rech</th>
-                    <th>CP S/</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var kv in byInspector
-               .Where(kv => !kv.Value.IsAllZero)
-               .OrderByDescending(kv => kv.Value.TotalPresentadas))
+                <div class="rp-meta">
+                    <span>Período <strong>@ReportFormat.Fecha(resultadoDesde) – @ReportFormat.Fecha(resultadoHasta)</strong></span>
+                    <span>Inspectores <strong>@(resultadoInspectores == 0 ? "todos" : ReportFormat.N0(resultadoInspectores) + " seleccionados")</strong></span>
+                    <span>Provincias <strong>@(resultadoProvincias == 0 ? "todas" : ReportFormat.N0(resultadoProvincias) + " seleccionadas")</strong></span>
+                    <span><strong>@ReportFormat.N0(listaFiltrada.Count)</strong> inspecciones</span>
+                </div>
+
+                @if (FiltrosModificados && !loading)
                 {
-                    var code = kv.Key;
-                    var c = kv.Value;
-                    <tr>
-                        <td>@SafeInspName(code)</td>
-                        <td>@c.prPres</td>
-                        <td>@c.prMarc</td>
-                        <td>@c.prRech</td>
-
-                        <td>@c.vipPres</td>
-                        <td>@c.vipMarc</td>
-                        <td>@c.vipRech</td>
-
-                        <td>@c.scpPres</td>
-                        <td>@c.scpMarc</td>
-                        <td>@c.scpRech</td>
-
-                        <td>@c.cpPres</td>
-                        <td>@c.cpMarc</td>
-                        <td>@c.cpRech</td>
-                        <td>@c.cpSBarra</td>
-                    </tr>
+                    <div class="rp-alert rp-alert-warn no-print" role="status">
+                        <FeatherAlertTriangle Size="15" Color="currentColor" />
+                        <span>Los filtros cambiaron desde la última generación; el informe muestra los filtros anteriores.</span>
+                        <button type="button" class="rp-btn rp-btn-sm" @onclick="OnGenerarClick">Generar de nuevo</button>
+                    </div>
                 }
-            </tbody>
-        </table>
 
-        <!-- ===== Resumen del inspector seleccionado (si hay 1) ===== -->
-        @{
-            var icodsSel = (inspectoresSeleccionadosCods ?? Array.Empty<string>())
-            .Select(s => (s ?? "").Trim()).Where(s => s != "").Distinct().ToList();
-        }
-        @if (icodsSel.Count == 1)
-        {
-            var inspCode = icodsSel[0];
-            var nombreInsp = SafeInspName(inspCode);
-            var c = byInspector.TryGetValue(inspCode, out var vv) ? vv : new Counters();
+                @if (listaFiltrada.Count == 0)
+                {
+                    <div class="rp-empty">No se encontraron resultados para los filtros seleccionados.</div>
+                }
+                else
+                {
+                    <div class="rp-overview">
+                        <div class="rp-section">
+                            <div class="rp-section-head">
+                                <h2 class="rp-section-title">Resumen general</h2>
+                                <span class="rp-section-note">Hembras y machos presentados en el período</span>
+                            </div>
+                            <div class="rp-table-wrap">
+                                <table class="rp-table rp-table-summary">
+                                    <thead>
+                                        <tr>
+                                            <th class="rp-th-text">Categoría</th>
+                                            <th class="rp-num">Presentados</th>
+                                            <th class="rp-num">Marcados</th>
+                                            <th class="rp-num">Rechazados</th>
+                                            <th class="rp-num">S/</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="rp-row-group"><th colspan="5">Hembras</th></tr>
+                                        <tr>
+                                            <th scope="row">PR</th>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.prPres)</td>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.prMarc)</td>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.prRech)</td>
+                                            <td class="rp-num rp-dim">–</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">VIP</th>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.vipPres)</td>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.vipMarc)</td>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.vipRech)</td>
+                                            <td class="rp-num rp-dim">–</td>
+                                        </tr>
+                                        <tr class="rp-row-group"><th colspan="5">Machos</th></tr>
+                                        <tr>
+                                            <th scope="row"><abbr title="Sin control de producción">SCP</abbr></th>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.scpPres)</td>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.scpMarc)</td>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.scpRech)</td>
+                                            <td class="rp-num rp-dim">–</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row"><abbr title="Con control de producción">CP</abbr></th>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.cpPres)</td>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.cpMarc)</td>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.cpRech)</td>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.cpSBarra)</td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th scope="row">Total</th>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.TotalPresentadas)</td>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.TotalMarcadas)</td>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.TotalRechazadas)</td>
+                                            <td class="rp-num">@ReportFormat.N0(totalesGeneral.cpSBarra)</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
 
-            <div class="rp-section-title">Resumen del inspector: @nombreInsp</div>
+                        <div class="rp-stats" aria-label="Indicadores del período">
+                            <div class="rp-stat">
+                                <span class="rp-stat-label">Inspecciones</span>
+                                <span class="rp-stat-value">@ReportFormat.N0(listaFiltrada.Count)</span>
+                                <span class="rp-stat-sub">resultados en el período</span>
+                            </div>
+                            <div class="rp-stat">
+                                <span class="rp-stat-label">Animales presentados</span>
+                                <span class="rp-stat-value">@ReportFormat.N0(totalesGeneral.TotalPresentadas)</span>
+                                <span class="rp-stat-sub">PR + VIP + SCP + CP</span>
+                            </div>
+                            <div class="rp-stat">
+                                <span class="rp-stat-label">Marcados</span>
+                                <span class="rp-stat-value">@ReportFormat.N0(totalesGeneral.TotalMarcadas)</span>
+                                <span class="rp-stat-sub">@ReportFormat.Pct(totalesGeneral.TotalMarcadas, totalesGeneral.TotalPresentadas) de los presentados</span>
+                            </div>
+                            <div class="rp-stat">
+                                <span class="rp-stat-label">Rechazados</span>
+                                <span class="rp-stat-value">@ReportFormat.N0(totalesGeneral.TotalRechazadas)</span>
+                                <span class="rp-stat-sub">@ReportFormat.Pct(totalesGeneral.TotalRechazadas, totalesGeneral.TotalPresentadas) de los presentados</span>
+                            </div>
+                        </div>
+                    </div>
 
-            <div class="rp-table-grid">
-                <!-- General del inspector -->
-                <table class="rp-table">
-                    <caption>General</caption>
-                    <thead>
-                        <tr>
-                            <th>PR Pres</th>
-                            <th>PR Marc</th>
-                            <th>PR Rech</th>
-                            <th>VIP Pres</th>
-                            <th>VIP Marc</th>
-                            <th>VIP Rech</th>
-                            <th>CP S/</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>@c.prPres</td>
-                            <td>@c.prMarc</td>
-                            <td>@c.prRech</td>
-                            <td>@c.vipPres</td>
-                            <td>@c.vipMarc</td>
-                            <td>@c.vipRech</td>
-                            <td>@c.cpSBarra</td>
-                        </tr>
-                    </tbody>
-                </table>
+                    @if (tabs.Count > 0)
+                    {
+                        <div class="rp-tabs no-print" role="tablist" aria-label="Desgloses del informe" @onkeydown="OnTabKeyDown">
+                            @foreach (var tab in tabs)
+                            {
+                                var key = tab.Key;
+                                var selected = activeTab == key;
+                                <button type="button"
+                                        role="tab"
+                                        id="mg-tab-@key"
+                                        class="rp-tab"
+                                        aria-selected="@(selected ? "true" : "false")"
+                                        aria-controls="mg-panel-@key"
+                                        tabindex="@(selected ? 0 : -1)"
+                                        @ref="tabRefs[key]"
+                                        @onclick="() => activeTab = key">
+                                    @tab.Label <span class="rp-count">@ReportFormat.N0(tab.Count)</span>
+                                </button>
+                            }
+                        </div>
 
-                <!-- Por provincia del inspector -->
-                <table class="rp-table">
-                    <caption>Por provincia (del inspector)</caption>
-                    <thead>
-                        <tr>
-                            <th>Provincia</th>
-                            <th>PR Pres</th>
-                            <th>PR Marc</th>
-                            <th>PR Rech</th>
-                            <th>VIP Pres</th>
-                            <th>VIP Marc</th>
-                            <th>VIP Rech</th>
-                            <th>SCP Pres</th>
-                            <th>SCP Marc</th>
-                            <th>SCP Rech</th>
-                            <th>CP Pres</th>
-                            <th>CP Marc</th>
-                            <th>CP Rech</th>
-                            <th>CP S/</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var row in listaFiltrada.Where(x => (x.Resin1.Icod ?? "").Trim() == inspCode)
-                       .GroupBy(x => (x.Resin1.Establecimiento?.Codpro ?? "").Trim())
-                       .Select(g => new { prov = g.Key, c = Aggregate(g) })
-                       .Where(r => !r.c.IsAllZero)
-                       .OrderByDescending(r => r.c.TotalPresentadas))
+                        @foreach (var tab in tabs)
                         {
-                            <tr>
-                                <td>@SafeProvName(row.prov)</td>
-                                <td>@row.c.prPres</td>
-                                <td>@row.c.prMarc</td>
-                                <td>@row.c.prRech</td>
-                                <td>@row.c.vipPres</td>
-                                <td>@row.c.vipMarc</td>
-                                <td>@row.c.vipRech</td>
-                                <td>@row.c.scpPres</td>
-                                <td>@row.c.scpMarc</td>
-                                <td>@row.c.scpRech</td>
-                                <td>@row.c.cpPres</td>
-                                <td>@row.c.cpMarc</td>
-                                <td>@row.c.cpRech</td>
-                                <td>@row.c.cpSBarra</td>
-                            </tr>
+                            var key = tab.Key;
+                            <div class="rp-tabpanel" role="tabpanel" id="mg-panel-@key" aria-labelledby="mg-tab-@key" hidden="@(activeTab != key && !printing)">
+                                @if (printing)
+                                {
+                                    <h2 class="rp-section-title rp-print-only">@tab.Label</h2>
+                                }
+                                @switch (key)
+                                {
+                                    case TabInspector:
+                                        <div class="rp-section">
+                                            <div class="rp-section-head">
+                                                <h3 class="rp-section-title">Resumen del inspector: @inspectorResumen!.Nombre</h3>
+                                            </div>
+                                            <div class="rp-table-wrap">
+                                                <table class="rp-table rp-table-fit">
+                                                    <thead>
+                                                        <tr>
+                                                            <th colspan="3" class="rp-th-group">PR <small>Hembras</small></th>
+                                                            <th colspan="3" class="rp-th-group rp-sep">VIP <small>Hembras</small></th>
+                                                            <th rowspan="2" class="rp-num rp-sep">CP S/</th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th class="rp-num"><abbr title="Presentadas">Pres.</abbr></th>
+                                                            <th class="rp-num"><abbr title="Marcadas">Marc.</abbr></th>
+                                                            <th class="rp-num"><abbr title="Rechazadas">Rech.</abbr></th>
+                                                            <th class="rp-num rp-sep"><abbr title="Presentadas">Pres.</abbr></th>
+                                                            <th class="rp-num"><abbr title="Marcadas">Marc.</abbr></th>
+                                                            <th class="rp-num"><abbr title="Rechazadas">Rech.</abbr></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="rp-num">@ReportFormat.N0(inspectorResumen.General.prPres)</td>
+                                                            <td class="rp-num">@ReportFormat.N0(inspectorResumen.General.prMarc)</td>
+                                                            <td class="rp-num">@ReportFormat.N0(inspectorResumen.General.prRech)</td>
+                                                            <td class="rp-num rp-sep">@ReportFormat.N0(inspectorResumen.General.vipPres)</td>
+                                                            <td class="rp-num">@ReportFormat.N0(inspectorResumen.General.vipMarc)</td>
+                                                            <td class="rp-num">@ReportFormat.N0(inspectorResumen.General.vipRech)</td>
+                                                            <td class="rp-num rp-sep">@ReportFormat.N0(inspectorResumen.General.cpSBarra)</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <ReportMetricsTable Title="Por provincia (del inspector)"
+                                                            Rows="@inspectorResumen.PorProvincia"
+                                                            KeyHeader="Provincia"
+                                                            ItemLabel="provincias"
+                                                            Searchable="false"
+                                                            Printing="@printing" />
+                                        break;
+                                    case TabProvincia:
+                                        <ReportMetricsTable Title="Por provincia (totales del período)"
+                                                            Rows="@provinceRows"
+                                                            KeyHeader="Provincia"
+                                                            ItemLabel="provincias"
+                                                            SearchPlaceholder="Buscar provincia..."
+                                                            Printing="@printing" />
+                                        break;
+                                    case TabInspectores:
+                                        <ReportMetricsTable Title="Por inspector (totales del período)"
+                                                            Rows="@inspectorRows"
+                                                            KeyHeader="Inspector"
+                                                            ItemLabel="inspectores"
+                                                            SearchPlaceholder="Buscar inspector..."
+                                                            Printing="@printing" />
+                                        break;
+                                    case TabMes:
+                                        <ReportMetricsTable Title="Evolución mensual"
+                                                            Rows="@monthRows"
+                                                            KeyHeader="Mes"
+                                                            ItemLabel="meses"
+                                                            Searchable="false"
+                                                            Printing="@printing" />
+                                        break;
+                                    case TabMesProvincia:
+                                        <ReportMetricsTable Title="Mensual por provincia"
+                                                            Rows="@monthProvinceRows"
+                                                            KeyHeader="Mes"
+                                                            SecondHeader="Provincia"
+                                                            ItemLabel="filas"
+                                                            SearchPlaceholder="Buscar mes o provincia..."
+                                                            Printing="@printing" />
+                                        break;
+                                    case TabMesInspector:
+                                        <ReportMetricsTable Title="Mensual por inspector"
+                                                            Rows="@monthInspectorRows"
+                                                            KeyHeader="Mes"
+                                                            SecondHeader="Inspector"
+                                                            ItemLabel="filas"
+                                                            SearchPlaceholder="Buscar mes o inspector..."
+                                                            Printing="@printing" />
+                                        break;
+                                }
+                            </div>
                         }
-                    </tbody>
-                </table>
+                    }
+                }
             </div>
         }
-    </div>
-}
-
-</div>
+    </ChildContent>
+</ReportShell>
 
 @code {
     /* ======== MODELOS DE OPCIÓN ======== */
@@ -401,31 +393,80 @@
         public string Name { get; set; } = "";
     }
 
-    /* ======== ESTADO ======== */
-    bool showDataLabels = false;
-    bool confirmado = false;
+    private sealed class TabInfo
+    {
+        public TabInfo(string key, string label, int count)
+        {
+            Key = key;
+            Label = label;
+            Count = count;
+        }
 
+        public string Key { get; }
+        public string Label { get; }
+        public int Count { get; }
+    }
+
+    private sealed class InspectorResumen
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public InspeccionCounters General { get; set; } = new();
+        public List<InspeccionRow> PorProvincia { get; set; } = new();
+    }
+
+    private const string TabInspector = "inspector";
+    private const string TabProvincia = "provincia";
+    private const string TabInspectores = "inspectores";
+    private const string TabMes = "mes";
+    private const string TabMesProvincia = "mes-provincia";
+    private const string TabMesInspector = "mes-inspector";
+
+    /* ======== FILTROS ======== */
     public DateTime FechaInicial { get; set; } = DateTime.Now.AddDays(-700);
     public DateTime FechaFinal { get; set; } = DateTime.Now;
-    bool terminado = false;
-    bool loading = false;
-    bool download = false;
-
-    List<Resin1DTO> reportes = new();
-    List<Resin6DTO> datos = new();
-    List<Resin6DTO> listaFiltrada = new();
-    List<InspectDTO>? Inspects = null;
-
-    // Opciones para los dropdowns
-    IEnumerable<InspectDTO> inspectOpts => Inspects ?? Enumerable.Empty<InspectDTO>();
-    List<ProvinceOption> provinciasOpts = new();
-
-    // Selecciones (códigos)
     IEnumerable<string> provinciasSeleccionadas { get; set; } = Array.Empty<string>();
     IEnumerable<string> inspectoresSeleccionadosCods { get; set; } = Array.Empty<string>();
 
-    // Mensaje de validación para mostrar en UI
+    /* ======== CATÁLOGOS ======== */
+    List<InspectDTO>? Inspects = null;
+    IEnumerable<InspectDTO> inspectOpts => Inspects ?? Enumerable.Empty<InspectDTO>();
+    List<ProvinceOption> provinciasOpts = new();
+    // Nombre por código de inspector, armado una sola vez (antes se reconstruía en cada fila).
+    Dictionary<string, string> inspectNameByCode = new(StringComparer.Ordinal);
+    bool listasCargadas = false;
+
+    /* ======== DATOS ======== */
+    List<Resin6DTO> datos = new();
+    List<Resin6DTO> listaFiltrada = new();
+    // Cache de la consulta al servidor por rango de fechas: cambiar inspectores/provincias no vuelve a pedir datos.
+    Task? fetchTask;
+    (DateTime desde, DateTime hasta)? fetchRange;
+
+    /* ======== ESTADO DE UI ======== */
+    bool confirmado = false;
+    bool loading = false;
+    bool download = false;
+    bool printing = false;
     string? validationError = null;
+    string? errorMessage = null;
+    int requestSeq = 0;
+    string activeTab = TabProvincia;
+    readonly Dictionary<string, ElementReference> tabRefs = new();
+
+    /* ======== RESULTADO (vistas preparadas una vez por generación) ======== */
+    DateTime resultadoDesde, resultadoHasta;
+    int resultadoInspectores, resultadoProvincias;
+    string resultadoFirma = string.Empty;
+    List<TabInfo> tabs = new();
+    List<InspeccionRow> provinceRows = new();
+    List<InspeccionRow> inspectorRows = new();
+    List<InspeccionRow> monthRows = new();
+    List<InspeccionRow> monthProvinceRows = new();
+    List<InspeccionRow> monthInspectorRows = new();
+    InspectorResumen? inspectorResumen;
+
+    bool HayDatosParaExportar => confirmado && (byProvince.Any() || byInspector.Any() || byMonth.Any());
+    bool FiltrosModificados => confirmado && resultadoFirma != FirmaFiltros();
 
     // Diccionario de códigos de provincia a nombre
     Dictionary<string, string> traductorProvinciaInverso = new()
@@ -456,35 +497,63 @@
         {"24", "Tucuman"},
         {"",""}
     };
+
     static int Activos<TKey, TValue>(
      IDictionary<TKey, TValue> dict,
      Func<TValue, bool> isAllZero
      ) => dict.Count(kv => !isAllZero(kv.Value));
 
-
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var rt = await _resin6Servicio.ObtenerFechas(FechaInicial.Ticks, FechaFinal.Ticks);
-            datos = rt.List ?? new List<Resin6DTO>();
-
             var rtaa = await _inspectServicio.LimitadosFiltrados(0, 0);
-            Inspects = rtaa.List ?? new List<InspectDTO>();
-
-            provinciasOpts = traductorProvinciaInverso
-                .Where(kv => !string.IsNullOrWhiteSpace(kv.Key))
-                .Select(kv => new ProvinceOption { Code = kv.Key, Name = kv.Value })
-                .OrderBy(p => p.Name)
-                .ToList();
-
-            terminado = true;
-
-            Console.WriteLine($"OnInitializedAsync: cargas iniciales - datos.Count={datos?.Count ?? 0}, Inspects.Count={Inspects?.Count ?? 0}");
+            Inspects = rtaa?.List ?? new List<InspectDTO>();
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Inspects = new List<InspectDTO>();
+            errorMessage = "No se pudo cargar la lista de inspectores. " + ex.Message;
+        }
+
+        BuildInspectIndex();
+
+        provinciasOpts = traductorProvinciaInverso
+            .Where(kv => !string.IsNullOrWhiteSpace(kv.Key))
+            .Select(kv => new ProvinceOption { Code = kv.Key, Name = kv.Value })
+            .OrderBy(p => p.Name)
+            .ToList();
+
+        listasCargadas = true;
+
+        // Precarga del rango por defecto en segundo plano: el primer "Generar" sale al instante.
+        _ = PrecargarAsync();
+    }
+
+    private async Task PrecargarAsync()
+    {
+        try
+        {
+            await EnsureDatosAsync(FechaInicial.Date, FechaFinal.Date);
+        }
+        catch
+        {
+            // Se informa recién cuando el usuario genera (ahí se reintenta la consulta).
+        }
+    }
+
+    private void BuildInspectIndex()
+    {
+        inspectNameByCode = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var i in Inspects ?? new List<InspectDTO>())
+        {
+            var code = (i?.Icod ?? "").Trim();
+            if (code == "" || string.IsNullOrWhiteSpace(i?.Nombre) || inspectNameByCode.ContainsKey(code))
+            {
+                continue;
+            }
+
+            inspectNameByCode[code] = i!.Nombre!;
         }
     }
 
@@ -513,111 +582,268 @@
         provinciasSeleccionadas = Array.Empty<string>();
     }
 
-    public void ConfirmarDatos()
+    /* ==== Carga de datos por rango (con cache) ==== */
+    private Task EnsureDatosAsync(DateTime desde, DateTime hasta)
     {
-        // limpiar error previo
-        validationError = null;
-        loading = true;
+        if (fetchTask != null && fetchRange.HasValue && fetchRange.Value.desde == desde && fetchRange.Value.hasta == hasta)
+        {
+            return fetchTask;
+        }
+
+        fetchRange = (desde, hasta);
+        fetchTask = FetchAsync(desde, hasta);
+        return fetchTask;
+    }
+
+    private async Task FetchAsync(DateTime desde, DateTime hasta)
+    {
         try
         {
-            // Validación de rango de fechas
-            if (FechaInicial > FechaFinal)
+            // El servidor compara contra FREALI con hora: se pide hasta el último tick del día final
+            // y el filtro por fecha (sin hora) se aplica después, como siempre, en ConfirmarDatos.
+            var hastaInclusive = hasta.AddDays(1).AddTicks(-1);
+            var rt = await _resin6Servicio.ObtenerFechas(desde.Ticks, hastaInclusive.Ticks);
+            if (rt == null || (rt.Exito != 1 && rt.List == null))
             {
-                validationError = "La fecha inicial no puede ser mayor que la fecha final.";
-                Console.WriteLine($"ConfirmarDatos: FechaInicial ({FechaInicial}) es mayor que FechaFinal ({FechaFinal}).");
-                loading = false;
-                return;
+                throw new InvalidOperationException(rt?.Mensaje ?? "El servidor no devolvió datos.");
             }
 
-            // Asegurar listas no nulas
-            datos = datos ?? new List<Resin6DTO>();
-            Inspects = Inspects ?? new List<InspectDTO>();
+            datos = rt.List ?? new List<Resin6DTO>();
+        }
+        catch
+        {
+            // Un rango que falló se vuelve a pedir en el próximo intento.
+            fetchTask = null;
+            fetchRange = null;
+            throw;
+        }
+    }
 
-            Console.WriteLine($"ConfirmarDatos: inicio filtrado - datos.Count={datos.Count}");
+    private string FirmaFiltros()
+    {
+        var insp = (inspectoresSeleccionadosCods ?? Enumerable.Empty<string>())
+            .Select(s => (s ?? "").Trim()).Where(s => s != "").Distinct().OrderBy(s => s, StringComparer.Ordinal);
+        var prov = (provinciasSeleccionadas ?? Enumerable.Empty<string>())
+            .Select(s => (s ?? "").Trim()).Where(s => s != "").Distinct().OrderBy(s => s, StringComparer.Ordinal);
+        return $"{FechaInicial:yyyyMMdd}|{FechaFinal:yyyyMMdd}|{string.Join(",", insp)}|{string.Join(",", prov)}";
+    }
 
-            // 1) Filtrado por fecha (defensivo: revisar Resin1 nulo)
-            var q = datos.Where(x =>
-                x != null &&
-                x.Resin1 != null &&
-                x.Resin1.Freali.HasValue &&
-                x.Resin1.Freali.Value.Date >= FechaInicial.Date &&
-                x.Resin1.Freali.Value.Date <= FechaFinal.Date);
+    private async Task OnGenerarClick()
+    {
+        if (loading) return;
 
-            // 2) Filtros múltiples por códigos
-            var icodsSel = (inspectoresSeleccionadosCods ?? Enumerable.Empty<string>())
-                .Select(s => (s ?? "").Trim()).Where(s => s != "").ToHashSet();
+        validationError = null;
+        if (FechaInicial.Date > FechaFinal.Date)
+        {
+            validationError = "La fecha inicial no puede ser mayor que la fecha final.";
+            return;
+        }
 
-            var provSel = (provinciasSeleccionadas ?? Enumerable.Empty<string>())
-                .Select(s => (s ?? "").Trim()).Where(s => s != "").ToHashSet();
+        var seq = ++requestSeq;
+        loading = true;
+        errorMessage = null;
 
-            if (icodsSel.Count > 0)
-            {
-                q = q.Where(x => icodsSel.Contains(((x.Resin1?.Icod) ?? "").Trim()));
-                Console.WriteLine($"ConfirmarDatos: aplicando filtro inspectores ({icodsSel.Count} seleccionados)");
-            }
+        try
+        {
+            await EnsureDatosAsync(FechaInicial.Date, FechaFinal.Date);
+            if (seq != requestSeq) return; // respuesta vieja: ya hay otra generación en curso
 
-            if (provSel.Count > 0)
-            {
-                q = q.Where(x => provSel.Contains(((x.Resin1?.Establecimiento?.Codpro) ?? "").Trim()));
-                Console.WriteLine($"ConfirmarDatos: aplicando filtro provincias ({provSel.Count} seleccionadas)");
-            }
-
-            // 3) Materializamos la lista filtrada
-            listaFiltrada = q.ToList();
-            Console.WriteLine($"ConfirmarDatos: listaFiltrada.Count={listaFiltrada.Count}");
-
-            // 4) Limpiamos pivotes y acumulamos en O(n)
-            totalesGeneral = new();
-            byProvince.Clear();
-            byInspector.Clear();
-            byMonth.Clear();
-            byMonthProvince.Clear();
-            byMonthInspector.Clear();
-
-            foreach (var x in listaFiltrada)
-            {
-                try
-                {
-                    if (x?.Resin1 == null)
-                    {
-                        Console.WriteLine("ConfirmarDatos: elemento en listaFiltrada con Resin1 nulo, ignorado.");
-                        continue;
-                    }
-
-                    totalesGeneral.AddFrom(x);
-
-                    var provKey = NormalizeProvKey(x.Resin1.Establecimiento?.Codpro);
-                    var inspKey = NormalizeInspKey(x.Resin1.Icod);
-                    var mKey = MonthKey(x.Resin1.Freali);
-
-                    GetOrCreate(byProvince, provKey).AddFrom(x);
-                    GetOrCreate(byInspector, inspKey).AddFrom(x);
-                    GetOrCreate(byMonth, mKey).AddFrom(x);
-                    GetOrCreate(byMonthProvince, (mKey, provKey)).AddFrom(x);
-                    GetOrCreate(byMonthInspector, (mKey, inspKey)).AddFrom(x);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"ConfirmarDatos: error procesando elemento - {ex.Message}");
-                }
-            }
-
-            confirmado = true;
+            ConfirmarDatos();
+            PrepararVistas();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al confirmar los datos: {ex.Message}");
+            if (seq == requestSeq)
+            {
+                errorMessage = "No se pudo generar el informe. " + ex.Message;
+            }
         }
-        loading = false;
+        finally
+        {
+            if (seq == requestSeq)
+            {
+                loading = false;
+            }
+        }
     }
 
-    
+    public void ConfirmarDatos()
+    {
+        // Asegurar listas no nulas
+        datos = datos ?? new List<Resin6DTO>();
+        Inspects = Inspects ?? new List<InspectDTO>();
+
+        // 1) Filtrado por fecha (defensivo: revisar Resin1 nulo)
+        var q = datos.Where(x =>
+            x != null &&
+            x.Resin1 != null &&
+            x.Resin1.Freali.HasValue &&
+            x.Resin1.Freali.Value.Date >= FechaInicial.Date &&
+            x.Resin1.Freali.Value.Date <= FechaFinal.Date);
+
+        // 2) Filtros múltiples por códigos
+        var icodsSel = (inspectoresSeleccionadosCods ?? Enumerable.Empty<string>())
+            .Select(s => (s ?? "").Trim()).Where(s => s != "").ToHashSet();
+
+        var provSel = (provinciasSeleccionadas ?? Enumerable.Empty<string>())
+            .Select(s => (s ?? "").Trim()).Where(s => s != "").ToHashSet();
+
+        if (icodsSel.Count > 0)
+        {
+            q = q.Where(x => icodsSel.Contains(((x.Resin1?.Icod) ?? "").Trim()));
+        }
+
+        if (provSel.Count > 0)
+        {
+            q = q.Where(x => provSel.Contains(((x.Resin1?.Establecimiento?.Codpro) ?? "").Trim()));
+        }
+
+        // 3) Materializamos la lista filtrada
+        listaFiltrada = q.ToList();
+
+        // 4) Limpiamos pivotes y acumulamos en O(n)
+        totalesGeneral = new();
+        byProvince.Clear();
+        byInspector.Clear();
+        byMonth.Clear();
+        byMonthProvince.Clear();
+        byMonthInspector.Clear();
+
+        foreach (var x in listaFiltrada)
+        {
+            if (x?.Resin1 == null)
+            {
+                continue;
+            }
+
+            totalesGeneral.AddFrom(x);
+
+            var provKey = NormalizeProvKey(x.Resin1.Establecimiento?.Codpro);
+            var inspKey = NormalizeInspKey(x.Resin1.Icod);
+            var mKey = MonthKey(x.Resin1.Freali);
+
+            GetOrCreate(byProvince, provKey).AddFrom(x);
+            GetOrCreate(byInspector, inspKey).AddFrom(x);
+            GetOrCreate(byMonth, mKey).AddFrom(x);
+            GetOrCreate(byMonthProvince, (mKey, provKey)).AddFrom(x);
+            GetOrCreate(byMonthInspector, (mKey, inspKey)).AddFrom(x);
+        }
+
+        resultadoDesde = FechaInicial.Date;
+        resultadoHasta = FechaFinal.Date;
+        resultadoInspectores = icodsSel.Count;
+        resultadoProvincias = provSel.Count;
+        resultadoFirma = FirmaFiltros();
+        confirmado = true;
+    }
+
+    /// <summary>
+    /// Arma las listas que renderizan las tablas (mismo orden que antes y que el Excel) una sola vez
+    /// por generación, en vez de recalcular LINQ en cada render.
+    /// </summary>
+    private void PrepararVistas()
+    {
+        provinceRows = byProvince
+            .Where(kv => !kv.Value.IsAllZero)
+            .OrderByDescending(kv => kv.Value.TotalPresentadas)
+            .Select(kv => new InspeccionRow(kv.Key, SafeProvName(kv.Key), null, kv.Value))
+            .ToList();
+
+        inspectorRows = byInspector
+            .Where(kv => !kv.Value.IsAllZero)
+            .OrderByDescending(kv => kv.Value.TotalPresentadas)
+            .Select(kv => new InspeccionRow(kv.Key, SafeInspName(kv.Key), null, kv.Value))
+            .ToList();
+
+        monthRows = byMonth
+            .Where(kv => !kv.Value.IsAllZero)
+            .OrderBy(kv => kv.Key)
+            .Select(kv => new InspeccionRow(kv.Key, kv.Key, null, kv.Value))
+            .ToList();
+
+        monthProvinceRows = byMonthProvince
+            .Where(kv => !kv.Value.IsAllZero)
+            .OrderBy(kv => kv.Key.month)
+            .ThenByDescending(kv => kv.Value.TotalPresentadas)
+            .Select(kv => new InspeccionRow($"{kv.Key.month}|{kv.Key.prov}", kv.Key.month, SafeProvName(kv.Key.prov), kv.Value))
+            .ToList();
+
+        monthInspectorRows = byMonthInspector
+            .Where(kv => !kv.Value.IsAllZero)
+            .OrderBy(kv => kv.Key.month)
+            .ThenByDescending(kv => kv.Value.TotalPresentadas)
+            .Select(kv => new InspeccionRow($"{kv.Key.month}|{kv.Key.insp}", kv.Key.month, SafeInspName(kv.Key.insp), kv.Value))
+            .ToList();
+
+        // Resumen especial cuando hay exactamente un inspector seleccionado (misma regla de siempre).
+        var icodsSel = (inspectoresSeleccionadosCods ?? Array.Empty<string>())
+            .Select(s => (s ?? "").Trim()).Where(s => s != "").Distinct().ToList();
+        var teniaResumen = inspectorResumen != null;
+        inspectorResumen = null;
+        if (icodsSel.Count == 1)
+        {
+            var inspCode = icodsSel[0];
+            inspectorResumen = new InspectorResumen
+            {
+                Nombre = SafeInspName(inspCode),
+                General = byInspector.TryGetValue(inspCode, out var vv) ? vv : new InspeccionCounters(),
+                PorProvincia = listaFiltrada.Where(x => (x.Resin1?.Icod ?? "").Trim() == inspCode)
+                    .GroupBy(x => (x.Resin1?.Establecimiento?.Codpro ?? "").Trim())
+                    .Select(g => new { prov = g.Key, c = Aggregate(g) })
+                    .Where(r => !r.c.IsAllZero)
+                    .OrderByDescending(r => r.c.TotalPresentadas)
+                    .Select(r => new InspeccionRow(r.prov, SafeProvName(r.prov), null, r.c))
+                    .ToList()
+            };
+        }
+
+        tabs = new List<TabInfo>();
+        if (inspectorResumen != null)
+        {
+            tabs.Add(new TabInfo(TabInspector, $"Inspector: {inspectorResumen.Nombre}", inspectorResumen.PorProvincia.Count));
+        }
+        if (provinceRows.Count > 0) tabs.Add(new TabInfo(TabProvincia, "Por provincia", provinceRows.Count));
+        if (inspectorRows.Count > 0) tabs.Add(new TabInfo(TabInspectores, "Por inspector", inspectorRows.Count));
+        if (monthRows.Count > 0) tabs.Add(new TabInfo(TabMes, "Evolución mensual", monthRows.Count));
+        if (monthProvinceRows.Count > 0) tabs.Add(new TabInfo(TabMesProvincia, "Mensual por provincia", monthProvinceRows.Count));
+        if (monthInspectorRows.Count > 0) tabs.Add(new TabInfo(TabMesInspector, "Mensual por inspector", monthInspectorRows.Count));
+
+        // El resumen del inspector se muestra apenas aparece; en el resto de los casos se respeta el tab elegido.
+        if (inspectorResumen != null && !teniaResumen)
+        {
+            activeTab = TabInspector;
+        }
+        if (tabs.All(t => t.Key != activeTab))
+        {
+            activeTab = tabs.FirstOrDefault()?.Key ?? TabProvincia;
+        }
+    }
+
+    private async Task OnTabKeyDown(KeyboardEventArgs args)
+    {
+        if (tabs.Count == 0) return;
+        var index = tabs.FindIndex(t => t.Key == activeTab);
+        var target = args.Key switch
+        {
+            "ArrowRight" => (index + 1) % tabs.Count,
+            "ArrowLeft" => (index - 1 + tabs.Count) % tabs.Count,
+            "Home" => 0,
+            "End" => tabs.Count - 1,
+            _ => -1
+        };
+        if (target < 0) return;
+
+        activeTab = tabs[target].Key;
+        if (tabRefs.TryGetValue(activeTab, out var element))
+        {
+            await element.FocusAsync();
+        }
+    }
 
     private async Task DescargarExcel()
     {
         if (!byProvince.Any() && !byInspector.Any() && !byMonth.Any())
         {
-            Console.WriteLine("No hay datos para exportar.");
             return;
         }
 
@@ -634,8 +860,6 @@
 
         using var excel = new ExcelPackage();
         var wb = excel.Workbook;
-
-        
 
         // ==== Sheet 1: General ====
         {
@@ -796,7 +1020,7 @@
 
             ws.Cells[1, 1, Math.Max(2, r - 1), headers.Length].AutoFitColumns();
         }
-       
+
         // ==== Sheet 4: Mensual (General) ====
         if (Activos(byInspector, v => v.IsAllZero) != 1)
                     {
@@ -971,7 +1195,6 @@
         var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         var url = $"data:{contentType};base64,{Convert.ToBase64String(fileBytes)}";
 
-        Console.WriteLine($"DescargarExcel: preparando a invocar saveAsFile - tamaño(bytes)={fileBytes?.Length ?? 0}");
         await _js.InvokeVoidAsync("saveAsFile", fileName, url);
     }
 
@@ -990,82 +1213,67 @@
         byMonth.Clear();
         byMonthProvince.Clear();
         byMonthInspector.Clear();
+        provinceRows = new();
+        inspectorRows = new();
+        monthRows = new();
+        monthProvinceRows = new();
+        monthInspectorRows = new();
+        inspectorResumen = null;
+        tabs = new();
+        activeTab = TabProvincia;
 
         confirmado = false;
-        terminado = true;
         loading = false;
         validationError = null;
-    }
-
-    private async Task OnGenerarClick()
-    {
-        if (loading || confirmado) return;
-        loading = true; StateHasChanged();
-        try { ConfirmarDatos(); }
-        finally { loading = false; StateHasChanged(); }
+        errorMessage = null;
     }
 
     private async Task OnDescargarClick()
     {
         if (download) return;
-        download = true; StateHasChanged();
-        try { await DescargarExcel(); }
-        finally { download = false; StateHasChanged(); }
+        download = true;
+        errorMessage = null;
+        try
+        {
+            await DescargarExcel();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "No se pudo generar el Excel. " + ex.Message;
+        }
+        finally
+        {
+            download = false;
+        }
     }
 
+    /// <summary>
+    /// PDF vía impresión del navegador: mientras se imprime se muestran todos los desgloses completos
+    /// (sin tabs ni paginación) y después se vuelve a la vista normal.
+    /// </summary>
     private async Task Print()
-        => await _js.InvokeVoidAsync("window.print");
-
-    /* ======== MÉTRICAS NORMALIZADAS ======== */
-    class Counters
     {
-        // PR
-        public int prPres, prMarc;
-        // VIP
-        public int vipPres, vipMarc;
-        // SCP
-        public int scpPres, scpMarc;
-        // CP
-        public int cpPres, cpMarc, cpSBarra;
-
-        public int prRech => Math.Max(0, prPres - prMarc);
-        public int vipRech => Math.Max(0, vipPres - vipMarc);
-        public int scpRech => Math.Max(0, scpPres - scpMarc);
-        public int cpRech => Math.Max(0, cpPres - cpMarc);
-
-        public int TotalPresentadas => prPres + vipPres + scpPres + cpPres;
-
-        public void AddFrom(Resin6DTO x)
+        if (!confirmado || printing) return;
+        printing = true;
+        StateHasChanged();
+        await Task.Delay(80);
+        try
         {
-            // defensivo: convertir a int cualquier valor nullable
-            prPres += Convert.ToInt32(x.Hdp ?? 0);
-            prMarc += Convert.ToInt32((x.HdpM ?? 0) + (x.HdpAs ?? 0));
-
-            vipPres += Convert.ToInt32((x.Hgvp ?? 0) + (x.Hgqp ?? 0));
-            vipMarc += Convert.ToInt32((x.Hgvb ?? 0) + (x.Hgqb ?? 0));
-
-            scpPres += Convert.ToInt32(x.Mcp ?? 0);
-            scpMarc += Convert.ToInt32((x.McpM ?? 0) + (x.McpAs ?? 0));
-
-            cpPres += Convert.ToInt32(x.Msp ?? 0);
-            cpMarc += Convert.ToInt32((x.MspM ?? 0) + (x.MspAs ?? 0));
-            cpSBarra += Convert.ToInt32(x.Mspsb ?? 0);
+            await _js.InvokeVoidAsync("window.print");
         }
-
-        public bool IsAllZero =>
-            prPres == 0 && prMarc == 0 &&
-            vipPres == 0 && vipMarc == 0 &&
-            scpPres == 0 && scpMarc == 0 &&
-            cpPres == 0 && cpMarc == 0 && cpSBarra == 0;
+        finally
+        {
+            printing = false;
+        }
     }
 
     /* ======== DICCIONARIOS DE PIVOTE ======== */
-    Counters totalesGeneral = new();
-    Dictionary<string, Counters> byProvince = new();             // provCode -> Counters
-    Dictionary<string, Counters> byInspector = new();            // inspCode -> Counters
-    Dictionary<string, Counters> byMonth = new();                // "yyyy-MM" -> Counters
-    Dictionary<(string month, string prov), Counters> byMonthProvince = new();
-    Dictionary<(string month, string insp), Counters> byMonthInspector = new();
+    InspeccionCounters totalesGeneral = new();
+    Dictionary<string, InspeccionCounters> byProvince = new();             // provCode -> Counters
+    Dictionary<string, InspeccionCounters> byInspector = new();            // inspCode -> Counters
+    Dictionary<string, InspeccionCounters> byMonth = new();                // "yyyy-MM" -> Counters
+    Dictionary<(string month, string prov), InspeccionCounters> byMonthProvince = new();
+    Dictionary<(string month, string insp), InspeccionCounters> byMonthInspector = new();
 
     /* ======== HELPERS ======== */
     static TTarget GetOrCreate<TKey, TTarget>(Dictionary<TKey, TTarget> dict, TKey key)
@@ -1096,11 +1304,10 @@
 
     string SafeInspName(string? code)
     {
-        var mapInspect = (Inspects ?? new List<InspectDTO>()).GroupBy(i => i.Icod)
-            .ToDictionary(g => g.Key ?? "", g => g.First().Nombre ?? "");
-        return mapInspect.TryGetValue((code ?? "").Trim(), out var n) && !string.IsNullOrWhiteSpace(n)
+        return inspectNameByCode.TryGetValue((code ?? "").Trim(), out var n) && !string.IsNullOrWhiteSpace(n)
             ? n : "(Sin inspector)";
     }
+
     string NormalizeProvKey(string? code)
     {
         var c = (code ?? "").Trim();
@@ -1108,23 +1315,20 @@
         if (traductorProvinciaInverso.TryGetValue(c, out var name) && !string.IsNullOrWhiteSpace(name))
             return c;
         // Si no, mando a una clave canónica
-        Console.WriteLine($"NormalizeProvKey: codigo de provincia desconocido o vacio ('{c}'), usando __NONE_PROV__");
         return "__NONE_PROV__";
     }
 
     string NormalizeInspKey(string? code)
     {
         var c = (code ?? "").Trim();
-        var exists = (Inspects ?? new List<InspectDTO>())
-            .Any(i => ((i.Icod ?? "").Trim()) == c && !string.IsNullOrWhiteSpace(i.Nombre));
-        if (exists && c != "") return c;
-        Console.WriteLine($"NormalizeInspKey: codigo de inspector desconocido o vacio ('{c}'), usando __NONE_INSP__");
+        if (c != "" && inspectNameByCode.ContainsKey(c)) return c;
         return "__NONE_INSP__";
     }
-    // Helper para “Por Provincia (del inspector)"
-    Counters Aggregate(IEnumerable<Resin6DTO> items)
+
+    // Helper para "Por Provincia (del inspector)"
+    InspeccionCounters Aggregate(IEnumerable<Resin6DTO> items)
     {
-        var c = new Counters();
+        var c = new InspeccionCounters();
         foreach (var x in items) c.AddFrom(x);
         return c;
     }

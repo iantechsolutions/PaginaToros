@@ -17,6 +17,8 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<bool> Eliminar(int id);
         Task<Respuesta<PlantelDTO>> Crear(PlantelDTO entidad);
         Task<bool> Editar(PlantelDTO entidad);
+        /// <summary>Igual que Editar pero devuelve la respuesta completa (mensaje de error del servidor incluido).</summary>
+        Task<Respuesta<PlantelDTO>> EditarConRespuesta(PlantelDTO entidad);
         Task<Respuesta<PlantelDTO>> Filtrar(string descripcion);
     }
 }

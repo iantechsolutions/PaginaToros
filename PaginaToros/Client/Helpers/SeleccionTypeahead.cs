@@ -1,4 +1,4 @@
-namespace PaginaToros.Client.Helpers
+﻿namespace PaginaToros.Client.Helpers
 {
     /// <summary>
     /// Corre el trabajo pesado que dispara una seleccion de BlazoredTypeahead FUERA del
@@ -98,6 +98,21 @@ namespace PaginaToros.Client.Helpers
             finally
             {
                 _enCurso = false;
+            }
+
+            // El refresco de adentro del bucle corre con EnCurso todavia en true: lo que esta
+            // atado a EnCurso (p. ej. el boton Aceptar deshabilitado) quedaba asi hasta que algun
+            // otro evento volviera a renderizar. Se refresca una vez mas ya con EnCurso en false.
+            if (refrescarUi != null)
+            {
+                try
+                {
+                    await refrescarUi();
+                }
+                catch
+                {
+                    // el componente pudo haberse cerrado mientras corria el request
+                }
             }
         }
     }

@@ -11,6 +11,17 @@ using System.Dynamic;
 using System.Reflection;
 namespace PaginaToros.Server.Controllers
 {
+    /// <summary>
+    /// Transferencias de toros entre razones sociales (o entre establecimientos de la misma).
+    /// Contrato de respuesta: <c>Exito = 1</c> SOLO cuando la operacion termino bien. Todo error
+    /// (validacion, permisos, persistencia) devuelve <c>Exito = 0</c> con un status HTTP de error:
+    /// 400 para rechazos de negocio, 403 sin permisos, 404 si no existe, 500 si fallo la base.
+    /// El cliente (AddTransSb) muestra <c>Mensaje</c> y no toca el estado del toro en pantalla.
+    /// Un 500 lleva SIEMPRE un mensaje funcional generico (<see cref="ErrorInterno{T}"/>): el detalle
+    /// tecnico (SQL, columnas, excepcion EF/MariaDB, stack trace) va unicamente al log del servidor.
+    /// Los rechazos de negocio se señalan con <see cref="TransferenciaRechazadaException"/>, asi el 400
+    /// solo puede llevar mensajes escritos aca y nunca el texto de una excepcion de EF.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class TranssbController : ControllerBase
@@ -19,18 +30,21 @@ namespace PaginaToros.Server.Controllers
         private readonly ITranssbRepositorio _transsbRepositorio;
         private readonly hereford_prContext _db;
         private readonly IUserSocioContextService _userSocioContextService;
+        private readonly ILogger<TranssbController> _logger;
 
         public TranssbController(
             ITranssbRepositorio transsbRepositorio,
             ITorosRepositorio torosRepositorio,
             IMapper mapper,
             hereford_prContext db,
-            IUserSocioContextService userSocioContextService)
+            IUserSocioContextService userSocioContextService,
+            ILogger<TranssbController> logger)
         {
             _mapper = mapper;
             _transsbRepositorio = transsbRepositorio;
             _db = db;
             _userSocioContextService = userSocioContextService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -60,8 +74,8 @@ namespace PaginaToros.Server.Controllers
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<TranssbDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                _logger.LogError(ex, "Transsb.Lista falló. Skip={Skip} Take={Take}", skip, take);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorInterno<List<TranssbDTO>>("obtener las transferencias"));
             }
         }
 
@@ -97,8 +111,8 @@ namespace PaginaToros.Server.Controllers
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<int>() { Exito = 1, Mensaje = ex.Message, List = 0 };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                _logger.LogError(ex, "Transsb.CantidadTotal falló.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorInterno<int>("obtener la cantidad de transferencias"));
             }
         }
         [HttpGet]
@@ -166,13 +180,8 @@ namespace PaginaToros.Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[TranssbController] Error: {ex}");
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    Exito = 0,
-                    Mensaje = ex.Message,
-                    List = (List<TranssbDTO>?)null
-                });
+                _logger.LogError(ex, "Transsb.LimitadosFiltrados falló. Skip={Skip} Take={Take}", skip, take);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorInterno<List<TranssbDTO>>("obtener las transferencias"));
             }
         }
 
@@ -206,8 +215,8 @@ namespace PaginaToros.Server.Controllers
             }
             catch (Exception ex)
             {
-                _ResponseDTO = new Respuesta<List<TranssbDTO>>() { Exito = 1, Mensaje = ex.Message, List = null };
-                return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
+                _logger.LogError(ex, "Transsb.LimitadosFiltradosNoInclude falló. Skip={Skip} Take={Take}", skip, take);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorInterno<List<TranssbDTO>>("obtener las transferencias"));
             }
         }
 
@@ -229,22 +238,24 @@ namespace PaginaToros.Server.Controllers
 
                     bool respuesta = await _transsbRepositorio.Eliminar(_TranssbEliminar);
 
-                    if (respuesta)
-                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
-                    else
-                        _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "No se pudo eliminar el identificador", List = "" };
+                    if (!respuesta)
+                    {
+                        return BadRequest(new Respuesta<string>() { Exito = 0, Mensaje = "No se pudo eliminar el identificador", List = "" });
+                    }
+
+                    _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = "ok", List = "" };
                 }
                 else
                 {
-                    _Respuesta = new Respuesta<string>() { Exito = 0, Mensaje = "No se encontró el identificador", List = "" };
+                    return NotFound(new Respuesta<string>() { Exito = 0, Mensaje = "No se encontró el identificador", List = "" });
                 }
 
                 return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<string>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                _logger.LogError(ex, "Transsb.Eliminar falló. TranssbId={TranssbId}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorInterno<string>("eliminar la transferencia"));
             }
         }
 
@@ -276,17 +287,28 @@ namespace PaginaToros.Server.Controllers
                     await transaction.CommitAsync();
                 });
 
-                if (_TranssbCreado.Id != 0)
-                    _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TranssbDTO>(_TranssbCreado) };
-                else
-                    _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "No se pudo crear el identificador" };
+                if (_TranssbCreado.Id == 0)
+                {
+                    return BadRequest(new Respuesta<TranssbDTO>() { Exito = 0, Mensaje = "No se pudo crear el identificador" });
+                }
 
+                _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TranssbDTO>(_TranssbCreado) };
                 return StatusCode(StatusCodes.Status200OK, _Respuesta);
+            }
+            catch (TransferenciaRechazadaException ex)
+            {
+                // Rechazo de negocio (socio inexistente, establecimiento ajeno, toro de otro dueño,
+                // mismo establecimiento de origen y destino...). La transaccion no se confirmo:
+                // ni la transferencia ni el toro cambiaron. El mensaje es nuestro, no de EF/MariaDB.
+                return BadRequest(new Respuesta<TranssbDTO>() { Exito = 0, Mensaje = ex.Message });
             }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                // Base, EF o infraestructura: el detalle (p. ej. "Data too long for column 'X'") queda
+                // en el log; el cliente recibe un mensaje funcional. La transaccion no se confirmo.
+                _logger.LogError(ex, "Transsb.Guardar falló. Sven={Sven} Scom={Scom} Ecod={Ecod} Toro={Toro}",
+                    request?.Sven, request?.Scom, request?.Ecod, request?.Torovendido);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorInterno<TranssbDTO>("guardar la transferencia"));
             }
         }
 
@@ -350,27 +372,68 @@ namespace PaginaToros.Server.Controllers
                         await transaction.CommitAsync();
                     });
 
-                    if (respuesta)
-                        _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TranssbDTO>(_TranssbParaEditar) };
-                    else
-                        _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "No se pudo editar el identificador" };
+                    if (!respuesta)
+                    {
+                        return BadRequest(new Respuesta<TranssbDTO>() { Exito = 0, Mensaje = "No se pudo editar el identificador" });
+                    }
+
+                    _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "ok", List = _mapper.Map<TranssbDTO>(_TranssbParaEditar) };
                 }
                 else
                 {
-                    _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = "No se encontró el identificador" };
+                    return NotFound(new Respuesta<TranssbDTO>() { Exito = 0, Mensaje = "No se encontró el identificador" });
                 }
 
                 return StatusCode(StatusCodes.Status200OK, _Respuesta);
             }
+            catch (TransferenciaRechazadaException ex)
+            {
+                // Rechazo de negocio (socio inexistente, establecimiento ajeno, toro de otro dueño,
+                // mismo establecimiento de origen y destino...). La transaccion no se confirmo:
+                // ni la transferencia ni el toro cambiaron. El mensaje es nuestro, no de EF/MariaDB.
+                return BadRequest(new Respuesta<TranssbDTO>() { Exito = 0, Mensaje = ex.Message });
+            }
             catch (Exception ex)
             {
-                _Respuesta = new Respuesta<TranssbDTO>() { Exito = 1, Mensaje = ex.Message };
-                return StatusCode(StatusCodes.Status500InternalServerError, _Respuesta);
+                // Base, EF o infraestructura: el detalle (p. ej. "Data too long for column 'X'") queda
+                // en el log; el cliente recibe un mensaje funcional. La transaccion no se confirmo.
+                _logger.LogError(ex, "Transsb.Editar falló. TranssbId={TranssbId} Sven={Sven} Scom={Scom} Ecod={Ecod} Toro={Toro}",
+                    request?.Id, request?.Sven, request?.Scom, request?.Ecod, request?.Torovendido);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorInterno<TranssbDTO>("editar la transferencia"));
             }
         }
 
+        /// <summary>Ancho de TRANSSB.NRO_TRANS (varchar(6), ver hereford_prContext).</summary>
+        private const int NroTransMaxLength = 6;
+
         private static bool RequiresActiveSocioScope(UserSocioAccessContext accessContext)
             => accessContext.IsSocioUser && !accessContext.IsPrivilegedUser;
+
+        /// <summary>
+        /// Respuesta de un 500. El texto es fijo y funcional: no se usa <c>ex.Message</c> ni la excepcion
+        /// raiz porque traen nombres de columnas, SQL o mensajes del motor ("Data too long for column
+        /// 'ECOD'", FK violada, timeouts...). El detalle real se loguea en el catch que llama a esto.
+        /// </summary>
+        private static Respuesta<T> ErrorInterno<T>(string accionFallida)
+            => new Respuesta<T>
+            {
+                Exito = 0,
+                Mensaje = $"No se pudo {accionFallida} por un error interno del servidor. " +
+                          "Intentá nuevamente y, si el problema persiste, contactá al administrador."
+            };
+
+        /// <summary>
+        /// Rechazo de negocio de una transferencia (dato faltante, socio/establecimiento/toro que no
+        /// corresponde). Es el UNICO tipo que termina en un 400 con su mensaje: una
+        /// InvalidOperationException cualquiera (EF las usa para errores internos de tracking,
+        /// conexion, etc.) cae en el catch generico y se responde como 500 sin exponer el texto.
+        /// </summary>
+        private sealed class TransferenciaRechazadaException : InvalidOperationException
+        {
+            public TransferenciaRechazadaException(string message) : base(message)
+            {
+            }
+        }
 
         private static void NormalizeTransfer(TranssbDTO? request)
         {
@@ -392,53 +455,60 @@ namespace PaginaToros.Server.Controllers
         {
             if (request is null)
             {
-                throw new InvalidOperationException("No se recibieron datos de la transferencia.");
+                throw new TransferenciaRechazadaException("No se recibieron datos de la transferencia.");
             }
 
             if (string.IsNullOrWhiteSpace(request.Sven))
             {
-                throw new InvalidOperationException("Debe seleccionar un socio vendedor.");
+                throw new TransferenciaRechazadaException("Debe seleccionar un socio vendedor.");
             }
 
             if (string.IsNullOrWhiteSpace(request.Scom))
             {
-                throw new InvalidOperationException("Debe seleccionar un socio comprador.");
+                throw new TransferenciaRechazadaException("Debe seleccionar un socio comprador.");
             }
 
             if (!request.Torovendido.HasValue || request.Torovendido.Value <= 0)
             {
-                throw new InvalidOperationException("Debe seleccionar un toro válido.");
+                throw new TransferenciaRechazadaException("Debe seleccionar un toro válido.");
             }
 
-            if (string.Equals(request.Sven, request.Scom, StringComparison.OrdinalIgnoreCase))
+            // TRANSSB.NRO_TRANS es varchar(6): se rechaza con un mensaje claro en vez de dejar que la
+            // base conteste "Data too long for column".
+            if (request.NroTrans.Length > NroTransMaxLength)
             {
-                throw new InvalidOperationException("El socio comprador debe ser distinto del vendedor.");
+                throw new TransferenciaRechazadaException($"El número de certificado no puede superar los {NroTransMaxLength} caracteres.");
             }
+
+            // Misma razon social: solo se admite como movimiento entre establecimientos propios
+            // (el toro cambia de campo sin cambiar de dueño). Se valida mas abajo, cuando ya se
+            // conocen el establecimiento destino y el toro.
+            var mismoSocio = string.Equals(request.Sven, request.Scom, StringComparison.OrdinalIgnoreCase);
 
             var vendedorExiste = await _db.Socios.AnyAsync(x => x.Scod == request.Sven);
             if (!vendedorExiste)
             {
-                throw new InvalidOperationException("El socio vendedor no existe.");
+                throw new TransferenciaRechazadaException("El socio vendedor no existe.");
             }
 
             var compradorExiste = await _db.Socios.AnyAsync(x => x.Scod == request.Scom);
             if (!compradorExiste)
             {
-                throw new InvalidOperationException("El socio comprador no existe.");
+                throw new TransferenciaRechazadaException("El socio comprador no existe.");
             }
 
             if (string.IsNullOrWhiteSpace(request.Ecod))
             {
-                throw new InvalidOperationException("Debe seleccionar un establecimiento válido.");
+                throw new TransferenciaRechazadaException("Debe seleccionar un establecimiento válido.");
             }
 
-            var establecimientoValido = await _db.Estables
+            var establecimientoDestino = await _db.Estables
                 .AsNoTracking()
-                .AnyAsync(x => x.Ecod == request.Ecod && x.Codsoc == request.Scom);
+                .FirstOrDefaultAsync(x => x.Ecod == request.Ecod && x.Codsoc == request.Scom);
 
-            if (!establecimientoValido)
+            if (establecimientoDestino is null)
             {
-                throw new InvalidOperationException("El establecimiento seleccionado no pertenece al socio comprador.");
+                throw new TransferenciaRechazadaException("El establecimiento seleccionado no pertenece al socio comprador.");
             }
 
             var toro = await _db.Torosunis
@@ -447,7 +517,28 @@ namespace PaginaToros.Server.Controllers
 
             if (toro is null)
             {
-                throw new InvalidOperationException("El toro seleccionado no existe.");
+                throw new TransferenciaRechazadaException("El toro seleccionado no existe.");
+            }
+
+            if (mismoSocio)
+            {
+                var mismaTransferencia = existingTransfer is not null
+                    && existingTransfer.Torovendido == request.Torovendido
+                    && string.Equals(existingTransfer.Ecod?.Trim(), request.Ecod, StringComparison.OrdinalIgnoreCase);
+
+                if (!mismaTransferencia && toro.EstablecimientoId.HasValue && toro.EstablecimientoId.Value == establecimientoDestino.Id)
+                {
+                    throw new TransferenciaRechazadaException(
+                        "El socio comprador es el mismo que el vendedor y el toro ya esta en ese establecimiento. " +
+                        "Para un movimiento interno elegi un establecimiento distinto del actual.");
+                }
+
+                if (!mismaTransferencia && !toro.EstablecimientoId.HasValue && string.Equals(toro.Estcod?.Trim(), request.Ecod, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new TransferenciaRechazadaException(
+                        "El socio comprador es el mismo que el vendedor y el toro ya esta en ese establecimiento. " +
+                        "Para un movimiento interno elegi un establecimiento distinto del actual.");
+                }
             }
 
             var ownerCode = toro.Criador?.Trim();
@@ -458,7 +549,7 @@ namespace PaginaToros.Server.Controllers
 
             if (!ownerMatchesSeller && !ownerMatchesPreviousBuyer)
             {
-                throw new InvalidOperationException("El toro seleccionado ya no pertenece al socio vendedor.");
+                throw new TransferenciaRechazadaException("El toro seleccionado ya no pertenece al socio vendedor.");
             }
         }
 
@@ -466,13 +557,13 @@ namespace PaginaToros.Server.Controllers
         {
             if (!request.Torovendido.HasValue)
             {
-                throw new InvalidOperationException("La transferencia no tiene un toro asociado.");
+                throw new TransferenciaRechazadaException("La transferencia no tiene un toro asociado.");
             }
 
             var toro = await _db.Torosunis.FirstOrDefaultAsync(x => x.Id == request.Torovendido.Value);
             if (toro is null)
             {
-                throw new InvalidOperationException("No se encontró el toro a transferir.");
+                throw new TransferenciaRechazadaException("No se encontró el toro a transferir.");
             }
 
             var ownerCode = toro.Criador?.Trim();
@@ -483,7 +574,7 @@ namespace PaginaToros.Server.Controllers
 
             if (!ownerMatchesSeller && !ownerMatchesPreviousBuyer)
             {
-                throw new InvalidOperationException("El toro ya no pertenece al socio vendedor.");
+                throw new TransferenciaRechazadaException("El toro ya no pertenece al socio vendedor.");
             }
 
             Estable? establecimiento = null;
@@ -493,7 +584,7 @@ namespace PaginaToros.Server.Controllers
 
                 if (establecimiento is null)
                 {
-                    throw new InvalidOperationException("No se encontró el establecimiento seleccionado para el socio comprador.");
+                    throw new TransferenciaRechazadaException("No se encontró el establecimiento seleccionado para el socio comprador.");
                 }
             }
 

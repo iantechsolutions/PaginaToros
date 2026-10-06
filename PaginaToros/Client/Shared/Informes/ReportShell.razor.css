@@ -1,0 +1,1223 @@
+/* Sistema visual compartido de los informes (Inspecciones y Planteles).
+   Todo lo que se renderiza dentro de <ReportShell> usa estas clases vía ::deep. */
+
+.rp-shell {
+    --rp-accent: #4b6a45;
+    --rp-accent-dark: #3e5838;
+    --rp-accent-soft: #eef3e8;
+    --rp-accent-border: #c9d6c0;
+    --rp-text: #1f2a17;
+    --rp-muted: #5f6b55;
+    --rp-border: #dde3d6;
+    --rp-border-strong: #c7cfbf;
+    --rp-bg-soft: #f7f9f4;
+    --rp-bg-head: #f0f3ea;
+    --rp-bg-group: #e6ecdf;
+    --rp-danger: #b42318;
+    --rp-ok: #1f7a3a;
+    --rp-warn: #946200;
+    --rp-radius: 10px;
+    color: var(--rp-text);
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.rp-shell ::deep * {
+    box-sizing: border-box;
+}
+
+/* ===== Encabezado ===== */
+.rp-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    flex-wrap: wrap;
+}
+
+.rp-header-copy {
+    min-width: 0;
+}
+
+.rp-title {
+    margin: 0;
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--rp-text);
+}
+
+.rp-subtitle {
+    margin: 0.2rem 0 0;
+    color: var(--rp-muted);
+    font-size: 0.86rem;
+    line-height: 1.35;
+}
+
+.rp-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+/* ===== Botones ===== */
+.rp-shell ::deep .rp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.5rem 0.95rem;
+    min-height: 2.35rem;
+    border-radius: var(--rp-radius);
+    font-weight: 600;
+    font-size: 0.86rem;
+    line-height: 1.2;
+    border: 1px solid var(--rp-border-strong);
+    background: #fff;
+    color: var(--rp-text);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rp-shell ::deep .rp-btn:hover {
+    background: var(--rp-bg-soft);
+    border-color: #aeb9a3;
+}
+
+.rp-shell ::deep .rp-btn:focus-visible,
+.rp-shell ::deep .rp-link-btn:focus-visible,
+.rp-shell ::deep .rp-tab:focus-visible,
+.rp-shell ::deep .rp-year-head:focus-visible,
+.rp-shell ::deep .rp-pager-btn:focus-visible,
+.rp-shell ::deep .rp-menu-item:focus-visible,
+.rp-shell ::deep .rp-segmented button:focus-visible {
+    outline: 2px solid var(--rp-accent);
+    outline-offset: 2px;
+}
+
+.rp-shell ::deep .rp-btn[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.rp-shell ::deep .rp-btn-primary {
+    background: var(--rp-accent);
+    border-color: var(--rp-accent);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(31, 42, 23, 0.18);
+}
+
+.rp-shell ::deep .rp-btn-primary:hover {
+    background: var(--rp-accent-dark);
+    border-color: var(--rp-accent-dark);
+}
+
+.rp-shell ::deep .rp-btn-ghost {
+    background: transparent;
+}
+
+.rp-shell ::deep .rp-btn-sm {
+    padding: 0.3rem 0.6rem;
+    min-height: 1.9rem;
+    font-size: 0.78rem;
+}
+
+.rp-shell ::deep .rp-link-btn {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--rp-accent);
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+}
+
+.rp-shell ::deep .rp-link-btn:hover {
+    color: var(--rp-accent-dark);
+}
+
+.rp-shell ::deep .rp-link-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.rp-shell ::deep .rp-spinner {
+    width: 0.95rem;
+    height: 0.95rem;
+    flex: 0 0 auto;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: rp-spin 0.7s linear infinite;
+}
+
+.rp-shell ::deep .rp-spinner.dark {
+    border-color: rgba(31, 42, 23, 0.2);
+    border-top-color: var(--rp-accent);
+}
+
+@keyframes rp-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ===== Filtros ===== */
+.rp-filters {
+    background: #fff;
+    border: 1px solid var(--rp-border);
+    border-radius: 12px;
+    padding: 0.85rem 1rem 0.9rem;
+}
+
+.rp-shell ::deep .rp-filter-grid {
+    display: grid;
+    gap: 0.75rem 1rem;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: start;
+}
+
+.rp-shell ::deep .rp-col-2 { grid-column: span 2; }
+.rp-shell ::deep .rp-col-3 { grid-column: span 3; }
+.rp-shell ::deep .rp-col-4 { grid-column: span 4; }
+.rp-shell ::deep .rp-col-5 { grid-column: span 5; }
+.rp-shell ::deep .rp-col-6 { grid-column: span 6; }
+.rp-shell ::deep .rp-col-12 { grid-column: 1 / -1; }
+
+.rp-shell ::deep .rp-field {
+    min-width: 0;
+}
+
+.rp-shell ::deep .rp-field-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--rp-muted);
+    margin-bottom: 0.3rem;
+    line-height: 1.2;
+}
+
+.rp-shell ::deep .rp-field-label > span:first-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.rp-shell ::deep .rp-field-aux {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.rp-shell ::deep .rp-field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.rp-shell ::deep .rp-field-sub {
+    font-size: 0.72rem;
+    color: var(--rp-muted);
+    margin-bottom: 0.2rem;
+    display: block;
+}
+
+.rp-shell ::deep .rp-field-hint {
+    font-size: 0.74rem;
+    color: var(--rp-muted);
+    margin-top: 0.3rem;
+    line-height: 1.3;
+}
+
+.rp-shell ::deep .rp-filter-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.7rem;
+    padding-top: 0.6rem;
+    border-top: 1px dashed var(--rp-border);
+    font-size: 0.78rem;
+    color: var(--rp-muted);
+}
+
+.rp-shell ::deep .rp-context-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    background: var(--rp-accent-soft);
+    border: 1px solid var(--rp-accent-border);
+    color: #2f4a2a;
+    font-size: 0.78rem;
+    font-weight: 600;
+    max-width: 100%;
+}
+
+.rp-shell ::deep .rp-context-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rp-shell ::deep .rp-context-chip small {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.64rem;
+    color: var(--rp-muted);
+}
+
+/* Inputs de Radzen dentro de los filtros: ancho completo y tipografía compacta */
+.rp-shell ::deep .rp-field .rz-dropdown,
+.rp-shell ::deep .rp-field .rz-datepicker,
+.rp-shell ::deep .rp-field .rz-textbox {
+    width: 100% !important;
+}
+
+.rp-shell ::deep .rp-field .rz-dropdown-label,
+.rp-shell ::deep .rp-field .rz-datepicker .rz-inputtext,
+.rp-shell ::deep .rp-field .rz-dropdown-item {
+    font-size: 0.86rem;
+}
+
+.rp-shell ::deep .rp-field .rz-dropdown-panel {
+    max-height: 320px !important;
+    overflow: auto !important;
+}
+
+.rp-shell ::deep .rp-field .rz-dropdown.rz-state-disabled,
+.rp-shell ::deep .rp-field .rz-state-disabled {
+    opacity: 0.55;
+}
+
+/* ===== Control segmentado ===== */
+.rp-shell ::deep .rp-segmented {
+    display: inline-flex;
+    padding: 3px;
+    gap: 2px;
+    background: var(--rp-bg-head);
+    border: 1px solid var(--rp-border);
+    border-radius: var(--rp-radius);
+    max-width: 100%;
+}
+
+.rp-shell ::deep .rp-segmented.rp-block {
+    display: flex;
+}
+
+.rp-shell ::deep .rp-segmented button {
+    flex: 1 1 auto;
+    border: 0;
+    background: transparent;
+    padding: 0.42rem 0.65rem;
+    border-radius: 7px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--rp-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.rp-shell ::deep .rp-segmented button:hover {
+    color: var(--rp-text);
+}
+
+.rp-shell ::deep .rp-segmented button[aria-pressed="true"] {
+    background: var(--rp-accent);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(31, 42, 23, 0.2);
+}
+
+.rp-shell ::deep .rp-segmented button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ===== Indicadores resumen ===== */
+.rp-shell ::deep .rp-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.rp-shell ::deep .rp-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.6rem 0.8rem;
+    background: #fff;
+    border: 1px solid var(--rp-border);
+    border-radius: var(--rp-radius);
+    min-width: 0;
+}
+
+.rp-shell ::deep .rp-stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--rp-muted);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rp-shell ::deep .rp-stat-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+    color: var(--rp-text);
+}
+
+.rp-shell ::deep .rp-stat-sub {
+    font-size: 0.74rem;
+    color: var(--rp-muted);
+}
+
+/* ===== Resultados ===== */
+.rp-shell ::deep .rp-results {
+    position: relative;
+    background: #fff;
+    border: 1px solid var(--rp-border);
+    border-radius: 12px;
+    padding: 0.9rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.rp-shell ::deep .rp-results.rp-busy > :not(.rp-busy-badge) {
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+.rp-shell ::deep .rp-busy-badge {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.9rem;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid var(--rp-accent-border);
+    color: var(--rp-accent-dark);
+    font-size: 0.76rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(31, 42, 23, 0.12);
+}
+
+.rp-shell ::deep .rp-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 1rem;
+    font-size: 0.78rem;
+    color: var(--rp-muted);
+}
+
+.rp-shell ::deep .rp-meta strong {
+    color: var(--rp-text);
+    font-weight: 600;
+}
+
+.rp-shell ::deep .rp-overview {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
+    gap: 0.9rem;
+    align-items: start;
+}
+
+.rp-shell ::deep .rp-overview .rp-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rp-shell ::deep .rp-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.rp-shell ::deep .rp-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 0.75rem;
+    flex-wrap: wrap;
+}
+
+.rp-shell ::deep .rp-section-title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--rp-text);
+}
+
+.rp-shell ::deep .rp-section-note {
+    font-size: 0.76rem;
+    color: var(--rp-muted);
+}
+
+.rp-shell ::deep .rp-count {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--rp-muted);
+    background: var(--rp-bg-head);
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    line-height: 1.4;
+}
+
+.rp-shell ::deep .rp-section-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.rp-shell ::deep .rp-search {
+    position: relative;
+    min-width: 240px;
+}
+
+.rp-shell ::deep .rp-search > svg {
+    position: absolute;
+    left: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--rp-muted);
+}
+
+.rp-shell ::deep .rp-search input {
+    width: 100%;
+    padding: 0.42rem 1.9rem 0.42rem 2rem;
+    border: 1px solid var(--rp-border-strong);
+    border-radius: var(--rp-radius);
+    font-size: 0.82rem;
+    background: #fff;
+    color: var(--rp-text);
+}
+
+.rp-shell ::deep .rp-search input:focus {
+    outline: 2px solid var(--rp-accent);
+    outline-offset: 0;
+    border-color: var(--rp-accent);
+}
+
+.rp-shell ::deep .rp-search .rp-search-clear {
+    position: absolute;
+    right: 0.3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    color: var(--rp-muted);
+    padding: 0.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+}
+
+.rp-shell ::deep .rp-search .rp-search-clear:hover {
+    background: var(--rp-bg-head);
+    color: var(--rp-text);
+}
+
+/* ===== Tabs ===== */
+.rp-shell ::deep .rp-tabs {
+    display: flex;
+    gap: 0.15rem;
+    border-bottom: 1px solid var(--rp-border);
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.rp-shell ::deep .rp-tab {
+    border: 0;
+    background: transparent;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--rp-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 6px 6px 0 0;
+    transition: color 0.15s ease, background 0.15s ease;
+}
+
+.rp-shell ::deep .rp-tab:hover {
+    color: var(--rp-text);
+    background: var(--rp-bg-soft);
+}
+
+.rp-shell ::deep .rp-tab[aria-selected="true"] {
+    color: var(--rp-accent-dark);
+    border-bottom-color: var(--rp-accent);
+}
+
+.rp-shell ::deep .rp-tab:focus-visible {
+    outline-offset: -2px;
+}
+
+.rp-shell ::deep .rp-tabpanel {
+    min-width: 0;
+}
+
+/* ===== Tablas ===== */
+.rp-shell ::deep .rp-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--rp-border);
+    border-radius: var(--rp-radius);
+    background: #fff;
+    -webkit-overflow-scrolling: touch;
+}
+
+.rp-shell ::deep .rp-table-wrap.rp-scroll {
+    max-height: 68vh;
+    overflow-y: auto;
+}
+
+.rp-shell ::deep .rp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--rp-text);
+    margin: 0;
+}
+
+.rp-shell ::deep .rp-table th,
+.rp-shell ::deep .rp-table td {
+    padding: 0.36rem 0.55rem;
+    border-bottom: 1px solid var(--rp-border);
+    border-right: 1px solid #edefe8;
+    vertical-align: middle;
+    text-align: left;
+    white-space: nowrap;
+    line-height: 1.3;
+}
+
+.rp-shell ::deep .rp-table tr > :last-child {
+    border-right: 0;
+}
+
+.rp-shell ::deep .rp-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--rp-bg-head);
+    color: #35422d;
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-align: center;
+    border-bottom: 1px solid var(--rp-border-strong);
+    height: 2rem;
+}
+
+.rp-shell ::deep .rp-table thead tr:nth-child(2) th {
+    top: 2rem;
+}
+
+.rp-shell ::deep .rp-table thead .rp-th-group {
+    background: var(--rp-bg-group);
+}
+
+.rp-shell ::deep .rp-table thead .rp-th-group small {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--rp-muted);
+    line-height: 1.1;
+}
+
+.rp-shell ::deep .rp-table thead .rp-th-text,
+.rp-shell ::deep .rp-table .rp-text {
+    text-align: left;
+}
+
+.rp-shell ::deep .rp-table .rp-num {
+    text-align: right;
+}
+
+.rp-shell ::deep .rp-table .rp-center {
+    text-align: center;
+}
+
+.rp-shell ::deep .rp-table .rp-sep {
+    border-left: 2px solid var(--rp-border-strong);
+}
+
+.rp-shell ::deep .rp-table .rp-wrap {
+    white-space: normal;
+    min-width: 160px;
+}
+
+.rp-shell ::deep .rp-table tbody tr:nth-child(even) > * {
+    background: #fbfcf9;
+}
+
+.rp-shell ::deep .rp-table tbody tr:hover > * {
+    background: #f1f5ec;
+}
+
+.rp-shell ::deep .rp-table tbody th[scope="row"] {
+    font-weight: 600;
+    background: #fff;
+}
+
+.rp-shell ::deep .rp-table tbody tr.rp-row-group > th {
+    background: var(--rp-bg-soft);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--rp-muted);
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+}
+
+.rp-shell ::deep .rp-table tfoot th,
+.rp-shell ::deep .rp-table tfoot td {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    background: var(--rp-accent-soft);
+    font-weight: 700;
+    border-top: 2px solid var(--rp-accent-border);
+    border-bottom: 0;
+}
+
+.rp-shell ::deep .rp-table .rp-dim {
+    color: var(--rp-muted);
+    font-weight: 400;
+}
+
+.rp-shell ::deep .rp-table abbr {
+    text-decoration: none;
+    border-bottom: 1px dotted currentColor;
+    cursor: help;
+}
+
+.rp-shell ::deep .rp-table-fit {
+    width: auto;
+    min-width: min(100%, 520px);
+}
+
+.rp-shell ::deep .rp-table-empty td {
+    text-align: center;
+    color: var(--rp-muted);
+    padding: 0.9rem;
+}
+
+/* ===== Estado de planteles ===== */
+.rp-shell ::deep .rp-estado {
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.rp-shell ::deep .rp-estado::before {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: currentColor;
+    flex: 0 0 auto;
+}
+
+.rp-shell ::deep .rp-estado-activo { color: var(--rp-ok); }
+.rp-shell ::deep .rp-estado-inactivo { color: var(--rp-danger); }
+.rp-shell ::deep .rp-estado-mixto { color: var(--rp-warn); }
+
+/* ===== Secciones por año (colapsables) ===== */
+.rp-shell ::deep .rp-year {
+    border: 1px solid var(--rp-border);
+    border-radius: var(--rp-radius);
+    background: #fff;
+}
+
+.rp-shell ::deep .rp-year-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.5rem 0.8rem;
+    border: 0;
+    background: var(--rp-bg-soft);
+    border-radius: var(--rp-radius);
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    color: var(--rp-text);
+}
+
+.rp-shell ::deep .rp-year-head[aria-expanded="true"] {
+    border-radius: var(--rp-radius) var(--rp-radius) 0 0;
+    border-bottom: 1px solid var(--rp-border);
+}
+
+.rp-shell ::deep .rp-year-head:hover {
+    background: var(--rp-bg-head);
+}
+
+.rp-shell ::deep .rp-year-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.rp-shell ::deep .rp-year-meta {
+    margin-left: auto;
+    font-size: 0.76rem;
+    color: var(--rp-muted);
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.rp-shell ::deep .rp-year-chevron {
+    display: inline-flex;
+    transition: transform 0.15s ease;
+    color: var(--rp-muted);
+}
+
+.rp-shell ::deep .rp-year-head[aria-expanded="true"] .rp-year-chevron {
+    transform: rotate(180deg);
+}
+
+.rp-shell ::deep .rp-year-body {
+    padding: 0.6rem 0.7rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+/* ===== Paginador ===== */
+.rp-shell ::deep .rp-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 0.75rem;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: var(--rp-muted);
+}
+
+.rp-shell ::deep .rp-pager-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.rp-shell ::deep .rp-pager-btn {
+    min-width: 1.9rem;
+    height: 1.9rem;
+    padding: 0 0.45rem;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--rp-text);
+    font-size: 0.8rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.rp-shell ::deep .rp-pager-btn:hover {
+    background: var(--rp-bg-head);
+}
+
+.rp-shell ::deep .rp-pager-btn[disabled] {
+    opacity: 0.4;
+    cursor: default;
+    background: transparent;
+}
+
+.rp-shell ::deep .rp-pager-btn.active {
+    border-color: var(--rp-accent);
+    color: var(--rp-accent-dark);
+    font-weight: 700;
+    background: #fff;
+}
+
+.rp-shell ::deep .rp-pager-ellipsis {
+    padding: 0 0.2rem;
+}
+
+.rp-shell ::deep .rp-pager-size-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-weight: 500;
+}
+
+.rp-shell ::deep .rp-pager-size {
+    padding: 0.2rem 0.4rem;
+    border: 1px solid var(--rp-border-strong);
+    border-radius: 7px;
+    font-size: 0.78rem;
+    background: #fff;
+    color: var(--rp-text);
+}
+
+/* ===== Estados vacío / error / carga ===== */
+.rp-shell ::deep .rp-empty {
+    padding: 1.3rem 1rem;
+    text-align: center;
+    color: var(--rp-muted);
+    border: 1px dashed var(--rp-border-strong);
+    border-radius: var(--rp-radius);
+    background: var(--rp-bg-soft);
+    font-size: 0.86rem;
+}
+
+.rp-shell ::deep .rp-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: var(--rp-radius);
+    font-size: 0.84rem;
+    border: 1px solid;
+    flex-wrap: wrap;
+}
+
+.rp-shell ::deep .rp-alert-error {
+    background: #fff4f2;
+    border-color: #f3c2b9;
+    color: #8a2419;
+}
+
+.rp-shell ::deep .rp-alert-warn {
+    background: #fff8e6;
+    border-color: #f0dca0;
+    color: #6f4a00;
+}
+
+.rp-shell ::deep .rp-alert-info {
+    background: var(--rp-accent-soft);
+    border-color: var(--rp-accent-border);
+    color: #2f4a2a;
+}
+
+.rp-shell ::deep .rp-alert .rp-btn {
+    margin-left: auto;
+}
+
+.rp-shell ::deep .rp-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.rp-shell ::deep .rp-skeleton > span {
+    display: block;
+    height: 0.95rem;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #eef1ea 0%, #f8faf5 50%, #eef1ea 100%);
+    background-size: 200% 100%;
+    animation: rp-shimmer 1.2s ease-in-out infinite;
+}
+
+.rp-shell ::deep .rp-skeleton > span:nth-child(1) { width: 38%; height: 1.4rem; }
+.rp-shell ::deep .rp-skeleton > span:nth-child(2) { width: 100%; height: 2rem; }
+.rp-shell ::deep .rp-skeleton > span:nth-child(3) { width: 100%; }
+.rp-shell ::deep .rp-skeleton > span:nth-child(4) { width: 92%; }
+.rp-shell ::deep .rp-skeleton > span:nth-child(5) { width: 96%; }
+
+@keyframes rp-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ===== Menú de exportación ===== */
+.rp-shell ::deep .rp-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.rp-shell ::deep .rp-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background: transparent;
+}
+
+.rp-shell ::deep .rp-menu-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.3rem);
+    z-index: 1050;
+    min-width: 200px;
+    background: #fff;
+    border: 1px solid var(--rp-border);
+    border-radius: var(--rp-radius);
+    box-shadow: 0 10px 28px rgba(31, 42, 23, 0.14);
+    padding: 0.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.rp-shell ::deep .rp-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.65rem;
+    border: 0;
+    background: transparent;
+    border-radius: 7px;
+    font-size: 0.84rem;
+    color: var(--rp-text);
+    cursor: pointer;
+}
+
+.rp-shell ::deep .rp-menu-item:hover {
+    background: var(--rp-bg-soft);
+}
+
+.rp-shell ::deep .rp-menu-item[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ===== Utilidades ===== */
+.rp-shell ::deep .rp-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.rp-shell ::deep .rp-print-only {
+    display: none;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1199.98px) {
+    .rp-shell ::deep .rp-filter-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .rp-shell ::deep .rp-col-2 { grid-column: span 2; }
+    .rp-shell ::deep .rp-col-3 { grid-column: span 3; }
+    .rp-shell ::deep .rp-col-4 { grid-column: span 3; }
+    .rp-shell ::deep .rp-col-5,
+    .rp-shell ::deep .rp-col-6 { grid-column: span 6; }
+
+    .rp-shell ::deep .rp-overview {
+        grid-template-columns: 1fr;
+    }
+
+    .rp-shell ::deep .rp-overview .rp-stats {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767.98px) {
+    .rp-shell {
+        gap: 0.7rem;
+    }
+
+    .rp-title {
+        font-size: 1.25rem;
+    }
+
+    .rp-header-actions {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .rp-header-actions ::deep .rp-btn,
+    .rp-header-actions ::deep .rp-menu {
+        flex: 1 1 auto;
+    }
+
+    .rp-header-actions ::deep .rp-menu .rp-btn {
+        width: 100%;
+    }
+
+    .rp-header-actions ::deep .rp-btn-primary {
+        flex: 1 1 100%;
+        order: -1;
+    }
+
+    .rp-filters {
+        padding: 0.75rem 0.8rem;
+    }
+
+    .rp-shell ::deep .rp-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rp-shell ::deep [class*="rp-col-"] {
+        grid-column: 1 / -1;
+    }
+
+    .rp-shell ::deep .rp-stats,
+    .rp-shell ::deep .rp-overview .rp-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .rp-shell ::deep .rp-stat-value {
+        font-size: 1.1rem;
+    }
+
+    .rp-shell ::deep .rp-stat-label {
+        white-space: normal;
+        line-height: 1.2;
+    }
+
+    .rp-shell ::deep .rp-results {
+        padding: 0.7rem 0.7rem 0.8rem;
+    }
+
+    .rp-shell ::deep .rp-section-tools,
+    .rp-shell ::deep .rp-search {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .rp-shell ::deep .rp-table {
+        font-size: 0.76rem;
+    }
+
+    .rp-shell ::deep .rp-segmented.rp-block button {
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
+    }
+
+    .rp-shell ::deep .rp-year-meta {
+        display: none;
+    }
+
+    .rp-shell ::deep .rp-pager {
+        justify-content: center;
+    }
+}
+
+/* ===== Impresión ===== */
+@media print {
+    .rp-shell {
+        gap: 0.5rem;
+        color: #000;
+    }
+
+    .rp-header-actions,
+    .rp-filters,
+    .rp-shell ::deep .rp-tabs,
+    .rp-shell ::deep .rp-section-tools,
+    .rp-shell ::deep .rp-search,
+    .rp-shell ::deep .rp-pager,
+    .rp-shell ::deep .rp-busy-badge,
+    .rp-shell ::deep .no-print {
+        display: none !important;
+    }
+
+    .rp-shell ::deep .rp-print-only {
+        display: block;
+    }
+
+    .rp-shell ::deep .rp-results {
+        border: 0;
+        padding: 0;
+        gap: 0.6rem;
+    }
+
+    .rp-shell ::deep .rp-table-wrap {
+        overflow: visible;
+        max-height: none;
+        border: 0;
+    }
+
+    .rp-shell ::deep .rp-table {
+        font-size: 8.5pt;
+    }
+
+    .rp-shell ::deep .rp-table thead th,
+    .rp-shell ::deep .rp-table tfoot td,
+    .rp-shell ::deep .rp-table tfoot th {
+        position: static;
+    }
+
+    .rp-shell ::deep .rp-table th,
+    .rp-shell ::deep .rp-table td {
+        border-color: #999;
+        padding: 0.2rem 0.35rem;
+    }
+
+    .rp-shell ::deep .rp-year {
+        border: 0;
+        break-inside: avoid;
+    }
+
+    .rp-shell ::deep .rp-year-head {
+        background: none;
+        padding: 0.3rem 0;
+        border: 0;
+    }
+
+    .rp-shell ::deep .rp-year-chevron {
+        display: none;
+    }
+
+    .rp-shell ::deep .rp-tabpanel {
+        display: block !important;
+        margin-bottom: 0.8rem;
+    }
+
+    .rp-shell ::deep .rp-stats {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .rp-shell ::deep .rp-stat {
+        border-color: #999;
+    }
+}

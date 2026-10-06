@@ -2,6 +2,7 @@
 @using PaginaToros.Client.Servicios.Contrato;
 @inject IPlantelServicio _plantelServicio
 @inject ISocioServicio _socioServicio
+@inject IEstableServicio _estableServicio
 
 <div class="card" >
     <div class="card-body">
@@ -30,6 +31,41 @@
                                 </ResultTemplate>
                             </BlazoredTypeahead>
                     <ValidationMessage For="(()=> oPlantel.Nrocri)" style="color:red;" />
+                </div>
+                <div class="col-sm">
+                    <label>Establecimiento</label>
+                    @if (cargandoEstablecimientos)
+                    {
+                        <div><small class="text-muted">Cargando establecimientos...</small></div>
+                    }
+                    else if (socioSeleccionado == null && string.IsNullOrWhiteSpace(oPlantel.Nrocri))
+                    {
+                        <div><small class="text-muted">Seleccioná primero el socio.</small></div>
+                    }
+                    else if (establecimientosSocio.Count == 0)
+                    {
+                        <div><small class="text-muted">El socio no tiene establecimientos cargados: el plantel queda sin establecimiento.</small></div>
+                    }
+                    else
+                    {
+                        @* El stock de hembras se lleva por establecimiento: con uno solo se completa
+                           solo, con varios es obligatorio elegirlo. *@
+                        <RadzenDropDown TValue="int?"
+                                        Data="@opcionesEstablecimiento"
+                                        TextProperty="Label"
+                                        ValueProperty="IntValue"
+                                        Value="@establecimientoSeleccionadoId"
+                                        Change="@(args => OnEstablecimientoChanged(args as int?))"
+                                        AllowClear="@(establecimientosSocio.Count == 1)"
+                                        Disabled="@(esSocio || isSaving || establecimientosSocio.Count == 1 && establecimientoSeleccionadoId.HasValue && Id == 0)"
+                                        Placeholder="Seleccionar establecimiento"
+                                        Style="width: 100%;" />
+                        @if (establecimientosSocio.Count > 1 && !establecimientoSeleccionadoId.HasValue)
+                        {
+                            <small class="text-muted">El socio tiene @establecimientosSocio.Count establecimientos.</small>
+                        }
+                    }
+                    <ValidationMessage For="(()=> oPlantel.EstablecimientoId)" style="color:red;" />
                 </div>
                 <div class="col-sm">
                     <label class="col-sm">Activo?</label><br/>
@@ -120,6 +156,12 @@
     [Parameter] public bool esSocio { get; set; }
     DateTime? FechaTempCreacion = null;
 
+    // Establecimientos de la razon social del plantel (el stock de hembras es por establecimiento).
+    List<EstableDTO> establecimientosSocio = new();
+    List<TorosFilterOptionDTO> opcionesEstablecimiento = new();
+    int? establecimientoSeleccionadoId = null;
+    bool cargandoEstablecimientos = false;
+
     //string CodZona = "  ";
     bool activo = true;
     // Flag para evitar envíos múltiples desde el cliente
@@ -155,6 +197,7 @@
                     activo = false;
                 }
                 socioSeleccionado = socios.Where(x => x.Scod == oPlantel.Nrocri).FirstOrDefault();
+                establecimientoSeleccionadoId = oPlantel.EstablecimientoId;
                 try{
                     FechaTempCreacion = new DateTime(Int32.Parse(oPlantel.Anioex), 1, 1);
                 }catch{}
@@ -162,6 +205,11 @@
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+            }
+
+            if (socioSeleccionado != null)
+            {
+                await CargarEstablecimientosAsync(socioSeleccionado, preseleccionarUnico: false);
             }
         }
         // Recreate EditContext and message store after model assigned (if replaced)
@@ -232,6 +280,13 @@
         if (string.IsNullOrWhiteSpace(oPlantel.Nroins))
         {
             messageStore.Add(new FieldIdentifier(oPlantel, nameof(oPlantel.Nroins)), "El numero de ultima inspeccion es obligatorio.");
+            valid = false;
+        }
+
+        // Establecimiento: obligatorio cuando el socio tiene mas de uno (con uno solo se autocompleta).
+        if (establecimientosSocio.Count > 1 && !establecimientoSeleccionadoId.HasValue)
+        {
+            messageStore.Add(new FieldIdentifier(oPlantel, nameof(oPlantel.EstablecimientoId)), "Debe indicar a que establecimiento pertenece el plantel.");
             valid = false;
         }
 
@@ -357,6 +412,9 @@
         {
             oPlantel.Estado = "N";
         }
+        oPlantel.EstablecimientoId = establecimientosSocio.Count == 0 ? oPlantel.EstablecimientoId : establecimientoSeleccionadoId;
+        oPlantel.Socio = null;
+        oPlantel.Establecimiento = null;
         if (Id == 0 || Id == null)
         {
             if (string.IsNullOrWhiteSpace(oPlantel.Fecing))
@@ -365,13 +423,23 @@
             }
             try
             {
-                await _plantelServicio.Crear(oPlantel);
+                // Antes la respuesta se ignoraba: un rechazo del servidor cerraba el modal como si se
+                // hubiera guardado.
+                var rta = await _plantelServicio.Crear(oPlantel);
+                if (rta == null || rta.Exito != 1)
+                {
+                    await Swal.FireAsync("No se pudo crear el plantel", rta?.Mensaje ?? "Error desconocido.", SweetAlertIcon.Error);
+                    isSaving = false;
+                    StateHasChanged();
+                    return;
+                }
                 await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
                 return;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                await Swal.FireAsync("No se pudo crear el plantel", ex.Message, SweetAlertIcon.Error);
                 isSaving = false; // permitir reintento
                 StateHasChanged();
                 return;
@@ -381,13 +449,21 @@
         {
             try
             {
-                await _plantelServicio.Editar(oPlantel);
+                var rta = await _plantelServicio.EditarConRespuesta(oPlantel);
+                if (rta == null || rta.Exito != 1)
+                {
+                    await Swal.FireAsync("No se pudo guardar el plantel", rta?.Mensaje ?? "Error desconocido.", SweetAlertIcon.Error);
+                    isSaving = false;
+                    StateHasChanged();
+                    return;
+                }
                 await ModalInstance.CloseAsync(ModalResult.Ok($"Form was submitted successfully."));
                 return;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                await Swal.FireAsync("No se pudo guardar el plantel", ex.Message, SweetAlertIcon.Error);
                 isSaving = false; // permitir reintento
                 StateHasChanged();
                 return;
@@ -423,13 +499,75 @@
         messageStore.Clear(fiNrocri);
         editContext.NotifyValidationStateChanged();
 
-        // El proximo numero de plantel se calcula fuera del handler: si esperamos el
-        // request aca, BlazoredTypeahead no cierra el desplegable hasta que vuelve
+        // El proximo numero de plantel y los establecimientos se calculan fuera del handler: si
+        // esperamos el request aca, BlazoredTypeahead no cierra el desplegable hasta que vuelve
         // (ver SeleccionTypeahead). Mientras tanto "Aceptar" queda deshabilitado.
-        seleccionSocio.Ejecutar(() => AsignarProximoPlacodAsync(socio),
+        seleccionSocio.Ejecutar(() => CargarDependenciasDelSocioAsync(socio),
                                 () => InvokeAsync(StateHasChanged),
                                 nameof(HandleSocioSeleccion));
         return Task.CompletedTask;
+    }
+
+    private async Task CargarDependenciasDelSocioAsync(SocioDTO socio)
+    {
+        establecimientoSeleccionadoId = null;
+        await Task.WhenAll(
+            AsignarProximoPlacodAsync(socio),
+            CargarEstablecimientosAsync(socio, preseleccionarUnico: true));
+    }
+
+    private async Task CargarEstablecimientosAsync(SocioDTO? socio, bool preseleccionarUnico)
+    {
+        establecimientosSocio = new List<EstableDTO>();
+        opcionesEstablecimiento = new List<TorosFilterOptionDTO>();
+        if (socio == null || socio.Id <= 0)
+        {
+            return;
+        }
+
+        cargandoEstablecimientos = true;
+        try
+        {
+            var rta = await _estableServicio.GetBySocioId(socio.Id);
+            establecimientosSocio = (rta?.List ?? new List<EstableDTO>())
+                .OrderByDescending(x => string.Equals(x.Activo, "S", StringComparison.OrdinalIgnoreCase))
+                .ThenBy(x => x.Nombre)
+                .ToList();
+            opcionesEstablecimiento = establecimientosSocio
+                .Select(x => new TorosFilterOptionDTO
+                {
+                    IntValue = x.Id,
+                    Value = x.Id.ToString(),
+                    Label = EstablecimientoPlantelHelper.DescribirEstablecimiento(x)
+                })
+                .ToList();
+
+            if (establecimientoSeleccionadoId.HasValue && establecimientosSocio.All(x => x.Id != establecimientoSeleccionadoId.Value))
+            {
+                establecimientoSeleccionadoId = null;
+            }
+
+            if (preseleccionarUnico && !establecimientoSeleccionadoId.HasValue && establecimientosSocio.Count == 1)
+            {
+                establecimientoSeleccionadoId = establecimientosSocio[0].Id;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"No se pudieron cargar los establecimientos: {ex.Message}");
+        }
+        finally
+        {
+            cargandoEstablecimientos = false;
+        }
+    }
+
+    private void OnEstablecimientoChanged(int? establecimientoId)
+    {
+        establecimientoSeleccionadoId = establecimientoId;
+        var fi = new FieldIdentifier(oPlantel, nameof(oPlantel.EstablecimientoId));
+        messageStore.Clear(fi);
+        editContext.NotifyValidationStateChanged();
     }
 
     private async Task AsignarProximoPlacodAsync(SocioDTO socio)
