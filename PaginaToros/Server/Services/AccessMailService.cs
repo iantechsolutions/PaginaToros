@@ -8,12 +8,18 @@ namespace PaginaToros.Server.Services
 {
     public class AccessMailService : IAccessMailService
     {
-        public Task<(bool Success, string? ErrorMessage)> SendAccessMailAsync(User model, string password, AccessMailTemplate template)
+        private readonly IMailSender _mailSender;
+
+        public AccessMailService(IMailSender mailSender)
+        {
+            _mailSender = mailSender;
+        }
+
+        public async Task<(bool Success, string? ErrorMessage)> SendAccessMailAsync(User model, string password, AccessMailTemplate template)
         {
             try
             {
                 using var mail = new MailMessage();
-                mail.From = new MailAddress("planteles@hereford.org.ar");
                 mail.To.Add(model.Email);
                 mail.Subject = template == AccessMailTemplate.Registration
                     ? "Hereford - Puro Registrado."
@@ -32,16 +38,16 @@ namespace PaginaToros.Server.Services
 
                 if (!string.IsNullOrEmpty(imagePath) && !File.Exists(imagePath))
                 {
-                    return Task.FromResult<(bool Success, string? ErrorMessage)>((false, "No se encontró la imagen de fondo del correo."));
+                    return (false, "No se encontró la imagen de fondo del correo.");
                 }
 
                 if (!string.IsNullOrEmpty(logoPath) && !File.Exists(logoPath))
                 {
-                    return Task.FromResult<(bool Success, string? ErrorMessage)>((false, "No se encontró el logo del correo."));
+                    return (false, "No se encontró el logo del correo.");
                 }
 
                 var htmlView = AlternateView.CreateAlternateViewFromString(
-                    BuildBody(model, password, imagePath, logoPath),
+                    BuildBody(model, password, imagePath, logoPath, _mailSender.PlantelesAddress),
                     null,
                     MediaTypeNames.Text.Html);
 
@@ -68,23 +74,16 @@ namespace PaginaToros.Server.Services
                 mail.AlternateViews.Add(htmlView);
                 mail.IsBodyHtml = true;
 
-                using var smtp = new SmtpClient("mail.hereford.org.ar", 587)
-                {
-                    UseDefaultCredentials = false,
-                    Credentials = new NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"),
-                    EnableSsl = true
-                };
-
-                smtp.Send(mail);
-                return Task.FromResult<(bool Success, string? ErrorMessage)>((true, null));
+                await _mailSender.SendAsync(mail);
+                return (true, null);
             }
             catch (Exception ex)
             {
-                return Task.FromResult<(bool Success, string? ErrorMessage)>((false, ex.Message));
+                return (false, ex.Message);
             }
         }
 
-        private static string BuildBody(User model, string password, string imagePath, string logoPath)
+        private static string BuildBody(User model, string password, string imagePath, string logoPath, string plantelesAddress)
         {
             var logoHtml = string.IsNullOrEmpty(logoPath)
                 ? string.Empty
@@ -95,6 +94,7 @@ namespace PaginaToros.Server.Services
             var apellido = WebUtility.HtmlEncode(model.LastNames ?? string.Empty);
             var email = WebUtility.HtmlEncode(model.Email);
             var safePassword = WebUtility.HtmlEncode(password);
+            var contacto = WebUtility.HtmlEncode(plantelesAddress);
             var backgroundRef = string.IsNullOrEmpty(imagePath) ? "" : "cid:backgroundImage";
 
             return $@"
@@ -116,13 +116,13 @@ namespace PaginaToros.Server.Services
                               <p style='margin:0 0 14px 0; color:#000000;'>Les informamos que, a partir de este momento, el sistema de autogestión anterior ya no estará en funcionamiento. Hemos implementado una nueva plataforma para mejorar la gestión y facilitarles el acceso a los servicios. Puede acceder a su perfil <a href='https://herefordapp.com.ar:1050/'>aquí</a>.</p>
                               <p style='margin:0 0 14px 0; color:#000000;'><strong>Detalles de inicio de sesión:</strong></p>
                               <p style='margin:0 0 14px 0; color:#000000;'>Correo electrónico registrado: {email}<br />Contraseña: <code style='font-size:16px; color:#000000;'>{safePassword}</code></p>
-                              <p style='margin:0 0 14px 0; color:#000000;'>Recuerde mantener segura esta información y no compartirla. Ante cualquier consulta escriba a <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a>.</p>
+                              <p style='margin:0 0 14px 0; color:#000000;'>Recuerde mantener segura esta información y no compartirla. Ante cualquier consulta escriba a <a href='mailto:{contacto}'>{contacto}</a>.</p>
                               <p style='margin:0; color:#000000;'>Gracias por su comprensión y colaboración.</p>
                             </td>
                           </tr>
                           <tr>
                             <td style='padding:20px; padding-top:25px; color:#777777; font-family:Arial, Helvetica, sans-serif;'>
-                              <p>Paz Hernández (Encargada Registros) - <a href='mailto:planteles@hereford.org.ar'>planteles@hereford.org.ar</a></p>
+                              <p>Paz Hernández (Encargada Registros) - <a href='mailto:{contacto}'>{contacto}</a></p>
                             </td>
                           </tr>
                           <tr>

@@ -22,19 +22,22 @@ namespace PaginaToros.Server.Controllers
         private readonly ISocioRepositorio _socioRepositorio;
         private readonly IUserSocioContextService _userSocioContextService;
         private readonly hereford_prContext _db;
+        private readonly IMailSender _mailSender;
 
         public Solici1Controller(
             ISolici1Repositorio solicitudRepositorio,
             ISocioRepositorio socioRepositorio,
             IMapper mapper,
             hereford_prContext db,
-            IUserSocioContextService userSocioContextService)
+            IUserSocioContextService userSocioContextService,
+            IMailSender mailSender)
         {
             _mapper = mapper;
             _solicitudRepositorio = solicitudRepositorio;
             _socioRepositorio = socioRepositorio;
             _db = db;
             _userSocioContextService = userSocioContextService;
+            _mailSender = mailSender;
         }
 
         [HttpGet]
@@ -638,20 +641,13 @@ namespace PaginaToros.Server.Controllers
 
                 using (MailMessage mail = new MailMessage())
                 {
-                    mail.From = new MailAddress("planteles@hereford.org.ar");
                     mail.To.Add("puroregistradohereford@gmail.com");
-                    mail.To.Add("planteles@hereford.org.ar");
+                    mail.To.Add(_mailSender.PlantelesAddress);
                     mail.Subject = $"Solicitud de Inspeccion de: {socio.Nombre}";
                     mail.Body = $"Nueva solicitud de inspeccion\nSocio: {socio.Nombre}";
                     mail.Attachments.Add(new Attachment(tempFilePath, MediaTypeNames.Application.Octet));
 
-                    using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
-                    {
-                        smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033");
-                        smtp.EnableSsl = true;
-                        smtp.Send(mail);
-                    }
+                    await _mailSender.SendAsync(mail);
                 }
 
                 return Ok();

@@ -29,6 +29,7 @@ namespace PaginaToros.Server.Controllers
         private readonly ITransanRepositorio _TransanRepositorio;
         private readonly IWebHostEnvironment _env;
         private readonly IUserSocioContextService _userSocioContextService;
+        private readonly IMailSender _mailSender;
         private readonly ILogger<TransanController> _logger;
         public TransanController(
             hereford_prContext db,
@@ -36,6 +37,7 @@ namespace PaginaToros.Server.Controllers
             IMapper mapper,
             IWebHostEnvironment env,
             IUserSocioContextService userSocioContextService,
+            IMailSender mailSender,
             ILogger<TransanController> logger)
         {
             this.db = db;
@@ -43,6 +45,7 @@ namespace PaginaToros.Server.Controllers
             _TransanRepositorio = TransanRepositorio;
             _env = env;
             _userSocioContextService = userSocioContextService;
+            _mailSender = mailSender;
             _logger = logger;
         }
         [HttpGet]
@@ -208,16 +211,8 @@ namespace PaginaToros.Server.Controllers
                     }
                     Console.WriteLine(mail.Body);
 
-                    // Agregar correo de "puroregistrado"
-                    string correoPuroRegistrado = "planteles@hereford.org.ar";
-                    if (IsValidEmail(correoPuroRegistrado))
-                    {
-                        TryAddRecipient(mail, correoPuroRegistrado); // Se agrega el correo de "puroregistrado" si es válido
-                    }
-                    else
-                    {
-                        Console.WriteLine("Correo de puroregistrado no válido");
-                    }
+                    // Siempre con copia a la casilla de Planteles
+                    TryAddRecipient(mail, _mailSender.PlantelesAddress);
 
                     // Configurar el mensaje
                     var rawBody = request.Mail ?? "(sin cuerpo)";
@@ -228,21 +223,13 @@ namespace PaginaToros.Server.Controllers
                         ? rawBody
                         : WebUtility.HtmlEncode(rawBody).Replace("\r\n", "\n").Replace("\n", "<br/>");
 
-                    mail.From = new MailAddress(correoPuroRegistrado);
                     mail.Subject = string.IsNullOrWhiteSpace(request.Asunto)
                         ? "Nueva transferencia animal"
                         : request.Asunto.Trim();
                     mail.Body = body;
                     mail.IsBodyHtml = true;
 
-                    // Configurar SMTP y enviar
-                    using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587))
-                    {
-                        smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential(correoPuroRegistrado, "Hereford.2033"); // Agrega tu contraseña aquí
-                        smtp.EnableSsl = true;
-                        await smtp.SendMailAsync(mail);
-                    }
+                    await _mailSender.SendAsync(mail);
 
                     Console.WriteLine("Transferencia Enviada");
                 }
@@ -255,9 +242,6 @@ namespace PaginaToros.Server.Controllers
                 return Ok("Correo enviado correctamente.");
             }
         }
-
-        //Hereford.2033
-
 
         [HttpPost]
         [Route("SendMailChange")]
@@ -273,14 +257,8 @@ namespace PaginaToros.Server.Controllers
                         return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<string>());
                     }
 
-                    string correoPuroRegistrado = "planteles@hereford.org.ar";
-                    string smtpHost = "mail.hereford.org.ar";
-                    int smtpPort = 587;
-                    string smtpUsername = "planteles@hereford.org.ar";
-                    string smtpPassword = "Hereford.2033"; // ideal: usar variable de entorno
-
                     // Siempre agregar planteles
-                    TryAddRecipient(mail, correoPuroRegistrado);
+                    TryAddRecipient(mail, _mailSender.PlantelesAddress);
 
                     // Vendedor: si vino MailVendedor y es válido, usarlo. Si no, resolver por socio (Tipo)
                     if (!string.IsNullOrWhiteSpace(request.MailVendedor) && IsValidEmail(request.MailVendedor))
@@ -320,18 +298,11 @@ namespace PaginaToros.Server.Controllers
                         ? rawBody
                         : WebUtility.HtmlEncode(rawBody).Replace("\r\n", "\n").Replace("\n", "<br/>");
 
-                    mail.From = new MailAddress(correoPuroRegistrado);
                     mail.Subject = "El socio " + (request.Nombre ?? "N/D") + " ha modificado una transferencia";
                     mail.Body = body;
                     mail.IsBodyHtml = true;
 
-                    using (SmtpClient smtp = new SmtpClient(smtpHost, smtpPort))
-                    {
-                        smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential(smtpUsername, smtpPassword);
-                        smtp.EnableSsl = true;
-                        await smtp.SendMailAsync(mail);
-                    }
+                    await _mailSender.SendAsync(mail);
 
                     Console.WriteLine("Transferencia modificada - mail enviado");
                     return Ok("Correo enviado correctamente.");
@@ -364,10 +335,6 @@ namespace PaginaToros.Server.Controllers
                 return false;
             }
         }
-
-
-        //dmuu kdke jobp bhgo dmuu kdke jobp bhgo
-        // puroregistradohereford@gmail.com
 
         [HttpDelete]
         [Route("Eliminar/{id:int}")]
@@ -1345,7 +1312,9 @@ namespace PaginaToros.Server.Controllers
                 ? request.MailComprador
                 : await ResolveEmailAsync(request.CompradorId);
 
-            var destinatarios = new List<string> { "planteles@hereford.org.ar" };
+            var destinatarios = new List<string>();
+            if (IsValidEmail(_mailSender.PlantelesAddress))
+                destinatarios.Add(_mailSender.PlantelesAddress);
             if (IsValidEmail(mailVendedor))
                 destinatarios.Add(mailVendedor!);
             if (IsValidEmail(mailComprador))

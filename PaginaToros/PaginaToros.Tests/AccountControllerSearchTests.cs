@@ -72,6 +72,7 @@ public class AccountControllerSearchTests
 
         var identityContext = new ApplicationDbContext(identityOptions);
         var userManager = CreateUserManager();
+        var mailSender = new RecordingMailSender();
 
         return new AccountController(
             identityContext,
@@ -79,8 +80,9 @@ public class AccountControllerSearchTests
             null!,
             new ConfigurationBuilder().Build(),
             domainContext,
-            new AccessMailService(),
-            new IdentityPasswordService(userManager));
+            new AccessMailService(mailSender),
+            new IdentityPasswordService(userManager),
+            mailSender);
     }
 
     private static UserManager<IdentityUser> CreateUserManager()

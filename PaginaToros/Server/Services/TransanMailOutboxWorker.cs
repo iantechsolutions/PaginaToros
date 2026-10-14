@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Mail;
 using Microsoft.EntityFrameworkCore;
 using PaginaToros.Server.Context;
@@ -10,11 +9,14 @@ namespace PaginaToros.Server.Services
     {
         private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(10);
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IMailSender _mailSender;
         private readonly ILogger<TransanMailOutboxWorker> _logger;
+        private bool _notConfiguredLogged;
 
-        public TransanMailOutboxWorker(IServiceScopeFactory scopeFactory, ILogger<TransanMailOutboxWorker> logger)
+        public TransanMailOutboxWorker(IServiceScopeFactory scopeFactory, IMailSender mailSender, ILogger<TransanMailOutboxWorker> logger)
         {
             _scopeFactory = scopeFactory;
+            _mailSender = mailSender;
             _logger = logger;
         }
 
@@ -44,6 +46,20 @@ namespace PaginaToros.Server.Services
 
         private async Task ProcessPendingAsync(CancellationToken cancellationToken)
         {
+            // Sin configuración de mail no se toca la cola: si se tomaran las filas,
+            // cada una pasaría a "Error" y acumularía reintentos sin poder salir.
+            // Quedan "Pendiente" y se envían apenas se configure el mail.
+            if (!_mailSender.IsConfigured)
+            {
+                if (!_notConfiguredLogged)
+                {
+                    _logger.LogWarning("TransanMailOutboxWorker en pausa: el envío de mails no está configurado. Los mails de transferencias quedan pendientes.");
+                    _notConfiguredLogged = true;
+                }
+                return;
+            }
+            _notConfiguredLogged = false;
+
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<hereford_prContext>();
 
@@ -78,7 +94,6 @@ namespace PaginaToros.Server.Services
             {
                 using var mail = new MailMessage
                 {
-                    From = new MailAddress("planteles@hereford.org.ar"),
                     Subject = item.Asunto,
                     Body = item.CuerpoHtml,
                     IsBodyHtml = true
@@ -94,14 +109,7 @@ namespace PaginaToros.Server.Services
                     throw new InvalidOperationException("La cola de mail no tiene destinatarios válidos.");
                 }
 
-                using var smtp = new SmtpClient("mail.hereford.org.ar", 587)
-                {
-                    UseDefaultCredentials = false,
-                    Credentials = new NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"),
-                    EnableSsl = true
-                };
-
-                await smtp.SendMailAsync(mail);
+                await _mailSender.SendAsync(mail);
 
                 item.Estado = "Enviado";
                 item.FechaEnvio = DateTime.UtcNow;

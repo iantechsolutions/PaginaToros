@@ -43,6 +43,22 @@ public class TransanControllerTests
     }
 
     [Fact]
+    public async Task Guardar_QueuesNotificationCopiedToConfiguredPlantelesAddress()
+    {
+        using var scope = CreateContext();
+        Seed(scope.Context);
+
+        var controller = CreateController(scope.Context);
+
+        var result = await controller.Guardar(BuildCreateRequest());
+
+        Assert.IsType<OkObjectResult>(result);
+        var outbox = await scope.Context.TransanMailOutboxes.SingleAsync();
+        Assert.Equal("Pendiente", outbox.Estado);
+        Assert.Contains(RecordingMailSender.TestPlantelesAddress, outbox.Destinatarios.Split(';'));
+    }
+
+    [Fact]
     public async Task Editar_KeepsOriginalProcessDate()
     {
         using var scope = CreateContext();
@@ -208,7 +224,8 @@ public class TransanControllerTests
 
     private static TransanController CreateController(
         hereford_prContext context,
-        UserSocioAccessContext? accessContext = null)
+        UserSocioAccessContext? accessContext = null,
+        IMailSender? mailSender = null)
     {
         var mapperConfig = new MapperConfiguration(cfg => cfg.AddProfile<AutoMapperProfile>());
         var mapper = mapperConfig.CreateMapper();
@@ -221,6 +238,7 @@ public class TransanControllerTests
             mapper,
             new TestWebHostEnvironment(),
             accessService,
+            mailSender ?? new RecordingMailSender(),
             NullLogger<TransanController>.Instance)
         {
             ControllerContext = new ControllerContext

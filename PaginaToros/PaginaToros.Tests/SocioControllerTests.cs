@@ -83,7 +83,7 @@ public class SocioControllerTests
             identityContext,
             userManager,
             accessService,
-            new AccessMailService(),
+            new AccessMailService(new RecordingMailSender()),
             new IdentityPasswordService(userManager))
         {
             ControllerContext = new ControllerContext

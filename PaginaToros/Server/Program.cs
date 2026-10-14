@@ -8,6 +8,7 @@ using System.Text;
 using PaginaToros.Server.Repositorio.Contrato;
 using PaginaToros.Server.Repositorio.Implementacion;
 using Microsoft.Net.Http.Headers;
+using Microsoft.Extensions.Options;
 using PaginaToros.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -74,6 +75,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IUserSocioContextService, UserSocioContextService>();
+builder.Services.Configure<MailOptions>(builder.Configuration.GetSection(MailOptions.SectionName));
+builder.Services.AddSingleton<IMailSender, SmtpMailSender>();
 builder.Services.AddScoped<IAccessMailService, AccessMailService>();
 builder.Services.AddScoped<IIdentityPasswordService, IdentityPasswordService>();
 builder.Services.AddScoped<ICentrosiumRepositorio, CentrosiumRepositorio>();
@@ -102,6 +105,7 @@ var app = builder.Build();
 var useHttpsFeatures = builder.Configuration.GetValue("Hosting:UseHttps", false);
 
 await EnsureTransferAuditSchemaAsync(app.Services);
+WarnIfMailNotConfigured(app);
 
 app.Use(async (context, next) =>
 {
@@ -156,6 +160,19 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+// La app arranca igual sin configuración de mail (el resto del sistema no la
+// necesita), pero lo dejamos asentado en el log para que no pase inadvertido.
+static void WarnIfMailNotConfigured(WebApplication app)
+{
+    var missing = app.Services.GetRequiredService<IOptions<MailOptions>>().Value.GetMissingSettings();
+    if (missing.Count > 0)
+    {
+        app.Logger.LogWarning(
+            "El envío de mails está deshabilitado: falta configurar {Faltantes}. La contraseña se define en la variable de entorno Mail__Password.",
+            string.Join(", ", missing));
+    }
+}
 
 static async Task EnsureTransferAuditSchemaAsync(IServiceProvider services)
 {

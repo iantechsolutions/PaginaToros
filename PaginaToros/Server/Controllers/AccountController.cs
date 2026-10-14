@@ -37,6 +37,7 @@ namespace PaginaToros.Server.Controllers
         private readonly hereford_prContext _hfdb;
         private readonly IAccessMailService _accessMailService;
         private readonly IIdentityPasswordService _identityPasswordService;
+        private readonly IMailSender _mailSender;
 
         public AccountController(ApplicationDbContext db,
             UserManager<IdentityUser> userManager,
@@ -44,7 +45,8 @@ namespace PaginaToros.Server.Controllers
             IConfiguration configuration,
             hereford_prContext hfdb,
             IAccessMailService accessMailService,
-            IIdentityPasswordService identityPasswordService)
+            IIdentityPasswordService identityPasswordService,
+            IMailSender mailSender)
         {
             this.db = db;
             _userManager = userManager;
@@ -53,9 +55,8 @@ namespace PaginaToros.Server.Controllers
             _hfdb = hfdb;
             _accessMailService = accessMailService;
             _identityPasswordService = identityPasswordService;
+            _mailSender = mailSender;
         }
-
-        //Metodos dmuu kdke jobp bhgo
 
         [HttpPost("EditUser")]
         public async Task<ActionResult> EditUser([FromBody] User model)
@@ -220,7 +221,6 @@ namespace PaginaToros.Server.Controllers
             {
                 using (MailMessage mail = new MailMessage())
                 {
-                    mail.From = new MailAddress("planteles@hereford.org.ar");
                     mail.To.Add(model.Email);
                     mail.Subject = "Confirmación de Registro en Hereford";
 
@@ -245,7 +245,7 @@ namespace PaginaToros.Server.Controllers
                                         <p>Nos complace confirmar que su registro en nuestro sitio ha sido exitoso. A partir de ahora, tiene acceso completo a todos los servicios y funcionalidades disponibles.</p>
                                         <p><strong>Detalles de inicio de sesión:</strong></p>
                                         <p>Correo electrónico registrado: {model.Email}<br>Contraseña: {password}</p>
-                                        <p>Recuerde mantener segura esta información y no compartirla. Gracias por su tiempo y ante cualquier consulta no dude en comunicarse por mail a planteles@hereford.org.ar</p>
+                                        <p>Recuerde mantener segura esta información y no compartirla. Gracias por su tiempo y ante cualquier consulta no dude en comunicarse por mail a {WebUtility.HtmlEncode(_mailSender.PlantelesAddress)}</p>
                                         <p>Saludos cordiales,<br>Equipo de Puro Registrado Hereford.</p>
                                     </td>
                                 </tr>
@@ -262,7 +262,6 @@ namespace PaginaToros.Server.Controllers
                     AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, MediaTypeNames.Text.Html);
 
                     Console.WriteLine(model.Email);
-                    Console.WriteLine(password);
 
                     //string filePath = Path.Combine("wwwroot", "images", "Tarifas Registros 2025.docx");
                     //if (System.IO.File.Exists(filePath))
@@ -292,14 +291,7 @@ namespace PaginaToros.Server.Controllers
                     mail.AlternateViews.Add(htmlView);
                     mail.IsBodyHtml = true;
 
-                    // Configuración del cliente SMTP
-                    using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587)) // Cambia el host y el puerto según tu proveedor
-                    {
-                        smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"); // Coloca tu contraseña aquí
-                        smtp.EnableSsl = true; // Cambia a false si el servidor no usa SSL
-                        smtp.Send(mail);
-                    }
+                    await _mailSender.SendAsync(mail);
                 }
 
                 return Ok("Correo enviado correctamente.");
@@ -311,7 +303,6 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
-        //Hereford.2033 Hereford.2033
 
         [HttpPost("SendMail2025")]
         public async Task<ActionResult> SendMailInfo([FromBody] User model, string password)
@@ -326,11 +317,6 @@ namespace PaginaToros.Server.Controllers
             Console.WriteLine($"Error: {mailResult.ErrorMessage}");
             return BadRequest($"Error al enviar el correo: {mailResult.ErrorMessage}");
         }
-
-
-
-        //Hereford.2033 Hereford.2033
-
 
         [HttpPost("SendChangeNotificationMail")]
         public async Task<ActionResult> SendChangeNotificationMail([FromBody] ChangeNotificationModel model)
@@ -347,8 +333,7 @@ namespace PaginaToros.Server.Controllers
             {
                 using (MailMessage mail = new MailMessage())
                 {
-                    mail.From = new MailAddress("planteles@hereford.org.ar");
-                    mail.To.Add("planteles@hereford.org.ar");
+                    mail.To.Add(_mailSender.PlantelesAddress);
                     mail.Subject = "Notificación de Cambio en el Sistema de Hereford";
 
 
@@ -384,25 +369,7 @@ namespace PaginaToros.Server.Controllers
                     mail.Body = body;
                     mail.IsBodyHtml = true;
 
-                    string filePath = @"C:\Users\Maxim\source\repos\PaginaToros\PaginaToros\Server\wwwroot\images\Mail.docx";
-                    if (!System.IO.File.Exists(filePath))
-                    {
-                        Attachment attachment = new Attachment(filePath);
-                        mail.Attachments.Add(attachment);
-                    }
-
-                    Console.WriteLine(filePath);
-                    Console.WriteLine(mail.Attachments);
-
-
-
-                    using (SmtpClient smtp = new SmtpClient("mail.hereford.org.ar", 587)) // Cambia esto al servidor SMTP correcto
-                    {
-                        smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033"); // Coloca la contraseña correcta aquí
-                        smtp.EnableSsl = true; // Cambia a false si el hosting no requiere SSL/TLS en este puerto
-                        smtp.Send(mail);
-                    }
+                    await _mailSender.SendAsync(mail);
                 }
 
                 Console.WriteLine("Correo enviado.");
@@ -415,9 +382,6 @@ namespace PaginaToros.Server.Controllers
             }
         }
 
-        //Hereford.2033
-        //dmuu kdke jobp bhgo
-        //dmuu kdke jobp bhgo
         public class ChangeNotificationModel
         {
             public int Id { get; set; }
@@ -460,53 +424,39 @@ namespace PaginaToros.Server.Controllers
             {
                 Console.WriteLine(model.Email);
 
-                using (SmtpClient client = new SmtpClient("mail.hereford.org.ar", 587))
+                //Console.WriteLine("cAMBIO DE MAIL");
+                //Console.Write(Usuario.PasswordHash);
+
+                //var Usuario = _userManager.Users.FirstOrDefault(x => x.Email == model.Email);
+                var user = db.Users.FirstOrDefault(x => x.Email == password);
+
+                Console.WriteLine(model.Email);
+                Console.WriteLine(user.Email);
+                //Console.WriteLine(Usuario.PasswordHash);
+                Console.WriteLine("Cambio de mail y contra");
+
+                //var result = await _userManager.ChangePasswordAsync(user, Usuario.PasswordHash, password);
+
+                //if (!result.Succeeded)
+                //{
+                //    return BadRequest(result.Errors);
+                //}
+
+                using MailMessage mail = new MailMessage
                 {
-                    client.UseDefaultCredentials = false;
-                    client.Credentials = new System.Net.NetworkCredential("planteles@hereford.org.ar", "Hereford.2033");
-                    client.EnableSsl = true;
+                    Subject = "Restablecimiento de mail para Hereford",
+                    Body = $"Estimado,\nHemos recibido una solicitud para restablecer su contraseña. Los detalles de su nueva contraseña son los siguientes:\n" +
+                           $"Correo electrónico registrado: {model.Email}\n" +
+                           "Recuerde mantener esta información segura y no compartirla con nadie más. Gracias por estar con nosotros y esperamos que continúe disfrutando de nuestros servicios.\n" +
+                           "Saludos cordiales,\nHereford",
+                    IsBodyHtml = false
+                };
+                mail.To.Add(new MailAddress(model.Email));
 
+                Console.WriteLine("Fin envio de mail y contra");
 
-                    //Console.WriteLine("cAMBIO DE MAIL");
-                    //Console.Write(Usuario.PasswordHash);
-
-                    //var Usuario = _userManager.Users.FirstOrDefault(x => x.Email == model.Email);
-                    var user = db.Users.FirstOrDefault(x => x.Email == password);
-
-                    Console.WriteLine(model.Email);
-                    Console.WriteLine(user.Email);
-                    //Console.WriteLine(Usuario.PasswordHash);
-                    Console.WriteLine(password);
-                    Console.WriteLine("Cambio de mail y contra");
-
-
-
-                    //var result = await _userManager.ChangePasswordAsync(user, Usuario.PasswordHash, password);
-
-
-                    //if (!result.Succeeded)
-                    //{
-                    //    return BadRequest(result.Errors);
-                    //}
-
-                    MailMessage mail = new MailMessage
-                    {
-                        From = new MailAddress("planteles@hereford.org.ar"),
-                        Subject = "Restablecimiento de mail para Hereford",
-                        Body = $"Estimado,\nHemos recibido una solicitud para restablecer su contraseña. Los detalles de su nueva contraseña son los siguientes:\n" +
-                               $"Correo electrónico registrado: {model.Email}\n" +
-                               "Recuerde mantener esta información segura y no compartirla con nadie más. Gracias por estar con nosotros y esperamos que continúe disfrutando de nuestros servicios.\n" +
-                               "Saludos cordiales,\nHereford",
-                        IsBodyHtml = false
-                    };
-                    mail.To.Add(new MailAddress(model.Email));
-
-
-                    Console.WriteLine("Fin envio de mail y contra");
-
-                    //\nNueva contraseña: { Usuario.PasswordHash}
-                    client.Send(mail);
-                }
+                //\nNueva contraseña: { Usuario.PasswordHash}
+                await _mailSender.SendAsync(mail);
 
                 return Ok("Correo enviado correctamente.");
             }
@@ -516,11 +466,6 @@ namespace PaginaToros.Server.Controllers
                 return BadRequest($"Error al enviar el correo: {e.Message}");
             }
         }
-
-        //dmuu kdke jobp bhgo
-
-
-
 
         [HttpPut("ChangePassword")]
         public async Task<ActionResult> ChangePassword([FromBody] ChangePassModel model)

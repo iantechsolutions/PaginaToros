@@ -22,19 +22,22 @@ namespace PaginaToros.Server.Controllers
         private readonly ISocioRepositorio _socioRepositorio;
         private readonly IUserSocioContextService _userSocioContextService;
         private readonly hereford_prContext _db;
+        private readonly IMailSender _mailSender;
 
         public Solici1AuxController(
             ISolici1AuxRepositorio solicitudRepositorio,
             ISocioRepositorio socioRepositorio,
             IMapper mapper,
             hereford_prContext db,
-            IUserSocioContextService userSocioContextService)
+            IUserSocioContextService userSocioContextService,
+            IMailSender mailSender)
         {
             _mapper = mapper;
             _solicitudRepositorio = solicitudRepositorio;
             _socioRepositorio = socioRepositorio;
             _db = db;
             _userSocioContextService = userSocioContextService;
+            _mailSender = mailSender;
         }
 
         [HttpGet]
@@ -511,22 +514,14 @@ namespace PaginaToros.Server.Controllers
 
                 using (var mail = new MailMessage())
                 {
-                    var from = "planteles@hereford.org.ar";
-                    mail.From = new MailAddress(from);
                     mail.To.Add("puroregistradohereford@gmail.com");
-                    mail.To.Add("planteles@hereford.org.ar");
+                    mail.To.Add(_mailSender.PlantelesAddress);
                     mail.Subject = $"Solicitud de Inspección de: {socio.Nombre}";
                     mail.Body = $"Nueva solicitud de inspección\nSocio: {socio.Nombre}";
                     mail.IsBodyHtml = false;
                     mail.Attachments.Add(new Attachment(tempFilePath, MediaTypeNames.Application.Octet));
 
-                    using (var smtp = new SmtpClient("mail.hereford.org.ar", 587))
-                    {
-                        smtp.UseDefaultCredentials = false;
-                        smtp.Credentials = new System.Net.NetworkCredential(from, "Hereford.2033");
-                        smtp.EnableSsl = true;
-                        await smtp.SendMailAsync(mail);
-                    }
+                    await _mailSender.SendAsync(mail);
                 }
 
                 System.IO.File.Delete(tempFilePath);
