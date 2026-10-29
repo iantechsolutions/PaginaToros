@@ -195,6 +195,7 @@
 
                 <div class="tablacontent certificados-grid">
                     <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading=@isLoading AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                                    PageSizeOptions="@(new[] { 15, 30, 50, 100 })"
                                     Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                                     Data="@oRespuesta.List" TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                         <Columns>
@@ -261,7 +262,7 @@
         else
         {
             oRespuesta = await _certifsemanServicio.LimitadosFiltrados(0, 0, string.Empty);
-            oRespuesta.List = OrderCertificadosByCreation(RemoveDuplicatesByBusinessKey(oRespuesta.List));
+            oRespuesta.List = OrderCertificadosByStock(RemoveDuplicatesByBusinessKey(oRespuesta.List));
             cantotal = oRespuesta.List.Count();
         }
     }
@@ -294,6 +295,41 @@
             .ThenByDescending(x => x.FchUsu)
             .ThenByDescending(x => x.Id)
             .ToList();
+
+    // Vista del socio: primero los certificados con dosis restantes, así no tiene que
+    // recorrer todas las hojas para encontrar dónde queda semen.
+    private static List<CertifsemanDTO> OrderCertificadosByStock(IEnumerable<CertifsemanDTO>? items)
+    {
+        var lista = (items ?? Enumerable.Empty<CertifsemanDTO>()).ToList();
+        var fechaOrden = FechasDeOrden(lista);
+
+        return lista
+            .OrderByDescending(x => x.NrDosi > 0)
+            .ThenByDescending(x => fechaOrden[x.Id])
+            .ThenByDescending(x => x.Id)
+            .ToList();
+    }
+
+    // Los certificados cargados por la app antes del hotfix de 2026-05-21 quedaron sin FCH_USU
+    // y son de los más recientes. En ese tramo el Id crece con la fecha de alta (no así en los
+    // importados del sistema anterior), así que a cada uno sin fecha se le asigna, solo para
+    // ordenar, la fecha más nueva entre los certificados de Id menor. No se muestra ni se guarda.
+    private static Dictionary<int, DateTime> FechasDeOrden(IEnumerable<CertifsemanDTO> items)
+    {
+        var fechas = new Dictionary<int, DateTime>();
+        var maxAnterior = DateTime.MinValue;
+
+        foreach (var item in items.OrderBy(x => x.Id))
+        {
+            fechas[item.Id] = item.FchUsu ?? maxAnterior;
+            if (item.FchUsu > maxAnterior)
+            {
+                maxAnterior = item.FchUsu.Value;
+            }
+        }
+
+        return fechas;
+    }
 
     private async Task<bool> UserHasRole(string role)
     {
