@@ -33,6 +33,13 @@ namespace PaginaToros.Server.Services
 
             message.From ??= new MailAddress(options.SenderAddress);
 
+            // SmtpClient no genera Message-ID. Exim lo firma igual con DKIM (ausente), Outlook/Hotmail
+            // agrega uno al recibir, la firma deja de validar y rechaza con 550 5.7.515 (Dkim=Fail).
+            if (string.IsNullOrEmpty(message.Headers["Message-ID"]))
+            {
+                message.Headers["Message-ID"] = $"<{Guid.NewGuid():N}@{message.From.Host}>";
+            }
+
             using var smtp = new SmtpClient(options.Host!.Trim(), options.Port)
             {
                 DeliveryMethod = SmtpDeliveryMethod.Network,

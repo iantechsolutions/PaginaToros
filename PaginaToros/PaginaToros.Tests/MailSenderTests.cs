@@ -30,6 +30,20 @@ public class MailSenderTests
     }
 
     [Fact]
+    public async Task SendAsync_AddsMessageIdOnTheSenderDomain()
+    {
+        // Sin Message-ID, Outlook/Hotmail agrega uno, rompe la firma DKIM de Exim
+        // y rechaza el mail con 550 5.7.515.
+        using var server = new FakeSmtpServer();
+        var sender = CreateSender(OptionsFor(server));
+
+        using var mail = NewMail();
+        await sender.SendAsync(mail);
+
+        Assert.Matches(@"(?m)^Message-ID: <[0-9a-f]{32}@test\.local>\r?$", Assert.Single(server.Sessions).Data);
+    }
+
+    [Fact]
     public async Task SendAsync_WithoutFrom_SendsFromTheAccount()
     {
         using var server = new FakeSmtpServer();
