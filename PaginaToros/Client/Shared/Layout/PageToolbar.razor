@@ -1,0 +1,25 @@
+@* Barra de búsqueda/orden sobre un listado: la búsqueda ocupa el espacio libre a la izquierda y
+   los controles (orden, filtros) quedan agrupados a la derecha. *@
+<div class="pt-toolbar @Class">
+    @if (Search is not null)
+    {
+        <div class="pt-toolbar-search">
+            @Search
+        </div>
+    }
+    @if (ChildContent is not null)
+    {
+        <div class="pt-toolbar-controls">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public RenderFragment? Search { get; set; }
+
+    /// <summary>Controles a la derecha de la búsqueda.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] public string? Class { get; set; }
+}

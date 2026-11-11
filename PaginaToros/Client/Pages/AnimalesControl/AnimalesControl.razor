@@ -7,51 +7,75 @@
 @inject ISocioServicio _socioServicio
 @inject IResin6Servicio _resin6Servicio
 
-<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Animales marcables</h3>
-
 <style>
-    .inline-flex {
-        display: inline-flex;
+    .marcables-anio {
+        display: flex;
         align-items: center;
         gap: .5rem;
     }
 
-    .card {
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 16px;
-        margin: 8px auto;
-        max-width: 640px;
-        background: #fff;
+    .marcables-anio label {
+        margin: 0;
+        font-size: .85rem;
+        font-weight: 600;
+        color: #475569;
     }
 
-    .big {
-        font-size: 28px;
+    .marcables-anio input {
+        width: 6.5rem;
+    }
+
+    .marcables-resultado {
+        max-width: 40rem;
+        padding: 1.1rem 1.25rem;
+        border: 1px solid var(--pt-line);
+        border-radius: var(--pt-radius);
+        background: var(--pt-surface);
+    }
+
+    .marcables-totales {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        margin-top: .75rem;
+    }
+
+    .marcables-etiqueta {
+        color: var(--pt-muted);
+        font-size: .8rem;
+    }
+
+    .marcables-valor {
+        font-size: 1.75rem;
         font-weight: 700;
+        line-height: 1.2;
     }
 
-    .muted {
-        color: #6b7280;
-        font-size: 12px
+    .marcables-aviso {
+        max-width: 40rem;
+        margin-top: .75rem;
+        padding: .75rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--pt-radius);
+        background: #f8fafc;
+        color: #475569;
     }
 </style>
 
-<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
-    <Authorized>
-        @if (loading)
+<AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO,Socio">
+<div class="pt-page">
+    <PageHeader Title="Animales marcables" Description="Hembras PR y machos marcables según las inspecciones del año." />
+
+    @if (loading)
+    {
+        <PageLoading />
+    }
+    else
+    {
+        @if (esAdmin)
         {
-            <center>
-                <div class="mb-2">
-                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false"
-                                       ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-                </div>
-            </center>
-        }
-        else
-        {
-            <div style="max-width: 900px; margin: 0 auto;">
-                <div class="inline-flex" style="margin: 8px 0;">
-                    <label class="font-semibold">Seleccionar socio:</label>
+            <PageToolbar>
+                <Search>
                     <BlazoredTypeahead TItem="SocioDTO"
                                        TValue="SocioDTO"
                                        Value="socioSeleccionado"
@@ -59,132 +83,70 @@
                                        ValueExpression="@(() => socioSeleccionado)"
                                        SearchMethod="BusquedaSocios"
                                        EnableDropDown="true"
-                                       placeholder="Busque socio por nombre">
+                                       placeholder="Elegí un socio">
                         <SelectedTemplate Context="s">@s.Nombre</SelectedTemplate>
                         <ResultTemplate Context="s">@s.Nombre</ResultTemplate>
                     </BlazoredTypeahead>
-
-                    <button class="font-bold px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100"
-                            disabled="@(string.IsNullOrWhiteSpace(scodSeleccionado))"
-                            @onclick="CargarParaSocio">
-                        Cargar datos
-                    </button>
-                </div>
-
-                @if (string.IsNullOrWhiteSpace(scodSeleccionado))
-                {
-                    <div class="mt-4 p-4 rounded-xl border border-gray-200 bg-gray-50">
-                        Elegí un socio para habilitar la consulta por año.
-                    </div>
-                }
-                else
-                {
-                    <center>
-                        <br />
-                        <RadzenText TextStyle="TextStyle.H5">Ingrese año</RadzenText>
-                        <br />
-                        <div style="display:flex;flex-direction:row;align-items:center;justify-content:center">
-                            <input type="number" class="form-control" @bind="anioTemp" style="width:10%" />
-                            <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                                    style="position:relative;left:3.33%;display:flex"
-                                    @onclick="GenerarResultado">
-                                <FeatherSearch Size="24" Color="Black" /> Consultar
-                            </button>
-                        </div>
-
-                        <br /><br />
-                        @if (generado)
-                        {
-                            <div class="card">
-                                <div class="muted">Año</div>
-                                <div class="big">@anioGenerado</div>
-                                <div class="mt-3 grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                                    <div>
-                                        <div class="muted">Hembras PR marcables</div>
-                                        <div class="big">@HembrasMarcablesPR</div>
-                                    </div>
-                                    <div>
-                                        <div class="muted">Machos marcables (SCP+CP)</div>
-                                        <div class="big">@MachosMarcables</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            @if (!tuvoDatos)
-                            {
-                                <div class="mt-4 p-3 rounded-xl border border-gray-200 bg-gray-50" style="max-width:700px">
-                                    No se encontraron inspecciones para el socio en @anioGenerado.
-                                </div>
-                            }
-                        }
-                    </center>
-                }
-            </div>
-        }
-    </Authorized>
-</AuthorizeView>
-
-<AuthorizeView Roles="Socio">
-    <Authorized>
-        @if (loading)
-        {
-            <center>
-                <div class="mb-2">
-                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false"
-                                       ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-                </div>
-            </center>
+                </Search>
+                <ChildContent>@ConsultaPorAnio</ChildContent>
+            </PageToolbar>
         }
         else
         {
-            <center>
-                <br />
-                <RadzenText TextStyle="TextStyle.H5">Ingrese año</RadzenText>
-                <br />
-                <div style="display:flex;flex-direction:row;align-items:center;justify-content:center">
-                    <input type="number" class="form-control" @bind="anioTemp" style="width:10%" />
-                    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                            style="position:relative;left:3.33%;display:flex"
-                            @onclick="GenerarResultado">
-                        <FeatherSearch Size="24" Color="Black" /> Consultar
-                    </button>
-                </div>
-
-                <br /><br />
-                @if (generado)
-                {
-                    <div class="card">
-                        <div class="muted">Año</div>
-                        <div class="big">@anioGenerado</div>
-                        <div class="mt-3 grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                            <div>
-                                <div class="muted">Hembras PR marcables</div>
-                                <div class="big">@HembrasMarcablesPR</div>
-                            </div>
-                            <div>
-                                <div class="muted">Machos marcables (SCP+CP)</div>
-                                <div class="big">@MachosMarcables</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    @if (!tuvoDatos)
-                    {
-                        <div class="mt-4 p-3 rounded-xl border border-gray-200 bg-gray-50" style="max-width:700px">
-                            No se encontraron inspecciones (Resin6) para tu usuario en @anioGenerado.
-                        </div>
-                    }
-                }
-            </center>
+            <PageToolbar>@ConsultaPorAnio</PageToolbar>
         }
-    </Authorized>
+
+        @if (esAdmin && string.IsNullOrWhiteSpace(scodSeleccionado))
+        {
+            <div class="marcables-aviso">Elegí un socio para habilitar la consulta por año.</div>
+        }
+        else if (generado)
+        {
+            <div class="marcables-resultado" aria-live="polite">
+                <div class="marcables-etiqueta">Año</div>
+                <div class="marcables-valor">@anioGenerado</div>
+                <div class="marcables-totales">
+                    <div>
+                        <div class="marcables-etiqueta">Hembras PR marcables</div>
+                        <div class="marcables-valor">@HembrasMarcablesPR</div>
+                    </div>
+                    <div>
+                        <div class="marcables-etiqueta">Machos marcables (SCP+CP)</div>
+                        <div class="marcables-valor">@MachosMarcables</div>
+                    </div>
+                </div>
+            </div>
+
+            @if (!tuvoDatos)
+            {
+                <div class="marcables-aviso">No se encontraron inspecciones en @anioGenerado.</div>
+            }
+        }
+    }
+</div>
 </AuthorizeView>
 
 @code {
+    // Año + botón de consulta: igual para administradores (después del socio) y para socios.
+    RenderFragment ConsultaPorAnio => @<text>
+        <div class="marcables-anio">
+            <label for="marcables-anio">Año</label>
+            <input id="marcables-anio" type="number" class="form-control" @bind="anioTemp" />
+        </div>
+        <button type="button"
+                class="pt-btn pt-btn--primary"
+                disabled="@(string.IsNullOrWhiteSpace(scodSeleccionado))"
+                @onclick="GenerarResultado">
+            <FeatherSearch Size="16" Color="currentColor" />
+            <span>Consultar</span>
+        </button>
+    </text>;
+
     // Estado
     bool loading = true;
     bool generado = false;
     bool tuvoDatos = false;
+    bool esAdmin = false;
 
     // Año
     int anioTemp = DateTime.Now.Year;
@@ -214,6 +176,7 @@
 
             if (user.IsInRole("ADMINISTRADOR") || user.IsInRole("USUARIOMAESTRO"))
             {
+                esAdmin = true;
                 var r = await _socioServicio.LimitadosFiltrados(0, 0);
                 Socios = r.List ?? new();
                 Console.WriteLine($"[Init] Admin/Maestro: {Socios.Count} socios");
@@ -253,17 +216,6 @@
         socioSeleccionado = socio;
         scodSeleccionado = socio?.Scod ?? "";
         Console.WriteLine($"[uploadSocio] {socioSeleccionado?.Nombre} - SCOD={scodSeleccionado}");
-        generado = false;
-        ResetTotals();
-        StateHasChanged();
-        await Task.CompletedTask;
-    }
-
-    private async Task CargarParaSocio()
-    {
-        if (socioSeleccionado is null) return;
-        scodSeleccionado = socioSeleccionado.Scod ?? "";
-        Console.WriteLine($"[CargarParaSocio] SCOD={scodSeleccionado}");
         generado = false;
         ResetTotals();
         StateHasChanged();

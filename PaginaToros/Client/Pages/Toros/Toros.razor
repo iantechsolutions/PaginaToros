@@ -1,4 +1,4 @@
-@page "/toros"
+﻿@page "/toros"
 @inject ITorosServicio _torosServicio
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -17,25 +17,6 @@
         width: 100%;
         margin: 0 auto 2rem;
         color: #172033;
-    }
-
-    .toros-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 1rem;
-        margin: 1rem 0;
-    }
-
-    .toros-title {
-        margin: 0;
-        font-size: 1.55rem;
-        font-weight: 700;
-    }
-
-    .toros-description {
-        margin: .25rem 0 0;
-        color: #64748b;
     }
 
     .toros-card {
@@ -215,6 +196,13 @@
 
     .toros-filter-card .blazored-typeahead__down-arrow path {
         fill: #78985a !important;
+    }
+
+    /* Barra compacta de toros: los botones comunes a la altura de sus selects (32px). */
+    .toros-filter-card .pt-btn {
+        min-height: 32px;
+        padding: 0 .65rem;
+        font-size: .84rem;
     }
 
     .toros-filter-card .btn {
@@ -446,7 +434,6 @@
     }
 
     @@media (max-width: 980px) {
-        .toros-header,
         .toros-status-row {
             flex-direction: column;
             align-items: stretch;
@@ -467,18 +454,19 @@
 </style>
 
 <div class="toros-page">
-    <div class="toros-header no-print">
-        <div>
-            <h3 class="toros-title">Toros</h3>
-            <p class="toros-description">Consulta, filtrá y ordená el padrón de toros sin perder contexto mientras se actualizan los resultados.</p>
-        </div>
+    <PageHeader Title="Toros" Description="Consultá, filtrá y ordená el padrón de toros." Class="no-print">
         @if (CanUseAdminControls)
         {
-            <button class="btn btn-primary" @onclick="() => OpenToroModal(0)" disabled="@tableLoading">
-                Agregar toro
+            <button type="button" class="pt-btn pt-btn--secondary" @onclick="PaginaReporte">
+                <FeatherFileText Size="16" Color="currentColor" />
+                <span>Reporte por socio</span>
+            </button>
+            <button type="button" class="pt-btn pt-btn--primary" @onclick="() => OpenToroModal(0)" disabled="@tableLoading">
+                <FeatherPlus Size="16" Color="currentColor" />
+                <span>Agregar toro</span>
             </button>
         }
-    </div>
+    </PageHeader>
 
     <div class="toros-card toros-filter-card no-print">
         <div class="toros-toolbar">
@@ -537,17 +525,12 @@
                          Placeholder="Buscar por toro, socio, HBA, tatuaje, ADN o número de orden" />
 
             <div class="toros-toolbar-actions">
-                <button class="btn btn-outline-secondary" @onclick="ClearFilters" disabled="@(filtersApplying || metadataLoading)">
+                <button type="button" class="pt-btn pt-btn--secondary" @onclick="ClearFilters" disabled="@(filtersApplying || metadataLoading)">
                     Limpiar filtros
                 </button>
-                @if (CanUseAdminControls)
-                {
-                    <button class="btn btn-light" @onclick="PaginaReporte">
-                        Reporte x socio
-                    </button>
-                }
-                <button class="btn btn-light" title="Filtros avanzados" @onclick="OpenFilterPanel">
-                    <FeatherFilter Color="Black" />
+                <button type="button" class="pt-btn pt-btn--secondary" title="Filtros avanzados" @onclick="OpenFilterPanel">
+                    <FeatherFilter Size="16" Color="currentColor" />
+                    <span>Más filtros</span>
                 </button>
             </div>
         </div>

@@ -19,50 +19,12 @@
         color: #172033;
     }
 
-    .socios-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 1rem;
-        margin: .75rem 0;
-        width: 100%;
-    }
-
-    .socios-title {
-        margin: 0;
-        font-size: 1.55rem;
-        font-weight: 700;
-    }
-
-    .socios-description {
-        margin: .25rem 0 0;
-        color: #64748b;
-    }
-
     .socios-card {
         width: 100%;
         border: 1px solid #dbe3cf;
         border-radius: 8px;
         background: #fffdf8;
         box-shadow: 0 8px 18px rgba(76, 59, 32, .06);
-    }
-
-    .socios-filter-card {
-        padding: .75rem;
-        margin-bottom: .85rem;
-    }
-
-    .socios-toolbar {
-        display: flex;
-        gap: .75rem;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: nowrap;
-    }
-
-    .socios-toolbar-search {
-        flex: 1 1 auto;
-        min-width: 0;
     }
 
     .tablacontent {
@@ -173,52 +135,29 @@
             padding-right: .75rem;
         }
     }
-
-    @@media (max-width: 980px) {
-        .socios-header {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .socios-toolbar {
-            flex-wrap: wrap;
-            flex-direction: column;
-        }
-
-        .socios-toolbar-search {
-            min-width: 0;
-        }
-    }
 </style>
 
 <div class="socios-page">
     <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO,Socio">
         <Authorized>
-            <div class="socios-header">
-                <div>
-                    <h3 class="socios-title">Socios</h3>
-                    <p class="socios-description">Buscá por nombre, apellido, razón social o por los usuarios asociados a cada socio.</p>
-                </div>
-
+            <PageHeader Title="Socios" Description="Buscá por nombre, apellido, razón social o por los usuarios asociados a cada socio.">
                 @if (CanUseAdminControls)
                 {
-                    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                            @onclick="() => AddAsync(0, string.Empty)">
-                        Agregar Socio
+                    <button type="button" class="pt-btn pt-btn--primary" @onclick="() => AddAsync(0, string.Empty)">
+                        <FeatherPlus Size="16" Color="currentColor" />
+                        <span>Agregar socio</span>
                     </button>
                 }
-            </div>
+            </PageHeader>
 
-            <div class="socios-card socios-filter-card">
-                <div class="socios-toolbar">
-                    <div class="socios-toolbar-search">
-                        <SearchInput Value="@searchText"
-                                     ValueChanged="OnSearchChanged"
-                                     IsLoading="@searchLoading"
-                                     Placeholder="Buscar por nombre, apellido, razón social, mail o código" />
-                    </div>
-                </div>
-            </div>
+            <PageToolbar>
+                <Search>
+                    <SearchInput Value="@searchText"
+                                 ValueChanged="OnSearchChanged"
+                                 IsLoading="@searchLoading"
+                                 Placeholder="Buscar por nombre, apellido, razón social, mail o código" />
+                </Search>
+            </PageToolbar>
 
             <div class="socios-card tablacontent">
                 <RadzenDataGrid class="tablacontent"

@@ -1,0 +1,242 @@
+/*
+ * Disposición común de las páginas de listado: encabezado (título + acciones), barra de búsqueda/orden
+ * y grilla a todo el ancho del contenido. Se carga después de Tailwind para que su reset de botones
+ * no pise estos estilos. Componentes: Shared/Layout/PageHeader, PageToolbar y FilterToggle.
+ */
+
+:root {
+    --pt-brand: #85582f;
+    --pt-brand-hover: #6c4422;
+    --pt-brand-soft: #f6eddf;
+    --pt-ink: #1f2933;
+    --pt-muted: #64748b;
+    --pt-line: #ddd3c2;
+    --pt-surface: #fffdf8;
+    --pt-control-height: 2.375rem;
+    --pt-radius: 10px;
+}
+
+/* ---------- Página ---------- */
+
+.pt-page {
+    width: 100%;
+    color: var(--pt-ink);
+    margin-bottom: 1.5rem;
+}
+
+/* ---------- Encabezado ---------- */
+
+.pt-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem 1.5rem;
+    flex-wrap: wrap;
+    margin: .25rem 0 1rem;
+}
+
+.pt-page-heading {
+    min-width: 0;
+    flex: 1 1 18rem;
+}
+
+.pt-page-title {
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    color: var(--pt-ink);
+}
+
+.pt-page-description {
+    margin: .2rem 0 0;
+    font-size: .9rem;
+    color: var(--pt-muted);
+}
+
+.pt-page-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+/* ---------- Botones ---------- */
+
+.pt-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    min-height: var(--pt-control-height);
+    padding: 0 1rem;
+    border: 1px solid transparent;
+    border-radius: var(--pt-radius);
+    font-size: .9rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+
+.pt-btn svg {
+    flex: 0 0 auto;
+}
+
+.pt-btn:focus-visible {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 2px;
+}
+
+.pt-btn:disabled,
+.pt-btn[aria-disabled="true"] {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.pt-btn--primary {
+    background-color: var(--pt-brand);
+    border-color: var(--pt-brand);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(76, 49, 22, .25);
+}
+
+.pt-btn--primary:hover:not(:disabled) {
+    background-color: var(--pt-brand-hover);
+    border-color: var(--pt-brand-hover);
+    color: #fff;
+}
+
+.pt-btn--secondary {
+    background-color: #fff;
+    border-color: var(--pt-line);
+    color: #3e3528;
+}
+
+.pt-btn--secondary:hover:not(:disabled) {
+    background-color: var(--pt-brand-soft);
+    border-color: #c9b89c;
+}
+
+.pt-btn--secondary.is-active {
+    background-color: var(--pt-brand-soft);
+    border-color: var(--pt-brand);
+    color: #5b3a1d;
+}
+
+/* ---------- Barra de búsqueda / orden ---------- */
+
+.pt-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .6rem 1rem;
+    padding: .65rem .75rem;
+    margin-bottom: .85rem;
+    border: 1px solid var(--pt-line);
+    border-radius: var(--pt-radius);
+    background: var(--pt-surface);
+    box-shadow: 0 4px 12px rgba(76, 59, 32, .05);
+}
+
+.pt-toolbar-search {
+    flex: 1 1 18rem;
+    min-width: 0;
+    max-width: 34rem;
+}
+
+.pt-toolbar-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-left: auto;
+}
+
+/* Inputs de la barra con la misma altura que los botones. */
+.pt-toolbar .form-control,
+.pt-toolbar .form-select {
+    min-height: var(--pt-control-height);
+    border-color: var(--pt-line);
+    border-radius: 8px;
+    font-size: .9rem;
+}
+
+.pt-toolbar .blazored-typeahead {
+    border-color: var(--pt-line);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.pt-toolbar .blazored-typeahead__input,
+.pt-toolbar .blazored-typeahead__input-mask {
+    min-height: calc(var(--pt-control-height) - 2px);
+    padding: .3rem .65rem;
+    font-size: .9rem;
+}
+
+.pt-toolbar .blazored-typeahead__clear,
+.pt-toolbar .blazored-typeahead__input-icon {
+    padding: .3rem .5rem;
+}
+
+/* ---------- Grilla ---------- */
+
+.pt-grid {
+    width: 100%;
+}
+
+.pt-loading {
+    width: 100%;
+    padding: 1.5rem 0;
+}
+
+/* ---------- Pantallas angostas ---------- */
+
+/* En celular la grilla conserva un ancho legible y se desplaza de costado, en vez de partir
+   números y nombres letra por letra. */
+@media (max-width: 767.98px) {
+    .tablacontent .rz-datatable-tablewrapper,
+    .tablacontent.rz-data-grid .rz-datatable-tablewrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tablacontent .rz-grid-table {
+        min-width: 960px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .pt-page-title {
+        font-size: 1.3rem;
+    }
+
+    .pt-page-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .pt-page-actions > .pt-btn {
+        flex: 1 1 auto;
+    }
+
+    .pt-toolbar-search {
+        flex-basis: 100%;
+        max-width: none;
+    }
+
+    .pt-toolbar-controls {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+/* Barra sin búsqueda: los controles arrancan a la izquierda. */
+.pt-toolbar-controls:only-child {
+    margin-left: 0;
+}

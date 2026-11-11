@@ -30,56 +30,39 @@
 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
     <Authorized>
 
-<h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Planteles</h3>
+<div class="pt-page">
+<PageHeader Title="Planteles" Description="Filtrá por socio y ordená por cualquier columna.">
+    <button type="button" class="pt-btn pt-btn--primary" @onclick="()=>add(0,false)">
+        <FeatherPlus Size="16" Color="currentColor" />
+        <span>Agregar plantel</span>
+    </button>
+</PageHeader>
 
-
-<div style="position:relative;left:3.33%" class="d-flex gap-3 flex-wrap">
-    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="()=>add(0,false)">Agregar Plantel</button>
-</div>
-    <br />
-        <br />
-        
 @if (oRespuesta.List != null)
 {
-            <div class="row mb-3">
-                <div class="col-2"></div>
-                <div class="col-10">
-                    <div class="d-flex align-items-center flex-wrap gap-3">
-                        <BlazoredTypeahead SearchMethod="BusquedaSocios"
-                                           class="form-control"
-                                           placeholder="Buscar por socio"
-                                           EnableDropDown="true"
-                                           Value="socioSeleccionado"
-                                           ValueChanged="EventCallback.Factory.Create<SocioDTO>(this, OnSocioSeleccionadoChanged)"
-                                           ValueExpression="(() => socioSeleccionado)">
-                            <SelectedTemplate Context="eleccion">
-                                @eleccion.Nombre
-                            </SelectedTemplate>
-                            <ResultTemplate Context="eleccion">
-                                @eleccion.Nombre
-                            </ResultTemplate>
-                        </BlazoredTypeahead>
+    <PageToolbar>
+        <Search>
+            <BlazoredTypeahead SearchMethod="BusquedaSocios"
+                               placeholder="Filtrar por socio"
+                               EnableDropDown="true"
+                               Value="socioSeleccionado"
+                               ValueChanged="EventCallback.Factory.Create<SocioDTO>(this, OnSocioSeleccionadoChanged)"
+                               ValueExpression="(() => socioSeleccionado)">
+                <SelectedTemplate Context="eleccion">
+                    @eleccion.Nombre
+                </SelectedTemplate>
+                <ResultTemplate Context="eleccion">
+                    @eleccion.Nombre
+                </ResultTemplate>
+            </BlazoredTypeahead>
+        </Search>
+        <ChildContent>
+            <SortSelector Sort="sort" OnChange="OnSortChanged" />
+            <FilterToggle Active="allowFiltering" OnToggle="CambiarModoFiltro" />
+        </ChildContent>
+    </PageToolbar>
 
-                        <button class="font-bold px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                                @onclick="()=>BuscarPorSocio()">
-                            Buscar
-                        </button>
-
-                        <button class="font-bold px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                                @onclick="() => CambiarModoFiltro()"
-                                title="Mostrar u ocultar filtros por columna"
-                                aria-label="Mostrar u ocultar filtros por columna">
-                            <FeatherFilter Color="Black"></FeatherFilter>
-                        </button>
-
-                        <SortSelector Sort="sort" OnChange="OnSortChanged" />
-                    </div>
-                </div>
-            </div>
-
-
-    <br />
-    <RadzenDataGrid class="tablacontent" style="position:relative;width:93.5%;left:3.33%" IsLoading="isLoading" LoadData="LoadData" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+    <RadzenDataGrid class="tablacontent pt-grid" IsLoading="isLoading" LoadData="LoadData" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                     AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                     Density="Density.Compact" Data="@oRespuesta.List" Count="cantidad" TItem="PlantelDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
@@ -142,33 +125,25 @@
         </Columns>
 
     </RadzenDataGrid>
-    <br />
 }
 else
 {
-    <br />
-    <center>
-        <div class="mb-2">
-            <br />
-            <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-        </div>
-    </center>
+    <PageLoading />
 }
+</div>
 </Authorized>
 </AuthorizeView>
 <AuthorizeView Roles="Socio,SOCIO">
     <Authorized>
-        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Planteles</h3>
+        <div class="pt-page">
+        <PageHeader Title="Planteles" Description="Tus planteles. Ordená por cualquier columna." />
         @if (oRespuesta.List != null)
         {
-
-            <div class="d-flex justify-content-end align-items-center flex-wrap gap-3" style="margin-right:3%;margin-left:3.33%;">
+            <PageToolbar>
                 <SortSelector Sort="sort" OnChange="OnSortChanged" />
-                <button style="outline:none;height:100%;" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" title="Mostrar u ocultar filtros por columna" aria-label="Mostrar u ocultar filtros por columna" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-            </div>
-            <br />
-            <br />
-            <RadzenDataGrid class="tablacontent" style="position:relative;width:93.5%;left:3.33%" IsLoading="isLoading" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
+                <FilterToggle Active="allowFiltering" OnToggle="CambiarModoFiltro" />
+            </PageToolbar>
+            <RadzenDataGrid class="tablacontent pt-grid" IsLoading="isLoading" AllowFiltering="allowFiltering" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                             AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                             Density="Density.Compact" Data="@oRespuesta.List" Count="cantidad" TItem="PlantelDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                 <Columns>
@@ -218,18 +193,12 @@ else
                 </Columns>
 
             </RadzenDataGrid>
-            <br />
         }
         else
         {
-            <br />
-            <center>
-                <div class="mb-2">
-                    <br />
-                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-                </div>
-            </center>
+            <PageLoading />
         }
+        </div>
     </Authorized>
 </AuthorizeView>
 @code {

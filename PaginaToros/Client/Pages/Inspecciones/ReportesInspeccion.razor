@@ -5,59 +5,6 @@
 @inject IResin1Servicio _resin1Servicio
 
 <style>
-    .reportes-page {
-        width: 100%;
-        margin: 0 auto 2rem;
-        color: #172033;
-    }
-
-    .reportes-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 1rem;
-        margin: 1rem 0;
-        width: 93.5%;
-        margin-left: 3.33%;
-    }
-
-    .reportes-title {
-        margin: 0;
-        font-size: 1.55rem;
-        font-weight: 700;
-    }
-
-    .reportes-description {
-        margin: .25rem 0 0;
-        color: #64748b;
-    }
-
-    .reportes-card {
-        width: 93.5%;
-        margin-left: 3.33%;
-        border: 1px solid #dbe3cf;
-        border-radius: 8px;
-        background: #fffdf8;
-        box-shadow: 0 8px 18px rgba(76, 59, 32, .06);
-    }
-
-    .reportes-filter-card {
-        padding: .75rem;
-        margin-bottom: .85rem;
-    }
-
-    .reportes-toolbar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: .5rem 1rem;
-    }
-
-    .reportes-toolbar-search {
-        flex: 1 1 22rem;
-        min-width: 0;
-    }
-
     .empty-state {
         padding: 3rem 1rem;
         text-align: center;
@@ -86,38 +33,35 @@
     }
 </style>
 
-<div class="reportes-page">
+<div class="pt-page">
     <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO,Socio">
         <Authorized Context="reportesUser">
-            <div class="reportes-header">
-                <div>
-                    <h3 class="reportes-title">Reportes de Inspeccion</h3>
-                    <p class="reportes-description">Buscá por número, plantel, socio, establecimiento o fecha de creación.</p>
-                </div>
-
+            <PageHeader Title="Reportes de inspección" Description="Buscá por número, plantel, socio, establecimiento o fecha de creación.">
                 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
                     <Authorized Context="reportesAdminButton">
-                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                                @onclick="() => add(0, 0)">
-                            Agregar Nuevo Reporte
+                        <button type="button" class="pt-btn pt-btn--primary" @onclick="() => add(0, 0)">
+                            <FeatherPlus Size="16" Color="currentColor" />
+                            <span>Agregar reporte</span>
                         </button>
                     </Authorized>
                 </AuthorizeView>
-            </div>
+            </PageHeader>
 
-            <div class="reportes-card reportes-filter-card reportes-toolbar">
-                <div class="reportes-toolbar-search">
+            <PageToolbar>
+                <Search>
                     <SearchInput Value="@searchText"
                                  ValueChanged="OnSearchChanged"
                                  IsLoading="@searchLoading"
                                  Placeholder="Buscar por número, plantel, socio, establecimiento o fecha" />
-                </div>
-                <SortSelector Sort="sort" OnChange="OnSortChanged" />
-            </div>
+                </Search>
+                <ChildContent>
+                    <SortSelector Sort="sort" OnChange="OnSortChanged" />
+                </ChildContent>
+            </PageToolbar>
 
             <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
                 <Authorized Context="reportesAdminGrid">
-                    <div class="reportes-card tablacontent">
+                    <div class="tablacontent pt-grid">
                         <RadzenDataGrid @ref="grid"
                                         IsLoading="@isLoading"
                                         AllowColumnResize="true"
@@ -185,7 +129,7 @@
 
             <AuthorizeView Roles="Socio">
                 <Authorized Context="reportesSocioGrid">
-                    <div class="reportes-card tablacontent">
+                    <div class="tablacontent pt-grid">
                         <RadzenDataGrid @ref="grid"
                                         IsLoading="@isLoading"
                                         AllowColumnResize="true"

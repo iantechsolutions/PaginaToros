@@ -1,4 +1,4 @@
-@page "/certificados"
+﻿@page "/certificados"
 @using PaginaToros.Shared.Models.Response
 @using PaginaToros.Shared.Models
 @using PaginaToros.Client.Servicios.Contrato;
@@ -8,45 +8,6 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <style>
-    .certificados-page {
-        width: min(98%, 1600px);
-        margin: 0 auto;
-    }
-
-    .certificados-toolbar {
-        display: flex;
-        align-items: end;
-        justify-content: space-between;
-        gap: 1rem;
-        flex-wrap: wrap;
-        margin-bottom: 1.5rem;
-    }
-
-    .certificados-toolbar-main,
-    .certificados-toolbar-actions {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .certificados-toolbar-actions {
-        margin-left: auto;
-    }
-
-    .certificados-typeahead {
-        min-width: 320px;
-        width: min(520px, 100%);
-    }
-
-    .certificados-grid {
-        width: 100%;
-    }
-
-    .certificados-filter-button {
-        min-width: 56px;
-    }
-
     .rz-cell-data,
     .rz-column-title-content {
         font-size: 13px !important;
@@ -69,43 +30,28 @@
     .rz-paginator {
         border-top: solid #E0E0E0 1px;
     }
-
-    @@media (max-width: 768px) {
-        .certificados-page {
-            width: 100%;
-            padding: 0 0.75rem;
-        }
-
-        .certificados-toolbar {
-            align-items: stretch;
-        }
-
-        .certificados-toolbar-main,
-        .certificados-toolbar-actions {
-            width: 100%;
-        }
-
-        .certificados-typeahead {
-            min-width: 0;
-            width: 100%;
-        }
-    }
 </style>
 
 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
     <Authorized>
-        <div class="certificados-page">
-            <h3 class="pb-3 font-bold text-xl">Certificados de semen</h3>
+        <div class="pt-page">
+            <PageHeader Title="Certificados de semen">
+                <button type="button" class="pt-btn pt-btn--secondary" @onclick="()=>PaginaReporte()">
+                    <FeatherFileText Size="16" Color="currentColor" />
+                    <span>Reporte por socio</span>
+                </button>
+                <button type="button" class="pt-btn pt-btn--primary" @onclick="()=>add(0)">
+                    <FeatherPlus Size="16" Color="currentColor" />
+                    <span>Agregar certificado</span>
+                </button>
+            </PageHeader>
 
             @if (oRespuesta.List != null)
             {
-                <div class="certificados-toolbar">
-                    <div class="certificados-toolbar-main">
-                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="()=>add(0)">Agregar Certificado</button>
-
+                <PageToolbar>
+                    <Search>
                         <BlazoredTypeahead SearchMethod="BusquedaSocios"
-                                           class="certificados-typeahead"
-                                           placeholder="Buscar por socio"
+                                           placeholder="Filtrar por socio"
                                            EnableDropDown="true"
                                            Value="socioSeleccionado"
                                            ValueChanged="EventCallback.Factory.Create<SocioDTO?>(this, OnSocioSeleccionadoChanged)"
@@ -117,15 +63,13 @@
                                 @eleccion.Nombre
                             </ResultTemplate>
                         </BlazoredTypeahead>
-                    </div>
+                    </Search>
+                    <ChildContent>
+                        <FilterToggle Active="allowFiltering" OnToggle="CambiarModoFiltro" />
+                    </ChildContent>
+                </PageToolbar>
 
-                    <div class="certificados-toolbar-actions">
-                        <button class="no-print px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 certificados-filter-button" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-                        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="()=>PaginaReporte()">Reporte x socio</button>
-                    </div>
-                </div>
-
-                <div class="tablacontent certificados-grid">
+                <div class="tablacontent pt-grid">
                     <RadzenDataGrid AllowFiltering="allowFiltering" LoadData="LoadData" IsLoading=@isLoading AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                                     Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                                     Data="@oRespuesta.List" Count="cantotal" TItem="CertifsemanDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
@@ -168,13 +112,7 @@
             }
             else
             {
-                <br />
-                <center>
-                    <div class="mb-2">
-                        <br />
-                        <RadzenProgressBar style="width:100%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-                    </div>
-                </center>
+                <PageLoading />
             }
         </div>
     </Authorized>
@@ -182,18 +120,14 @@
 
 <AuthorizeView Roles="Socio">
     <Authorized>
-        <div class="certificados-page">
-            <h3 class="pb-3 font-bold text-xl">Certificados de semen</h3>
+        <div class="pt-page">
+            <PageHeader Title="Certificados de semen">
+                <FilterToggle Active="allowFiltering" OnToggle="CambiarModoFiltro" />
+            </PageHeader>
 
             @if (oRespuesta.List != null)
             {
-                <div class="certificados-toolbar">
-                    <div class="certificados-toolbar-actions">
-                        <button class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0 certificados-filter-button" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-                    </div>
-                </div>
-
-                <div class="tablacontent certificados-grid">
+                <div class="tablacontent pt-grid">
                     <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading=@isLoading AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                                     PageSizeOptions="@(new[] { 15, 30, 50, 100 })"
                                     Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
@@ -221,13 +155,7 @@
             }
             else
             {
-                <br />
-                <center>
-                    <div class="mb-2">
-                        <br />
-                        <RadzenProgressBar style="width:100%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-                    </div>
-                </center>
+                <PageLoading />
             }
         </div>
     </Authorized>

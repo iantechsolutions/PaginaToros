@@ -26,46 +26,60 @@
         border-top: solid #E0E0E0 1px;
     }
 
-    .custom-input-file {
+    .solicitud-pasos {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .75rem;
+        margin-bottom: 1rem;
+    }
+
+    .solicitud-paso {
+        display: flex;
+        align-items: flex-start;
+        gap: .75rem;
+        padding: .85rem 1rem;
+        border: 1px solid var(--pt-line);
+        border-radius: var(--pt-radius);
+        background: var(--pt-surface);
+    }
+
+    .solicitud-paso-nro {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 50%;
+        background: var(--pt-brand);
+        color: #fff;
+        font-weight: 700;
+        font-size: .85rem;
+    }
+
+    .solicitud-paso-texto {
+        margin: .2rem 0 .6rem;
+        font-size: .9rem;
+        color: var(--pt-ink);
+    }
+
+    .solicitud-subir {
         position: relative;
         overflow: hidden;
-        display: inline-block;
-        cursor: pointer;
-        padding: 6px 20px;
-        background-color: lawngreen;
-        color: black;
-        border: none;
-        border-radius: 5px;
     }
 
-    .custom-input-file input[type="file"] {
+    .solicitud-subir input[type="file"] {
         position: absolute;
-        top: 0;
-        right: 0;
-        margin: 0;
-        padding: 0;
-        font-size: 20px;
-        cursor: pointer;
+        inset: 0;
         opacity: 0;
-        filter: alpha(opacity=0); /* For IE8 and earlier */
+        cursor: pointer;
     }
 
-        .custom-input-file a {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            cursor: pointer;
-            padding: 6px 20px; /* Adjusted padding */
-            background-color: lawngreen;
-            color: black;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none; /* Remove default underline */
+    @@media (max-width: 767.98px) {
+        .solicitud-pasos {
+            grid-template-columns: 1fr;
         }
-
-
-
-
+    }
 </style>
 
 @* Only render the admin/maestro section when the user is NOT a Socio *@
@@ -74,15 +88,17 @@
 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
     <Authorized>
 
-    <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Solicitudes de Inspeccion</h3>
+    <PageHeader Title="Solicitudes de inspección">
+        <FilterToggle Active="allowFiltering" OnToggle="CambiarModoFiltro" />
+        <button type="button" class="pt-btn pt-btn--primary" @onclick="()=>add(0,false)">
+            <FeatherPlus Size="16" Color="currentColor" />
+            <span>Nueva solicitud</span>
+        </button>
+    </PageHeader>
 
-    <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick="()=>add(0,false)">Crear Nueva Solicitud</button>
     @if (oRespuesta.List != null)
     {
-        <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-        <br />
-        <br />
-        <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+        <div class="tablacontent pt-grid">
               <RadzenDataGrid AllowFiltering="allowFiltering" LoadData="LoadData" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                             Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                             Count="cantidad" Data="@oRespuesta.List" TItem="Solici1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
@@ -135,13 +151,7 @@
     }
     else
     {
-        <br />
-        <center>
-            <div class="mb-2">
-                <br />
-                <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-            </div>
-        </center>
+        <PageLoading />
     }
     </Authorized>
 </AuthorizeView>
@@ -150,55 +160,48 @@
 <AuthorizeView Roles="Socio">
     <Authorized>
 
-        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Solicitudes de Inspeccion</h3>
+        <PageHeader Title="Solicitudes de inspección">
+            <FilterToggle Active="allowFiltering" OnToggle="CambiarModoFiltro" />
+        </PageHeader>
 
         @if (oRespuesta.List != null)
         {
-            <div class="row" style="border:solid 2px black;padding-top:5px;max-height:250px">
-                <div class="col-sm">
-                    <br />
-                    <br />
-                    <br />
-                    <a class="custom-input-file" href="api/Solici1/Plantilla" download target="_self">Descargar Solicitud de Inspeccion</a>
-                    <br />
-                    <RadzenText>1. Cliquee en el boton para bajar el archivo de la solicitud en blanco</RadzenText>
+            <section class="solicitud-pasos" aria-label="Cómo pedir una inspección">
+                <div class="solicitud-paso">
+                    <span class="solicitud-paso-nro">1</span>
+                    <div>
+                        <p class="solicitud-paso-texto">Descargá la solicitud en blanco.</p>
+                        <a class="pt-btn pt-btn--secondary" href="api/Solici1/Plantilla" download target="_self">
+                            <FeatherDownload Size="16" Color="currentColor" />
+                            <span>Descargar solicitud</span>
+                        </a>
+                    </div>
                 </div>
-                <div class="col-sm">
-                    <img src="images/FileCompletion.png" alt="Complete el archivo" style="height:20%;width:auto;position:relative;left:34%">
-                    <br />
-                    <RadzenText>2. Complete la solicitud con todos los datos necesarios para realizarla</RadzenText>
+                <div class="solicitud-paso">
+                    <span class="solicitud-paso-nro">2</span>
+                    <p class="solicitud-paso-texto">Completala con todos los datos necesarios para la inspección.</p>
                 </div>
-                <div class="col-sm">
-                    <br />
-                    <br />
-                    <br />
-                    <div class="custom-input-file">
-
+                <div class="solicitud-paso">
+                    <span class="solicitud-paso-nro">3</span>
+                    <div>
+                        <p class="solicitud-paso-texto">Subí el Excel completo.</p>
                         @if (cargando)
                         {
-                            <span>
-                                <i class="fa fa-spinner fa-spin"></i> Cargando...
-                            </span>
+                            <span class="pt-btn pt-btn--secondary" aria-disabled="true">Cargando…</span>
                         }
                         else
                         {
-                            
-                        <span>Cargar excel</span>
-                        <InputFile OnChange="HandleLoadExcel" accept=".xls,.xlsx" maxAllowedFiles="1" />
+                            <label class="pt-btn pt-btn--primary solicitud-subir">
+                                <FeatherUpload Size="16" Color="currentColor" />
+                                <span>Cargar Excel</span>
+                                <InputFile OnChange="HandleLoadExcel" accept=".xls,.xlsx" maxAllowedFiles="1" />
+                            </label>
                         }
                     </div>
-                    <br />
-                    <RadzenText>3. Cuando tenga la solicitud completa clickee sobre "Cargar excel" para subirla</RadzenText>
                 </div>
+            </section>
 
-            </div>
-
-
-
-            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-            <br />
-            <br />
-            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+            <div class="tablacontent pt-grid">
                 <RadzenDataGrid AllowFiltering="allowFiltering" IsLoading="isLoading" AllowColumnResize="true" AllowAllowAlternatingRows="true" FilterMode="FilterMode.Simple" AllowSorting="false" PageSize="15"
                                 Density="Density.Compact" AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                                 Count="cantidad" Data="@oRespuesta.List" TItem="Solici1DTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
@@ -240,13 +243,7 @@
         }
         else
         {
-            <br />
-            <center>
-                <div class="mb-2">
-                    <br />
-                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-                </div>
-            </center>
+            <PageLoading />
         }
     </Authorized>
 </AuthorizeView>

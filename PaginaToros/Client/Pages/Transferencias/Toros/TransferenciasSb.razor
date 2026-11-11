@@ -30,17 +30,18 @@
 <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
     <Authorized>
 
-        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias S/</h3>
-        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick='()=>add(0)'>
-            Agregar Transferencia
-        </button>
+        <PageHeader Title="Transferencias S/">
+            <FilterToggle Active="allowFiltering" OnToggle="CambiarModoFiltro" />
+            <button type="button" class="pt-btn pt-btn--primary" @onclick='()=>add(0)'>
+                <FeatherPlus Size="16" Color="currentColor" />
+                <span>Agregar transferencia</span>
+            </button>
+        </PageHeader>
+
 
         @if (filas is not null)
         {
-            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-            <br />
-            <br />
-            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+            <div class="tablacontent pt-grid">
                 <RadzenDataGrid AllowFiltering="allowFiltering"
                                 IsLoading="isLoading"
                                 AllowColumnResize="true"
@@ -88,13 +89,7 @@
         }
         else
         {
-            <br />
-            <center>
-                <div class="mb-2">
-                    <br />
-                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-                </div>
-            </center>
+            <PageLoading />
         }
     </Authorized>
 </AuthorizeView>
@@ -102,17 +97,18 @@
 <AuthorizeView Roles="Socio">
     <Authorized>
 
-        <h3 class="pb-3 font-bold text-xl" style="position:relative;left:3.33%">Transferencias S/</h3>
-        <button class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" style="position:relative;left:3.33%" @onclick='()=>add(0)'>
-            Agregar Transferencia
-        </button>
+        <PageHeader Title="Transferencias S/">
+            <FilterToggle Active="allowFiltering" OnToggle="CambiarModoFiltro" />
+            <button type="button" class="pt-btn pt-btn--primary" @onclick='()=>add(0)'>
+                <FeatherPlus Size="16" Color="currentColor" />
+                <span>Agregar transferencia</span>
+            </button>
+        </PageHeader>
+
 
         @if (filas is not null)
         {
-            <button style="outline:none; float: right;margin-right:3%;height:100%;" class="px-3 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
-            <br />
-            <br />
-            <div class="tablacontent" style="position:relative;width:93.5%;left:3.33%">
+            <div class="tablacontent pt-grid">
                 <RadzenDataGrid AllowFiltering="allowFiltering"
                                 IsLoading="isLoading"
                                 AllowColumnResize="true"
@@ -160,13 +156,7 @@
         }
         else
         {
-            <br />
-            <center>
-                <div class="mb-2">
-                    <br />
-                    <RadzenProgressBar style="position:relative;width:93.5%" Value="100" ShowValue="false" ProgressBarStyle="ProgressBarStyle.Primary" Mode="ProgressBarMode.Indeterminate" />
-                </div>
-            </center>
+            <PageLoading />
         }
     </Authorized>
 </AuthorizeView>

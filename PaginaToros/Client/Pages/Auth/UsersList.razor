@@ -17,69 +17,6 @@
         color: #172033;
     }
 
-    .users-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 1rem;
-        margin: 1rem 0;
-        width: 93.5%;
-        margin-left: 3.33%;
-    }
-
-    .users-title {
-        margin: 0;
-        font-size: 1.55rem;
-        font-weight: 700;
-    }
-
-    .users-description {
-        margin: .25rem 0 0;
-        color: #64748b;
-    }
-
-    .users-card {
-        width: 93.5%;
-        margin-left: 3.33%;
-        border: 1px solid #dbe3cf;
-        border-radius: 8px;
-        background: #fffdf8;
-        box-shadow: 0 8px 18px rgba(76, 59, 32, .06);
-    }
-
-    .users-filter-card {
-        padding: .75rem;
-        margin-bottom: .85rem;
-    }
-
-    .users-toolbar {
-        display: flex;
-        gap: .75rem;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: nowrap;
-    }
-
-    .users-toolbar-search {
-        flex: 1 1 auto;
-        min-width: 0;
-    }
-
-    .users-status-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        margin-top: .55rem;
-        flex-wrap: wrap;
-    }
-
-    .users-loading-message {
-        color: #2563eb;
-        font-size: .92rem;
-        font-weight: 600;
-    }
-
     .tablacontent {
         position: relative;
         overflow: hidden;
@@ -145,55 +82,23 @@
         border-radius: 6px;
         background: #fff;
     }
-
-    @@media (min-width: 1200px) {
-        .users-page {
-            width: calc(100vw - 20.75rem);
-            max-width: none;
-            margin-left: calc((100% - (100vw - 20.75rem)) / 2);
-            margin-right: 0;
-        }
-    }
-
-    @@media (max-width: 980px) {
-        .users-header {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .users-toolbar {
-            flex-wrap: wrap;
-            flex-direction: column;
-        }
-
-        .users-toolbar-search {
-            min-width: 0;
-        }
-    }
 </style>
 
 <div class="users-page">
     <AuthorizeView>
         <Authorized>
-            <div class="users-header">
-                <div>
-                    <h3 class="users-title">Usuarios</h3>
-                    <p class="users-description">Buscá por nombre, apellido, socio asociado o correo del socio.</p>
-                </div>
-            </div>
+            <PageHeader Title="Usuarios" Description="Buscá por nombre, apellido, socio asociado o correo del socio." />
 
-            <div class="users-card users-filter-card">
-                <div class="users-toolbar">
-                    <div class="users-toolbar-search">
-                        <SearchInput Value="@searchText"
-                                     ValueChanged="OnSearchChanged"
-                                     IsLoading="@searchLoading"
-                                     Placeholder="Buscar por nombre, apellido, mail o socio" />
-                    </div>
-                </div>
-            </div>
+            <PageToolbar>
+                <Search>
+                    <SearchInput Value="@searchText"
+                                 ValueChanged="OnSearchChanged"
+                                 IsLoading="@searchLoading"
+                                 Placeholder="Buscar por nombre, apellido, mail o socio" />
+                </Search>
+            </PageToolbar>
 
-            <div class="tablacontent" style="position:relative;width:80%;margin-left:10%;">
+            <div class="tablacontent pt-grid">
                 <RadzenDataGrid TItem="User"
                                 Data="@Usuarios"
                                 Count="@count"
