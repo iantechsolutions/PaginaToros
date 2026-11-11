@@ -73,6 +73,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Imágenes de los mails de acceso: van dentro del ensamblado para no depender
+         del directorio de trabajo con el que arranque el servicio. -->
+    <EmbeddedResource Include="Resources\Mail\*.jpg" LogicalName="PaginaToros.Server.Mail.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="appsettings.Local.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>

@@ -137,8 +137,6 @@ public class MailSenderTests
     {
         var mailSender = new RecordingMailSender();
         var service = new AccessMailService(mailSender);
-        // Con una casilla de Outlook el mail va sin imágenes embebidas, así que no
-        // depende de los archivos de wwwroot.
         var user = new User { Email = "socio@outlook.test", Names = "Ana", LastNames = "Perez" };
 
         var result = await service.SendAccessMailAsync(user, "clave-temporal", AccessMailTemplate.Reset);
@@ -149,6 +147,41 @@ public class MailSenderTests
         Assert.Equal(new[] { "socio@outlook.test" }, sent.To);
         Assert.Contains($"mailto:{RecordingMailSender.TestPlantelesAddress}", sent.Body);
         Assert.DoesNotContain("hereford.org.ar", sent.Body);
+    }
+
+    [Theory]
+    [InlineData("socio@gmail.test")]
+    [InlineData("socio@outlook.test")]
+    public async Task AccessMail_TextNeverSitsOnABackgroundImageAndImagesAreAlwaysEmbedded(string email)
+    {
+        var mailSender = new RecordingMailSender();
+        var service = new AccessMailService(mailSender);
+        var user = new User { Email = email, Names = "Ana <b>", LastNames = "Perez" };
+
+        var result = await service.SendAccessMailAsync(user, "clave&<temporal>", AccessMailTemplate.Reset);
+
+        Assert.True(result.Success, result.ErrorMessage);
+        var sent = Assert.Single(mailSender.Sent);
+
+        // Modo oscuro: sin imagen de fondo detrás del texto (quedaba blanco sobre blanco)
+        // y el mail declara esquema claro.
+        Assert.DoesNotContain("background-image", sent.Body);
+        Assert.DoesNotContain("background=", sent.Body);
+        Assert.Contains("name='color-scheme' content='light only'", sent.Body);
+
+        // Cabecera y pie siempre embebidos y referenciados, también para Outlook.
+        Assert.Equal(
+            new[] { AccessMailService.HeaderContentId, AccessMailService.FooterContentId },
+            sent.LinkedResourceIds);
+        Assert.Contains($"cid:{AccessMailService.HeaderContentId}", sent.Body);
+        Assert.Contains($"cid:{AccessMailService.FooterContentId}", sent.Body);
+
+        // Datos del usuario encodeados en el HTML y presentes en la alternativa de texto plano.
+        Assert.Contains("clave&amp;&lt;temporal&gt;", sent.Body);
+        Assert.Contains("Ana &lt;b&gt;", sent.Body);
+        Assert.NotNull(sent.TextBody);
+        Assert.Contains("clave&<temporal>", sent.TextBody);
+        Assert.Contains(email, sent.TextBody);
     }
 
     private static MailOptions OptionsFor(FakeSmtpServer server) => new()

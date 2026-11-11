@@ -21,22 +21,48 @@ internal sealed class RecordingMailSender : IMailSender
     }
 }
 
-internal sealed record SentMail(string? From, IReadOnlyList<string> To, string Subject, string Body)
+internal sealed record SentMail(
+    string? From,
+    IReadOnlyList<string> To,
+    string Subject,
+    string Body,
+    string? TextBody,
+    IReadOnlyList<string> LinkedResourceIds)
 {
     public static SentMail Capture(MailMessage message)
     {
         var body = message.Body;
+        string? textBody = null;
+        var linkedResourceIds = new List<string>();
+
         if (message.AlternateViews.Count > 0)
         {
-            var stream = message.AlternateViews[0].ContentStream;
-            stream.Position = 0;
-            body = new StreamReader(stream).ReadToEnd();
+            // Body = la vista HTML si existe (es la que ve el destinatario), si no la primera.
+            var htmlView = message.AlternateViews.FirstOrDefault(v => v.ContentType.MediaType == "text/html")
+                ?? message.AlternateViews[0];
+            body = ReadView(htmlView);
+            linkedResourceIds.AddRange(htmlView.LinkedResources.Select(r => r.ContentId));
+
+            var textView = message.AlternateViews.FirstOrDefault(v => v.ContentType.MediaType == "text/plain");
+            if (textView != null)
+            {
+                textBody = ReadView(textView);
+            }
         }
 
         return new SentMail(
             message.From?.Address,
             message.To.Select(x => x.Address).ToList(),
             message.Subject,
-            body);
+            body,
+            textBody,
+            linkedResourceIds);
+    }
+
+    private static string ReadView(AlternateView view)
+    {
+        var stream = view.ContentStream;
+        stream.Position = 0;
+        return new StreamReader(stream).ReadToEnd();
     }
 }
