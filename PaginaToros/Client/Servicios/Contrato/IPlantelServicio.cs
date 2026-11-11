@@ -10,6 +10,7 @@ namespace PaginaToros.Client.Servicios.Contrato
         Task<Respuesta<int>> CantidadTotal();
         Task<Respuesta<List<PlantelDTO>>> LimitadosFiltrados(int skip, int take, string filtro = null);
         Task<Respuesta<List<PlantelDTO>>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null);
+        Task<Respuesta<PlantelPagedResponse>> SearchPaged(int skip, int take, string? filtro, string? sortBy, bool sortDescending);
         Task<Respuesta<List<PlantelDTO>>> ObtenerPorRangoFechas(DateTime desde, DateTime hasta);
         Task<Respuesta<int>> CompletarFechasCreacion();
 

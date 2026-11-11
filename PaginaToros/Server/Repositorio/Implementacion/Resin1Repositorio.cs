@@ -126,7 +126,13 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             }
         }
 
-        public async Task<(List<Resin1> Items, int TotalCount)> SearchPagedAsync(int skip, int take, string? searchText = null, string? activeSocioCode = null)
+        public async Task<(List<Resin1> Items, int TotalCount)> SearchPagedAsync(
+            int skip,
+            int take,
+            string? searchText = null,
+            string? activeSocioCode = null,
+            string? sortBy = null,
+            bool sortDescending = true)
         {
             try
             {
@@ -150,10 +156,8 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                     query = await ApplySearchFilterAsync(query, searchText);
                 }
 
-                query = ApplyCreationOrder(query);
-
                 var totalCount = await query.CountAsync();
-                var items = await query
+                var items = await ApplySearchOrder(query, sortBy, sortDescending)
                     .Skip(Math.Max(0, skip))
                     .Take(take)
                     .ToListAsync();
@@ -290,6 +294,72 @@ namespace PaginaToros.Server.Repositorio.Implementacion
             Console.WriteLine(uniqueItems.Count());
             return uniqueItems;
         }
+
+        // Campos por los que se puede ordenar el listado de resultados (SearchPaged). Cualquier
+        // otro valor de sortBy cae en el orden por defecto.
+        public const string SortOrdenCarga = "Id";
+        public const string SortNroResultado = "Nrores";
+        public const string SortPlantel = "Nropla";
+        public const string SortSocio = "Socio.Nombre";
+        public const string SortEstablecimiento = "Establecimiento.Nombre";
+        public const string SortFechaCreacion = "FchUsu";
+        public const string SortFechaInspeccion = "Freali";
+
+        /// <summary>
+        /// Orden del listado paginado. Por defecto, el último resultado cargado primero: se usa el
+        /// id (AUTO_INCREMENT) porque FCH_USU no es confiable como fecha de carga — los resultados
+        /// cargados por la app antes de junio de 2026 lo tienen en NULL.
+        /// Reglas comunes: los vacíos van siempre al final (en ambas direcciones) y los empates se
+        /// resuelven por el último cargado primero.
+        /// </summary>
+        public static IOrderedQueryable<Resin1> ApplySearchOrder(IQueryable<Resin1> query, string? sortBy, bool descending)
+        {
+            IOrderedQueryable<Resin1> ordered;
+            switch (sortBy?.Trim())
+            {
+                case SortNroResultado:
+                    // NRORES son números de 6 dígitos con ceros a la izquierda (o un GUID en los
+                    // cargados sin solicitud): largo y después texto da el orden numérico.
+                    ordered = ThenBy(
+                        ThenBy(query.OrderBy(x => x.Nrores == null || x.Nrores == ""), x => x.Nrores!.Length, descending),
+                        x => x.Nrores,
+                        descending);
+                    break;
+                case SortPlantel:
+                    ordered = ThenBy(query.OrderBy(x => x.Nropla == null || x.Nropla == ""), x => x.Nropla, descending);
+                    break;
+                case SortSocio:
+                    ordered = ThenBy(
+                        query.OrderBy(x => x.Socio == null || x.Socio.Nombre == null || x.Socio.Nombre == ""),
+                        x => x.Socio!.Nombre,
+                        descending);
+                    break;
+                case SortEstablecimiento:
+                    ordered = ThenBy(
+                        query.OrderBy(x => x.Establecimiento == null || x.Establecimiento.Nombre == null || x.Establecimiento.Nombre == ""),
+                        x => x.Establecimiento!.Nombre,
+                        descending);
+                    break;
+                case SortFechaCreacion:
+                    ordered = ThenBy(query.OrderBy(x => x.FchUsu == null), x => x.FchUsu, descending);
+                    break;
+                case SortFechaInspeccion:
+                    ordered = ThenBy(query.OrderBy(x => x.Freali == null), x => x.Freali, descending);
+                    break;
+                case SortOrdenCarga:
+                    return descending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id);
+                default:
+                    return query.OrderByDescending(x => x.Id);
+            }
+
+            return ordered.ThenByDescending(x => x.Id);
+        }
+
+        private static IOrderedQueryable<Resin1> ThenBy<TKey>(
+            IOrderedQueryable<Resin1> query,
+            Expression<Func<Resin1, TKey>> keySelector,
+            bool descending)
+            => descending ? query.ThenByDescending(keySelector) : query.ThenBy(keySelector);
 
         private static IOrderedQueryable<Resin1> ApplyCreationOrder(IQueryable<Resin1> query)
             => query

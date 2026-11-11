@@ -1,0 +1,52 @@
+@* Selector visible de orden: campo + dirección. Comparte el ListSort con los SortableHeader de la grilla. *@
+<div class="list-sort" role="group" aria-label="Orden del listado">
+    <label class="list-sort-label" for="@_fieldId">Ordenar por</label>
+    <select id="@_fieldId"
+            class="form-select form-select-sm list-sort-field"
+            value="@Sort.Key"
+            disabled="@Disabled"
+            @onchange="OnFieldChanged">
+        @foreach (var field in Sort.Fields)
+        {
+            <option value="@field.Key">@field.Label</option>
+        }
+    </select>
+    <select class="form-select form-select-sm list-sort-direction"
+            aria-label="Dirección del orden"
+            value="@(Sort.Descending ? Desc : Asc)"
+            disabled="@Disabled"
+            @onchange="OnDirectionChanged">
+        <option value="@Asc">@Sort.Current.DirectionLabel(false)</option>
+        <option value="@Desc">@Sort.Current.DirectionLabel(true)</option>
+    </select>
+</div>
+
+@code {
+    private const string Asc = "asc";
+    private const string Desc = "desc";
+
+    private readonly string _fieldId = $"list-sort-{Guid.NewGuid():N}";
+
+    [Parameter, EditorRequired] public ListSort Sort { get; set; } = default!;
+
+    /// <summary>Se dispara solo si el orden cambió. La página recarga el listado desde la primera página.</summary>
+    [Parameter] public EventCallback OnChange { get; set; }
+
+    [Parameter] public bool Disabled { get; set; }
+
+    private async Task OnFieldChanged(ChangeEventArgs args)
+    {
+        if (Sort.SetField(args.Value?.ToString() ?? string.Empty))
+        {
+            await OnChange.InvokeAsync();
+        }
+    }
+
+    private async Task OnDirectionChanged(ChangeEventArgs args)
+    {
+        if (Sort.Set(Sort.Key, args.Value?.ToString() == Desc))
+        {
+            await OnChange.InvokeAsync();
+        }
+    }
+}

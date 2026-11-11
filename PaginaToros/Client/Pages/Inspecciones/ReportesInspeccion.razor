@@ -46,6 +46,18 @@
         margin-bottom: .85rem;
     }
 
+    .reportes-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .5rem 1rem;
+    }
+
+    .reportes-toolbar-search {
+        flex: 1 1 22rem;
+        min-width: 0;
+    }
+
     .empty-state {
         padding: 3rem 1rem;
         text-align: center;
@@ -93,11 +105,14 @@
                 </AuthorizeView>
             </div>
 
-            <div class="reportes-card reportes-filter-card">
-                <SearchInput Value="@searchText"
-                             ValueChanged="OnSearchChanged"
-                             IsLoading="@searchLoading"
-                             Placeholder="Buscar por número, plantel, socio, establecimiento o fecha" />
+            <div class="reportes-card reportes-filter-card reportes-toolbar">
+                <div class="reportes-toolbar-search">
+                    <SearchInput Value="@searchText"
+                                 ValueChanged="OnSearchChanged"
+                                 IsLoading="@searchLoading"
+                                 Placeholder="Buscar por número, plantel, socio, establecimiento o fecha" />
+                </div>
+                <SortSelector Sort="sort" OnChange="OnSortChanged" />
             </div>
 
             <AuthorizeView Roles="ADMINISTRADOR,USUARIOMAESTRO">
@@ -123,13 +138,19 @@
                             </EmptyTemplate>
                             <Columns>
                                 <RadzenDataGridColumn TItem="Resin1DTO" Property="Nrores" Title="Nro Resultado" Width="21.7%">
+                                    <HeaderTemplate><SortableHeader Sort="sort" Field="Nrores" Title="Nro Resultado" OnChange="OnSortChanged" /></HeaderTemplate>
                                     <Template Context="data">
                                         @(string.IsNullOrWhiteSpace(data.Nrores) ? "Sin solicitud" : data.Nrores)
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nropla" Title="Plantel" Width="21.7%" />
-                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Socio.Nombre" Title="Socio" Width="21.7%" />
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nropla" Title="Plantel" Width="21.7%">
+                                    <HeaderTemplate><SortableHeader Sort="sort" Field="Nropla" Title="Plantel" OnChange="OnSortChanged" /></HeaderTemplate>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Socio.Nombre" Title="Socio" Width="21.7%">
+                                    <HeaderTemplate><SortableHeader Sort="sort" Field="Socio.Nombre" Title="Socio" OnChange="OnSortChanged" /></HeaderTemplate>
+                                </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Resin1DTO" Property="FchUsu" Title="Fecha de Creación" Width="21.7%">
+                                    <HeaderTemplate><SortableHeader Sort="sort" Field="FchUsu" Title="Fecha de Creación" OnChange="OnSortChanged" /></HeaderTemplate>
                                     <Template Context="data">
                                         @if (data.FchUsu.HasValue)
                                         {
@@ -138,6 +159,7 @@
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Resin1DTO" Property="Freali" Title="Fecha De Inspeccion" Width="21.7%">
+                                    <HeaderTemplate><SortableHeader Sort="sort" Field="Freali" Title="Fecha de Inspección" OnChange="OnSortChanged" /></HeaderTemplate>
                                     <Template Context="data">
                                         @if (data.Freali.HasValue)
                                         {
@@ -183,10 +205,17 @@
                                 <div class="empty-state">No hay reportes para la búsqueda seleccionada.</div>
                             </EmptyTemplate>
                             <Columns>
-                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nrores" Title="Nro Resultado" Width="21.7%" />
-                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nropla" Title="Plantel" Width="21.7%" />
-                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="21.7%" />
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nrores" Title="Nro Resultado" Width="21.7%">
+                                    <HeaderTemplate><SortableHeader Sort="sort" Field="Nrores" Title="Nro Resultado" OnChange="OnSortChanged" /></HeaderTemplate>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Nropla" Title="Plantel" Width="21.7%">
+                                    <HeaderTemplate><SortableHeader Sort="sort" Field="Nropla" Title="Plantel" OnChange="OnSortChanged" /></HeaderTemplate>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn TItem="Resin1DTO" Property="Establecimiento.Nombre" Title="Establecimiento" Width="21.7%">
+                                    <HeaderTemplate><SortableHeader Sort="sort" Field="Establecimiento.Nombre" Title="Establecimiento" OnChange="OnSortChanged" /></HeaderTemplate>
+                                </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Resin1DTO" Property="FchUsu" Title="Fecha de Creación" Width="21.7%">
+                                    <HeaderTemplate><SortableHeader Sort="sort" Field="FchUsu" Title="Fecha de Creación" OnChange="OnSortChanged" /></HeaderTemplate>
                                     <Template Context="data">
                                         @if (data.FchUsu.HasValue)
                                         {
@@ -195,6 +224,7 @@
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="Resin1DTO" Property="Freali" Title="Fecha De Inspeccion" Width="21.7%">
+                                    <HeaderTemplate><SortableHeader Sort="sort" Field="Freali" Title="Fecha de Inspección" OnChange="OnSortChanged" /></HeaderTemplate>
                                     <Template Context="data">
                                         @if (data.Freali.HasValue)
                                         {
@@ -229,8 +259,35 @@
     private int loadRequestVersion;
     private bool initialGridLoadTriggered;
 
-    protected override Task OnInitializedAsync()
-        => Task.CompletedTask;
+    // Orden inicial: último resultado cargado primero (id). FCH_USU ("Fecha de Creación") no sirve
+    // para eso: los resultados cargados por la app antes de junio de 2026 lo tienen vacío.
+    private ListSort sort = CrearOrden(esSocio: false);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User;
+        var esSocio = user.IsInRole("Socio") && !user.IsInRole("ADMINISTRADOR") && !user.IsInRole("USUARIOMAESTRO");
+        if (esSocio)
+        {
+            sort = CrearOrden(esSocio: true);
+        }
+    }
+
+    // Los campos coinciden con la Property de cada columna y con Resin1Repositorio.Sort*.
+    private static ListSort CrearOrden(bool esSocio) => new(
+        new[]
+        {
+            new SortField("Id", "Orden de carga", SortValueKind.Date, "Primeros cargados primero", "Últimos cargados primero"),
+            new SortField("Nrores", "Nro resultado", SortValueKind.Number),
+            new SortField("Nropla", "Plantel", SortValueKind.Text),
+            esSocio
+                ? new SortField("Establecimiento.Nombre", "Establecimiento", SortValueKind.Text)
+                : new SortField("Socio.Nombre", "Socio", SortValueKind.Text),
+            new SortField("FchUsu", "Fecha de creación", SortValueKind.Date),
+            new SortField("Freali", "Fecha de inspección", SortValueKind.Date),
+        },
+        defaultKey: "Id",
+        defaultDescending: true);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -250,7 +307,7 @@
 
         try
         {
-            var response = await _resin1Servicio.SearchPaged(args.Skip ?? 0, args.Top ?? 15, searchText);
+            var response = await _resin1Servicio.SearchPaged(args.Skip ?? 0, args.Top ?? 15, searchText, sort.Key, sort.Descending);
             if (requestId != loadRequestVersion)
             {
                 return;
@@ -282,6 +339,10 @@
         searchText = value ?? string.Empty;
         await ReloadGridFromStartAsync();
     }
+
+    // Al cambiar el orden se vuelve a la primera página: seguir en la página N de otro orden
+    // muestra registros sin relación con los que se estaban viendo.
+    private Task OnSortChanged() => ReloadGridFromStartAsync();
 
     private async Task ReloadGridFromStartAsync()
     {

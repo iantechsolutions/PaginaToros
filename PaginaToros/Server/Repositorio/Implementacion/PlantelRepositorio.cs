@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PaginaToros.Server.Context;
 using PaginaToros.Server.Repositorio.Contrato;
+using PaginaToros.Shared.Helpers;
 using PaginaToros.Shared.Models;
 using PaginaToros.Shared.Models.Response;
 using System.Linq.Dynamic.Core;
@@ -87,6 +88,93 @@ namespace PaginaToros.Server.Repositorio.Implementacion
                 throw;
             }
         }
+
+        /// <summary>
+        /// Página del listado de planteles con el total del conjunto filtrado. El orden se aplica
+        /// sobre todo el conjunto filtrado (en memoria, igual que Lista/LimitadosFiltrados, porque
+        /// la fecha de alta sale de FECING, que es texto) y los duplicados se descartan antes de
+        /// contar, así el total coincide con lo que se puede paginar.
+        /// </summary>
+        public async Task<(List<Plantel> Items, int TotalCount)> SearchPagedAsync(
+            int skip,
+            int take,
+            string? filtro = null,
+            string? sortBy = null,
+            bool sortDescending = true)
+        {
+            if (take <= 0)
+            {
+                take = 15;
+            }
+
+            IQueryable<Plantel> query = _dbContext.Planteles.AsNoTracking().Include(x => x.Socio);
+            if (!string.IsNullOrWhiteSpace(filtro))
+            {
+                query = query.Where(filtro);
+            }
+
+            var items = await query.ToListAsync();
+            var ordered = Deduplicate(ApplySearchOrder(items, sortBy, sortDescending, ShouldPreferYearOrdering(filtro)));
+
+            return (ordered.Skip(Math.Max(0, skip)).Take(take).ToList(), ordered.Count);
+        }
+
+        // Campos por los que se puede ordenar el listado (SearchPaged). Coinciden con la Property
+        // de las columnas de Client/Pages/Planteles/Planteles.razor.
+        public const string SortFechaAlta = "FechaAlta";
+        public const string SortPlantel = "Placod";
+        public const string SortActivo = "Estado";
+        public const string SortAnioExistencia = "Anioex";
+        public const string SortSocio = "Socio.Nombre";
+
+        private static readonly IReadOnlyDictionary<string, Func<Plantel, object?>> SortKeys =
+            new Dictionary<string, Func<Plantel, object?>>(StringComparer.Ordinal)
+            {
+                [SortPlantel] = x => x.Placod,
+                [SortActivo] = x => x.Estado,
+                [SortAnioExistencia] = x => InMemorySort.ParseYear(x.Anioex),
+                [SortSocio] = x => x.Socio?.Nombre,
+                [nameof(Plantel.Varede)] = x => x.Varede,
+                [nameof(Plantel.Vqcsrd)] = x => x.Vqcsrd,
+                [nameof(Plantel.Vqssrd)] = x => x.Vqssrd,
+                [nameof(Plantel.Varepr)] = x => x.Varepr,
+                [nameof(Plantel.Vqcsrp)] = x => x.Vqcsrp,
+                [nameof(Plantel.Vqssrp)] = x => x.Vqssrp,
+            };
+
+        /// <summary>
+        /// Por defecto (o con "FechaAlta" descendente) se conserva el orden histórico del listado
+        /// (<see cref="ApplyOrdering"/>: fecha de alta, año, id). El resto de los campos sigue las
+        /// reglas de <see cref="InMemorySort"/>: vacíos al final y empates por id descendente.
+        /// </summary>
+        public static List<Plantel> ApplySearchOrder(IEnumerable<Plantel> items, string? sortBy, bool descending, bool preferYearOrdering)
+        {
+            var field = sortBy?.Trim();
+            if (string.IsNullOrEmpty(field) || !(field == SortFechaAlta || SortKeys.ContainsKey(field)))
+            {
+                return ApplyOrdering(items, 0, 0, preferYearOrdering);
+            }
+
+            if (field == SortFechaAlta)
+            {
+                return descending
+                    ? ApplyOrdering(items, 0, 0, preferYearOrdering)
+                    : InMemorySort.OrderNullsLast(items, x => GetPlantelCreationDate(x), descending: false, x => x.Id);
+            }
+
+            return InMemorySort.OrderNullsLast(items, SortKeys[field], descending, x => x.Id);
+        }
+
+        // Misma clave que PlantelController.Deduplicate: se queda con el primero según el orden.
+        private static List<Plantel> Deduplicate(IEnumerable<Plantel> items)
+            => items
+                .GroupBy(p =>
+                {
+                    var key = ((p.Placod ?? string.Empty) + "|" + (p.Anioex ?? string.Empty) + "|" + (p.Nrocri ?? string.Empty)).Trim();
+                    return string.IsNullOrEmpty(key) ? "ID|" + p.Id : "P|" + key;
+                })
+                .Select(g => g.First())
+                .ToList();
 
         public async Task<List<Plantel>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null)
         {
@@ -227,28 +315,7 @@ namespace PaginaToros.Server.Repositorio.Implementacion
         }
 
         private static DateTime? GetPlantelCreationDate(Plantel plantel)
-        {
-            if (plantel == null)
-            {
-                return null;
-            }
-
-            if (!string.IsNullOrWhiteSpace(plantel.Fecing))
-            {
-                var formatos = new[] { "yyyy/MM/dd", "yyyy-MM-dd", "dd/MM/yyyy", "MM/dd/yyyy" };
-                if (DateTime.TryParseExact(plantel.Fecing, formatos, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var fechaCreacion))
-                {
-                    return fechaCreacion;
-                }
-
-                if (DateTime.TryParse(plantel.Fecing, out fechaCreacion))
-                {
-                    return fechaCreacion;
-                }
-            }
-
-            return plantel.FchUsu;
-        }
+            => plantel == null ? null : PlantelFechaAlta.Obtener(plantel.Fecing, plantel.FchUsu);
 
         private static int? GetPlantelCreationYear(Plantel plantel)
         {

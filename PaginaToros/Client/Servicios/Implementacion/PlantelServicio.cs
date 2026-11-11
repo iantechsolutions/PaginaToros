@@ -29,6 +29,28 @@ namespace PaginaToros.Client.Servicios.Implementacion
             var result = await _http.GetFromJsonAsync<Respuesta<List<PlantelDTO>>>($"api/plantel/LimitadosFiltrados?skip={skip}&take={take}&expression={encoded}");
             return result!;
         }
+        public async Task<Respuesta<PlantelPagedResponse>> SearchPaged(int skip, int take, string? filtro, string? sortBy, bool sortDescending)
+        {
+            var url = new System.Text.StringBuilder($"api/plantel/SearchPaged?skip={skip}&take={take}");
+            if (!string.IsNullOrWhiteSpace(filtro))
+            {
+                url.Append($"&expression={Uri.EscapeDataString(filtro)}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                url.Append($"&sortBy={Uri.EscapeDataString(sortBy)}&sortDescending={(sortDescending ? "true" : "false")}");
+            }
+
+            var result = await _http.GetFromJsonAsync<Respuesta<PlantelPagedResponse>>(url.ToString());
+            return result ?? new Respuesta<PlantelPagedResponse>
+            {
+                Exito = 0,
+                Mensaje = "Sin respuesta",
+                List = new PlantelPagedResponse()
+            };
+        }
+
         public async Task<Respuesta<List<PlantelDTO>>> LimitadosFiltradosNoInclude(int skip, int take, string filter)
         {
             var encoded = Uri.EscapeDataString(filter ?? string.Empty);

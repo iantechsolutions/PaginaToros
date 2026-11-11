@@ -1,0 +1,46 @@
+@* Encabezado ordenable para el HeaderTemplate de una RadzenDataGridColumn (con AllowSorting="false" en la grilla:
+   el orden lo maneja el ListSort, que comparte con el SortSelector). *@
+<button type="button"
+        class="sortable-header @(IsActive ? "is-active" : null)"
+        aria-label="@AriaLabel"
+        title="@AriaLabel"
+        @onclick="ToggleAsync">
+    <span class="sortable-header-title">@Title</span>
+    <svg class="sortable-header-icon" width="10" height="14" viewBox="0 0 10 14" aria-hidden="true" focusable="false">
+        <path d="M5 1 9 6H1z" class="@(IsActive && !Sort.Descending ? "on" : "off")" />
+        <path d="M5 13 1 8h8z" class="@(IsActive && Sort.Descending ? "on" : "off")" />
+    </svg>
+</button>
+
+@code {
+    [Parameter, EditorRequired] public ListSort Sort { get; set; } = default!;
+    [Parameter, EditorRequired] public string Field { get; set; } = default!;
+    [Parameter, EditorRequired] public string Title { get; set; } = default!;
+    [Parameter] public EventCallback OnChange { get; set; }
+
+    private bool IsActive => Sort.IsSortedBy(Field);
+
+    private string AriaLabel
+    {
+        get
+        {
+            var field = Sort.Find(Field);
+            if (field == null)
+            {
+                return Title;
+            }
+
+            return IsActive
+                ? $"{Title}: ordenado {field.DirectionLabel(Sort.Descending).ToLowerInvariant()}. Activar para {field.DirectionLabel(!Sort.Descending).ToLowerInvariant()}"
+                : $"Ordenar por {Title}";
+        }
+    }
+
+    private async Task ToggleAsync()
+    {
+        if (Sort.Toggle(Field))
+        {
+            await OnChange.InvokeAsync();
+        }
+    }
+}

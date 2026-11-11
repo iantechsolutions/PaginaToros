@@ -44,7 +44,7 @@
             <div class="row mb-3">
                 <div class="col-2"></div>
                 <div class="col-10">
-                    <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center flex-wrap gap-3">
                         <BlazoredTypeahead SearchMethod="BusquedaSocios"
                                            class="form-control"
                                            placeholder="Buscar por socio"
@@ -66,9 +66,13 @@
                         </button>
 
                         <button class="font-bold px-4 py-2 rounded-2xl bg-gray-200 hover:bg-gray-300 transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0"
-                                @onclick="() => CambiarModoFiltro()">
+                                @onclick="() => CambiarModoFiltro()"
+                                title="Mostrar u ocultar filtros por columna"
+                                aria-label="Mostrar u ocultar filtros por columna">
                             <FeatherFilter Color="Black"></FeatherFilter>
                         </button>
+
+                        <SortSelector Sort="sort" OnChange="OnSortChanged" />
                     </div>
                 </div>
             </div>
@@ -79,8 +83,11 @@
                     AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                     Density="Density.Compact" Data="@oRespuesta.List" Count="cantidad" TItem="PlantelDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
         <Columns>
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Placod" Title="Nro Plantel" Width="3.6%" />
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Activo" Title="Activo?" Width="3.33%">
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Placod" Title="Nro Plantel" Width="3.6%">
+                <HeaderTemplate><SortableHeader Sort="sort" Field="Placod" Title="Nro Plantel" OnChange="OnSortChanged" /></HeaderTemplate>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Estado" Title="Activo?" Width="3.33%">
+                <HeaderTemplate><SortableHeader Sort="sort" Field="Estado" Title="Activo?" OnChange="OnSortChanged" /></HeaderTemplate>
                 <Template Context="data">
                     @if (data.Estado == "S")
                     {
@@ -92,15 +99,31 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Anioex" Title="Año de Existencia" Width="4.6%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Anioex" Title="Año de Existencia" Width="4.6%">
+                <HeaderTemplate><SortableHeader Sort="sort" Field="Anioex" Title="Año de Existencia" OnChange="OnSortChanged" /></HeaderTemplate>
+            </RadzenDataGridColumn>
             @* <RadzenDataGridColumn TItem="PlantelDTO" Property="Nroins" Title="Nro ultima inspeccion" Width="6.6%" /> *@
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%" />
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Varede" Title="Vacas PR" Width="4%" />
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaq. PR C/S" Width="5%" />
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaq. PR S/S" Width="5%" />
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Varepr" Title="Vacas VIP" Width="4%" />
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrp" Title="Vaq. VIP C/S o preñadas" Width="6.6%" />
-            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrp" Title="Vaq. VIP S/S" Width="4.6%" />
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Socio.Nombre" Title="Socio" Width="7.34%">
+                <HeaderTemplate><SortableHeader Sort="sort" Field="Socio.Nombre" Title="Socio" OnChange="OnSortChanged" /></HeaderTemplate>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Varede" Title="Vacas PR" Width="4%">
+                <HeaderTemplate><SortableHeader Sort="sort" Field="Varede" Title="Vacas PR" OnChange="OnSortChanged" /></HeaderTemplate>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaq. PR C/S" Width="5%">
+                <HeaderTemplate><SortableHeader Sort="sort" Field="Vqcsrd" Title="Vaq. PR C/S" OnChange="OnSortChanged" /></HeaderTemplate>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaq. PR S/S" Width="5%">
+                <HeaderTemplate><SortableHeader Sort="sort" Field="Vqssrd" Title="Vaq. PR S/S" OnChange="OnSortChanged" /></HeaderTemplate>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Varepr" Title="Vacas VIP" Width="4%">
+                <HeaderTemplate><SortableHeader Sort="sort" Field="Varepr" Title="Vacas VIP" OnChange="OnSortChanged" /></HeaderTemplate>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrp" Title="Vaq. VIP C/S o preñadas" Width="6.6%">
+                <HeaderTemplate><SortableHeader Sort="sort" Field="Vqcsrp" Title="Vaq. VIP C/S o preñadas" OnChange="OnSortChanged" /></HeaderTemplate>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrp" Title="Vaq. VIP S/S" Width="4.6%">
+                <HeaderTemplate><SortableHeader Sort="sort" Field="Vqssrp" Title="Vaq. VIP S/S" OnChange="OnSortChanged" /></HeaderTemplate>
+            </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="PlantelDTO" Property="" Title="" Filterable="false" Width="2.3%">
                 <Template Context="data">
                     <button class="btn" position="absolute" title="Editar Plantel @data.Id" @onclick="() => add(data.Id,false)"><FeatherEdit Size="16" Color="green" /></button>
@@ -139,8 +162,9 @@ else
         @if (oRespuesta.List != null)
         {
 
-            <div class="d-flex justify-content-end gap-3" style="margin-right:3%;">
-                <button style="outline:none;height:100%;" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
+            <div class="d-flex justify-content-end align-items-center flex-wrap gap-3" style="margin-right:3%;margin-left:3.33%;">
+                <SortSelector Sort="sort" OnChange="OnSortChanged" />
+                <button style="outline:none;height:100%;" class="font-bold px-4 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 hover:border-transparent transition ease-in duration-100 transform hover:-translate-y-1 active:translate-y-0" title="Mostrar u ocultar filtros por columna" aria-label="Mostrar u ocultar filtros por columna" @onclick="() => CambiarModoFiltro()"><FeatherFilter Color="Black"></FeatherFilter></button>
             </div>
             <br />
             <br />
@@ -148,8 +172,11 @@ else
                             AllowPaging="true" ShowPagingSummary="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @ref="grid"
                             Density="Density.Compact" Data="@oRespuesta.List" Count="cantidad" TItem="PlantelDTO" ColumnWidth="3.33%" LogicalFilterOperator="LogicalFilterOperator.Or" PagerHorizontalAlign="HorizontalAlign.Center">
                 <Columns>
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Placod" Title="Nro Plantel" Width="3.6%" />
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Activo" Title="Activo?" Width="3.33%">
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Placod" Title="Nro Plantel" Width="3.6%">
+                        <HeaderTemplate><SortableHeader Sort="sort" Field="Placod" Title="Nro Plantel" OnChange="OnSortChanged" /></HeaderTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Estado" Title="Activo?" Width="3.33%">
+                        <HeaderTemplate><SortableHeader Sort="sort" Field="Estado" Title="Activo?" OnChange="OnSortChanged" /></HeaderTemplate>
                         <Template Context="data">
                             @if (data.Estado == "S")
                             {
@@ -161,14 +188,28 @@ else
                             }
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Anioex" Title="Año de Existencia" Width="4.6%" />
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Anioex" Title="Año de Existencia" Width="4.6%">
+                        <HeaderTemplate><SortableHeader Sort="sort" Field="Anioex" Title="Año de Existencia" OnChange="OnSortChanged" /></HeaderTemplate>
+                    </RadzenDataGridColumn>
                     @* <RadzenDataGridColumn TItem="PlantelDTO" Property="Nroins" Title="Nro ultima inspeccion" Width="6.6%" /> *@
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Varede" Title="Vacas PR" Width="4%" />
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaq. PR C/S" Width="5%" />
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaq. PR S/S" Width="5%" />
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Varepr" Title="Vacas VIP" Width="4%" />
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrp" Title="Vaq. VIP C/S o preñadas" Width="6.6%" />
-                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrp" Title="Vaq. VIP S/S" Width="4.6%" />
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Varede" Title="Vacas PR" Width="4%">
+                        <HeaderTemplate><SortableHeader Sort="sort" Field="Varede" Title="Vacas PR" OnChange="OnSortChanged" /></HeaderTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrd" Title="Vaq. PR C/S" Width="5%">
+                        <HeaderTemplate><SortableHeader Sort="sort" Field="Vqcsrd" Title="Vaq. PR C/S" OnChange="OnSortChanged" /></HeaderTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrd" Title="Vaq. PR S/S" Width="5%">
+                        <HeaderTemplate><SortableHeader Sort="sort" Field="Vqssrd" Title="Vaq. PR S/S" OnChange="OnSortChanged" /></HeaderTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Varepr" Title="Vacas VIP" Width="4%">
+                        <HeaderTemplate><SortableHeader Sort="sort" Field="Varepr" Title="Vacas VIP" OnChange="OnSortChanged" /></HeaderTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqcsrp" Title="Vaq. VIP C/S o preñadas" Width="6.6%">
+                        <HeaderTemplate><SortableHeader Sort="sort" Field="Vqcsrp" Title="Vaq. VIP C/S o preñadas" OnChange="OnSortChanged" /></HeaderTemplate>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="PlantelDTO" Property="Vqssrp" Title="Vaq. VIP S/S" Width="4.6%">
+                        <HeaderTemplate><SortableHeader Sort="sort" Field="Vqssrp" Title="Vaq. VIP S/S" OnChange="OnSortChanged" /></HeaderTemplate>
+                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PlantelDTO" Property="" Title="" Filterable="false" Width="2.3%">
                         <Template Context="data">
                             <button class="btn" position="absolute" title="Editar Plantel @data.Id" @onclick="() => add(data.Id,true)"><FeatherEdit Size="16" Color="green" /></button>
@@ -204,35 +245,150 @@ else
     public bool allowFiltering = false;
     List<SocioDTO> socios = new();
     public Respuesta<List<PlantelDTO>> oRespuesta = new Respuesta<List<PlantelDTO>>();
+    bool esSocio;
+    int loadRequestVersion;
+    // Vista de socio: todos sus planteles en el orden por defecto del servidor (se ordenan en memoria).
+    List<PlantelDTO> plantelesSocio = new();
+
+    // Orden inicial: el de siempre (fecha de alta, más recientes primero). Los campos coinciden con la
+    // Property de cada columna y con PlantelRepositorio.Sort*.
+    ListSort sort = CrearOrden(incluirSocio: true);
+
+    static ListSort CrearOrden(bool incluirSocio)
+    {
+        var campos = new List<SortField>
+        {
+            new("FechaAlta", "Fecha de alta", SortValueKind.Date),
+            new("Placod", "Nro plantel", SortValueKind.Text),
+            new("Estado", "Activo", SortValueKind.Text, "Inactivos primero", "Activos primero", FirstDescending: true),
+            new("Anioex", "Año de existencia", SortValueKind.Date),
+        };
+        if (incluirSocio)
+        {
+            campos.Add(new("Socio.Nombre", "Socio", SortValueKind.Text));
+        }
+
+        campos.AddRange(new SortField[]
+        {
+            new("Varede", "Vacas PR", SortValueKind.Number),
+            new("Vqcsrd", "Vaq. PR C/S", SortValueKind.Number),
+            new("Vqssrd", "Vaq. PR S/S", SortValueKind.Number),
+            new("Varepr", "Vacas VIP", SortValueKind.Number),
+            new("Vqcsrp", "Vaq. VIP C/S o preñadas", SortValueKind.Number),
+            new("Vqssrp", "Vaq. VIP S/S", SortValueKind.Number),
+        });
+
+        return new ListSort(campos, defaultKey: "FechaAlta", defaultDescending: true);
+    }
+
+    // Mismas claves que PlantelRepositorio.SortKeys, para la vista de socio (ordenada en el cliente).
+    static readonly IReadOnlyDictionary<string, Func<PlantelDTO, object?>> ClavesOrden =
+        new Dictionary<string, Func<PlantelDTO, object?>>
+        {
+            ["FechaAlta"] = x => PlantelFechaAlta.Obtener(x.Fecing, x.FchUsu),
+            ["Placod"] = x => x.Placod,
+            ["Estado"] = x => x.Estado,
+            ["Anioex"] = x => InMemorySort.ParseYear(x.Anioex),
+            ["Socio.Nombre"] = x => x.Socio?.Nombre,
+            ["Varede"] = x => x.Varede,
+            ["Vqcsrd"] = x => x.Vqcsrd,
+            ["Vqssrd"] = x => x.Vqssrd,
+            ["Varepr"] = x => x.Varepr,
+            ["Vqcsrp"] = x => x.Vqcsrp,
+            ["Vqssrp"] = x => x.Vqssrp,
+        };
+
     protected override async Task OnInitializedAsync()
     {
+        esSocio = await UserHasRole("Socio") || await UserHasRole("SOCIO");
+        if (esSocio)
+        {
+            sort = CrearOrden(incluirSocio: false);
+        }
+
         await Get();
     }
+
     async Task Get()
     {
-        var esSocio = await UserHasRole("Socio") || await UserHasRole("SOCIO");
-        var rta = await _socioServicio.LimitadosFiltrados(0, 0);
-        socios = rta.List;
-        if (!esSocio){
-              var c = await _plantelServicio.CantidadTotal();
-              cantidad = c.List;
-             // Use server-side filtered method so ordering and any filters are applied in the backend
-             oRespuesta = await _plantelServicio.LimitadosFiltrados(0,15, null);
-              EnsureNoDuplicates(oRespuesta);
-             // Diagnostics: log duplicates if any
-             LogDuplicatesIfAny(oRespuesta, "Get - Lista(0,15)");
-              StateHasChanged();
-         }
+        if (!esSocio)
+        {
+            var rta = await _socioServicio.LimitadosFiltrados(0, 0);
+            socios = rta.List;
+            await CargarPagina(0, 15, null);
+        }
         else
         {
             var context = await Http.GetFromJsonAsync<UserContextDTO>("api/Account/context");
             var socioId = context?.ActiveSocioId ?? context?.AllowedSocios?.FirstOrDefault()?.Id ?? 0;
-            oRespuesta = await _plantelServicio.GetBySocioId(socioId);
-            EnsureNoDuplicates(oRespuesta);
-            LogDuplicatesIfAny(oRespuesta, "Get - GetBySocioId");
-            cantidad = oRespuesta.List?.Count ?? 0;
-         }
-     }
+            var respuesta = await _plantelServicio.GetBySocioId(socioId);
+            EnsureNoDuplicates(respuesta);
+            LogDuplicatesIfAny(respuesta, "Get - GetBySocioId");
+            plantelesSocio = respuesta.List ?? new List<PlantelDTO>();
+            oRespuesta = new Respuesta<List<PlantelDTO>> { Exito = respuesta.Exito, Mensaje = respuesta.Mensaje, List = OrdenarPlantelesSocio() };
+            cantidad = plantelesSocio.Count;
+        }
+    }
+
+    // El orden por defecto es el que ya devuelve el servidor; el resto se ordena en memoria con las
+    // mismas reglas (vacíos al final, empates por el último cargado).
+    List<PlantelDTO> OrdenarPlantelesSocio()
+        => sort.IsSortedBy("FechaAlta") && sort.Descending
+            ? plantelesSocio.ToList()
+            : sort.ApplyTo(plantelesSocio, ClavesOrden, x => x.Id);
+
+    async Task OnSortChanged()
+    {
+        if (esSocio)
+        {
+            oRespuesta.List = OrdenarPlantelesSocio();
+            if (grid != null)
+            {
+                await grid.FirstPage();
+            }
+
+            StateHasChanged();
+            return;
+        }
+
+        await RecargarDesdeElPrincipio();
+    }
+
+    // Al cambiar el orden, el socio buscado o los filtros se vuelve a la primera página: seguir en la
+    // página N de otro conjunto muestra registros sin relación con los que se estaban viendo.
+    async Task RecargarDesdeElPrincipio()
+    {
+        if (grid == null)
+        {
+            return;
+        }
+
+        if (grid.CurrentPage > 0)
+        {
+            await grid.FirstPage(true);
+        }
+        else
+        {
+            await grid.Reload();
+        }
+    }
+
+    // Recarga después de editar, eliminar o agregar, conservando la página.
+    async Task Refrescar()
+    {
+        if (esSocio)
+        {
+            await Get();
+            if (grid != null)
+            {
+                await grid.GoToPage(currentPage);
+            }
+        }
+        else if (grid != null)
+        {
+            await grid.Reload();
+        }
+    }
 
 
     private async Task<bool> UserHasRole(string role)
@@ -352,17 +508,7 @@ else
                 }
                 else
                 {
-                    if (socioSeleccionado == null)
-                    {
-                        await Get();
-                        await grid.GoToPage(currentPage);
-                    }
-                    else
-                    {
-                        string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                        oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
-                        EnsureNoDuplicates(oRespuesta);
-                    }
+                    await Refrescar();
                 }
             }
             catch (Exception ex)
@@ -386,17 +532,7 @@ else
             }
             else
             {
-                if (socioSeleccionado == null)
-                {
-                    await Get();
-                    await grid.GoToPage(currentPage);
-                }
-                else
-                {
-                    string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                    oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
-                    EnsureNoDuplicates(oRespuesta);
-                }
+                await Refrescar();
             }
         }
     }
@@ -421,8 +557,7 @@ else
         }
         else
         {
-            await Get();
-            await grid.GoToPage(currentPage);
+            await Refrescar();
         }
     }
     private Task OnSocioSeleccionadoChanged(SocioDTO value)
@@ -437,52 +572,65 @@ else
         return Task.CompletedTask;
     }
 
-    async Task LoadData(LoadDataArgs args)
+    // Grilla de administradores: paginada en el servidor, con el orden y el total del conjunto filtrado
+    // (socio buscado + filtros de columna).
+    Task LoadData(LoadDataArgs args)
+        => CargarPagina(args.Skip ?? 0, args.Top ?? 15, args.Filter);
+
+    async Task CargarPagina(int skip, int top, string? filtroGrilla)
     {
+        var requestId = ++loadRequestVersion;
         isLoading = true;
         StateHasChanged();
         try
         {
-            if (socioSeleccionado == null)
+            var respuesta = await _plantelServicio.SearchPaged(skip, top, ConstruirFiltro(filtroGrilla), sort.Key, sort.Descending);
+            if (requestId != loadRequestVersion)
             {
-                if (!string.IsNullOrEmpty(args.Filter))
-                {
-                    oRespuesta = await _plantelServicio.LimitadosFiltrados(args.Skip.Value, args.Top.Value, args.Filter);
-                    EnsureNoDuplicates(oRespuesta);
-                    LogDuplicatesIfAny(oRespuesta, $"LoadData - LimitadosFiltrados skip={args.Skip} top={args.Top}");
-                }
-                else
-                {
-                    oRespuesta = await _plantelServicio.Lista(args.Skip.Value, args.Top.Value);
-                    EnsureNoDuplicates(oRespuesta);
-                    LogDuplicatesIfAny(oRespuesta, $"LoadData - Lista skip={args.Skip} top={args.Top}");
-                }
+                return;
             }
-            else
+
+            oRespuesta = new Respuesta<List<PlantelDTO>>
             {
-                if (args != null && !string.IsNullOrEmpty(args.Filter))
-                {
-                    // Preserve paging when filtering for a selected socio
-                    var skip = args.Skip ?? 0;
-                    var top = args.Top ?? 15;
-                    oRespuesta = await _plantelServicio.LimitadosFiltrados(skip, top, args.Filter);
-                     // oRespuesta.List = oRespuesta.List.Where(args.Filter)
-                }
-                else
-                {
-                    string filtro = $"Socio.Id={socioSeleccionado.Id}";
-                    // Use paged call so backend applies filter + ordering consistently
-                    oRespuesta = await _plantelServicio.LimitadosFiltrados(0, 60, filtro);
-                     EnsureNoDuplicates(oRespuesta);
-                     LogDuplicatesIfAny(oRespuesta, "LoadData - LimitadosFiltrados for socio");
-                }
+                Exito = respuesta.Exito,
+                Mensaje = respuesta.Mensaje,
+                List = respuesta.List?.Items ?? new List<PlantelDTO>()
+            };
+            cantidad = respuesta.List?.TotalCount ?? 0;
+            LogDuplicatesIfAny(oRespuesta, $"CargarPagina skip={skip} top={top}");
+        }
+        catch (Exception ex)
+        {
+            if (requestId != loadRequestVersion)
+            {
+                return;
             }
+
+            oRespuesta = new Respuesta<List<PlantelDTO>> { Exito = 0, List = new List<PlantelDTO>() };
+            cantidad = 0;
+            await Swal.FireAsync("Error", $"No se pudieron cargar los planteles. {ex.Message}", SweetAlertIcon.Error);
         }
         finally
         {
-            isLoading = false;
-            StateHasChanged();
+            if (requestId == loadRequestVersion)
+            {
+                isLoading = false;
+                StateHasChanged();
+            }
         }
+    }
+
+    string? ConstruirFiltro(string? filtroGrilla)
+    {
+        var filtroSocio = socioSeleccionado != null ? $"Socio.Id == {socioSeleccionado.Id}" : null;
+        var hayFiltroGrilla = !string.IsNullOrWhiteSpace(filtroGrilla);
+
+        if (filtroSocio == null)
+        {
+            return hayFiltroGrilla ? filtroGrilla : null;
+        }
+
+        return hayFiltroGrilla ? $"({filtroSocio}) && ({filtroGrilla})" : filtroSocio;
     }
 
     private Task<IEnumerable<SocioDTO>> BusquedaSocios(string searchText)
@@ -502,21 +650,7 @@ else
         return Task.FromResult<IEnumerable<SocioDTO>>(result);
     }
 
-    private async Task BuscarPorSocio()
-    {
-        var coso = new LoadDataArgs();
-        if (socioSeleccionado != null)
-        {
-            coso.Filter = "";
-        }
-        else
-        {
-            coso.Skip = 0;
-            coso.Top = 15;
-        }
-
-        await LoadData(coso);
-    }
+    private Task BuscarPorSocio() => RecargarDesdeElPrincipio();
 
     void EnsureNoDuplicates(Respuesta<List<PlantelDTO>> respuesta)
     {

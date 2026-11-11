@@ -163,6 +163,51 @@ namespace PaginaPlantels.Server.Cont{
                 return StatusCode(StatusCodes.Status500InternalServerError, _ResponseDTO);
             }
         }
+        /// <summary>
+        /// Listado paginado con total y orden aplicado a todo el conjunto filtrado.
+        /// sortBy admite solo los campos de PlantelRepositorio (Sort*); cualquier otro valor usa el
+        /// orden por defecto. Un socio queda acotado a su razón social activa.
+        /// </summary>
+        [HttpGet]
+        [Route("SearchPaged")]
+        public async Task<IActionResult> SearchPaged(int skip, int take, string? expression = null, string? sortBy = null, bool sortDescending = true)
+        {
+            try
+            {
+                var accessContext = await _userSocioContextService.ResolveAsync(User);
+                if (RequiresActiveSocioScope(accessContext) && string.IsNullOrWhiteSpace(accessContext.ActiveSocioCode))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, BuildForbiddenResponse<PlantelPagedResponse>());
+                }
+
+                var effectiveExpression = RequiresActiveSocioScope(accessContext)
+                    ? AppendFilter(expression, BuildActiveSocioFilter(accessContext.ActiveSocioCode!))
+                    : expression;
+
+                var result = await _plantelRepositorio.SearchPagedAsync(skip, take, effectiveExpression, sortBy, sortDescending);
+
+                return StatusCode(StatusCodes.Status200OK, new Respuesta<PlantelPagedResponse>
+                {
+                    Exito = 1,
+                    Mensaje = "Exito",
+                    List = new PlantelPagedResponse
+                    {
+                        Items = _mapper.Map<List<PlantelDTO>>(result.Items),
+                        TotalCount = result.TotalCount
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new Respuesta<PlantelPagedResponse>
+                {
+                    Exito = 0,
+                    Mensaje = ex.Message,
+                    List = null
+                });
+            }
+        }
+
         [HttpGet]
         [Route("LimitadosFiltradosNoInclude")]
         public async Task<IActionResult> LimitadosFiltradosNoInclude(int skip, int take, string? expression = null)

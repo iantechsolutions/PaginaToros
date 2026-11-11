@@ -12,6 +12,7 @@ namespace PaginaToros.Server.Repositorio.Contrato
         Task<Plantel> Obtener(Expression<Func<Plantel, bool>> filtro = null);
         Task<List<Plantel>> LimitadosFiltrados(int skip, int take, string filtro = null);
         Task<List<Plantel>> LimitadosFiltradosNoInclude(int skip, int take, string filtro = null);
+        Task<(List<Plantel> Items, int TotalCount)> SearchPagedAsync(int skip, int take, string? filtro = null, string? sortBy = null, bool sortDescending = true);
         Task<List<Plantel>> ObtenerPorRangoFechas(DateTime desde, DateTime hasta);
 
         Task<bool> Eliminar(Plantel entidad);

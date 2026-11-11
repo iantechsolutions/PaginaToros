@@ -34,12 +34,17 @@ namespace PaginaToros.Client.Servicios.Implementacion
             return result;
         }
 
-        public async Task<Respuesta<Resin1PagedResponse>> SearchPaged(int skip, int take, string? searchText = null)
+        public async Task<Respuesta<Resin1PagedResponse>> SearchPaged(int skip, int take, string? searchText = null, string? sortBy = null, bool sortDescending = true)
         {
             var url = new System.Text.StringBuilder($"api/Resin1/SearchPaged?skip={skip}&take={take}");
             if (!string.IsNullOrWhiteSpace(searchText))
             {
                 url.Append($"&searchText={Uri.EscapeDataString(searchText)}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                url.Append($"&sortBy={Uri.EscapeDataString(sortBy)}&sortDescending={(sortDescending ? "true" : "false")}");
             }
 
             var result = await _http.GetFromJsonAsync<Respuesta<Resin1PagedResponse>>(url.ToString());

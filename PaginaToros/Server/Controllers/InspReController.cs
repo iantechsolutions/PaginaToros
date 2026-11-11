@@ -72,7 +72,7 @@ namespace PaginaToros.Server.Controllers
 
         [HttpGet]
         [Route("SearchPaged")]
-        public async Task<IActionResult> SearchPaged(int skip, int take, string? searchText = null)
+        public async Task<IActionResult> SearchPaged(int skip, int take, string? searchText = null, string? sortBy = null, bool sortDescending = true)
         {
             var response = new Respuesta<Resin1PagedResponse>();
 
@@ -88,7 +88,9 @@ namespace PaginaToros.Server.Controllers
                     skip,
                     take,
                     searchText,
-                    RequiresActiveSocioScope(accessContext) ? accessContext.ActiveSocioCode! : null);
+                    RequiresActiveSocioScope(accessContext) ? accessContext.ActiveSocioCode! : null,
+                    sortBy,
+                    sortDescending);
 
                 response = new Respuesta<Resin1PagedResponse>
                 {
