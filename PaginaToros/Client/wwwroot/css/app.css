@@ -152,31 +152,23 @@ a, .btn-link {
     border: 0 !important;
 }
 
-/* Unifica ambas filas del header en una sola pieza visual */
+/* Unifica ambas filas del header en una sola pieza visual: el fondo va solo en el
+   thead (el fondo de un grupo de filas abarca todas sus filas) y las filas quedan
+   transparentes para que el degradé no se repita por fila.
+   No usar un thead::before absoluto: Safari no toma el thead como contenedor del
+   pseudo-elemento, que se estira a todo el grid y tapa las filas de marrón. */
 .tablacontent .rz-grid-table thead,
-.tablacontent.rz-data-grid .rz-grid-table thead,
-.tablacontent .rz-grid-table thead tr,
-.tablacontent.rz-data-grid .rz-grid-table thead tr {
+.tablacontent.rz-data-grid .rz-grid-table thead {
     background: var(--pt-grid-header) !important;
     background-image: var(--pt-grid-header-accent), var(--pt-grid-header) !important;
     border: 0 !important;
 }
 
-.tablacontent .rz-grid-table thead,
-.tablacontent.rz-data-grid .rz-grid-table thead {
-    position: relative !important;
-    isolation: isolate !important;
-}
-
-.tablacontent .rz-grid-table thead::before,
-.tablacontent.rz-data-grid .rz-grid-table thead::before {
-    content: "" !important;
-    position: absolute !important;
-    inset: 0 !important;
-    background: var(--pt-grid-header) !important;
-    background-image: var(--pt-grid-header-accent), var(--pt-grid-header) !important;
-    z-index: -1 !important;
-    pointer-events: none !important;
+.tablacontent .rz-grid-table thead tr,
+.tablacontent.rz-data-grid .rz-grid-table thead tr {
+    background: transparent !important;
+    background-image: none !important;
+    border: 0 !important;
 }
 
 .tablacontent .rz-grid-table thead th,
@@ -417,13 +409,13 @@ a, .btn-link {
     outline: none !important;
 }
 
-.tablacontent .rz-grid-table thead th:first-child,
-.tablacontent.rz-data-grid .rz-grid-table thead th:first-child {
+.tablacontent .rz-grid-table thead tr:first-child th:first-child,
+.tablacontent.rz-data-grid .rz-grid-table thead tr:first-child th:first-child {
     border-top-left-radius: 24px !important;
 }
 
-.tablacontent .rz-grid-table thead th:last-child,
-.tablacontent.rz-data-grid .rz-grid-table thead th:last-child {
+.tablacontent .rz-grid-table thead tr:first-child th:last-child,
+.tablacontent.rz-data-grid .rz-grid-table thead tr:first-child th:last-child {
     border-top-right-radius: 24px !important;
 }
 
